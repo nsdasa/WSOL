@@ -1,0 +1,133 @@
+Bob and Mariel Ward School of Filipino Languages
+Version 3.0 - Modularized File Structure
+
+📁 Root Directory
+│
+├── 📄 index.html (7.7KB)
+│   └── Entry point with updated script tags
+│
+├── 🎨 styles.css (53KB)
+│   └── All CSS styles (unchanged)
+│
+├── ⚙️ scan-assets.php (37KB)
+│   └── Backend asset scanner (unchanged)
+│
+├── 📜 app.js (39KB) ⭐ UPDATED
+│   ├── DeviceDetector class
+│   ├── DebugLogger class
+│   ├── ThemeManager class
+│   ├── ToastManager class
+│   ├── InstructionManager class
+│   ├── AssetManager class
+│   ├── ScoreTracker class
+│   ├── AssetScanner class
+│   ├── Router class
+│   ├── LearningModule base class ⭐ NEW LOCATION
+│   └── init() function
+│
+├── 📦 flashcards-module.js (16KB) ⭐ NEW
+│   └── FlashcardsModule class
+│       ├── Flip card animation
+│       ├── Multi-language support
+│       ├── Dynamic font sizing
+│       └── Card pagination
+│
+├── 📦 match-module.js (22KB) ⭐ NEW
+│   └── MatchExerciseModule class
+│       ├── Picture matching game
+│       ├── Review vs Test modes
+│       ├── Virtual cards support
+│       └── Progress tracking
+│
+├── 📦 match-sound-module.js (22KB) ⭐ NEW
+│   └── MatchSoundModule class
+│       ├── Audio matching game
+│       ├── Listen and click
+│       ├── Review vs Test modes
+│       └── Progress tracking
+│
+├── 📦 quiz-module.js (12KB) ⭐ NEW
+│   └── UnsaNiQuizModule class
+│       ├── Type-answer quiz
+│       ├── Spaced repetition
+│       ├── Review vs Test modes
+│       └── Score tracking
+│
+├── 📦 admin-module.js (15KB) ⭐ NEW
+│   └── AdminModule class
+│       ├── System status display
+│       ├── Module health check
+│       ├── Asset scanner trigger
+│       └── Debug configuration
+│
+└── 📦 pdf-module.js (20KB)
+    └── PDFPrintModule class
+        ├── PDF generation
+        ├── Lesson filtering
+        ├── Grammar filtering
+        └── Multi-language cards
+
+═══════════════════════════════════════════════════
+
+📊 Module Breakdown:
+
+Base Infrastructure (app.js):
+├── Device detection (mobile/tablet/desktop)
+├── Theme management (dark/light)
+├── Debug logging system
+├── Toast notifications
+├── Instruction modals
+├── Asset management (manifest loading)
+├── Routing system
+└── Base module class ⭐ (ALL modules extend from this)
+
+Learning Modules (separate files):
+├── flashcards-module.js → Interactive flashcards
+├── match-module.js → Picture matching
+├── match-sound-module.js → Audio matching
+├── quiz-module.js → Typing quiz
+├── admin-module.js → Admin panel
+└── pdf-module.js → PDF printing
+
+═══════════════════════════════════════════════════
+
+🔄 Load Order (Critical):
+
+1. index.html loads
+2. styles.css applies
+3. app.js loads (includes base class) ⭐
+4. flashcards-module.js loads
+5. match-module.js loads
+6. match-sound-module.js loads
+7. quiz-module.js loads
+8. admin-module.js loads
+9. pdf-module.js loads
+10. jspdf library loads
+11. App initializes
+
+═══════════════════════════════════════════════════
+
+✨ Key Changes from Original:
+
+BEFORE:
+├── app.js (utilities only)
+├── modules.js (ALL modules in one 2012-line file)
+└── pdf-module.js
+
+AFTER:
+├── app.js (utilities + base class) ⭐
+├── flashcards-module.js ⭐ NEW
+├── match-module.js ⭐ NEW
+├── match-sound-module.js ⭐ NEW
+├── quiz-module.js ⭐ NEW
+├── admin-module.js ⭐ NEW
+└── pdf-module.js (unchanged)
+
+═══════════════════════════════════════════════════
+
+Benefits:
+✅ Easier to navigate (find code by module name)
+✅ Better for git (no huge file conflicts)
+✅ Clearer debugging (browser shows file names)
+✅ Scalable (add modules without bloat)
+✅ Maintainable (fix one module at a time)
