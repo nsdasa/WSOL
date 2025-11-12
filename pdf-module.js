@@ -9,6 +9,7 @@ class PDFPrintModule extends LearningModule {
         this.selectedLanguages = ['english'];
         this.filterType = 'lesson';
         this.filterValue = null;
+        this.pdfFormat = 'flashcards'; // flashcards, unsani, matching
     }
     
     async render() {
@@ -30,6 +31,29 @@ class PDFPrintModule extends LearningModule {
                 <h1>Print Flashcards to PDF (${langName}: Lesson ${lessonNum})</h1>
                 
                 <div class="pdf-config-section">
+                    <!-- NEW: Format Selection -->
+                    <div class="config-card">
+                        <h3><i class="fas fa-file-alt"></i> PDF Format</h3>
+                        <div class="filter-options">
+                            <label class="radio-label">
+                                <input type="radio" name="pdfFormat" value="flashcards" checked>
+                                Flashcards (2-sided printable cards)
+                            </label>
+                        </div>
+                        <div class="filter-options">
+                            <label class="radio-label">
+                                <input type="radio" name="pdfFormat" value="unsani">
+                                Unsa Ni? (Fill-in-the-blank worksheet)
+                            </label>
+                        </div>
+                        <div class="filter-options">
+                            <label class="radio-label">
+                                <input type="radio" name="pdfFormat" value="matching">
+                                Matching Game (Connect pictures to words)
+                            </label>
+                        </div>
+                    </div>
+                
                     <div class="config-card">
                         <h3><i class="fas fa-filter"></i> Filter Cards</h3>
                         <div class="filter-options">
@@ -60,7 +84,7 @@ class PDFPrintModule extends LearningModule {
                         </div>
                     </div>
                     
-                    <div class="config-card">
+                    <div class="config-card" id="languageSelectionCard">
                         <h3><i class="fas fa-language"></i> Card Back Languages</h3>
                         <p class="config-hint">Select languages to show on card backs (up to 2)</p>
                         <div class="language-checkboxes">
@@ -118,6 +142,14 @@ class PDFPrintModule extends LearningModule {
         } else {
             this.selectedLanguages = [];
         }
+        
+        // Setup PDF format radio buttons
+        document.querySelectorAll('input[name="pdfFormat"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.pdfFormat = e.target.value;
+                this.updateFormatUI();
+            });
+        });
         
         // Setup filter radio buttons
         document.querySelectorAll('input[name="filterType"]').forEach(radio => {
@@ -177,100 +209,101 @@ class PDFPrintModule extends LearningModule {
         
         // Initial preview
         this.updateCardPreview();
+        this.updateFormatUI();
         
         // Show instructions
         if (instructionManager) {
             instructionManager.show(
-                'pdf-print',
-                'PDF Printing Instructions',
-                'Select your filter options and languages, then click Generate PDF to create printable flashcards.'
+                'pdf',
+                'PDF Print Instructions',
+                'Choose your PDF format, filter the cards you want, and click Generate PDF to create a printable document.'
             );
+        }
+    }
+    
+    updateFormatUI() {
+        // Show/hide language selection based on format
+        const languageCard = document.getElementById('languageSelectionCard');
+        if (this.pdfFormat === 'flashcards') {
+            languageCard.style.display = 'block';
+        } else {
+            languageCard.style.display = 'none';
         }
     }
     
     updateCardPreview() {
         const allCards = this.assets.cards || [];
-        let filtered = allCards.filter(card => card.hasImage); // Only cards with images
         
-        // Apply filters
         if (this.filterType === 'lesson') {
             const lessonFrom = parseInt(document.getElementById('lessonFromFilter').value);
             const lessonTo = parseInt(document.getElementById('lessonToFilter').value);
-            
-            // Ensure from <= to
             const minLesson = Math.min(lessonFrom, lessonTo);
             const maxLesson = Math.max(lessonFrom, lessonTo);
             
-            filtered = filtered.filter(c => c.lesson >= minLesson && c.lesson <= maxLesson);
-        } else if (this.filterType === 'grammar') {
-            const grammarValue = document.getElementById('grammarFilter').value;
-            if (grammarValue) {
-                filtered = filtered.filter(c => c.grammar === grammarValue);
+            this.selectedCards = allCards.filter(c => c.lesson >= minLesson && c.lesson <= maxLesson);
+        } else {
+            const grammarType = document.getElementById('grammarFilter').value;
+            if (grammarType) {
+                this.selectedCards = allCards.filter(c => c.grammar === grammarType);
             } else {
-                filtered = [];
+                this.selectedCards = [];
             }
         }
         
-        this.selectedCards = filtered;
-        
-        const previewEl = document.getElementById('cardPreviewCount');
+        const previewCount = document.getElementById('cardPreviewCount');
         const generateBtn = document.getElementById('generatePDFBtn');
         
-        if (this.selectedCards.length === 0) {
-            previewEl.innerHTML = `
-                <div class="empty-state-small">
-                    <i class="fas fa-info-circle"></i>
-                    <p>No cards match the selected filters</p>
-                </div>
-            `;
-            generateBtn.disabled = true;
-        } else {
-            const pages = Math.ceil(this.selectedCards.length / 4) * 2; // Front and back pages
-            previewEl.innerHTML = `
-                <div class="preview-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">${this.selectedCards.length}</span>
-                        <span class="stat-label">Cards</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">${pages}</span>
-                        <span class="stat-label">Pages</span>
-                    </div>
-                </div>
-            `;
+        if (this.selectedCards.length > 0) {
+            previewCount.textContent = `${this.selectedCards.length} cards will be included`;
+            previewCount.style.color = 'var(--success)';
             generateBtn.disabled = false;
+        } else {
+            previewCount.textContent = 'No cards match your filters';
+            previewCount.style.color = 'var(--error)';
+            generateBtn.disabled = true;
         }
     }
     
     async generatePDF() {
-        if (this.selectedCards.length === 0) return;
-        
+        // Route to appropriate generator based on format
+        if (this.pdfFormat === 'flashcards') {
+            await this.generateFlashcardsPDF();
+        } else if (this.pdfFormat === 'unsani') {
+            await this.generateUnsaNiPDF();
+        } else if (this.pdfFormat === 'matching') {
+            await this.generateMatchingGamePDF();
+        }
+    }
+    
+    async generateFlashcardsPDF() {
         // Show processing message
         document.getElementById('processingMessage').classList.remove('hidden');
         document.getElementById('generatePDFBtn').disabled = true;
         
         try {
-            // Import jsPDF
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
-                format: 'letter' // 8.5" x 11"
+                format: 'letter'
             });
             
-            const pageWidth = 215.9; // Letter width in mm
-            const pageHeight = 279.4; // Letter height in mm
-            const cardWidth = (pageWidth - 20) / 2; // 2 columns
-            const cardHeight = (pageHeight - 20) / 2; // 2 rows
+            const pageWidth = doc.internal.pageSize.width; // 215.9mm
+            const pageHeight = doc.internal.pageSize.height; // 279.4mm
             const margin = 10;
-            const backgroundColor = '#A8D5BA'; // Light teal
+            const cardWidth = (pageWidth - margin * 3) / 2;
+            const cardHeight = (pageHeight - margin * 3) / 2;
+            
+            // Background color (light cream)
+            const backgroundColor = [250, 248, 240];
             
             // Process cards in groups of 4
             for (let i = 0; i < this.selectedCards.length; i += 4) {
                 const pageCards = this.selectedCards.slice(i, i + 4);
                 
-                // Add front page
                 if (i > 0) doc.addPage();
+                
+                // Add front page
                 await this.renderFrontPage(doc, pageCards, margin, cardWidth, cardHeight, backgroundColor);
                 
                 // Add back page (horizontally flipped positions)
@@ -310,6 +343,267 @@ class PDFPrintModule extends LearningModule {
             document.getElementById('processingMessage').classList.add('hidden');
             document.getElementById('generatePDFBtn').disabled = false;
         }
+    }
+    
+    async generateUnsaNiPDF() {
+        document.getElementById('processingMessage').classList.remove('hidden');
+        document.getElementById('generatePDFBtn').disabled = true;
+        
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'letter'
+            });
+            
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            
+            // Process cards in groups of 7 per page
+            for (let i = 0; i < this.selectedCards.length; i += 7) {
+                const pageCards = this.selectedCards.slice(i, i + 7);
+                
+                if (i > 0) doc.addPage();
+                
+                await this.renderUnsaNiPage(doc, pageCards, pageWidth, pageHeight);
+            }
+            
+            // Save the PDF
+            const learningLang = this.assets.currentLanguage.name;
+            let filterDesc;
+            
+            if (this.filterType === 'lesson') {
+                const lessonFrom = parseInt(document.getElementById('lessonFromFilter').value);
+                const lessonTo = parseInt(document.getElementById('lessonToFilter').value);
+                const minLesson = Math.min(lessonFrom, lessonTo);
+                const maxLesson = Math.max(lessonFrom, lessonTo);
+                
+                if (minLesson === maxLesson) {
+                    filterDesc = `L${minLesson}`;
+                } else {
+                    filterDesc = `L${minLesson}-L${maxLesson}`;
+                }
+            } else {
+                filterDesc = document.getElementById('grammarFilter').value || 'All';
+            }
+            
+            const filename = `${learningLang}_${filterDesc}_UnsaNi.pdf`;
+            
+            doc.save(filename);
+            
+            toastManager.show('Unsa Ni? PDF generated successfully!', 'success', 3000);
+            
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            toastManager.show(`Error generating PDF: ${error.message}`, 'error', 5000);
+        } finally {
+            document.getElementById('processingMessage').classList.add('hidden');
+            document.getElementById('generatePDFBtn').disabled = false;
+        }
+    }
+    
+    async generateMatchingGamePDF() {
+        document.getElementById('processingMessage').classList.remove('hidden');
+        document.getElementById('generatePDFBtn').disabled = true;
+        
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'letter'
+            });
+            
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            
+            // Process cards in groups of 7 per page (matching game format)
+            for (let i = 0; i < this.selectedCards.length; i += 7) {
+                const pageCards = this.selectedCards.slice(i, i + 7);
+                
+                if (i > 0) doc.addPage();
+                
+                await this.renderMatchingGamePage(doc, pageCards, pageWidth, pageHeight);
+            }
+            
+            // Save the PDF
+            const learningLang = this.assets.currentLanguage.name;
+            let filterDesc;
+            
+            if (this.filterType === 'lesson') {
+                const lessonFrom = parseInt(document.getElementById('lessonFromFilter').value);
+                const lessonTo = parseInt(document.getElementById('lessonToFilter').value);
+                const minLesson = Math.min(lessonFrom, lessonTo);
+                const maxLesson = Math.max(lessonFrom, lessonTo);
+                
+                if (minLesson === maxLesson) {
+                    filterDesc = `L${minLesson}`;
+                } else {
+                    filterDesc = `L${minLesson}-L${maxLesson}`;
+                }
+            } else {
+                filterDesc = document.getElementById('grammarFilter').value || 'All';
+            }
+            
+            const filename = `${learningLang}_${filterDesc}_Matching.pdf`;
+            
+            doc.save(filename);
+            
+            toastManager.show('Matching Game PDF generated successfully!', 'success', 3000);
+            
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            toastManager.show(`Error generating PDF: ${error.message}`, 'error', 5000);
+        } finally {
+            document.getElementById('processingMessage').classList.add('hidden');
+            document.getElementById('generatePDFBtn').disabled = false;
+        }
+    }
+    
+    async renderPDFHeader(doc, pageWidth, title, subtitle) {
+        // Try to load logo
+        let logoLoaded = false;
+        try {
+            const logoData = await this.loadImageAsDataURL('assets/logo.png');
+            const logoSize = 15; // mm
+            const logoX = 10;
+            const logoY = 8;
+            doc.addImage(logoData, 'PNG', logoX, logoY, logoSize, logoSize, undefined, 'FAST');
+            logoLoaded = true;
+        } catch (error) {
+            console.log('Logo not found, skipping');
+        }
+        
+        // School name
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0);
+        const textX = logoLoaded ? 28 : 10;
+        doc.text('Bob and Mariel Ward School of Filipino Languages', textX, 15);
+        
+        // Draw line under header
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.5);
+        doc.line(10, 25, pageWidth - 10, 25);
+        
+        // Title
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text(title, pageWidth / 2, 35, { align: 'center' });
+        
+        // Subtitle if provided
+        if (subtitle) {
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'normal');
+            doc.text(subtitle, pageWidth / 2, 42, { align: 'center' });
+        }
+    }
+    
+    async renderUnsaNiPage(doc, cards, pageWidth, pageHeight) {
+        // Render header
+        await this.renderPDFHeader(doc, pageWidth, 'Isulat: Unsa kini?', 'LITRATO');
+        
+        const startY = 50;
+        const rowHeight = 30;
+        const imageSize = 25;
+        const imageX = 15;
+        const textX = 45;
+        const lineWidth = 120;
+        
+        for (let i = 0; i < cards.length; i++) {
+            const card = cards[i];
+            const y = startY + (i * rowHeight);
+            
+            // Draw border box around each item
+            doc.setDrawColor(200);
+            doc.setLineWidth(0.3);
+            doc.rect(10, y - 3, pageWidth - 20, rowHeight - 2);
+            
+            // Load and draw image
+            try {
+                const imgData = await this.loadImageAsDataURL(card.imagePath);
+                doc.addImage(imgData, 'PNG', imageX, y, imageSize, imageSize, undefined, 'FAST');
+            } catch (error) {
+                console.error('Error loading image:', error);
+                doc.setFontSize(10);
+                doc.setTextColor(150);
+                doc.text('Image not found', imageX + imageSize / 2, y + imageSize / 2, { align: 'center' });
+            }
+            
+            // Draw "Kini ang" text
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(0);
+            doc.text('Kini ang', textX, y + 13);
+            
+            // Draw blank line
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+            const lineY = y + 15;
+            doc.line(textX + 25, lineY, textX + lineWidth, lineY);
+            
+            // Draw period at the end
+            doc.text('.', textX + lineWidth + 2, y + 13);
+        }
+    }
+    
+    async renderMatchingGamePage(doc, cards, pageWidth, pageHeight) {
+        // Render header
+        await this.renderPDFHeader(doc, pageWidth, 'Asa ang saktong pulong sa mga litrato?', '');
+        
+        const startY = 50;
+        const rowHeight = 28;
+        const imageSize = 22;
+        const leftColX = 15;
+        const dotRadius = 2;
+        const leftDotX = leftColX + imageSize + 8;
+        const rightDotX = pageWidth / 2 + 10;
+        const wordX = rightDotX + 8;
+        
+        // Column headers
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('LITRATO', leftColX, 48);
+        doc.text('PULONG', rightDotX + 5, 48);
+        
+        // Scramble the words for the right column
+        const shuffledCards = [...cards].sort(() => Math.random() - 0.5);
+        
+        for (let i = 0; i < cards.length; i++) {
+            const card = cards[i];
+            const shuffledCard = shuffledCards[i];
+            const y = startY + (i * rowHeight);
+            
+            // LEFT SIDE: Image with dot on right
+            try {
+                const imgData = await this.loadImageAsDataURL(card.imagePath);
+                doc.addImage(imgData, 'PNG', leftColX, y, imageSize, imageSize, undefined, 'FAST');
+            } catch (error) {
+                console.error('Error loading image:', error);
+            }
+            
+            // Draw dot on right side of image
+            doc.setFillColor(0);
+            doc.circle(leftDotX, y + imageSize / 2, dotRadius, 'F');
+            
+            // RIGHT SIDE: Word with dot on left
+            doc.setFillColor(0);
+            doc.circle(rightDotX, y + imageSize / 2, dotRadius, 'F');
+            
+            // Draw word
+            const learningLang = this.assets.currentLanguage.name;
+            const word = shuffledCard.translations[learningLang.toLowerCase()].word;
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(0);
+            doc.text(word, wordX, y + imageSize / 2 + 2);
+        }
+        
+        // Draw vertical separator line
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.5);
+        doc.line(pageWidth / 2, 48, pageWidth / 2, startY + (cards.length * rowHeight));
     }
     
     async renderFrontPage(doc, cards, margin, cardWidth, cardHeight, bgColor) {
