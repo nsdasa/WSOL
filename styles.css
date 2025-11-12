@@ -2747,3 +2747,399 @@ body.mobile-phone .instruction-footer .btn i {
     flex: 0 0 auto;
     min-width: 120px;
 }
+/* =================================================================
+   PDF FORMAT SELECTION ENHANCEMENTS
+   Added for Version 3.1 - November 2025
+   ================================================================= */
+
+/* Format Selection Container */
+.format-selection-card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    border: 2px solid var(--border-color);
+}
+
+/* Enhanced Radio Label for Formats */
+.filter-options .radio-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    padding: 14px 16px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+    min-width: 100%;
+}
+
+.filter-options .radio-label:hover {
+    border-color: var(--primary);
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-options .radio-label input[type="radio"] {
+    margin-top: 3px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.filter-options .radio-label input[type="radio"]:checked + span {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Selected state for radio labels */
+.filter-options .radio-label:has(input[type="radio"]:checked) {
+    border-color: var(--primary);
+    background: var(--bg-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+[data-theme="dark"] .filter-options .radio-label:has(input[type="radio"]:checked) {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Format Label Text */
+.format-label-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.format-label-text strong {
+    font-size: 15px;
+    color: var(--text-primary);
+    display: block;
+}
+
+.format-label-text small {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: block;
+    line-height: 1.4;
+}
+
+/* Format Icons (if using FontAwesome icons inline) */
+.format-icon {
+    font-size: 20px;
+    color: var(--primary);
+    margin-right: 8px;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* Language Selection Card - Hidden state enhancement */
+#languageSelectionCard {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+#languageSelectionCard[style*="display: none"] {
+    opacity: 0;
+    max-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Preview Count Enhanced */
+.preview-count {
+    font-size: 16px;
+    font-weight: 600;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 2px dashed var(--border-color);
+    text-align: center;
+}
+
+/* Config Card Format Selection Specific */
+.config-card.format-selection {
+    background: linear-gradient(to bottom right, var(--bg-secondary), var(--bg-primary));
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.config-card.format-selection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+.config-card.format-selection h3 {
+    color: var(--primary);
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+/* Format Radio Group Wrapper */
+.format-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Better visual feedback for disabled elements */
+.filter-options .radio-label input[type="radio"]:disabled ~ span {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Generate Button Enhancement */
+#generatePDFBtn {
+    position: relative;
+    overflow: hidden;
+}
+
+#generatePDFBtn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+#generatePDFBtn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Processing Message Enhancement */
+.processing-message {
+    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+[data-theme="dark"] .processing-message {
+    background: rgba(31, 41, 55, 0.95);
+}
+
+/* Mobile Responsiveness for Format Selection */
+@media (max-width: 768px) {
+    .filter-options .radio-label {
+        padding: 12px 14px;
+        min-width: 100%;
+    }
+    
+    .format-label-text strong {
+        font-size: 14px;
+    }
+    
+    .format-label-text small {
+        font-size: 12px;
+    }
+    
+    .format-icon {
+        font-size: 18px;
+    }
+    
+    .config-card.format-selection h3 {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-options .radio-label {
+        padding: 10px 12px;
+    }
+    
+    .format-label-text strong {
+        font-size: 13px;
+    }
+    
+    .format-label-text small {
+        font-size: 11px;
+        line-height: 1.3;
+    }
+    
+    .config-card {
+        padding: 16px;
+    }
+}
+
+/* Accessibility improvements */
+.filter-options .radio-label:focus-within {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.filter-options .radio-label input[type="radio"]:focus {
+    outline: none;
+}
+
+/* Smooth transitions for all interactive elements */
+.config-card,
+.filter-options .radio-label,
+.checkbox-label,
+.preview-count,
+#generatePDFBtn {
+    transition: all 0.2s ease;
+}
+
+/* Enhanced hint text */
+.config-hint {
+    background: var(--bg-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary);
+}
+
+/* Lesson range visual improvements */
+.lesson-range {
+    background: var(--bg-primary);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+/* Language checkboxes in PDF module */
+.language-checkboxes .checkbox-label {
+    transition: all 0.2s ease;
+}
+
+.language-checkboxes .checkbox-label:hover:not(:has(input:disabled)) {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.language-checkboxes .checkbox-label:has(input:checked) {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.language-checkboxes .checkbox-label:has(input:checked):hover {
+    background: var(--primary-dark);
+}
+
+.language-checkboxes .checkbox-label:has(input:disabled) {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--bg-secondary);
+}
+
+/* Success/Error colors for preview count */
+.preview-count[style*="color: var(--success)"] {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.preview-count[style*="color: var(--error)"] {
+    border-color: var(--error);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+/* Print-specific styles */
+@media print {
+    .module-pdf-print {
+        display: none;
+    }
+}
+
+/* Dark mode specific enhancements */
+[data-theme="dark"] .config-hint {
+    background: var(--bg-secondary);
+    border-left-color: var(--primary);
+}
+
+[data-theme="dark"] .lesson-range {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .filter-options .radio-label {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .filter-options .radio-label:hover {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .language-checkboxes .checkbox-label:has(input:checked) {
+    background: var(--primary);
+    color: white;
+}
+
+/* Animation for format selection */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.config-card {
+    animation: fadeInUp 0.3s ease;
+}
+
+.config-card:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.config-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.config-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.config-card:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+/* Enhanced spinner animation */
+.spinner {
+    animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Tooltip-style format descriptions */
+.format-tooltip {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 8px;
+    padding: 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: var(--shadow-md);
+    font-size: 13px;
+    color: var(--text-secondary);
+    z-index: 10;
+}
+
+.filter-options .radio-label:hover .format-tooltip {
+    display: block;
+}
+
+/* =================================================================
+   END OF PDF FORMAT SELECTION ENHANCEMENTS
+   ================================================================= */
