@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-<!-- Bob and Mariel Ward School of Filipino Languages - Version 3.0 - November 2025 -->
+<!-- Bob and Mariel Ward School of Filipino Languages - Version 3.1 - AUTOMATIC CACHE BUSTING - November 2025 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bob and Mariel Ward School of Filipino Languages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=<?php echo filemtime('styles.css'); ?>">
 </head>
 <body>
     <!-- Header -->
@@ -17,7 +17,7 @@
                     <img id="logoImg" src="assets/logo.png" alt="Logo" class="logo-image" style="display: none;" onload="this.style.display='inline-block';" onerror="this.style.display='none'">
                     Bob and Mariel Ward School of Filipino Languages
                 </h1>
-                <span class="version-badge">v3.0</span>
+                <span class="version-badge">v3.1</span>
             </div>
             <div class="header-controls">
                 <div class="language-selector">
@@ -174,15 +174,15 @@
     </div>
 
     <!-- Core Application Script (includes base LearningModule class) -->
-    <script src="app.js"></script>
+    <script src="app.js?v=<?php echo filemtime('app.js'); ?>"></script>
     
     <!-- Individual Module Scripts -->
-    <script src="flashcards-module.js"></script>
-    <script src="match-module.js"></script>
-    <script src="match-sound-module.js"></script>
-    <script src="quiz-module.js"></script>
-    <script src="admin-module.js"></script>
-    <script src="pdf-module.js"></script>
+    <script src="flashcards-module.js?v=<?php echo filemtime('flashcards-module.js'); ?>"></script>
+    <script src="match-module.js?v=<?php echo filemtime('match-module.js'); ?>"></script>
+    <script src="match-sound-module.js?v=<?php echo filemtime('match-sound-module.js'); ?>"></script>
+    <script src="quiz-module.js?v=<?php echo filemtime('quiz-module.js'); ?>"></script>
+    <script src="admin-module.js?v=<?php echo filemtime('admin-module.js'); ?>"></script>
+    <script src="pdf-module.js?v=<?php echo filemtime('pdf-module.js'); ?>"></script>
     
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

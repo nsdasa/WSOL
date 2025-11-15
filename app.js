@@ -524,8 +524,13 @@ class AssetManager {
                 // Check if the card has the language
                 const langKey = langFilter === 'ceb' ? 'cebuano' : 
                                langFilter === 'eng' ? 'english' :
-                               langFilter === 'mar' ? 'maranao' :
-                               langFilter === 'sml' ? 'sinama' : null;
+                               langFilter === 'mrw' ? 'maranao' :
+                               langFilter === 'sin' ? 'sinama' : null;
+                
+                // Handle both structures: card.translations.cebuano (new) or card.cebuano (old)
+                if (card.translations && card.translations[langKey]) {
+                    return true;
+                }
                 return langKey && card[langKey];
             });
         }
@@ -540,33 +545,48 @@ class AssetManager {
             filtered = filtered.filter(card => card.hasImage === filters.hasImage);
         }
         
-        // Process cards to add translation structure and acceptable answers
+        // Enrich cards to ensure they have allTranslations structure
         return filtered.map(card => this.enrichCard(card));
     }
     
     enrichCard(card) {
-        // Build allTranslations object
-        const allTranslations = {
-            cebuano: card.cebuano ? { word: card.cebuano, note: card.cebuanoNote || '' } : null,
-            english: card.english ? { word: card.english, note: card.englishNote || '' } : null,
-            maranao: card.maranao ? { word: card.maranao, note: card.maranaoNote || '' } : null,
-            sinama: card.sinama ? { word: card.sinama, note: card.sinamaNote || '' } : null
-        };
+        // Handle both structures: card.translations (new manifest) or flat properties (old)
+        let allTranslations;
+        
+        if (card.translations) {
+            // New structure: card.translations already has the correct format
+            allTranslations = card.translations;
+        } else {
+            // Old structure: build from flat properties
+            allTranslations = {
+                cebuano: card.cebuano ? { word: card.cebuano, note: card.cebuanoNote || '' } : null,
+                english: card.english ? { word: card.english, note: card.englishNote || '' } : null,
+                maranao: card.maranao ? { word: card.maranao, note: card.maranaoNote || '' } : null,
+                sinama: card.sinama ? { word: card.sinama, note: card.sinamaNote || '' } : null
+            };
+        }
         
         // Get learning language key
         const learningLangKey = this.currentLanguage ? this.currentLanguage.trigraph.toLowerCase() : 'ceb';
         const learningLangName = learningLangKey === 'ceb' ? 'cebuano' :
                                 learningLangKey === 'eng' ? 'english' :
-                                learningLangKey === 'mar' ? 'maranao' :
-                                learningLangKey === 'sml' ? 'sinama' : 'cebuano';
+                                learningLangKey === 'mrw' ? 'maranao' :
+                                learningLangKey === 'sin' ? 'sinama' : 'cebuano';
         
         // Get primary translation for current learning language
         const primaryTranslation = allTranslations[learningLangName];
         
-        // Build acceptable answers (split by comma, trim, filter empty)
-        const acceptableAnswers = primaryTranslation ? 
-            primaryTranslation.word.split(',').map(w => w.trim()).filter(w => w) : 
-            [card.cebuano || ''];
+        // Use existing acceptableAnswers if available, otherwise build from word
+        let acceptableAnswers;
+        if (primaryTranslation) {
+            if (primaryTranslation.acceptableAnswers && Array.isArray(primaryTranslation.acceptableAnswers)) {
+                acceptableAnswers = primaryTranslation.acceptableAnswers;
+            } else {
+                acceptableAnswers = primaryTranslation.word.split(',').map(w => w.trim()).filter(w => w);
+            }
+        } else {
+            acceptableAnswers = [card.cebuano || ''];
+        }
         
         // Get audio path for current language
         const audioPath = card.audio && card.audio[learningLangKey] ? 

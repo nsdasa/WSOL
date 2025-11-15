@@ -109,9 +109,35 @@ class PDFPrintModule extends LearningModule {
                         <div id="cardPreviewCount" class="preview-count">
                             Select filters to see card count
                         </div>
+                        <button id="showPrintPreviewBtn" class="btn btn-secondary" style="margin-bottom: 16px;" disabled>
+                            <i class="fas fa-eye"></i> Show Print Preview
+                        </button>
                         <button id="generatePDFBtn" class="btn btn-primary btn-lg" disabled>
                             <i class="fas fa-file-pdf"></i> Generate PDF
                         </button>
+                    </div>
+                </div>
+                
+                <!-- Print Preview Modal -->
+                <div id="printPreviewModal" class="modal hidden">
+                    <div class="modal-content print-preview-modal">
+                        <div class="modal-header">
+                            <h2><i class="fas fa-file-pdf"></i> Print Preview</h2>
+                            <button id="closePrintPreviewBtn" class="close-btn">&times;</button>
+                        </div>
+                        <div class="print-preview-loading hidden" id="previewLoading">
+                            <div class="spinner"></div>
+                            <p>Generating preview...</p>
+                        </div>
+                        <iframe id="pdfPreviewFrame" class="pdf-preview-frame"></iframe>
+                        <div class="modal-footer">
+                            <button id="downloadFromPreviewBtn" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Download PDF
+                            </button>
+                            <button id="closePreviewBtn" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Close
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -207,6 +233,27 @@ class PDFPrintModule extends LearningModule {
             this.generatePDF();
         });
         
+        // Setup print preview button
+        document.getElementById('showPrintPreviewBtn').addEventListener('click', () => {
+            this.showPrintPreview();
+        });
+        
+        // Setup print preview modal controls
+        document.getElementById('closePrintPreviewBtn').addEventListener('click', () => {
+            this.closePrintPreview();
+        });
+        
+        document.getElementById('closePreviewBtn').addEventListener('click', () => {
+            this.closePrintPreview();
+        });
+        
+        document.getElementById('downloadFromPreviewBtn').addEventListener('click', () => {
+            this.downloadPreviewedPDF();
+        });
+        
+        // Store the preview PDF
+        this.previewPdfBlob = null;
+        
         // Initial preview
         this.updateCardPreview();
         this.updateFormatUI();
@@ -252,16 +299,182 @@ class PDFPrintModule extends LearningModule {
         
         const previewCount = document.getElementById('cardPreviewCount');
         const generateBtn = document.getElementById('generatePDFBtn');
+        const previewBtn = document.getElementById('showPrintPreviewBtn');
         
         if (this.selectedCards.length > 0) {
             previewCount.textContent = `${this.selectedCards.length} cards will be included`;
             previewCount.style.color = 'var(--success)';
             generateBtn.disabled = false;
+            previewBtn.disabled = false;
         } else {
             previewCount.textContent = 'No cards match your filters';
             previewCount.style.color = 'var(--error)';
             generateBtn.disabled = true;
+            previewBtn.disabled = true;
         }
+    }
+    
+    async showPrintPreview() {
+        // Show modal and loading state
+        const modal = document.getElementById('printPreviewModal');
+        const loading = document.getElementById('previewLoading');
+        const iframe = document.getElementById('pdfPreviewFrame');
+        
+        modal.classList.remove('hidden');
+        loading.classList.remove('hidden');
+        iframe.style.display = 'none';
+        
+        try {
+            // Generate the actual PDF
+            const pdfBlob = await this.generatePDFPreview();
+            
+            // Create blob URL and display in iframe
+            const blobUrl = URL.createObjectURL(pdfBlob);
+            iframe.src = blobUrl;
+            iframe.style.display = 'block';
+            loading.classList.add('hidden');
+            
+            // Store for download
+            this.previewPdfBlob = pdfBlob;
+            
+        } catch (error) {
+            console.error('Preview generation error:', error);
+            toastManager.show(`Preview failed: ${error.message}`, 'error');
+            this.closePrintPreview();
+        }
+    }
+    
+    async generatePDFPreview() {
+        // Generate PDF based on format, but return blob instead of downloading
+        if (this.pdfFormat === 'flashcards') {
+            return await this.generateFlashcardsPDFBlob();
+        } else if (this.pdfFormat === 'unsani') {
+            return await this.generateUnsaNiPDFBlob();
+        } else if (this.pdfFormat === 'matching') {
+            return await this.generateMatchingGamePDFBlob();
+        }
+    }
+    
+    closePrintPreview() {
+        const modal = document.getElementById('printPreviewModal');
+        const iframe = document.getElementById('pdfPreviewFrame');
+        
+        modal.classList.add('hidden');
+        
+        // Revoke blob URL to free memory
+        if (iframe.src && iframe.src.startsWith('blob:')) {
+            URL.revokeObjectURL(iframe.src);
+        }
+        iframe.src = '';
+        
+        this.previewPdfBlob = null;
+    }
+    
+    downloadPreviewedPDF() {
+        if (!this.previewPdfBlob) {
+            toastManager.show('No PDF to download', 'error');
+            return;
+        }
+        
+        // Create download link
+        const url = URL.createObjectURL(this.previewPdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Generate filename
+        const learningLang = this.assets.currentLanguage.name;
+        let filterDesc;
+        
+        if (this.filterType === 'lesson') {
+            const lessonFrom = parseInt(document.getElementById('lessonFromFilter').value);
+            const lessonTo = parseInt(document.getElementById('lessonToFilter').value);
+            filterDesc = lessonFrom === lessonTo ? `L${lessonFrom}` : `L${lessonFrom}-${lessonTo}`;
+        } else {
+            const grammarType = document.getElementById('grammarFilter').value;
+            filterDesc = grammarType.replace(/\s+/g, '-');
+        }
+        
+        const timestamp = new Date().toISOString().split('T')[0];
+        a.download = `${learningLang}-${this.pdfFormat}-${filterDesc}-${timestamp}.pdf`;
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toastManager.show('PDF downloaded!', 'success');
+        this.closePrintPreview();
+    }
+    
+    // ===== BLOB VERSIONS FOR PREVIEW =====
+    async generateFlashcardsPDFBlob() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'letter'
+        });
+        
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 10;
+        const cardWidth = (pageWidth - margin * 3) / 2;
+        const cardHeight = (pageHeight - margin * 3) / 2;
+        const backgroundColor = [250, 248, 240];
+        
+        // Process cards in groups of 4
+        for (let i = 0; i < this.selectedCards.length; i += 4) {
+            const pageCards = this.selectedCards.slice(i, i + 4);
+            
+            if (i > 0) doc.addPage();
+            await this.renderFrontPage(doc, pageCards, margin, cardWidth, cardHeight, backgroundColor);
+            doc.addPage();
+            await this.renderBackPage(doc, pageCards, margin, cardWidth, cardHeight, backgroundColor);
+        }
+        
+        return doc.output('blob');
+    }
+    
+    async generateUnsaNiPDFBlob() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'letter'
+        });
+        
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const itemsPerPage = 6;
+        
+        for (let i = 0; i < this.selectedCards.length; i += itemsPerPage) {
+            if (i > 0) doc.addPage();
+            const pageCards = this.selectedCards.slice(i, i + itemsPerPage);
+            await this.renderUnsaNiPage(doc, pageCards, pageWidth, pageHeight);
+        }
+        
+        return doc.output('blob');
+    }
+    
+    async generateMatchingGamePDFBlob() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'letter'
+        });
+        
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const itemsPerPage = 10;
+        
+        for (let i = 0; i < this.selectedCards.length; i += itemsPerPage) {
+            if (i > 0) doc.addPage();
+            const pageCards = this.selectedCards.slice(i, i + itemsPerPage);
+            await this.renderMatchingGamePage(doc, pageCards, pageWidth, pageHeight);
+        }
+        
+        return doc.output('blob');
     }
     
     async generatePDF() {
@@ -608,7 +821,7 @@ class PDFPrintModule extends LearningModule {
     
     async renderFrontPage(doc, cards, margin, cardWidth, cardHeight, bgColor) {
         // Set background color
-        doc.setFillColor(bgColor);
+        doc.setFillColor(...bgColor);
         doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
         
         const positions = [
@@ -652,7 +865,7 @@ class PDFPrintModule extends LearningModule {
     
     async renderBackPage(doc, cards, margin, cardWidth, cardHeight, bgColor) {
         // Set background color
-        doc.setFillColor(bgColor);
+        doc.setFillColor(...bgColor);
         doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
         
         // Horizontally flipped positions for backs
