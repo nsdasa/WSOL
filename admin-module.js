@@ -1,6 +1,8 @@
 class AdminModule extends LearningModule {
     constructor(assetManager) {
         super(assetManager);
+        this.languageFile = null;
+        this.wordFile = null;
     }
     
     async render() {
@@ -41,17 +43,58 @@ class AdminModule extends LearningModule {
                 </div>
 
                 <div class="admin-section">
-                    <h3 class="section-title"><i class="fas fa-sync-alt"></i> Asset Management</h3>
+                    <h3 class="section-title"><i class="fas fa-sync-alt"></i> CSV Data Management</h3>
                     <div class="card" style="background:var(--bg-secondary);">
                         <p style="margin-bottom:16px;color:var(--text-secondary);">
-                            Scan the assets folder on your web server to automatically update manifest.json. 
-                            Click this button whenever you upload new images or audio files.
+                            Upload and process your Language List and/or Word List CSV files. The system will validate the format and update the manifest.
                         </p>
-                        <button id="scanAssetsBtn" class="btn btn-primary btn-lg">
-                            <i class="fas fa-search"></i> Scan Assets Folder
+                        
+                        <div class="csv-upload-section">
+                            <div class="upload-options">
+                                <label style="font-weight:600;margin-bottom:12px;display:block;color:var(--text-primary);">What do you want to update?</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="updateType" value="both" checked>
+                                        <span>Both Lists (Language + Word)</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="updateType" value="language">
+                                        <span>Language List Only</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="updateType" value="word">
+                                        <span>Word List Only</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="file-upload-container" id="languageUploadContainer">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-language"></i> Language List CSV
+                                    <span class="file-hint">Expected: 3 columns (ID, Name, Trigraph)</span>
+                                </label>
+                                <input type="file" id="languageFileInput" accept=".csv" class="file-input">
+                                <div class="file-status" id="languageFileStatus">No file selected</div>
+                            </div>
+                            
+                            <div class="file-upload-container" id="wordUploadContainer">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-list"></i> Word List CSV
+                                    <span class="file-hint">Expected: 16 columns (Lesson → Type)</span>
+                                </label>
+                                <input type="file" id="wordFileInput" accept=".csv" class="file-input">
+                                <div class="file-status" id="wordFileStatus">No file selected</div>
+                            </div>
+                        </div>
+                        
+                        <button id="uploadProcessBtn" class="btn btn-primary btn-lg" disabled>
+                            <i class="fas fa-upload"></i> Upload & Process
+                        </button>
+                        <button id="scanAssetsBtn" class="btn btn-secondary" style="margin-left:12px;">
+                            <i class="fas fa-sync"></i> Rescan Assets Only
                         </button>
                         <p style="margin-top:12px;font-size:13px;color:var(--text-secondary);">
-                            <i class="fas fa-info-circle"></i> Scans assets/ folder on the server and updates manifest.json automatically
+                            <i class="fas fa-info-circle"></i> Upload CSVs first, then the system will scan for matching images/audio files
                         </p>
                     </div>
                 </div>
@@ -97,6 +140,7 @@ class AdminModule extends LearningModule {
         this.updateStats();
         this.updateModuleStatus();
         this.setupDebugControls();
+        this.setupCSVUpload();
         this.setupAssetScanner();
         this.updateDebugLog();
         
@@ -193,6 +237,161 @@ class AdminModule extends LearningModule {
         });
     }
     
+    setupCSVUpload() {
+        const languageInput = document.getElementById('languageFileInput');
+        const wordInput = document.getElementById('wordFileInput');
+        const uploadBtn = document.getElementById('uploadProcessBtn');
+        const languageStatus = document.getElementById('languageFileStatus');
+        const wordStatus = document.getElementById('wordFileStatus');
+        const languageContainer = document.getElementById('languageUploadContainer');
+        const wordContainer = document.getElementById('wordUploadContainer');
+        
+        // Handle radio button changes
+        document.querySelectorAll('input[name="updateType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const value = e.target.value;
+                
+                // Show/hide containers based on selection
+                if (value === 'both') {
+                    languageContainer.style.display = 'block';
+                    wordContainer.style.display = 'block';
+                } else if (value === 'language') {
+                    languageContainer.style.display = 'block';
+                    wordContainer.style.display = 'none';
+                    this.wordFile = null;
+                    wordStatus.textContent = 'No file selected';
+                } else if (value === 'word') {
+                    languageContainer.style.display = 'none';
+                    wordContainer.style.display = 'block';
+                    this.languageFile = null;
+                    languageStatus.textContent = 'No file selected';
+                }
+                
+                this.updateUploadButton();
+            });
+        });
+        
+        // Handle file selections
+        languageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    toastManager.show('Please select a CSV file', 'error');
+                    languageInput.value = '';
+                    this.languageFile = null;
+                    languageStatus.textContent = 'No file selected';
+                    languageStatus.style.color = 'var(--text-secondary)';
+                } else {
+                    this.languageFile = file;
+                    languageStatus.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                    languageStatus.style.color = 'var(--success)';
+                    debugLogger.log(3, `Language CSV selected: ${file.name}`);
+                }
+            } else {
+                this.languageFile = null;
+                languageStatus.textContent = 'No file selected';
+                languageStatus.style.color = 'var(--text-secondary)';
+            }
+            this.updateUploadButton();
+        });
+        
+        wordInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    toastManager.show('Please select a CSV file', 'error');
+                    wordInput.value = '';
+                    this.wordFile = null;
+                    wordStatus.textContent = 'No file selected';
+                    wordStatus.style.color = 'var(--text-secondary)';
+                } else {
+                    this.wordFile = file;
+                    wordStatus.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                    wordStatus.style.color = 'var(--success)';
+                    debugLogger.log(3, `Word CSV selected: ${file.name}`);
+                }
+            } else {
+                this.wordFile = null;
+                wordStatus.textContent = 'No file selected';
+                wordStatus.style.color = 'var(--text-secondary)';
+            }
+            this.updateUploadButton();
+        });
+        
+        // Handle upload button click
+        uploadBtn.addEventListener('click', () => this.uploadAndProcess());
+    }
+    
+    updateUploadButton() {
+        const uploadBtn = document.getElementById('uploadProcessBtn');
+        const updateType = document.querySelector('input[name="updateType"]:checked').value;
+        
+        let canUpload = false;
+        
+        if (updateType === 'both') {
+            canUpload = this.languageFile && this.wordFile;
+        } else if (updateType === 'language') {
+            canUpload = this.languageFile;
+        } else if (updateType === 'word') {
+            canUpload = this.wordFile;
+        }
+        
+        uploadBtn.disabled = !canUpload;
+    }
+    
+    async uploadAndProcess() {
+        const uploadBtn = document.getElementById('uploadProcessBtn');
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading & Processing...';
+        
+        try {
+            const formData = new FormData();
+            
+            if (this.languageFile) {
+                formData.append('languageFile', this.languageFile);
+            }
+            
+            if (this.wordFile) {
+                formData.append('wordFile', this.wordFile);
+            }
+            
+            const response = await fetch('scan-assets.php?action=upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                toastManager.show('CSV files uploaded and processed successfully!', 'success', 5000);
+                this.showScanResults(result);
+                await assetManager.loadManifest();
+                this.updateStats();
+                debugLogger.log(2, `Upload complete: ${result.stats.totalCards} cards, ${result.stats.cardsWithAudio} with audio`);
+            } else {
+                toastManager.show(`Upload failed: ${result.error || result.message}`, 'error', 5000);
+                debugLogger.log(1, `Upload failed: ${result.error || result.message}`);
+            }
+        } catch (err) {
+            toastManager.show(`Error: ${err.message}`, 'error', 5000);
+            debugLogger.log(1, `Upload error: ${err.message}`);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload & Process';
+            
+            // Clear file selections
+            document.getElementById('languageFileInput').value = '';
+            document.getElementById('wordFileInput').value = '';
+            this.languageFile = null;
+            this.wordFile = null;
+            document.getElementById('languageFileStatus').textContent = 'No file selected';
+            document.getElementById('wordFileStatus').textContent = 'No file selected';
+            document.getElementById('languageFileStatus').style.color = 'var(--text-secondary)';
+            document.getElementById('wordFileStatus').style.color = 'var(--text-secondary)';
+            this.updateUploadButton();
+        }
+    }
+    
     setupAssetScanner() {
         document.getElementById('scanAssetsBtn').addEventListener('click', async () => {
             const btn = document.getElementById('scanAssetsBtn');
@@ -218,7 +417,7 @@ class AdminModule extends LearningModule {
                 debugLogger.log(1, `Scan error: ${err.message}`);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-search"></i> Scan Assets Folder';
+                btn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
             }
         });
     }
@@ -239,7 +438,7 @@ class AdminModule extends LearningModule {
         alertDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-primary);padding:30px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:10000;max-width:500px;';
         
         alertDiv.innerHTML = `
-            <h3 style="margin:0 0 20px 0;color:var(--text-primary);">✅ Scan Complete!</h3>
+            <h3 style="margin:0 0 20px 0;color:var(--text-primary);">✅ Processing Complete!</h3>
             <div style="background:var(--bg-secondary);padding:15px;border-radius:5px;margin-bottom:20px;white-space:pre-line;font-family:monospace;font-size:13px;color:var(--text-primary);">
                 <strong>📊 Statistics:</strong>
                 • Cards: ${result.stats.totalCards}

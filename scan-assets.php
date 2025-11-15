@@ -1,8 +1,9 @@
 <?php
 /**
  * Asset Scanner API - Bob and Mariel Ward School of Filipino Languages
- * Version 3.0 - Multi-language, Multi-lesson Support
- * Fixed version with improved error handling
+ * Version 3.1 - Multi-language, Multi-lesson Support with Type field
+ * Updated: November 2025
+ * Changes: Removed wordVersion, added Type (N/R), null handling for blank grammar fields
  */
 
 error_reporting(E_ALL);
@@ -108,7 +109,7 @@ function loadWords() {
             continue;
         }
         
-        // Validate row has minimum required columns
+        // Validate row has minimum required columns (updated to 16 without wordVersion)
         if (count($row) < 15) {
             error_log("Word_List.csv line $lineNumber: Insufficient columns (expected at least 15, got " . count($row) . ")");
             continue;
@@ -143,12 +144,12 @@ function loadWords() {
                 'maranaoNote' => trim($row[7] ?? ''),
                 'sinama' => trim($row[8] ?? ''),
                 'sinamaNote' => trim($row[9] ?? ''),
-                'grammar' => trim($row[10] ?? ''),
-                'category' => trim($row[11] ?? ''),
-                'subCategory1' => trim($row[12] ?? ''),
-                'subCategory2' => trim($row[13] ?? ''),
-                'actflEst' => trim($row[14] ?? ''),
-                'wordVersion' => trim($row[15] ?? '')
+                'grammar' => !empty(trim($row[10] ?? '')) ? trim($row[10]) : null,
+                'category' => !empty(trim($row[11] ?? '')) ? trim($row[11]) : null,
+                'subCategory1' => !empty(trim($row[12] ?? '')) ? trim($row[12]) : null,
+                'subCategory2' => !empty(trim($row[13] ?? '')) ? trim($row[13]) : null,
+                'actflEst' => !empty(trim($row[14] ?? '')) ? trim($row[14]) : null,
+                'type' => trim($row[15] ?? '')
             ];
         }
     }
@@ -183,6 +184,7 @@ function generateDetailedReport($wordData, $cards, $pngFiles, $gifFiles, $mp3Fil
         $match = [
             'wordNum' => $wordNum,
             'lesson' => $word['lesson'],
+            'type' => $word['type'],
             'cebuano' => $word['cebuano'],
             'english' => $word['english'],
             'maranao' => $word['maranao'],
@@ -314,6 +316,7 @@ function scanAssets() {
                 $cards[$wordNum] = [
                     'wordNum' => $wordNum,
                     'lesson' => $word['lesson'],
+                    'type' => $word['type'],
                     'imagePath' => 'assets/' . $filename,      // Will be overridden by GIF if exists
                     'printImagePath' => 'assets/' . $filename, // Always PNG for printing
                     'hasImage' => true,
@@ -325,8 +328,7 @@ function scanAssets() {
                     'category' => $word['category'],
                     'subCategory1' => $word['subCategory1'],
                     'subCategory2' => $word['subCategory2'],
-                    'actflEst' => $word['actflEst'],
-                    'wordVersion' => $word['wordVersion']
+                    'actflEst' => $word['actflEst']
                 ];
             } else {
                 $cards[$wordNum]['printImagePath'] = 'assets/' . $filename;
@@ -391,6 +393,7 @@ function scanAssets() {
                 $cards[$wordNum] = [
                     'wordNum' => $wordNum,
                     'lesson' => $word['lesson'],
+                    'type' => $word['type'],
                     'imagePath' => 'assets/' . $filename,      // GIF for online
                     'printImagePath' => null,                   // No PNG for printing
                     'hasImage' => true,
@@ -423,8 +426,7 @@ function scanAssets() {
                     'category' => $word['category'],
                     'subCategory1' => $word['subCategory1'],
                     'subCategory2' => $word['subCategory2'],
-                    'actflEst' => $word['actflEst'],
-                    'wordVersion' => $word['wordVersion']
+                    'actflEst' => $word['actflEst']
                 ];
                 
                 $issues[] = [
@@ -469,6 +471,7 @@ function scanAssets() {
                     $cards[$wordNum] = [
                         'wordNum' => $wordNum,
                         'lesson' => $word['lesson'],
+                        'type' => $word['type'],
                         'imagePath' => null,
                         'hasImage' => false,
                         'hasAudio' => false,
@@ -499,8 +502,7 @@ function scanAssets() {
                         'category' => $word['category'],
                         'subCategory1' => $word['subCategory1'],
                         'subCategory2' => $word['subCategory2'],
-                        'actflEst' => $word['actflEst'],
-                        'wordVersion' => $word['wordVersion']
+                        'actflEst' => $word['actflEst']
                     ];
                 } else {
                     $issues[] = [
@@ -689,6 +691,9 @@ function generateReportHTML($report) {
         .file-badge.gif { background: #e67e22; }
         .file-badge.audio { background: #9b59b6; }
         .lesson-badge { background: #3498db; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; }
+        .type-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; }
+        .type-badge.new { background: #27ae60; color: white; }
+        .type-badge.review { background: #f39c12; color: white; }
         .word { font-weight: 600; color: #2c3e50; }
         .legend { margin: 20px 0; padding: 15px; background: #ecf0f1; border-radius: 5px; }
         .legend-item { display: inline-block; margin-right: 20px; margin-bottom: 10px; }
@@ -734,6 +739,9 @@ function generateReportHTML($report) {
             <div class="legend-item"><span class="status status-audio-only">Audio Only</span> - Has audio but no image</div>
             <div class="legend-item"><span class="status status-partial">Partial</span> - Has card but incomplete</div>
             <div class="legend-item"><span class="status status-missing">Missing</span> - No assets found</div>
+            <br>
+            <div class="legend-item"><span class="type-badge new">N</span> - New Word</div>
+            <div class="legend-item"><span class="type-badge review">R</span> - Review Word</div>
         </div>
         
         <h2>Detailed Card Matching</h2>
@@ -741,6 +749,7 @@ function generateReportHTML($report) {
             <thead>
                 <tr>
                     <th>Lesson</th>
+                    <th>Type</th>
                     <th>Card#</th>
                     <th>Cebuano</th>
                     <th>English</th>
@@ -753,6 +762,9 @@ function generateReportHTML($report) {
     foreach ($report['detailedMatches'] as $match) {
         $statusClass = 'status-' . $match['status'];
         $statusLabel = ucwords(str_replace('-', ' ', $match['status']));
+        
+        $typeClass = strtoupper($match['type']) === 'N' ? 'new' : 'review';
+        $typeLabel = strtoupper($match['type']) === 'N' ? 'N' : 'R';
         
         $files = '';
         if ($match['files']['png']) {
@@ -770,6 +782,7 @@ function generateReportHTML($report) {
         
         $html .= '<tr>
             <td><span class="lesson-badge">' . $match['lesson'] . '</span></td>
+            <td><span class="type-badge ' . $typeClass . '">' . $typeLabel . '</span></td>
             <td><strong>' . $match['wordNum'] . '</strong></td>
             <td><span class="word">' . htmlspecialchars($match['cebuano']) . '</span></td>
             <td>' . htmlspecialchars($match['english']) . '</td>
@@ -782,7 +795,7 @@ function generateReportHTML($report) {
         </table>
         
         <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ecf0f1; text-align: center; color: #7f8c8d;">
-            <p>Bob and Mariel Ward School of Filipino Languages - Asset Scan Report</p>
+            <p>Bob and Mariel Ward School of Filipino Languages - Asset Scan Report v3.1</p>
         </div>
     </div>
 </body>
@@ -796,7 +809,7 @@ function generateReportHTML($report) {
  */
 function generateManifest($scanResult) {
     $manifest = [
-        'version' => '3.0',
+        'version' => '3.1',
         'lastUpdated' => date('c'),
         'languages' => $scanResult['languages'],
         'totalCards' => $scanResult['stats']['totalCards'],
@@ -831,6 +844,92 @@ function handleRequest() {
     $action = isset($_GET['action']) ? $_GET['action'] : 'scan';
     
     switch ($action) {
+        case 'upload':
+            // Handle CSV file uploads
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                return [
+                    'success' => false,
+                    'error' => 'Upload requires POST method'
+                ];
+            }
+            
+            $uploadedLanguage = false;
+            $uploadedWord = false;
+            $errors = [];
+            
+            // Handle Language List upload
+            if (isset($_FILES['languageFile']) && $_FILES['languageFile']['error'] === UPLOAD_ERR_OK) {
+                $result = handleLanguageUpload($_FILES['languageFile']);
+                if ($result['success']) {
+                    $uploadedLanguage = true;
+                } else {
+                    $errors[] = "Language file: " . $result['error'];
+                }
+            }
+            
+            // Handle Word List upload
+            if (isset($_FILES['wordFile']) && $_FILES['wordFile']['error'] === UPLOAD_ERR_OK) {
+                $result = handleWordUpload($_FILES['wordFile']);
+                if ($result['success']) {
+                    $uploadedWord = true;
+                } else {
+                    $errors[] = "Word file: " . $result['error'];
+                }
+            }
+            
+            // Check if at least one file was uploaded
+            if (!$uploadedLanguage && !$uploadedWord) {
+                return [
+                    'success' => false,
+                    'error' => 'No valid files uploaded. ' . implode(' ', $errors)
+                ];
+            }
+            
+            // If there were errors but at least one succeeded, note them
+            if (count($errors) > 0) {
+                error_log("Upload warnings: " . implode(', ', $errors));
+            }
+            
+            // Now scan assets with the new CSV data
+            $scanResult = scanAssets();
+            
+            if ($scanResult['success']) {
+                // Generate manifest file
+                $saved = generateManifest($scanResult);
+                
+                // Generate and save detailed report
+                $reportPath = saveDetailedReport($scanResult['detailedReport']);
+                
+                $response = [
+                    'success' => true,
+                    'message' => 'CSV files uploaded and processed successfully',
+                    'uploadedLanguage' => $uploadedLanguage,
+                    'uploadedWord' => $uploadedWord,
+                    'manifestSaved' => $saved,
+                    'manifestPath' => MANIFEST_FILE,
+                    'manifestExists' => file_exists(MANIFEST_FILE),
+                    'reportPath' => $reportPath ? str_replace(__DIR__ . '/', '', $reportPath) : null,
+                    'reportUrl' => $reportPath ? 'assets/scan-report.html' : null,
+                    'reportSaved' => $reportPath !== false,
+                    'reportExists' => $reportPath ? file_exists($reportPath) : false,
+                    'stats' => $scanResult['stats'],
+                    'languages' => $scanResult['languages'],
+                    'cards' => $scanResult['cards'],
+                    'issues' => $scanResult['issues']
+                ];
+                
+                if (count($errors) > 0) {
+                    $response['warnings'] = $errors;
+                }
+                
+                return $response;
+            } else {
+                return [
+                    'success' => false,
+                    'error' => 'CSV uploaded but scan failed: ' . $scanResult['error']
+                ];
+            }
+            
         case 'scan':
             // Scan assets directory
             $result = scanAssets();
@@ -898,7 +997,7 @@ function handleRequest() {
         case 'test':
             // Test manifest creation
             $testManifest = [
-                'version' => '3.0-test',
+                'version' => '3.1-test',
                 'lastUpdated' => date('c'),
                 'test' => true
             ];
@@ -921,6 +1020,117 @@ function handleRequest() {
                 'error' => 'Invalid action'
             ];
     }
+}
+
+/**
+ * Handle Language CSV upload
+ */
+function handleLanguageUpload($file) {
+    // Check if assets directory exists
+    if (!is_dir(ASSETS_DIR)) {
+        if (!mkdir(ASSETS_DIR, 0755, true)) {
+            return ['success' => false, 'error' => 'Cannot create assets directory'];
+        }
+    }
+    
+    // Validate file is CSV
+    $tmpPath = $file['tmp_name'];
+    $originalName = $file['name'];
+    
+    // Read and validate CSV structure
+    $csvFile = fopen($tmpPath, 'r');
+    if (!$csvFile) {
+        return ['success' => false, 'error' => 'Cannot read uploaded file'];
+    }
+    
+    // Read first few rows to validate structure
+    $header = fgetcsv($csvFile);
+    $firstDataRow = fgetcsv($csvFile);
+    fclose($csvFile);
+    
+    // Validate: should have at least 3 columns
+    if (!$firstDataRow || count($firstDataRow) < 3) {
+        return [
+            'success' => false,
+            'error' => "Invalid Language List format. Expected 3 columns (ID, Name, Trigraph), found " . (count($firstDataRow) ?: 0)
+        ];
+    }
+    
+    // Validate first row has numeric ID, text name, and 3-char trigraph
+    $id = trim($firstDataRow[0]);
+    $name = trim($firstDataRow[1]);
+    $trigraph = trim($firstDataRow[2]);
+    
+    if (!is_numeric($id) || empty($name) || strlen($trigraph) !== 3) {
+        return [
+            'success' => false,
+            'error' => "Invalid Language List format. First data row validation failed (ID: '$id', Name: '$name', Trigraph: '$trigraph')"
+        ];
+    }
+    
+    // Save to assets folder as Language_List.csv
+    $destination = LANGUAGE_CSV;
+    if (!move_uploaded_file($tmpPath, $destination)) {
+        return ['success' => false, 'error' => 'Failed to save Language_List.csv'];
+    }
+    
+    error_log("Language_List.csv uploaded successfully from: $originalName");
+    return ['success' => true, 'filename' => $originalName];
+}
+
+/**
+ * Handle Word CSV upload
+ */
+function handleWordUpload($file) {
+    // Check if assets directory exists
+    if (!is_dir(ASSETS_DIR)) {
+        if (!mkdir(ASSETS_DIR, 0755, true)) {
+            return ['success' => false, 'error' => 'Cannot create assets directory'];
+        }
+    }
+    
+    // Validate file is CSV
+    $tmpPath = $file['tmp_name'];
+    $originalName = $file['name'];
+    
+    // Read and validate CSV structure
+    $csvFile = fopen($tmpPath, 'r');
+    if (!$csvFile) {
+        return ['success' => false, 'error' => 'Cannot read uploaded file'];
+    }
+    
+    // Read first few rows to validate structure
+    $header = fgetcsv($csvFile);
+    $firstDataRow = fgetcsv($csvFile);
+    fclose($csvFile);
+    
+    // Validate: should have at least 16 columns (Lesson through Type)
+    if (!$firstDataRow || count($firstDataRow) < 16) {
+        return [
+            'success' => false,
+            'error' => "Invalid Word List format. Expected 16 columns (Lesson → Type), found " . (count($firstDataRow) ?: 0)
+        ];
+    }
+    
+    // Validate first row has numeric lesson and wordNum
+    $lesson = trim($firstDataRow[0]);
+    $wordNum = trim($firstDataRow[1]);
+    
+    if (!is_numeric($lesson) || !is_numeric($wordNum)) {
+        return [
+            'success' => false,
+            'error' => "Invalid Word List format. First data row validation failed (Lesson: '$lesson', WordNum: '$wordNum' should be numeric)"
+        ];
+    }
+    
+    // Save to assets folder as Word_List.csv
+    $destination = WORD_CSV;
+    if (!move_uploaded_file($tmpPath, $destination)) {
+        return ['success' => false, 'error' => 'Failed to save Word_List.csv'];
+    }
+    
+    error_log("Word_List.csv uploaded successfully from: $originalName");
+    return ['success' => true, 'filename' => $originalName];
 }
 
 // Process request and return JSON
