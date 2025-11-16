@@ -120,10 +120,10 @@ class AdminModule extends LearningModule {
                             
                             <div class="file-upload-container">
                                 <label class="file-upload-label">
-                                    <i class="fas fa-volume-up"></i> Audio Files (MP3)
-                                    <span class="file-hint">Format: WordNum.lang.word.translation.mp3 (e.g., 17.ceb.tilaw.taste.mp3)</span>
+                                    <i class="fas fa-volume-up"></i> Audio Files (MP3/M4A)
+                                    <span class="file-hint">Format: WordNum.lang.word.translation.mp3/m4a (e.g., 17.ceb.tilaw.taste.mp3)</span>
                                 </label>
-                                <input type="file" id="audioFilesInput" accept=".mp3" multiple class="file-input">
+                                <input type="file" id="audioFilesInput" accept=".mp3,.m4a" multiple class="file-input">
                                 <div class="file-status" id="audioFilesStatus">No files selected</div>
                             </div>
                         </div>

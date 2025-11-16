@@ -449,17 +449,25 @@ function scanAssets() {
         }
     }
     
-    // Get all MP3 files
+    // Get all MP3 and M4A files
     $mp3Files = glob(ASSETS_DIR . '/*.mp3');
     if ($mp3Files === false) {
         $mp3Files = [];
     }
     
-    foreach ($mp3Files as $mp3Path) {
-        $filename = basename($mp3Path);
+    $m4aFiles = glob(ASSETS_DIR . '/*.m4a');
+    if ($m4aFiles === false) {
+        $m4aFiles = [];
+    }
+    
+    // Combine both audio file types
+    $audioFiles = array_merge($mp3Files, $m4aFiles);
+    
+    foreach ($audioFiles as $audioPath) {
+        $filename = basename($audioPath);
         
-        // Parse filename: WordNum.Trigraph.anything.mp3
-        if (preg_match('/^(\d+)\.([a-z]{3})\..*\.mp3$/i', $filename, $matches)) {
+        // Parse filename: WordNum.Trigraph.anything.mp3/m4a
+        if (preg_match('/^(\d+)\.([a-z]{3})\..*\.(mp3|m4a)$/i', $filename, $matches)) {
             $wordNum = (int)$matches[1];
             $trigraph = strtolower($matches[2]);
             
@@ -522,7 +530,7 @@ function scanAssets() {
             $issues[] = [
                 'type' => 'error',
                 'file' => $filename,
-                'message' => 'Invalid filename format. Expected: WordNum.Trigraph.anything.mp3 (e.g., 17.ceb.tilaw.taste.mp3)'
+                'message' => 'Invalid filename format. Expected: WordNum.Trigraph.anything.mp3/m4a (e.g., 17.ceb.tilaw.taste.mp3)'
             ];
         }
     }
@@ -1223,8 +1231,8 @@ function handleMediaUpload() {
             
             // Validate file extension
             $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-            if ($ext !== 'mp3') {
-                $errors[] = "$originalName: Invalid file type (must be MP3)";
+            if (!in_array($ext, ['mp3', 'm4a'])) {
+                $errors[] = "$originalName: Invalid file type (must be MP3 or M4A)";
                 continue;
             }
             
@@ -1234,9 +1242,9 @@ function handleMediaUpload() {
                 continue;
             }
             
-            // Validate filename pattern: WordNum.lang.word.translation.mp3
-            if (!preg_match('/^\d+\.[a-z]{3}\.[^.]+\.[^.]+\.mp3$/i', $originalName)) {
-                $errors[] = "$originalName: Invalid naming format (expected: WordNum.lang.word.translation.mp3)";
+            // Validate filename pattern: WordNum.lang.word.translation.mp3/m4a
+            if (!preg_match('/^\d+\.[a-z]{3}\.[^.]+\.[^.]+\.(mp3|m4a)$/i', $originalName)) {
+                $errors[] = "$originalName: Invalid naming format (expected: WordNum.lang.word.translation.mp3/m4a)";
                 continue;
             }
             
