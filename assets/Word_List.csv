@@ -1,0 +1,214 @@
+﻿Lesson #,Card #,Cebuano,English,Cebuano Note,English Note,Maranao,Maranao Note,Sinama,Sinama Note,Grammar,Category,Sub-Category 1,Sub-Category 2,ACTFL Est.,Type (Review/New/Special 
+1,1,Asa,Where,,,,,,,Interrogative,,,,Novice-Mid,N
+1,2,Unsa,What,,,,,,,Interrogative,,,,Novice-Mid,N
+1,3,Oo,Yes,,,,,,,Particle,,,,Novice-Low,N
+1,4,Dili,No,,,,,,,Adverb / Negator,,,,Novice-Low,N
+1,5,Istorya,Tell,,,,,,,Verb,,,,Novice-High,N
+1,6,Tan-aw,Look,,,,,,,Verb,,,,Novice-High,N
+1,7,Paminaw,Listen,,,,,,,Verb,,,,Novice-High,N
+1,8,I-tudlo,Point,,,,,,,Verb,,,,Novice-High,N
+1,9,Basa,Read,,,,,,,Verb,,,,Novice-High,N
+1,10,Sulat,Write,,,,,,,Verb,,,,Novice-High,N
+1,11,Nag-tudlo,Teach,,,,,,,Verb,,,,Intermediate-Low,N
+1,12,Ako/ko,I/me,,,,,,,Pronoun,,,,Novice-Low,N
+1,13,Ikaw/ka,You,,,,,,,Pronoun,,,,Novice-Low,N
+1,14,Kini / ni,This,,,,,,,Demonstrative pronoun,,,,Novice-Mid,N
+1,15,Kana / na,That,,,,,,,Demonstrative pronoun,,,,Novice-Mid,N
+1,16,Bolpen,Pen,,,,,,,Noun,,,,Novice-Mid,N
+1,17,Lapis,Pencil,,,,,,,Noun,,,,Novice-Mid,N
+1,18,Libro,Book,,,,,,,Noun,,,,Novice-Mid,N
+1,19,Papel,Paper,,,,,,,Noun,,,,Novice-Mid,N
+1,20,Ngalan,Name,,,,,,,Noun,,,,Novice-Mid,S
+1,21,Mestro/a,Teacher,,,,,,,Noun,,,,Novice-High,S
+1,22,Estudyante,Student,,,,,,,Noun,,,,Novice-High,S
+1,23,Maayong Adlaw,Good Day,,,,,,,Expression / Greeting,,,,Novice-Low,S
+2,24,Tabang,Help,,,,,,,Noun / Verb,,,,Novice-High,S
+2,25,Nga,Linker,,,,,,,Ligature / Linker,Function Word,,,Novice-High,N
+2,26,Ka,Counter marker,,,,,,,Particle,Function Word,,,Novice-Low,N
+2,27,Mga,Plural marker,,,,,,,Particle,Function Word,,,Novice-Mid,N
+2,28,Ang,The,,,,,,,Case marker,Function Word,,,Novice-Mid,N
+2,29,Og,And/a,,,,,,,Conjunction / Case marker,Function Word,,,Novice-High,N
+2,30,Sa,In/at/of,,,,,,,Preposition / Case marker,Function Word,,,Novice-Mid,N
+2,31,Si,Name marker,,,,,,,Case marker,Function Word,,,Novice-Mid,N
+2,32,Lingkod,Sit,,,,,,,Verb,,,,Novice-High,N
+2,33,Tindog,Stand,,,,,,,Verb,,,,Novice-High,N
+2,34,I-butang,Put,,,,,,,Verb,,,,Novice-High,N
+2,35,Kuha,Get,,,,,,,Verb,,,,Novice-High,N
+2,36,Lamesa,Table,,,,,,,Noun,,,,Novice-Mid,N
+2,37,Lingkuranan,Chair,,,,,,,Noun,,,,Novice-High,N
+2,38,Mga butang,Things,,,,,,,Noun phrase,,,,Novice-Mid,N
+2,39,Itom,Black,,,,,,,Adjective,,,,Novice-Mid,N
+2,40,Puti,White,,,,,,,Adjective,,,,Novice-Mid,N
+2,41,Pula,Red,,,,,,,Adjective,,,,Novice-Mid,N
+2,42,Green,Green,,,,,,,Adjective,,,,Novice-Mid,N
+2,43,Isa,One,,,,,,,Numeral,,,,Novice-Mid,N
+2,44,Duha,Two,,,,,,,Numeral,,,,Novice-Mid,N
+2,45,Tulo,Three,,,,,,,Numeral,,,,Novice-Mid,N
+2,46,Upat,Four,,,,,,,Numeral,,,,Novice-Mid,N
+2,47,Lima,Five,,,,,,,Numeral,,,,Novice-Mid,N
+3,48,Siya,Him/her,,,,,,,Pronoun,,,,Novice-Low,N
+3,49,Sila,They/them,,,,,,,Pronoun,,,,Novice-Mid,N
+3,50,Bag,Bag,,,,,,,Noun,,,,Novice-Mid,N
+3,51,Karton,Box,,,,,,,Noun,,,,Novice-Mid,N
+3,52,Gawas,Out,,,,,,,Adverb / Prepositional,,,,Novice-Mid,N
+3,53,Sulod,In,,,,,,,Adverb / Prepositional,,,,Novice-Mid,N
+3,54,Ibabaw,On top,,,,,,,Adverb / Prepositional,,,,Novice-Mid,N
+3,55,Ilalom,Under,,,,,,,Adverb / Prepositional,,,,Novice-Mid,N
+3,56,Kilid,Next to,,,,,,,Noun / Adverb,,,,Novice-Mid,N
+3,57,Gikan,From,,,,,,,Preposition,,,,Novice-High,N
+5,58,Sakit,Pain/Hurt,,,,,,,Noun / Adjective,,,,Novice-High,N
+5,59,Hikap,Touch,,,,,,,Verb,,,,Novice-High,N
+5,60,Higda,Lie down,,,,,,,Verb,,,,Novice-High,N
+5,61,Ako,My,,,,,,,Pronoun,,,,Novice-Low,N
+5,61,Akong,Mine,,,,,,,Pronoun,,,,Novice-Mid,N
+5,62,Iya,His/Hers,,,,,,,Pronoun,,,,Novice-Mid,N
+5,62,Iyang,His/Her,,,,,,,Pronoun,,,,Novice-Mid,N
+5,63,Ila,Theirs,,,,,,,Pronoun,,,,Novice-High,N
+5,63,Ilang,Their,,,,,,,Pronoun,,,,Novice-High,N
+5,64,Imo/Imong,Your,,,,,,,Pronoun,,,,Novice-Mid,N
+5,65,Tudlo,Finger,,,,,,,Noun / Verb,,,,Novice-High,N
+5,66,Ulo,Head,,,,,,,Noun,,,,Novice-High,N
+5,67,Abaga,Shoulders,,,,,,,Noun,,,,Novice-High,N
+5,68,Tuhod,Knee,,,,,,,Noun,,,,Novice-High,N
+5,69,Tiil,Foot,,,,,,,Noun,,,,Novice-High,N
+5,70,Tudlo sa Tiil,Toes,,,,,,,Noun phrase,,,,Intermediate-Low,N
+5,71,Kamot,Hands,,,,,,,Noun,,,,Novice-High,N
+5,72,Dako,Big,,,,,,,Adjective,,,,Novice-Mid,N
+5,73,Gamay,Small,,,,,,,Adjective,,,,Novice-Mid,N
+5,74,Wala,Left,,,,,,,Adverb / Adjective,,,,Novice-Mid,N
+5,75,Tuo,Right,,,,,,,Adverb,,,,Novice-High,N
+5,76,Taas,Up,,,,,,,Adjective,,,,Novice-Mid,N
+5,77,Ubos,Below,,,,,,,Adjective,,,,Novice-High,N
+6,78,Adto,Go,,,,,,,Verb,,,,Novice-Mid,N
+6,79,Tulog,Sleep,,,,,,,Verb / Noun,,,,Novice-High,N
+6,80,Balay,House,,,,,,,Noun,,,,Novice-Mid,N
+6,81,Kwarto,Room,,,,,,,Noun,,,,Novice-High,N
+6,82,Sala,Living room,,,,,,,Noun,,,,Novice-High,N
+6,83,Bangko,Chair,,,,,,,Noun,,,,Novice-Mid,N
+6,84,Higdaanan,Sleeping place,,,,,,,Noun,,,,Novice-High,N
+6,85,Tuluganan,Sleeping room,,,,,,,Noun,,,,Novice-High,N
+6,86,Katre,Bed frame,,,,,,,Noun,,,,Novice-High,N
+6,87,Babaye,Female,,,,,,,Noun,,,,Novice-Mid,N
+6,88,Lalaki,Male,,,,,,,Noun,,,,Novice-Mid,N
+6,89,Cr,Toilet room,,,,,,,Noun,,,,Novice-High,N
+6,90,Kato,"That, far",,,,,,,Demonstrative pronoun,,,,Novice-Mid,N
+7,91,Dagan,Run,,,,,,,Verb,,,,Novice-High,N
+7,92,Hunong,Stop,,,,,,,Verb,,,,Novice-High,N
+7,93,Padulong,Direction,,,,,,,Verb phrase,,,,Intermediate-Low,N
+7,94,Lakaw,Walk,,,,,,,Verb,,,,Novice-High,N
+7,95,Diri/Dinhi,Here,,,,,,,Adverb,,,,Novice-Mid,N
+7,96,Didto,Over there,,,,,,,Adverb,,,,Novice-Mid,N
+7,97,Diha/Dinha,There,,,,,,,Adverb,,,,Novice-Mid,N
+7,98,Siyudad,City,,,,,,,Noun,,,,Novice-High,N
+7,99,Lungsod,Town,,,,,,,Noun,,,,Novice-High,N
+7,100,Barangay,Barangay,,,,,,,Noun,,,,Novice-High,N
+7,101,Eskwela-han,School,,,,,,,Noun,,,,Novice-High,N
+7,102,Merkado,Market,,,,,,,Noun,,,,Novice-High,N
+7,103,Tinda-han,Store,,,,,,,Noun,,,,Novice-High,N
+7,104,Ospital,Hospital,,,,,,,Noun,,,,Novice-High,N
+7,105,Munisipyo,Govt HQ,,,,,,,Noun,,,,Novice-High,N
+7,106,Simba-han,Church,,,,,,,Noun,,,,Novice-High,N
+7,107,Banko,Bank,,,,,,,Noun,,,,Novice-High,N
+7,108,Duol,Near,,,,,,,Adjective / Adverb,,,,Novice-Mid,N
+7,109,Layo,Far,,,,,,,Adjective / Adverb,,,,Novice-Mid,N
+7,110,Atubangan,Front of,,,,,,,Noun / Prepositional,,,,Novice-Mid,N
+9,111,Kinsa,Who,,,,,,,Interrogative pronoun,,,,Novice-Mid,N
+9,112,Dili,Not,,,,,,,Adverb / Negator,,,,Novice-Low,N
+9,113,Piyong,Close eyes,,,,,,,Verb,,,,Novice-High,N
+9,114,Bukha,Open eyes / mouth,,,,,,,Verb,,,,Novice-High,N
+9,115,Sirado,Close,,,,,,,Adjective,,,,Novice-High,N
+9,116,Ngisi,Smile,,,,,,,Verb / Noun,,,,Novice-High,N
+9,117,Mata,Eye,,,,,,,Noun,,,,Novice-High,N
+9,118,Kilay,Eyebrow,,,,,,,Noun,,,,Intermediate-Low,N
+9,119,Ilong,Nose,,,,,,,Noun,,,,Novice-High,N
+9,120,Dalunggan,Ear,,,,,,,Noun,,,,Novice-High,N
+9,121,Baba,Mouth,,,,,,,Noun,,,,Novice-High,N
+9,122,Ngipon,Teeth,,,,,,,Noun,,,,Novice-High,N
+9,123,Agtang,Forehead,,,,,,,Noun,,,,Intermediate-Low,N
+9,124,Suwang,Chin,,,,,,,Noun,,,,Intermediate-Low,N
+9,125,Aping,Cheeks,,,,,,,Noun,,,,Intermediate-Low,N
+9,126,Buhok,Hair,,,,,,,Noun,,,,Novice-High,N
+9,127,Gwapa,Beautiful,,,,,,,Adjective,,,,Novice-Mid,N
+9,128,Pangit,Ugly,,,,,,,Adjective,,,,Novice-High,N
+9,129,Sa,To/from,,,,,,,Interjection / Particle,,,,Novice-High,N
+9,130,O,Or,,,,,,,Particle,Function Word,,,Novice-High,N
+9,131,Diba,Right,,,,,,,Expression,,,,Novice-High,S
+9,132,Mao jud,Thats Right,,,,,,,Adjective,,,,Novice-High,S
+9,133,Gwapo,Handsome,,,,,,,Pronoun,,,,Novice-Mid,S
+10,134,Kami,"We, exclusive",,,,,,,Pronoun,,,,Novice-Mid,N
+10,134,Mi,"We, exclusive",,,,,,,Pronoun,,,,Novice-Mid,N
+10,135,Kamo,You all,,,,,,,Pronoun,,,,Novice-Mid,N
+10,135,Mo,You all,,,,,,,Pronoun,,,,Novice-Mid,N
+10,136,Kita,"We, inclusive",,,,,,,Pronoun,,,,Novice-Mid,N
+10,136,Ta,"We, inclusive",,,,,,,Noun,,,,Novice-Mid,N
+10,137,Inahan,Mother,,,,,,,Noun,,,,Novice-Mid,N
+10,138,Amahan,Father,,,,,,,Noun,,,,Novice-Mid,N
+10,139,Igsoon,Sibling,,,,,,,Noun,,,,Novice-High,N
+10,140,Ig-agaw,Cousin,,,,,,,Noun,,,,Novice-High,N
+10,141,Anak,Son/daugher,,,,,,,Noun,,,,Novice-High,N
+10,142,Lolo,Grandfather,,,,,,,Noun,,,,Novice-Mid,N
+10,143,Lola,Grandmother,,,,,,,Noun,,,,Novice-Mid,N
+10,144,Tawo,People,,,,,,,Verb,,,,Novice-Mid,N
+11,145,Sakay,Ride / embark,,,,,,,Noun / Verb,,,,Novice-High,N
+11,146,Biyahe,Travel,,,,,,,Verb,,,,Novice-High,N
+11,147,Naog,Debark,,,,,,,Noun,,,,Novice-High,N
+11,148,Dalan,Road / path,,,,,,,Noun,,,,Novice-Mid,N
+11,149,Sakyanan,Car,,,,,,,Noun,,,,Novice-High,N
+11,150,Jeep / jeepney,Jeep,,,,,,,Verb / Noun,,,,Novice-High,N
+11,151,Sikad,Rickshaw,,,,,,,Noun,,,,Novice-High,N
+11,152,Bilding,Building,,,,,,,Particle,,,,Novice-High,N
+11,153,Lang,Just,,,,,,,Noun / Adverb,,,,Novice-High,N
+11,154,Tunga,Center,,,,,,,Noun / Adverb,,,,Novice-Mid,N
+11,155,Likod,Behind,,,,,,,Verb,,,,Novice-Mid,N
+13,156,Ihap,Count,,,,,,,Verb,,,,Novice-High,N
+13,136,Kita,See/seen,,,,,,,Verb,,,,Novice-High,N
+13,158,Simhot,Smell,,,,,,,Verb,,,,Novice-High,N
+13,159,Dungog,Hear,,,,,,,Verb,,,,Novice-High,N
+13,160,Sulti,Say/speak,,,,,,,Pronoun,,,,Novice-High,N
+13,161,Inyo,"Yours, second-person plural",,,,,,,Pronoun,,,,Novice-High,N
+13,161,Inyong,"Your, second-person plural",,,,,,,Adjective,,,,Novice-High,N
+13,162,Taas,Long,,,,,,,Adjective,,,,Novice-Mid,N
+13,163,Mubo,Short,,,,,,,Preposition / Particle,,,,Novice-Mid,N
+13,164,Taman,Until,,,,,,,Numeral,,,,Novice-High,N
+13,165,Unom,Six,,,,,,,Verb,,,,Novice-Mid,N
+13,166,Pito,Seven,,,,,,,Verb,,,,Novice-Mid,N
+13,167,Walo,Eight,,,,,,,Verb,,,,Novice-Mid,N
+13,168,Siyam,Nine,,,,,,,Particle,,,,Novice-Mid,N
+13,169,Pulo,Ten,,,,,,,Noun,,,,Novice-Mid,N
+14,170,Tilaw,Taste,,,,,,,Noun,,,,Novice-High,N
+14,171,Kaon,Eat,,,,,,,Noun,,,,Novice-High,N
+14,172,Inom,Drink,,,,,,,Noun,,,,Novice-High,N
+14,173,Na,Already,,,,,,,Function Word,Function Word,,,Novice-High,N
+14,174,Kan-anan,Eating place/dining area,,,,,,,Adjective,,,,Novice-High,N
+14,175,Kusina,Kitchen,,,,,,,Adjective,,,,Novice-High,N
+14,176,Pagkaon,Food,,,,,,,Adjective,,,,Novice-Mid,N
+14,177,Plato,Plate,,,,,,,Conjunction,,,,Novice-High,N
+14,178,Kutsara,Spoon,,,,,,,Existential verb,,,,Novice-High,N
+14,179,Tinidor,Fork,,,,,,,Verb / Noun,,,,Novice-High,N
+14,180,Baso,Glass,,,,,,,Verb,,,,Novice-High,N
+14,181,Tubig,Water,,,,,,,Noun / Numeral classifier,,,,Novice-Mid,N
+14,182,Lami,Delicious,,,,,,,Noun,,,,Novice-Mid,N
+14,183,Gamay,Few,,,,,,,Noun phrase,,,,Novice-Mid,N
+14,184,Daghan,Many,,,,,,,Noun,,,,Novice-Mid,N
+14,185,Kay,Is,,,,,,,Noun,,,,Novice-High,N
+14,186,Naa/naay,There is/has/have,,,,,,,Adjective,,,,Novice-Mid,N
+15,187,Bayad,Pay,,,,,,,Adjective,,,,Novice-High,N
+50,188,taas,,long/tall,,matas,,taha,,Adjective,Function Word,Adjective,Dimension,Novice-Mid,2
+50,189,mubo,,short,,mebaba,,pandak / pu'ut,,Adjective,Function Word,Adjective,Dimension,Novice-Mid,1
+50,156,ihap,,count,,bilang,,itung,,Noun,Function Word,Quantifier,Quantifier,Novice-High,1
+50,191,kita,,see,,keilay  / miyailay,,n'da,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
+50,158,simhot,,smell/sniff,Verb,kambaw,,bau,,Verb,You,Sensation,Perception,Novice-Mid,1
+50,159,dungog,,hear,,keneg,,bahingaw,,Verb,You,Sensation,Perception,Novice-Mid,1
+50,160,i-sulti,,speak,,petiroon / tiroon,,yuk,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
+50,161,inyo / inyong,,your / yours,,iyo / niyo / rekano,,bi,,Pronoun,You,Pronoun,Pronoun,Novice-Mid,1
+51,180,baso,,drinking cup,,tagayan,,sawan,,Noun,Home,Utensil,Utensil,Novice-Low,1
+51,197,inom,,drink,,minom,,inom,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
+51,174,kan-anan,,dining room,,pekanan,,pagkakan'an,,Noun,Home,Location,Location,Novice-High,1
+51,171,kaon,"short ""a""",eat,Verb,ken,,m'ngan,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
+51,178,kutsara,,spoon,,saridot,,suru,,Noun,Home,Utensil,Utensil,Novice-Low,1
+51,176,pagkaon ,"long ""a""",food,,penganengken,,pagkakan,,Noun,Home,Food,Food,Novice-Mid,1
+51,177,plato,,plate,,lapad,,lai,,Noun,Home,Utensil,Utensil,Novice-Low,1
+51,170,tilaw,,taste,,taaman,,timtim,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
+51,179,tinidor,,fork,,tinidor,,tinerol,,Noun,Home,Utensil,Utensil,Novice-Low,1
+51,181,tubig,,water,,ig,,bohe,,Noun,World,Food,Geography,Novice-Mid,1
+51,175,kusina,,kitchen,,tolang,,kusina,,Noun,Home,Location,Location,Novice-High,1
