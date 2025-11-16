@@ -1063,6 +1063,7 @@ async function init() {
         router.register('match-sound', MatchSoundModule);
         router.register('quiz', UnsaNiQuizModule);
         router.register('pdf-print', PDFPrintModule);
+        router.register('deck-builder', DeckBuilderModule);
         router.register('admin', AdminModule);
     }
     

@@ -1,0 +1,878 @@
+{
+    "version": "3.1",
+    "lastUpdated": "2025-11-16T00:09:52-08:00",
+    "languages": [
+        {
+            "id": 1,
+            "name": "Cebuano",
+            "trigraph": "ceb"
+        },
+        {
+            "id": 2,
+            "name": "English",
+            "trigraph": "eng"
+        },
+        {
+            "id": 3,
+            "name": "Maranao",
+            "trigraph": "mrw"
+        },
+        {
+            "id": 4,
+            "name": "Sinama",
+            "trigraph": "sin"
+        }
+    ],
+    "totalCards": 19,
+    "lessonStats": {
+        "1": {
+            "total": 19,
+            "withImage": 18,
+            "withGif": 4,
+            "withPng": 18,
+            "audioCount": {
+                "ceb": 18,
+                "mrw": 19,
+                "sin": 19
+            }
+        }
+    },
+    "cards": [
+        {
+            "wordNum": 1,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/1.taas.tall.png",
+            "printImagePath": "assets/1.taas.tall.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/1.ceb.taas.mp3",
+                "mrw": "assets/1.mrw.mataas.mp3",
+                "sin": "assets/1.sin.taha.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Asa",
+                    "note": "Where",
+                    "acceptableAnswers": [
+                        "Asa"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Interrogative",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Mid"
+        },
+        {
+            "wordNum": 10,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/10.inom.drink.gif",
+            "printImagePath": "assets/10.inom.drink(verb).png",
+            "hasImage": true,
+            "hasGif": true,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/10.ceb.inom.mp3",
+                "mrw": "assets/10.mrw.minom.mp3",
+                "sin": "assets/10.sin.inom.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Sulat",
+                    "note": "Write",
+                    "acceptableAnswers": [
+                        "Sulat"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Verb",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-High"
+        },
+        {
+            "wordNum": 11,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/11.kan-anan.dining_room.png",
+            "printImagePath": "assets/11.kan-anan.dining_room.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/11.ceb.kan-anan.mp3",
+                "mrw": "assets/11.mrw.pekanan.mp3",
+                "sin": "assets/11.sin.pagkakan’an.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Nag-tudlo",
+                    "note": "Teach",
+                    "acceptableAnswers": [
+                        "Nag-tudlo"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Verb",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Intermediate-Low"
+        },
+        {
+            "wordNum": 12,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/12.kaon.eat.gif",
+            "printImagePath": "assets/12.kaon.eat(verb).png",
+            "hasImage": true,
+            "hasGif": true,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/12.ceb.kaon.mp3",
+                "mrw": "assets/12.mrw.ken.mp3",
+                "sin": "assets/12.sin.m’ngan.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Ako/ko",
+                    "note": "I/me",
+                    "acceptableAnswers": [
+                        "Ako",
+                        "ko"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Pronoun",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Low"
+        },
+        {
+            "wordNum": 13,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/13.kutsara.spoon.png",
+            "printImagePath": "assets/13.kutsara.spoon.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/13.ceb.kutsara.mp3",
+                "mrw": "assets/13.mrw.saridot.mp3",
+                "sin": "assets/13.sin.suru.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Ikaw/ka",
+                    "note": "You",
+                    "acceptableAnswers": [
+                        "Ikaw",
+                        "ka"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Pronoun",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Low"
+        },
+        {
+            "wordNum": 14,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/14.pagkaon.eat(food).png",
+            "printImagePath": "assets/14.pagkaon.eat(food).png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/14.ceb.pagkaon.mp3",
+                "mrw": "assets/14.mrw.penganengken.mp3",
+                "sin": "assets/14.sin.pagkakan.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Kini / ni",
+                    "note": "This",
+                    "acceptableAnswers": [
+                        "Kini",
+                        "ni"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Demonstrative pronoun",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Mid"
+        },
+        {
+            "wordNum": 16,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/16.plato.plate.png",
+            "printImagePath": "assets/16.plato.plate.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/16.ceb.plato.mp3",
+                "mrw": "assets/16.mrw.lapad.mp3",
+                "sin": "assets/16.sin.lai.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Bolpen",
+                    "note": "Pen",
+                    "acceptableAnswers": [
+                        "Bolpen"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Noun",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Mid"
+        },
+        {
+            "wordNum": 17,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/17.tilaw.taste.gif",
+            "printImagePath": "assets/17.tilaw.taste.png",
+            "hasImage": true,
+            "hasGif": true,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/17.ceb.tilaw.mp3",
+                "mrw": "assets/17.mrw.taaman.mp3",
+                "sin": "assets/17.sin.timtim.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Lapis",
+                    "note": "Pencil",
+                    "acceptableAnswers": [
+                        "Lapis"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Noun",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Mid"
+        },
+        {
+            "wordNum": 18,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/18.tinidor.fork.png",
+            "printImagePath": "assets/18.tinidor.fork.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/18.ceb.tinidor.mp3",
+                "mrw": "assets/18.mrw.tinidor.mp3",
+                "sin": "assets/18.sin.tinerol.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Libro",
+                    "note": "Book",
+                    "acceptableAnswers": [
+                        "Libro"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Noun",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Mid"
+        },
+        {
+            "wordNum": 19,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/19.tubig.water.png",
+            "printImagePath": "assets/19.tubig.water.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/19.ceb.tubig.mp3",
+                "mrw": "assets/19.mrw.ig.mp3",
+                "sin": "assets/19.sin.bohe.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Papel",
+                    "note": "Paper",
+                    "acceptableAnswers": [
+                        "Papel"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Noun",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Mid"
+        },
+        {
+            "wordNum": 2,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/2.mubo.short.png",
+            "printImagePath": "assets/2.mubo.short.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/2.ceb.mubo.mp3",
+                "mrw": "assets/2.mrw.mebaba.mp3",
+                "sin": "assets/2.sin.pu'ut.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Unsa",
+                    "note": "What",
+                    "acceptableAnswers": [
+                        "Unsa"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Interrogative",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Mid"
+        },
+        {
+            "wordNum": 3,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/3.ihap.count.png",
+            "printImagePath": "assets/3.ihap.count.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/3.ceb.ihap.mp3",
+                "mrw": "assets/3.mrw.bilang.mp3",
+                "sin": "assets/3.sin.itung.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Oo",
+                    "note": "Yes",
+                    "acceptableAnswers": [
+                        "Oo"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Particle",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Low"
+        },
+        {
+            "wordNum": 4,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/4.kita.see.png",
+            "printImagePath": "assets/4.kita.see.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/4.ceb.kita.mp3",
+                "mrw": "assets/4.mrw.miyailay.mp3",
+                "sin": "assets/4.sin.n'da.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Dili",
+                    "note": "No",
+                    "acceptableAnswers": [
+                        "Dili"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Adverb / Negator",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Low"
+        },
+        {
+            "wordNum": 5,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/5.simhot.smell (verb).png",
+            "printImagePath": "assets/5.simhot.smell (verb).png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/5.ceb.simhot.mp3",
+                "mrw": "assets/5.mrw.kambaw.mp3",
+                "sin": "assets/5.sin.bau.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Istorya",
+                    "note": "Tell",
+                    "acceptableAnswers": [
+                        "Istorya"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Verb",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-High"
+        },
+        {
+            "wordNum": 6,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/6.dungog.hear.png",
+            "printImagePath": "assets/6.dungog.hear.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/6.ceb.dungog.mp3",
+                "mrw": "assets/6.mrw.keneg.mp3",
+                "sin": "assets/6.sin.bahingaw.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Tan-aw",
+                    "note": "Look",
+                    "acceptableAnswers": [
+                        "Tan-aw"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Verb",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-High"
+        },
+        {
+            "wordNum": 7,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/7.i-sulti.speak.gif",
+            "printImagePath": "assets/7.i-sulti.say_speak.png",
+            "hasImage": true,
+            "hasGif": true,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/7.ceb.i-sulti.mp3",
+                "mrw": "assets/7.mrw.tiroon.mp3",
+                "sin": "assets/7.sin.yuk.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Paminaw",
+                    "note": "Listen",
+                    "acceptableAnswers": [
+                        "Paminaw"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Verb",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-High"
+        },
+        {
+            "wordNum": 8,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/8.inyo_inyong.yours.png",
+            "printImagePath": "assets/8.inyo_inyong.yours.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/8.ceb.inyong.mp3",
+                "mrw": "assets/8.mrw.rekano.mp3",
+                "sin": "assets/8.sin.bi.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "I-tudlo",
+                    "note": "Point",
+                    "acceptableAnswers": [
+                        "I-tudlo"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Verb",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-High"
+        },
+        {
+            "wordNum": 9,
+            "lesson": 1,
+            "type": "N",
+            "imagePath": "assets/9.baso.cup.png",
+            "printImagePath": "assets/9.baso.cup.png",
+            "hasImage": true,
+            "hasGif": false,
+            "hasAudio": true,
+            "audio": {
+                "ceb": "assets/9.ceb.baso.mp3",
+                "mrw": "assets/9.mrw.tagayan.mp3",
+                "sin": "assets/9.sin.sawan.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Basa",
+                    "note": "Read",
+                    "acceptableAnswers": [
+                        "Basa"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Verb",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-High"
+        },
+        {
+            "wordNum": 20,
+            "lesson": 1,
+            "type": "S",
+            "imagePath": null,
+            "hasImage": false,
+            "hasAudio": true,
+            "audio": {
+                "mrw": "assets/20.mrw.tolang.mp3",
+                "sin": "assets/20.sin.kusina.mp3"
+            },
+            "translations": {
+                "cebuano": {
+                    "word": "Ngalan",
+                    "note": "Name",
+                    "acceptableAnswers": [
+                        "Ngalan"
+                    ]
+                },
+                "english": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "maranao": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                },
+                "sinama": {
+                    "word": "",
+                    "note": "",
+                    "acceptableAnswers": []
+                }
+            },
+            "grammar": "Noun",
+            "category": null,
+            "subCategory1": null,
+            "subCategory2": null,
+            "actflEst": "Novice-Mid"
+        }
+    ]
+}
