@@ -930,6 +930,18 @@ function handleRequest() {
                 ];
             }
             
+        case 'uploadMedia':
+            // Handle media file uploads (images and audio)
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                return [
+                    'success' => false,
+                    'error' => 'Media upload requires POST method'
+                ];
+            }
+            
+            $result = handleMediaUpload();
+            return $result;
+            
         case 'scan':
             // Scan assets directory
             $result = scanAssets();
@@ -1131,6 +1143,144 @@ function handleWordUpload($file) {
     
     error_log("Word_List.csv uploaded successfully from: $originalName");
     return ['success' => true, 'filename' => $originalName];
+}
+
+/**
+ * Handle Media file uploads (images and audio)
+ */
+function handleMediaUpload() {
+    // Check if assets directory exists
+    if (!is_dir(ASSETS_DIR)) {
+        if (!mkdir(ASSETS_DIR, 0755, true)) {
+            return ['success' => false, 'error' => 'Cannot create assets directory'];
+        }
+    }
+    
+    $imagesUploaded = 0;
+    $audioUploaded = 0;
+    $errors = [];
+    $imageFiles = [];
+    $audioFiles = [];
+    
+    // Handle image files
+    if (isset($_FILES['imageFiles']) && is_array($_FILES['imageFiles']['name'])) {
+        $imageCount = count($_FILES['imageFiles']['name']);
+        
+        for ($i = 0; $i < $imageCount; $i++) {
+            // Skip if there was an upload error
+            if ($_FILES['imageFiles']['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+            
+            $tmpPath = $_FILES['imageFiles']['tmp_name'][$i];
+            $originalName = $_FILES['imageFiles']['name'][$i];
+            $fileSize = $_FILES['imageFiles']['size'][$i];
+            
+            // Validate file extension
+            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['png', 'gif'])) {
+                $errors[] = "$originalName: Invalid file type (must be PNG or GIF)";
+                continue;
+            }
+            
+            // Validate file size (max 5MB)
+            if ($fileSize > 5 * 1024 * 1024) {
+                $errors[] = "$originalName: File too large (max 5MB)";
+                continue;
+            }
+            
+            // Validate filename pattern: WordNum.word.translation.ext
+            if (!preg_match('/^\d+\.[^.]+\.[^.]+\.(png|gif)$/i', $originalName)) {
+                $errors[] = "$originalName: Invalid naming format (expected: WordNum.word.translation.png/gif)";
+                continue;
+            }
+            
+            // Move file to assets directory
+            $destination = ASSETS_DIR . '/' . $originalName;
+            if (move_uploaded_file($tmpPath, $destination)) {
+                $imagesUploaded++;
+                $imageFiles[] = $originalName;
+                error_log("Image uploaded: $originalName");
+            } else {
+                $errors[] = "$originalName: Failed to save file";
+            }
+        }
+    }
+    
+    // Handle audio files
+    if (isset($_FILES['audioFiles']) && is_array($_FILES['audioFiles']['name'])) {
+        $audioCount = count($_FILES['audioFiles']['name']);
+        
+        for ($i = 0; $i < $audioCount; $i++) {
+            // Skip if there was an upload error
+            if ($_FILES['audioFiles']['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+            
+            $tmpPath = $_FILES['audioFiles']['tmp_name'][$i];
+            $originalName = $_FILES['audioFiles']['name'][$i];
+            $fileSize = $_FILES['audioFiles']['size'][$i];
+            
+            // Validate file extension
+            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+            if ($ext !== 'mp3') {
+                $errors[] = "$originalName: Invalid file type (must be MP3)";
+                continue;
+            }
+            
+            // Validate file size (max 10MB)
+            if ($fileSize > 10 * 1024 * 1024) {
+                $errors[] = "$originalName: File too large (max 10MB)";
+                continue;
+            }
+            
+            // Validate filename pattern: WordNum.lang.word.translation.mp3
+            if (!preg_match('/^\d+\.[a-z]{3}\.[^.]+\.[^.]+\.mp3$/i', $originalName)) {
+                $errors[] = "$originalName: Invalid naming format (expected: WordNum.lang.word.translation.mp3)";
+                continue;
+            }
+            
+            // Move file to assets directory
+            $destination = ASSETS_DIR . '/' . $originalName;
+            if (move_uploaded_file($tmpPath, $destination)) {
+                $audioUploaded++;
+                $audioFiles[] = $originalName;
+                error_log("Audio uploaded: $originalName");
+            } else {
+                $errors[] = "$originalName: Failed to save file";
+            }
+        }
+    }
+    
+    // Check if at least one file was uploaded
+    if ($imagesUploaded === 0 && $audioUploaded === 0) {
+        return [
+            'success' => false,
+            'error' => 'No valid media files uploaded. ' . implode(' ', $errors),
+            'errors' => $errors
+        ];
+    }
+    
+    // Return success with statistics
+    $response = [
+        'success' => true,
+        'message' => "Media files uploaded successfully",
+        'stats' => [
+            'imagesUploaded' => $imagesUploaded,
+            'audioUploaded' => $audioUploaded,
+            'totalUploaded' => $imagesUploaded + $audioUploaded
+        ],
+        'files' => [
+            'images' => $imageFiles,
+            'audio' => $audioFiles
+        ]
+    ];
+    
+    if (count($errors) > 0) {
+        $response['warnings'] = $errors;
+    }
+    
+    return $response;
 }
 
 // Process request and return JSON
