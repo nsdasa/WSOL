@@ -166,6 +166,33 @@
         </div>
     </div>
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal hidden">
+        <div class="modal-content login-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-lock"></i> Admin Login Required</h2>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                    This module requires administrator authentication.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="adminPassword" class="form-input" placeholder="Enter admin password">
+                </div>
+                <div id="loginError" class="login-error hidden"></div>
+            </div>
+            <div class="action-buttons">
+                <button id="loginSubmitBtn" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button id="loginCancelBtn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Debug Console (Hidden - Debug log now only shows in Admin tab) -->
     <div id="debugConsole" class="debug-console">
         <div class="debug-header">
@@ -179,6 +206,9 @@
 
     <!-- Core Application Script (includes base LearningModule class) -->
     <script src="app.js?v=<?php echo filemtime('app.js'); ?>"></script>
+    
+    <!-- Authentication Manager -->
+    <script src="auth-manager.js?v=<?php echo filemtime('auth-manager.js'); ?>"></script>
     
     <!-- Individual Module Scripts -->
     <script src="flashcards-module.js?v=<?php echo filemtime('flashcards-module.js'); ?>"></script>

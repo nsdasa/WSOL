@@ -1,12 +1,13 @@
 // =================================================================
 // CEBUANO LEARNING PLATFORM - Core Application
-// Version 3.0 - November 2025
+// Version 3.1 - November 2025 - WITH AUTHENTICATION
 // =================================================================
 
 // Global instances
 let router;
 let assetManager;
 let debugLogger;
+let authManager;  // AUTHENTICATION MANAGER
 let assetScanner;
 let themeManager;
 let toastManager;
@@ -944,7 +945,7 @@ class AssetScanner {
 }
 
 // =================================================================
-// ROUTER
+// ROUTER - WITH AUTHENTICATION
 // =================================================================
 class Router {
     constructor() {
@@ -957,6 +958,21 @@ class Router {
     }
     
     async navigate(moduleName) {
+        // Check authentication for protected modules
+        try {
+            const canAccess = await authManager.requireAuth(moduleName);
+            
+            if (!canAccess) {
+                debugLogger.log(2, `Access denied to ${moduleName} - authentication required`);
+                return;
+            }
+        } catch (err) {
+            // User cancelled login or auth failed
+            debugLogger.log(2, `Authentication cancelled for ${moduleName}`);
+            return;
+        }
+        
+        // Proceed with navigation
         if (this.currentModule) {
             this.currentModule.destroy();
         }
@@ -983,12 +999,16 @@ class Router {
 }
 
 // =================================================================
-// INITIALIZATION
+// INITIALIZATION - WITH AUTHENTICATION
 // =================================================================
 async function init() {
     debugLogger = new DebugLogger();
     debugLogger.init();
     debugLogger.log(2, 'Application starting...');
+    
+    // Initialize authentication manager
+    authManager = new AuthManager();
+    await authManager.init();
     
     // Initialize device detector early
     deviceDetector = new DeviceDetector();

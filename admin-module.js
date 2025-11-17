@@ -167,6 +167,32 @@ class AdminModule extends LearningModule {
                 </div>
 
                 <div class="admin-section">
+                    <h3 class="section-title"><i class="fas fa-clock"></i> Session Timeout</h3>
+                    <div class="debug-config">
+                        <div class="form-group">
+                            <label class="form-label">Login Session Duration (minutes)</label>
+                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <input type="number" id="sessionTimeoutInput" class="form-input" 
+                                    style="width: 120px;" min="5" max="480" step="5" value="30">
+                                <button id="saveTimeoutBtn" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Update Timeout
+                                </button>
+                            </div>
+                            <p style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
+                                <i class="fas fa-info-circle"></i> 
+                                Session expires after this many minutes of inactivity. 
+                                Range: 5-480 minutes (5 min - 8 hours)
+                            </p>
+                        </div>
+                        
+                        <div id="currentSessionInfo" class="current-session-info">
+                            <strong>Current Session:</strong>
+                            <span id="sessionStatusText">Not logged in</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
                     <h3 class="section-title"><i class="fas fa-terminal"></i> Debug Log</h3>
                     <div class="debug-log-container" id="adminDebugLog"></div>
                 </div>
@@ -178,6 +204,7 @@ class AdminModule extends LearningModule {
         this.updateStats();
         this.updateModuleStatus();
         this.setupDebugControls();
+        this.setupSessionTimeout();
         this.setupCSVUpload();
         this.setupMediaUpload();
         this.setupAssetScanner();
@@ -194,6 +221,51 @@ class AdminModule extends LearningModule {
                 'Admin Panel',
                 '***Unless you are the Admin... don\'t mess with this***'
             );
+        }
+    }
+    
+    setupSessionTimeout() {
+        const timeoutInput = document.getElementById('sessionTimeoutInput');
+        const saveTimeoutBtn = document.getElementById('saveTimeoutBtn');
+        const sessionStatusText = document.getElementById('sessionStatusText');
+        
+        // Load current timeout value
+        if (authManager && authManager.authenticated) {
+            timeoutInput.value = authManager.timeoutMinutes || 30;
+            sessionStatusText.textContent = `Active - ${authManager.timeoutMinutes} minute timeout`;
+            sessionStatusText.style.color = 'var(--success)';
+        } else {
+            sessionStatusText.textContent = 'Not logged in';
+            sessionStatusText.style.color = 'var(--text-secondary)';
+        }
+        
+        // Save timeout button
+        if (saveTimeoutBtn) {
+            saveTimeoutBtn.addEventListener('click', async () => {
+                const minutes = parseInt(timeoutInput.value);
+                
+                if (isNaN(minutes) || minutes < 5 || minutes > 480) {
+                    toastManager.show('Timeout must be between 5 and 480 minutes', 'error');
+                    return;
+                }
+                
+                if (!authManager || !authManager.authenticated) {
+                    toastManager.show('You must be logged in to change this setting', 'warning');
+                    return;
+                }
+                
+                saveTimeoutBtn.disabled = true;
+                saveTimeoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                
+                const success = await authManager.setSessionTimeout(minutes);
+                
+                if (success) {
+                    sessionStatusText.textContent = `Active - ${minutes} minute timeout`;
+                }
+                
+                saveTimeoutBtn.disabled = false;
+                saveTimeoutBtn.innerHTML = '<i class="fas fa-save"></i> Update Timeout';
+            });
         }
     }
     
