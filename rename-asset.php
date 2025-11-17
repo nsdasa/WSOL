@@ -1,92 +1,125 @@
 <?php
-// rename-asset.php - Rename asset files with validation
-// Version 3.2 - November 2025
-// Part of Bob and Mariel Ward School of Filipino Languages
+// rename-asset.php - Renames asset files with COMPLETE CACHE PREVENTION
+// Called by Deck Builder when user wants to rename files to match naming conventions
 
+// =================================================================
+// CRITICAL: PREVENT ALL CACHING
+// =================================================================
+
+// Prevent browser caching
 header('Content-Type: application/json');
+header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
+// Clear PHP OpCache for this script
+if (function_exists('opcache_invalidate')) {
+    opcache_invalidate(__FILE__, true);
+}
+if (function_exists('opcache_reset')) {
+    opcache_reset();
+}
+
+// Clear file status cache (critical for file operations)
+clearstatcache(true);
+
+// =================================================================
+// ERROR REPORTING (for debugging)
+// =================================================================
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// =================================================================
+// CONFIGURATION
+// =================================================================
+
 $assetsDir = __DIR__ . '/assets';
 
-// Get JSON input
-$input = json_decode(file_get_contents('php://input'), true);
+// =================================================================
+// MAIN LOGIC
+// =================================================================
 
-if (!$input || !isset($input['oldFilename']) || !isset($input['newFilename'])) {
-    echo json_encode([
-        'success' => false,
-        'error' => 'Missing oldFilename or newFilename'
-    ]);
-    exit;
-}
-
-$oldFilename = basename($input['oldFilename']); // Security: strip path
-$newFilename = basename($input['newFilename']); // Security: strip path
-
-$oldPath = $assetsDir . '/' . $oldFilename;
-$newPath = $assetsDir . '/' . $newFilename;
-
-// Validate old file exists
-if (!file_exists($oldPath)) {
-    echo json_encode([
-        'success' => false,
-        'error' => "File not found: $oldFilename"
-    ]);
-    exit;
-}
-
-// Validate new filename doesn't already exist
-if (file_exists($newPath) && $oldPath !== $newPath) {
-    echo json_encode([
-        'success' => false,
-        'error' => "A file named '$newFilename' already exists"
-    ]);
-    exit;
-}
-
-// Validate new filename format
-$ext = strtolower(pathinfo($newFilename, PATHINFO_EXTENSION));
-$validExtensions = ['png', 'gif', 'mp3', 'm4a'];
-
-if (!in_array($ext, $validExtensions)) {
-    echo json_encode([
-        'success' => false,
-        'error' => "Invalid file extension. Must be: " . implode(', ', $validExtensions)
-    ]);
-    exit;
-}
-
-// Validate filename pattern
-$isValid = false;
-
-if ($ext === 'png' || $ext === 'gif') {
-    // Must start with number: 123.anything.ext
-    $isValid = preg_match('/^\d+\./', $newFilename);
-} else if ($ext === 'mp3' || $ext === 'm4a') {
-    // Must be: 123.lang.anything.ext
-    $isValid = preg_match('/^\d+\.[a-z]{3}\./', $newFilename);
-}
-
-if (!$isValid) {
-    echo json_encode([
-        'success' => false,
-        'error' => "Invalid filename format. Expected: WordNum.word.translation.$ext (or WordNum.lang.word.translation.mp3 for audio)"
-    ]);
-    exit;
-}
-
-// Perform rename
-if (rename($oldPath, $newPath)) {
+try {
+    // Get JSON input
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
+    
+    if (!$data) {
+        throw new Exception('Invalid JSON input');
+    }
+    
+    // Validate input
+    if (!isset($data['oldFilename']) || !isset($data['newFilename'])) {
+        throw new Exception('Missing oldFilename or newFilename');
+    }
+    
+    $oldFilename = basename($data['oldFilename']); // Security: prevent path traversal
+    $newFilename = basename($data['newFilename']); // Security: prevent path traversal
+    
+    // Validate filenames
+    if (empty($oldFilename) || empty($newFilename)) {
+        throw new Exception('Invalid filename(s)');
+    }
+    
+    // Construct full paths
+    $oldPath = $assetsDir . '/' . $oldFilename;
+    $newPath = $assetsDir . '/' . $newFilename;
+    
+    // Clear cache for both paths
+    clearstatcache(true, $oldPath);
+    clearstatcache(true, $newPath);
+    
+    // Check if old file exists
+    if (!file_exists($oldPath)) {
+        throw new Exception('Source file does not exist: ' . $oldFilename);
+    }
+    
+    // Check if new filename already exists
+    if (file_exists($newPath)) {
+        throw new Exception('Target filename already exists: ' . $newFilename);
+    }
+    
+    // Validate that new filename has valid extension
+    $allowedExtensions = ['png', 'gif', 'mp3', 'm4a', 'jpg', 'jpeg'];
+    $newExt = strtolower(pathinfo($newFilename, PATHINFO_EXTENSION));
+    $oldExt = strtolower(pathinfo($oldFilename, PATHINFO_EXTENSION));
+    
+    if (!in_array($newExt, $allowedExtensions)) {
+        throw new Exception('Invalid file extension: ' . $newExt);
+    }
+    
+    // Don't allow changing file extension
+    if ($newExt !== $oldExt) {
+        throw new Exception('Cannot change file extension');
+    }
+    
+    // Perform rename
+    if (!rename($oldPath, $newPath)) {
+        throw new Exception('Failed to rename file');
+    }
+    
+    // Clear cache for the new file
+    clearstatcache(true, $newPath);
+    
+    // Invalidate from OpCache if applicable
+    if (function_exists('opcache_invalidate')) {
+        opcache_invalidate($oldPath, true);
+        opcache_invalidate($newPath, true);
+    }
+    
+    // Success
     echo json_encode([
         'success' => true,
-        'message' => "File renamed successfully",
         'oldFilename' => $oldFilename,
-        'newFilename' => $newFilename
+        'newFilename' => $newFilename,
+        'message' => 'File renamed successfully',
+        'timestamp' => time()
     ]);
-} else {
+    
+} catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'error' => "Failed to rename file. Check file permissions."
+        'error' => $e->getMessage()
     ]);
 }
 ?>

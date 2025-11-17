@@ -1,1306 +1,441 @@
 <?php
-/**
- * Asset Scanner API - Bob and Mariel Ward School of Filipino Languages
- * Version 3.1 - Multi-language, Multi-lesson Support with Type field
- * Updated: November 2025
- * Changes: Removed wordVersion, added Type (N/R), null handling for blank grammar fields
- */
+// scan-assets.php - Scans assets folder and generates manifest.json with COMPLETE CACHE PREVENTION
+// Handles CSV uploads, media uploads, and asset scanning
 
+// =================================================================
+// CRITICAL: PREVENT ALL CACHING
+// =================================================================
+
+// Prevent browser caching
+header('Content-Type: application/json');
+header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
+// Clear PHP OpCache for this script
+if (function_exists('opcache_invalidate')) {
+    opcache_invalidate(__FILE__, true);
+}
+if (function_exists('opcache_reset')) {
+    opcache_reset();
+}
+
+// Clear file status cache (critical for directory listings)
+clearstatcache(true);
+
+// =================================================================
+// ERROR REPORTING (for debugging)
+// =================================================================
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-set_time_limit(120);
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+// =================================================================
+// CONFIGURATION
+// =================================================================
 
-// Configuration
-define('ASSETS_DIR', __DIR__ . '/assets');
-define('MANIFEST_FILE', ASSETS_DIR . '/manifest.json');
-define('LANGUAGE_CSV', ASSETS_DIR . '/Language_List.csv');
-define('WORD_CSV', ASSETS_DIR . '/Word_List.csv');
+$assetsDir = __DIR__ . '/assets';
+$manifestPath = $assetsDir . '/manifest.json';
 
-/**
- * Load and parse Language_List.csv
- */
-function loadLanguages() {
-    if (!file_exists(LANGUAGE_CSV)) {
-        return ['success' => false, 'error' => 'Language_List.csv not found in assets folder'];
+// =================================================================
+// DETERMINE ACTION
+// =================================================================
+
+$action = isset($_GET['action']) ? $_GET['action'] : 'scan';
+
+switch ($action) {
+    case 'upload':
+        handleCSVUpload();
+        break;
+    case 'uploadMedia':
+        handleMediaUpload();
+        break;
+    case 'scan':
+    default:
+        scanAssets();
+        break;
+}
+
+// =================================================================
+// HANDLE CSV UPLOAD
+// =================================================================
+
+function handleCSVUpload() {
+    global $assetsDir;
+    
+    try {
+        // Check if files were uploaded
+        $languageFile = isset($_FILES['languageFile']) ? $_FILES['languageFile'] : null;
+        $wordFile = isset($_FILES['wordFile']) ? $_FILES['wordFile'] : null;
+        
+        if (!$languageFile && !$wordFile) {
+            throw new Exception('No files uploaded');
+        }
+        
+        // Process language file
+        if ($languageFile) {
+            $targetPath = $assetsDir . '/Language_List.csv';
+            if (!move_uploaded_file($languageFile['tmp_name'], $targetPath)) {
+                throw new Exception('Failed to save Language_List.csv');
+            }
+            // Clear cache for new file
+            clearstatcache(true, $targetPath);
+        }
+        
+        // Process word file
+        if ($wordFile) {
+            $targetPath = $assetsDir . '/Word_List.csv';
+            if (!move_uploaded_file($wordFile['tmp_name'], $targetPath)) {
+                throw new Exception('Failed to save Word_List.csv');
+            }
+            // Clear cache for new file
+            clearstatcache(true, $targetPath);
+        }
+        
+        // Now scan assets to generate manifest
+        scanAssets();
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+// =================================================================
+// HANDLE MEDIA UPLOAD
+// =================================================================
+
+function handleMediaUpload() {
+    global $assetsDir;
+    
+    try {
+        $imageFiles = isset($_FILES['imageFiles']) ? $_FILES['imageFiles'] : null;
+        $audioFiles = isset($_FILES['audioFiles']) ? $_FILES['audioFiles'] : null;
+        
+        $imagesUploaded = 0;
+        $audioUploaded = 0;
+        
+        // Process image files
+        if ($imageFiles && isset($imageFiles['name'])) {
+            for ($i = 0; $i < count($imageFiles['name']); $i++) {
+                if ($imageFiles['error'][$i] === UPLOAD_ERR_OK) {
+                    $filename = basename($imageFiles['name'][$i]);
+                    $targetPath = $assetsDir . '/' . $filename;
+                    
+                    if (move_uploaded_file($imageFiles['tmp_name'][$i], $targetPath)) {
+                        $imagesUploaded++;
+                        // Clear cache for new file
+                        clearstatcache(true, $targetPath);
+                    }
+                }
+            }
+        }
+        
+        // Process audio files
+        if ($audioFiles && isset($audioFiles['name'])) {
+            for ($i = 0; $i < count($audioFiles['name']); $i++) {
+                if ($audioFiles['error'][$i] === UPLOAD_ERR_OK) {
+                    $filename = basename($audioFiles['name'][$i]);
+                    $targetPath = $assetsDir . '/' . $filename;
+                    
+                    if (move_uploaded_file($audioFiles['tmp_name'][$i], $targetPath)) {
+                        $audioUploaded++;
+                        // Clear cache for new file
+                        clearstatcache(true, $targetPath);
+                    }
+                }
+            }
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'stats' => [
+                'imagesUploaded' => $imagesUploaded,
+                'audioUploaded' => $audioUploaded
+            ]
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+// =================================================================
+// SCAN ASSETS AND GENERATE MANIFEST
+// =================================================================
+
+function scanAssets() {
+    global $assetsDir, $manifestPath;
+    
+    try {
+        // Clear all file caches before starting
+        clearstatcache(true);
+        
+        // Check if assets directory exists
+        if (!is_dir($assetsDir)) {
+            throw new Exception('Assets directory not found');
+        }
+        
+        // Load CSV files
+        $languages = loadLanguageList($assetsDir . '/Language_List.csv');
+        $cards = loadWordList($assetsDir . '/Word_List.csv');
+        
+        // Scan for image and audio files
+        clearstatcache(true, $assetsDir);
+        $entries = scandir($assetsDir);
+        
+        if ($entries === false) {
+            throw new Exception('Failed to scan assets directory');
+        }
+        
+        $stats = [
+            'totalCards' => count($cards),
+            'cardsWithAudio' => 0,
+            'totalPng' => 0,
+            'totalGif' => 0,
+            'totalAudio' => 0
+        ];
+        
+        $issues = [];
+        
+        // Map files to cards
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            
+            $fullPath = $assetsDir . '/' . $entry;
+            clearstatcache(true, $fullPath);
+            
+            if (!is_file($fullPath)) {
+                continue;
+            }
+            
+            $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+            
+            // Process PNG files
+            if ($ext === 'png') {
+                $stats['totalPng']++;
+                $wordNum = extractWordNum($entry);
+                if ($wordNum !== null) {
+                    foreach ($cards as &$card) {
+                        if ($card['wordNum'] === $wordNum) {
+                            $card['printImagePath'] = 'assets/' . $entry;
+                            $card['hasImage'] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Process GIF files
+            if ($ext === 'gif') {
+                $stats['totalGif']++;
+                $wordNum = extractWordNum($entry);
+                if ($wordNum !== null) {
+                    foreach ($cards as &$card) {
+                        if ($card['wordNum'] === $wordNum) {
+                            $card['imagePath'] = 'assets/' . $entry;
+                            $card['hasGif'] = true;
+                            $card['hasImage'] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Process audio files (MP3/M4A)
+            if ($ext === 'mp3' || $ext === 'm4a') {
+                $stats['totalAudio']++;
+                list($wordNum, $lang) = extractAudioInfo($entry);
+                
+                if ($wordNum !== null && $lang !== null) {
+                    foreach ($cards as &$card) {
+                        if ($card['wordNum'] === $wordNum) {
+                            if (!isset($card['audio'])) {
+                                $card['audio'] = [];
+                            }
+                            $card['audio'][$lang] = 'assets/' . $entry;
+                            $card['hasAudio'] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Count cards with audio
+        foreach ($cards as $card) {
+            if (isset($card['hasAudio']) && $card['hasAudio']) {
+                $stats['cardsWithAudio']++;
+            }
+        }
+        
+        // Generate manifest
+        $manifest = [
+            'version' => '3.0',
+            'lastUpdated' => date('c'),
+            'languages' => $languages,
+            'cards' => $cards,
+            'stats' => $stats
+        ];
+        
+        // Clear cache for manifest path before writing
+        clearstatcache(true, $manifestPath);
+        
+        // Write manifest.json
+        $json = json_encode($manifest, JSON_PRETTY_PRINT);
+        if (file_put_contents($manifestPath, $json) === false) {
+            throw new Exception('Failed to write manifest.json');
+        }
+        
+        // Clear cache for newly written manifest
+        clearstatcache(true, $manifestPath);
+        
+        // Invalidate manifest from OpCache if possible
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate($manifestPath, true);
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'stats' => $stats,
+            'issues' => $issues,
+            'manifestPath' => 'assets/manifest.json',
+            'timestamp' => time()
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+// =================================================================
+// HELPER FUNCTIONS
+// =================================================================
+
+function loadLanguageList($path) {
+    clearstatcache(true, $path);
+    
+    if (!file_exists($path)) {
+        // Return default languages if file doesn't exist
+        return [
+            ['id' => 1, 'name' => 'Cebuano', 'trigraph' => 'ceb'],
+            ['id' => 2, 'name' => 'English', 'trigraph' => 'eng'],
+            ['id' => 3, 'name' => 'Maranao', 'trigraph' => 'mrw'],
+            ['id' => 4, 'name' => 'Sinama', 'trigraph' => 'sin']
+        ];
     }
     
     $languages = [];
-    $file = fopen(LANGUAGE_CSV, 'r');
+    $file = fopen($path, 'r');
     
-    if (!$file) {
-        return ['success' => false, 'error' => 'Cannot open Language_List.csv'];
+    if ($file) {
+        // Skip header row
+        fgetcsv($file);
+        
+        while (($row = fgetcsv($file)) !== false) {
+            if (count($row) >= 3) {
+                $languages[] = [
+                    'id' => intval($row[0]),
+                    'name' => trim($row[1]),
+                    'trigraph' => strtolower(trim($row[2]))
+                ];
+            }
+        }
+        
+        fclose($file);
     }
     
-    // Skip header row (with BOM if present)
-    $header = fgets($file);
-    
-    $lineNumber = 1; // Track line numbers for better error reporting
-    while (($row = fgetcsv($file)) !== false) {
-        $lineNumber++;
-        
-        // Skip empty rows
-        if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) {
-            continue;
-        }
-        
-        // Validate row has minimum required columns (3 for Language_List)
-        if (count($row) < 3) {
-            error_log("Language_List.csv line $lineNumber: Insufficient columns (expected 3, got " . count($row) . ")");
-            continue;
-        }
-        
-        // Validate and sanitize data
-        $id = isset($row[0]) && is_numeric(trim($row[0])) ? (int)trim($row[0]) : null;
-        $name = isset($row[1]) ? trim($row[1]) : '';
-        $trigraph = isset($row[2]) ? strtolower(trim($row[2])) : '';
-        
-        // Skip if essential data is missing
-        if ($id === null || empty($name) || empty($trigraph)) {
-            error_log("Language_List.csv line $lineNumber: Missing essential data (ID: $id, Name: '$name', Trigraph: '$trigraph')");
-            continue;
-        }
-        
-        // Validate trigraph is exactly 3 characters
-        if (strlen($trigraph) !== 3) {
-            error_log("Language_List.csv line $lineNumber: Invalid trigraph '$trigraph' (must be exactly 3 characters)");
-            continue;
-        }
-        
-        if (!empty($id) && !empty($name) && !empty($trigraph)) {
-            $languages[] = [
-                'id' => $id,
-                'name' => $name,
-                'trigraph' => $trigraph
-            ];
-        }
-    }
-    
-    fclose($file);
-    return ['success' => true, 'languages' => $languages];
+    return $languages;
 }
 
-/**
- * Load and parse Word_List.csv
- */
-function loadWords() {
-    if (!file_exists(WORD_CSV)) {
-        return ['success' => false, 'error' => 'Word_List.csv not found in assets folder'];
+function loadWordList($path) {
+    clearstatcache(true, $path);
+    
+    if (!file_exists($path)) {
+        return [];
     }
     
-    $words = [];
-    $file = fopen(WORD_CSV, 'r');
-    
-    if (!$file) {
-        return ['success' => false, 'error' => 'Cannot open Word_List.csv'];
-    }
-    
-    // Skip header row
-    fgets($file);
-    
-    $lineNumber = 1;
-    while (($row = fgetcsv($file)) !== false) {
-        $lineNumber++;
-        
-        // Skip empty rows
-        if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) {
-            continue;
-        }
-        
-        // Validate row has minimum required columns (updated to 16 without wordVersion)
-        if (count($row) < 15) {
-            error_log("Word_List.csv line $lineNumber: Insufficient columns (expected at least 15, got " . count($row) . ")");
-            continue;
-        }
-        
-        // Validate wordNum exists and is numeric
-        if (!isset($row[1]) || !is_numeric(trim($row[1]))) {
-            error_log("Word_List.csv line $lineNumber: Invalid or missing word number");
-            continue;
-        }
-        
-        $wordNum = (int)trim($row[1]);
-        
-        // Validate at least one translation exists
-        $cebuano = trim($row[2] ?? '');
-        $english = trim($row[4] ?? '');
-        
-        if (empty($cebuano) && empty($english)) {
-            error_log("Word_List.csv line $lineNumber: No translations found for word $wordNum");
-            continue;
-        }
-        
-        if (!empty($wordNum)) {
-            $words[$wordNum] = [
-                'wordNum' => $wordNum,
-                'lesson' => isset($row[0]) && is_numeric(trim($row[0])) ? (int)trim($row[0]) : 0,
-                'cebuano' => $cebuano,
-                'cebuanoNote' => trim($row[3] ?? ''),
-                'english' => $english,
-                'englishNote' => trim($row[5] ?? ''),
-                'maranao' => trim($row[6] ?? ''),
-                'maranaoNote' => trim($row[7] ?? ''),
-                'sinama' => trim($row[8] ?? ''),
-                'sinamaNote' => trim($row[9] ?? ''),
-                'grammar' => !empty(trim($row[10] ?? '')) ? trim($row[10]) : null,
-                'category' => !empty(trim($row[11] ?? '')) ? trim($row[11]) : null,
-                'subCategory1' => !empty(trim($row[12] ?? '')) ? trim($row[12]) : null,
-                'subCategory2' => !empty(trim($row[13] ?? '')) ? trim($row[13]) : null,
-                'actflEst' => !empty(trim($row[14] ?? '')) ? trim($row[14]) : null,
-                'type' => trim($row[15] ?? '')
-            ];
-        }
-    }
-    
-    fclose($file);
-    return ['success' => true, 'words' => $words];
-}
-
-/**
- * Generate detailed scan report with file matching information
- */
-function generateDetailedReport($wordData, $cards, $pngFiles, $gifFiles, $mp3Files) {
-    $report = [
-        'summary' => [
-            'timestamp' => date('Y-m-d H:i:s'),
-            'totalWordsInCSV' => count($wordData),
-            'totalCardsCreated' => count($cards),
-            'filesScanned' => [
-                'png' => count($pngFiles),
-                'gif' => count($gifFiles),
-                'mp3' => count($mp3Files)
-            ]
-        ],
-        'detailedMatches' => []
-    ];
-    
-    // Create detailed table for each word in CSV
-    foreach ($wordData as $wordNum => $word) {
-        $cardExists = isset($cards[$wordNum]);
-        $card = $cardExists ? $cards[$wordNum] : null;
-        
-        $match = [
-            'wordNum' => $wordNum,
-            'lesson' => $word['lesson'],
-            'type' => $word['type'],
-            'cebuano' => $word['cebuano'],
-            'english' => $word['english'],
-            'maranao' => $word['maranao'],
-            'sinama' => $word['sinama'],
-            'hasCard' => $cardExists,
-            'files' => [
-                'png' => null,
-                'gif' => null,
-                'audio' => []
-            ],
-            'status' => 'missing'
-        ];
-        
-        if ($cardExists) {
-            // Check for PNG
-            if ($card['printImagePath']) {
-                $match['files']['png'] = basename($card['printImagePath']);
-            }
-            
-            // Check for GIF
-            if (isset($card['hasGif']) && $card['hasGif']) {
-                $match['files']['gif'] = basename($card['imagePath']);
-            }
-            
-            // Check for audio files
-            foreach ($card['audio'] as $lang => $path) {
-                $match['files']['audio'][$lang] = basename($path);
-            }
-            
-            // Determine status
-            $hasPng = !empty($match['files']['png']);
-            $hasGif = !empty($match['files']['gif']);
-            $hasAudio = !empty($match['files']['audio']);
-            
-            if ($hasPng && $hasGif && $hasAudio) {
-                $match['status'] = 'complete-animated';
-            } elseif ($hasPng && $hasAudio) {
-                $match['status'] = 'complete-static';
-            } elseif ($hasGif && !$hasPng) {
-                $match['status'] = 'gif-only';
-            } elseif ($hasPng || $hasGif) {
-                $match['status'] = 'image-only';
-            } elseif ($hasAudio) {
-                $match['status'] = 'audio-only';
-            } else {
-                $match['status'] = 'partial';
-            }
-        }
-        
-        $report['detailedMatches'][] = $match;
-    }
-    
-    return $report;
-}
-
-/**
- * Scan the assets directory for PNG and MP3 files
- */
-function scanAssets() {
     $cards = [];
-    $issues = [];
+    $file = fopen($path, 'r');
     
-    // Check if assets directory exists
-    if (!is_dir(ASSETS_DIR)) {
-        return [
-            'success' => false,
-            'error' => 'Assets directory not found. Please create an "assets" folder.',
-            'cards' => [],
-            'issues' => []
-        ];
-    }
-    
-    // Load CSV data
-    $languagesResult = loadLanguages();
-    if (!$languagesResult['success']) {
-        return [
-            'success' => false,
-            'error' => $languagesResult['error'],
-            'cards' => [],
-            'issues' => []
-        ];
-    }
-    $languages = $languagesResult['languages'];
-    
-    $wordsResult = loadWords();
-    if (!$wordsResult['success']) {
-        return [
-            'success' => false,
-            'error' => $wordsResult['error'],
-            'cards' => [],
-            'issues' => []
-        ];
-    }
-    $wordData = $wordsResult['words'];
-    
-    // Get all image files (PNG and GIF)
-    $pngFiles = glob(ASSETS_DIR . '/*.png');
-    $gifFiles = glob(ASSETS_DIR . '/*.gif');
-    if ($pngFiles === false) $pngFiles = [];
-    if ($gifFiles === false) $gifFiles = [];
-    
-    // Process PNG files first
-    foreach ($pngFiles as $pngPath) {
-        $filename = basename($pngPath);
+    if ($file) {
+        // Read header to get column indices
+        $headers = fgetcsv($file);
         
-        // Skip logo.png
-        if ($filename === 'logo.png') {
-            continue;
-        }
-        
-        // Parse filename: WordNum.anything.png
-        if (preg_match('/^(\d+)\..*\.png$/', $filename, $matches)) {
-            $wordNum = (int)$matches[1];
+        while (($row = fgetcsv($file)) !== false) {
+            if (count($row) < 16) continue;
             
-            // Check if this word exists in CSV
-            if (!isset($wordData[$wordNum])) {
-                $issues[] = [
-                    'type' => 'warning',
-                    'file' => $filename,
-                    'message' => "Word #{$wordNum} not found in Word_List.csv"
-                ];
-                continue;
-            }
-            
-            $word = $wordData[$wordNum];
-            
-            // Initialize card if not exists
-            if (!isset($cards[$wordNum])) {
-                $cards[$wordNum] = [
-                    'wordNum' => $wordNum,
-                    'lesson' => $word['lesson'],
-                    'type' => $word['type'],
-                    'imagePath' => 'assets/' . $filename,      // Will be overridden by GIF if exists
-                    'printImagePath' => 'assets/' . $filename, // Always PNG for printing
-                    'hasImage' => true,
-                    'hasGif' => false,
-                    'hasAudio' => false,
-                    'audio' => [],
-                    'translations' => [],
-                    'grammar' => $word['grammar'],
-                    'category' => $word['category'],
-                    'subCategory1' => $word['subCategory1'],
-                    'subCategory2' => $word['subCategory2'],
-                    'actflEst' => $word['actflEst']
-                ];
-            } else {
-                $cards[$wordNum]['printImagePath'] = 'assets/' . $filename;
-                $cards[$wordNum]['hasImage'] = true;
-            }
-            
-            // Add translations from CSV with acceptableAnswers for slash-separated words
-            $cards[$wordNum]['translations'] = [
-                'cebuano' => [
-                    'word' => $word['cebuano'], 
-                    'note' => $word['cebuanoNote'],
-                    'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['cebuano']))))
-                ],
-                'english' => [
-                    'word' => $word['english'], 
-                    'note' => $word['englishNote'],
-                    'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['english']))))
-                ],
-                'maranao' => [
-                    'word' => $word['maranao'], 
-                    'note' => $word['maranaoNote'],
-                    'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['maranao']))))
-                ],
-                'sinama' => [
-                    'word' => $word['sinama'], 
-                    'note' => $word['sinamaNote'],
-                    'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['sinama']))))
-                ]
-            ];
-            
-        } else {
-            $issues[] = [
-                'type' => 'error',
-                'file' => $filename,
-                'message' => 'Invalid filename format. Expected: WordNum.anything.gif (e.g., 17.tilaw.taste.gif)'
-            ];
-        }
-    }
-    
-    // Process GIF files (override imagePath for online use if GIF exists)
-    foreach ($gifFiles as $gifPath) {
-        $filename = basename($gifPath);
-        
-        // Parse filename: WordNum.anything.gif
-        if (preg_match('/^(\d+)\..*\.gif$/', $filename, $matches)) {
-            $wordNum = (int)$matches[1];
-            
-            // Check if this word exists in CSV
-            if (!isset($wordData[$wordNum])) {
-                $issues[] = [
-                    'type' => 'warning',
-                    'file' => $filename,
-                    'message' => "Word #{$wordNum} not found in Word_List.csv"
-                ];
-                continue;
-            }
-            
-            $word = $wordData[$wordNum];
-            
-            // Initialize card if not exists (GIF without PNG)
-            if (!isset($cards[$wordNum])) {
-                $cards[$wordNum] = [
-                    'wordNum' => $wordNum,
-                    'lesson' => $word['lesson'],
-                    'type' => $word['type'],
-                    'imagePath' => 'assets/' . $filename,      // GIF for online
-                    'printImagePath' => null,                   // No PNG for printing
-                    'hasImage' => true,
-                    'hasGif' => true,
-                    'hasAudio' => false,
-                    'audio' => [],
-                    'translations' => [
-                        'cebuano' => [
-                            'word' => $word['cebuano'], 
-                            'note' => $word['cebuanoNote'],
-                            'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['cebuano']))))
-                        ],
-                        'english' => [
-                            'word' => $word['english'], 
-                            'note' => $word['englishNote'],
-                            'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['english']))))
-                        ],
-                        'maranao' => [
-                            'word' => $word['maranao'], 
-                            'note' => $word['maranaoNote'],
-                            'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['maranao']))))
-                        ],
-                        'sinama' => [
-                            'word' => $word['sinama'], 
-                            'note' => $word['sinamaNote'],
-                            'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['sinama']))))
-                        ]
+            $card = [
+                'lesson' => intval($row[0]),
+                'wordNum' => intval($row[1]),
+                'type' => isset($row[15]) ? trim($row[15]) : 'N',
+                'translations' => [
+                    'cebuano' => [
+                        'word' => trim($row[2]),
+                        'note' => trim($row[3]),
+                        'acceptableAnswers' => explode('/', trim($row[2]))
                     ],
-                    'grammar' => $word['grammar'],
-                    'category' => $word['category'],
-                    'subCategory1' => $word['subCategory1'],
-                    'subCategory2' => $word['subCategory2'],
-                    'actflEst' => $word['actflEst']
-                ];
-                
-                $issues[] = [
-                    'type' => 'warning',
-                    'file' => $filename,
-                    'message' => "GIF without PNG - card will not be printable"
-                ];
-            } else {
-                // Override imagePath with GIF (PNG kept in printImagePath)
-                $cards[$wordNum]['imagePath'] = 'assets/' . $filename;
-                $cards[$wordNum]['hasGif'] = true;
-            }
-            
-        } else {
-            $issues[] = [
-                'type' => 'error',
-                'file' => $filename,
-                'message' => 'Invalid filename format. Expected: WordNum.anything.gif (e.g., 17.tilaw.taste.gif)'
-            ];
-        }
-    }
-    
-    // Get all MP3 and M4A files
-    $mp3Files = glob(ASSETS_DIR . '/*.mp3');
-    if ($mp3Files === false) {
-        $mp3Files = [];
-    }
-    
-    $m4aFiles = glob(ASSETS_DIR . '/*.m4a');
-    if ($m4aFiles === false) {
-        $m4aFiles = [];
-    }
-    
-    // Combine both audio file types
-    $audioFiles = array_merge($mp3Files, $m4aFiles);
-    
-    foreach ($audioFiles as $audioPath) {
-        $filename = basename($audioPath);
-        
-        // Parse filename: WordNum.Trigraph.anything.mp3/m4a
-        if (preg_match('/^(\d+)\.([a-z]{3})\..*\.(mp3|m4a)$/i', $filename, $matches)) {
-            $wordNum = (int)$matches[1];
-            $trigraph = strtolower($matches[2]);
-            
-            // Check if this word exists in our cards
-            if (!isset($cards[$wordNum])) {
-                // Word exists in audio but no image
-                if (isset($wordData[$wordNum])) {
-                    $word = $wordData[$wordNum];
-                    $cards[$wordNum] = [
-                        'wordNum' => $wordNum,
-                        'lesson' => $word['lesson'],
-                        'type' => $word['type'],
-                        'imagePath' => null,
-                        'hasImage' => false,
-                        'hasAudio' => false,
-                        'audio' => [],
-                        'translations' => [
-                            'cebuano' => [
-                                'word' => $word['cebuano'], 
-                                'note' => $word['cebuanoNote'],
-                                'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['cebuano']))))
-                            ],
-                            'english' => [
-                                'word' => $word['english'], 
-                                'note' => $word['englishNote'],
-                                'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['english']))))
-                            ],
-                            'maranao' => [
-                                'word' => $word['maranao'], 
-                                'note' => $word['maranaoNote'],
-                                'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['maranao']))))
-                            ],
-                            'sinama' => [
-                                'word' => $word['sinama'], 
-                                'note' => $word['sinamaNote'],
-                                'acceptableAnswers' => array_values(array_filter(array_map('trim', explode('/', $word['sinama']))))
-                            ]
-                        ],
-                        'grammar' => $word['grammar'],
-                        'category' => $word['category'],
-                        'subCategory1' => $word['subCategory1'],
-                        'subCategory2' => $word['subCategory2'],
-                        'actflEst' => $word['actflEst']
-                    ];
-                } else {
-                    $issues[] = [
-                        'type' => 'warning',
-                        'file' => $filename,
-                        'message' => "Word #{$wordNum} not found in Word_List.csv"
-                    ];
-                    continue;
-                }
-            }
-            
-            // Add audio file for this language
-            $cards[$wordNum]['audio'][$trigraph] = 'assets/' . $filename;
-            $cards[$wordNum]['hasAudio'] = true;
-            
-        } else {
-            $issues[] = [
-                'type' => 'error',
-                'file' => $filename,
-                'message' => 'Invalid filename format. Expected: WordNum.Trigraph.anything.mp3/m4a (e.g., 17.ceb.tilaw.taste.mp3)'
-            ];
-        }
-    }
-    
-    // Check for words in CSV without any assets
-    foreach ($wordData as $wordNum => $word) {
-        if (!isset($cards[$wordNum])) {
-            $issues[] = [
-                'type' => 'warning',
-                'file' => "Word #{$wordNum}",
-                'message' => "Word '{$word['cebuano']}' ({$word['english']}) has no image or audio files"
-            ];
-        }
-    }
-    
-    // Group by lessons for stats
-    $lessonStats = [];
-    $cardsWithAudio = 0;
-    $cardsWithGif = 0;
-    $cardsWithPng = 0;
-    $cardsWithBoth = 0;
-    
-    foreach ($cards as $card) {
-        $lesson = $card['lesson'];
-        if (!isset($lessonStats[$lesson])) {
-            $lessonStats[$lesson] = ['total' => 0, 'withImage' => 0, 'withGif' => 0, 'withPng' => 0, 'audioCount' => []];
-        }
-        $lessonStats[$lesson]['total']++;
-        if ($card['hasImage']) {
-            $lessonStats[$lesson]['withImage']++;
-        }
-        
-        // Count GIFs and PNGs
-        if (isset($card['hasGif']) && $card['hasGif']) {
-            $cardsWithGif++;
-            $lessonStats[$lesson]['withGif']++;
-        }
-        if (isset($card['printImagePath']) && $card['printImagePath']) {
-            $cardsWithPng++;
-            $lessonStats[$lesson]['withPng']++;
-        }
-        if (isset($card['hasGif']) && $card['hasGif'] && isset($card['printImagePath']) && $card['printImagePath']) {
-            $cardsWithBoth++;
-        }
-        
-        // Count cards with at least one audio file
-        if (!empty($card['audio'])) {
-            $cardsWithAudio++;
-        }
-        
-        foreach ($card['audio'] as $lang => $path) {
-            if (!isset($lessonStats[$lesson]['audioCount'][$lang])) {
-                $lessonStats[$lesson]['audioCount'][$lang] = 0;
-            }
-            $lessonStats[$lesson]['audioCount'][$lang]++;
-        }
-    }
-    
-    // Generate detailed report
-    $detailedReport = generateDetailedReport($wordData, $cards, $pngFiles, $gifFiles, $mp3Files);
-    
-    return [
-        'success' => true,
-        'cards' => array_values($cards),
-        'languages' => $languages,
-        'issues' => $issues,
-        'stats' => [
-            'totalCards' => count($cards),
-            'totalImages' => count($pngFiles) + count($gifFiles) - 1, // Exclude logo.png
-            'totalPng' => count($pngFiles) - 1, // Exclude logo.png
-            'totalGif' => count($gifFiles),
-            'totalAudio' => count($mp3Files),
-            'cardsWithAudio' => $cardsWithAudio,
-            'cardsWithGif' => $cardsWithGif,
-            'cardsWithPng' => $cardsWithPng,
-            'cardsWithBoth' => $cardsWithBoth,
-            'lessonStats' => $lessonStats
-        ],
-        'detailedReport' => $detailedReport
-    ];
-}
-
-/**
- * Generate and save HTML scan report
- */
-function saveDetailedReport($detailedReport) {
-    // Check if assets directory exists, create if not
-    if (!is_dir(ASSETS_DIR)) {
-        error_log("Assets directory doesn't exist, attempting to create: " . ASSETS_DIR);
-        if (!mkdir(ASSETS_DIR, 0755, true)) {
-            error_log("FAILED to create assets directory: " . ASSETS_DIR);
-            return false;
-        }
-    }
-    
-    // Check if directory is writable
-    if (!is_writable(ASSETS_DIR)) {
-        error_log("Assets directory is not writable: " . ASSETS_DIR);
-        error_log("Directory permissions: " . substr(sprintf('%o', fileperms(ASSETS_DIR)), -4));
-        return false;
-    }
-    
-    $html = generateReportHTML($detailedReport);
-    $reportFile = ASSETS_DIR . '/scan-report.html';
-    
-    error_log("Attempting to save report to: " . $reportFile);
-    error_log("HTML length: " . strlen($html) . " bytes");
-    
-    $saved = file_put_contents($reportFile, $html);
-    
-    if ($saved === false) {
-        error_log("FAILED to save report file");
-        $error = error_get_last();
-        if ($error) {
-            error_log("Last error: " . $error['message']);
-        }
-        return false;
-    }
-    
-    error_log("Successfully saved report: $saved bytes written to $reportFile");
-    error_log("File exists after write: " . (file_exists($reportFile) ? 'yes' : 'no'));
-    
-    return $reportFile;
-}
-
-/**
- * Generate HTML for detailed report
- */
-function generateReportHTML($report) {
-    $timestamp = $report['summary']['timestamp'];
-    $totalWords = $report['summary']['totalWordsInCSV'];
-    $totalCards = $report['summary']['totalCardsCreated'];
-    $pngCount = $report['summary']['filesScanned']['png'];
-    $gifCount = $report['summary']['filesScanned']['gif'];
-    $mp3Count = $report['summary']['filesScanned']['mp3'];
-    
-    $html = '<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Asset Scan Report - ' . $timestamp . '</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
-        h2 { color: #34495e; margin-top: 30px; }
-        .summary { background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0; }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
-        .stat-box { background: white; padding: 15px; border-radius: 5px; text-align: center; border-left: 4px solid #3498db; }
-        .stat-box .number { font-size: 32px; font-weight: bold; color: #2c3e50; }
-        .stat-box .label { color: #7f8c8d; font-size: 14px; margin-top: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #34495e; color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }
-        td { padding: 10px; border-bottom: 1px solid #ddd; }
-        tr:hover { background: #f8f9fa; }
-        .status { padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600; }
-        .status-complete-animated { background: #27ae60; color: white; }
-        .status-complete-static { background: #2ecc71; color: white; }
-        .status-gif-only { background: #f39c12; color: white; }
-        .status-image-only { background: #e67e22; color: white; }
-        .status-audio-only { background: #9b59b6; color: white; }
-        .status-partial { background: #e74c3c; color: white; }
-        .status-missing { background: #95a5a6; color: white; }
-        .file-badge { display: inline-block; padding: 3px 6px; margin: 2px; background: #3498db; color: white; border-radius: 3px; font-size: 11px; }
-        .file-badge.png { background: #1abc9c; }
-        .file-badge.gif { background: #e67e22; }
-        .file-badge.audio { background: #9b59b6; }
-        .lesson-badge { background: #3498db; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; }
-        .type-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; }
-        .type-badge.new { background: #27ae60; color: white; }
-        .type-badge.review { background: #f39c12; color: white; }
-        .word { font-weight: 600; color: #2c3e50; }
-        .legend { margin: 20px 0; padding: 15px; background: #ecf0f1; border-radius: 5px; }
-        .legend-item { display: inline-block; margin-right: 20px; margin-bottom: 10px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📊 Asset Scan Report</h1>
-        <p><strong>Generated:</strong> ' . $timestamp . '</p>
-        
-        <div class="summary">
-            <h2>Summary Statistics</h2>
-            <div class="summary-grid">
-                <div class="stat-box">
-                    <div class="number">' . $totalWords . '</div>
-                    <div class="label">Words in CSV</div>
-                </div>
-                <div class="stat-box">
-                    <div class="number">' . $totalCards . '</div>
-                    <div class="label">Cards Created</div>
-                </div>
-                <div class="stat-box">
-                    <div class="number">' . $pngCount . '</div>
-                    <div class="label">PNG Files</div>
-                </div>
-                <div class="stat-box">
-                    <div class="number">' . $gifCount . '</div>
-                    <div class="label">GIF Files</div>
-                </div>
-                <div class="stat-box">
-                    <div class="number">' . $mp3Count . '</div>
-                    <div class="label">Audio Files</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="legend">
-            <strong>Status Legend:</strong><br>
-            <div class="legend-item"><span class="status status-complete-animated">Complete (Animated)</span> - Has PNG, GIF, and Audio</div>
-            <div class="legend-item"><span class="status status-complete-static">Complete (Static)</span> - Has PNG and Audio</div>
-            <div class="legend-item"><span class="status status-gif-only">GIF Only</span> - Has GIF but no PNG (not printable)</div>
-            <div class="legend-item"><span class="status status-image-only">Image Only</span> - Has image but no audio</div>
-            <div class="legend-item"><span class="status status-audio-only">Audio Only</span> - Has audio but no image</div>
-            <div class="legend-item"><span class="status status-partial">Partial</span> - Has card but incomplete</div>
-            <div class="legend-item"><span class="status status-missing">Missing</span> - No assets found</div>
-            <br>
-            <div class="legend-item"><span class="type-badge new">N</span> - New Word</div>
-            <div class="legend-item"><span class="type-badge review">R</span> - Review Word</div>
-        </div>
-        
-        <h2>Detailed Card Matching</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Lesson</th>
-                    <th>Type</th>
-                    <th>Card#</th>
-                    <th>Cebuano</th>
-                    <th>English</th>
-                    <th>Files Found</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>';
-    
-    foreach ($report['detailedMatches'] as $match) {
-        $statusClass = 'status-' . $match['status'];
-        $statusLabel = ucwords(str_replace('-', ' ', $match['status']));
-        
-        $typeClass = strtoupper($match['type']) === 'N' ? 'new' : 'review';
-        $typeLabel = strtoupper($match['type']) === 'N' ? 'N' : 'R';
-        
-        $files = '';
-        if ($match['files']['png']) {
-            $files .= '<span class="file-badge png">PNG: ' . htmlspecialchars($match['files']['png']) . '</span> ';
-        }
-        if ($match['files']['gif']) {
-            $files .= '<span class="file-badge gif">GIF: ' . htmlspecialchars($match['files']['gif']) . '</span> ';
-        }
-        foreach ($match['files']['audio'] as $lang => $file) {
-            $files .= '<span class="file-badge audio">' . strtoupper($lang) . ': ' . htmlspecialchars($file) . '</span> ';
-        }
-        if (empty($files)) {
-            $files = '<span style="color: #95a5a6;">No files found</span>';
-        }
-        
-        $html .= '<tr>
-            <td><span class="lesson-badge">' . $match['lesson'] . '</span></td>
-            <td><span class="type-badge ' . $typeClass . '">' . $typeLabel . '</span></td>
-            <td><strong>' . $match['wordNum'] . '</strong></td>
-            <td><span class="word">' . htmlspecialchars($match['cebuano']) . '</span></td>
-            <td>' . htmlspecialchars($match['english']) . '</td>
-            <td>' . $files . '</td>
-            <td><span class="status ' . $statusClass . '">' . $statusLabel . '</span></td>
-        </tr>';
-    }
-    
-    $html .= '</tbody>
-        </table>
-        
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ecf0f1; text-align: center; color: #7f8c8d;">
-            <p>Bob and Mariel Ward School of Filipino Languages - Asset Scan Report v3.1</p>
-        </div>
-    </div>
-</body>
-</html>';
-    
-    return $html;
-}
-
-/**
- * Generate and save manifest.json file
- */
-function generateManifest($scanResult) {
-    $manifest = [
-        'version' => '3.1',
-        'lastUpdated' => date('c'),
-        'languages' => $scanResult['languages'],
-        'totalCards' => $scanResult['stats']['totalCards'],
-        'lessonStats' => $scanResult['stats']['lessonStats'],
-        'cards' => $scanResult['cards']
-    ];
-    
-    // Save to file
-    $json = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    
-    if ($json === false) {
-        error_log("JSON encoding failed: " . json_last_error_msg());
-        return false;
-    }
-    
-    $saved = file_put_contents(MANIFEST_FILE, $json);
-    
-    if ($saved === false) {
-        error_log("Failed to write manifest to: " . MANIFEST_FILE);
-        error_log("Directory writable: " . (is_writable(dirname(MANIFEST_FILE)) ? 'yes' : 'no'));
-    } else {
-        error_log("Manifest saved successfully: " . MANIFEST_FILE . " ($saved bytes)");
-    }
-    
-    return $saved !== false;
-}
-
-/**
- * Main API handler
- */
-function handleRequest() {
-    $action = isset($_GET['action']) ? $_GET['action'] : 'scan';
-    
-    switch ($action) {
-        case 'upload':
-            // Handle CSV file uploads
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                return [
-                    'success' => false,
-                    'error' => 'Upload requires POST method'
-                ];
-            }
-            
-            $uploadedLanguage = false;
-            $uploadedWord = false;
-            $errors = [];
-            
-            // Handle Language List upload
-            if (isset($_FILES['languageFile']) && $_FILES['languageFile']['error'] === UPLOAD_ERR_OK) {
-                $result = handleLanguageUpload($_FILES['languageFile']);
-                if ($result['success']) {
-                    $uploadedLanguage = true;
-                } else {
-                    $errors[] = "Language file: " . $result['error'];
-                }
-            }
-            
-            // Handle Word List upload
-            if (isset($_FILES['wordFile']) && $_FILES['wordFile']['error'] === UPLOAD_ERR_OK) {
-                $result = handleWordUpload($_FILES['wordFile']);
-                if ($result['success']) {
-                    $uploadedWord = true;
-                } else {
-                    $errors[] = "Word file: " . $result['error'];
-                }
-            }
-            
-            // Check if at least one file was uploaded
-            if (!$uploadedLanguage && !$uploadedWord) {
-                return [
-                    'success' => false,
-                    'error' => 'No valid files uploaded. ' . implode(' ', $errors)
-                ];
-            }
-            
-            // If there were errors but at least one succeeded, note them
-            if (count($errors) > 0) {
-                error_log("Upload warnings: " . implode(', ', $errors));
-            }
-            
-            // Now scan assets with the new CSV data
-            $scanResult = scanAssets();
-            
-            if ($scanResult['success']) {
-                // Generate manifest file
-                $saved = generateManifest($scanResult);
-                
-                // Generate and save detailed report
-                $reportPath = saveDetailedReport($scanResult['detailedReport']);
-                
-                $response = [
-                    'success' => true,
-                    'message' => 'CSV files uploaded and processed successfully',
-                    'uploadedLanguage' => $uploadedLanguage,
-                    'uploadedWord' => $uploadedWord,
-                    'manifestSaved' => $saved,
-                    'manifestPath' => MANIFEST_FILE,
-                    'manifestExists' => file_exists(MANIFEST_FILE),
-                    'reportPath' => $reportPath ? str_replace(__DIR__ . '/', '', $reportPath) : null,
-                    'reportUrl' => $reportPath ? 'assets/scan-report.html' : null,
-                    'reportSaved' => $reportPath !== false,
-                    'reportExists' => $reportPath ? file_exists($reportPath) : false,
-                    'stats' => $scanResult['stats'],
-                    'languages' => $scanResult['languages'],
-                    'cards' => $scanResult['cards'],
-                    'issues' => $scanResult['issues']
-                ];
-                
-                if (count($errors) > 0) {
-                    $response['warnings'] = $errors;
-                }
-                
-                return $response;
-            } else {
-                return [
-                    'success' => false,
-                    'error' => 'CSV uploaded but scan failed: ' . $scanResult['error']
-                ];
-            }
-            
-        case 'uploadMedia':
-            // Handle media file uploads (images and audio)
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                return [
-                    'success' => false,
-                    'error' => 'Media upload requires POST method'
-                ];
-            }
-            
-            $result = handleMediaUpload();
-            return $result;
-            
-        case 'scan':
-            // Scan assets directory
-            $result = scanAssets();
-            
-            if ($result['success']) {
-                // Generate manifest file
-                $saved = generateManifest($result);
-                
-                // Generate and save detailed report
-                $reportPath = saveDetailedReport($result['detailedReport']);
-                
-                $response = [
-                    'success' => true,
-                    'message' => 'Assets scanned and manifest.json updated successfully',
-                    'manifestSaved' => $saved,
-                    'manifestPath' => MANIFEST_FILE,
-                    'manifestExists' => file_exists(MANIFEST_FILE),
-                    'reportPath' => $reportPath ? str_replace(__DIR__ . '/', '', $reportPath) : null,
-                    'reportUrl' => $reportPath ? 'assets/scan-report.html' : null,
-                    'reportSaved' => $reportPath !== false,
-                    'reportExists' => $reportPath ? file_exists($reportPath) : false,
-                    'stats' => $result['stats'],
-                    'languages' => $result['languages'],
-                    'cards' => $result['cards'],
-                    'issues' => $result['issues']
-                ];
-                
-                if (!$saved) {
-                    $response['warning'] = 'Manifest file could not be saved';
-                    $response['manifestDir'] = dirname(MANIFEST_FILE);
-                    $response['manifestDirWritable'] = is_writable(dirname(MANIFEST_FILE));
-                }
-                
-                if (!$reportPath) {
-                    $response['reportWarning'] = 'Report HTML file could not be saved';
-                    $response['assetsDir'] = ASSETS_DIR;
-                    $response['assetsDirExists'] = is_dir(ASSETS_DIR);
-                    $response['assetsDirWritable'] = is_dir(ASSETS_DIR) ? is_writable(ASSETS_DIR) : false;
-                }
-                
-                return $response;
-            } else {
-                return $result;
-            }
-            
-        case 'status':
-            // Just check status without updating
-            if (file_exists(MANIFEST_FILE)) {
-                $manifest = json_decode(file_get_contents(MANIFEST_FILE), true);
-                return [
-                    'success' => true,
-                    'manifestExists' => true,
-                    'lastUpdated' => isset($manifest['lastUpdated']) ? $manifest['lastUpdated'] : 'Unknown',
-                    'totalCards' => isset($manifest['totalCards']) ? $manifest['totalCards'] : 0,
-                    'languages' => isset($manifest['languages']) ? $manifest['languages'] : []
-                ];
-            } else {
-                return [
-                    'success' => false,
-                    'manifestExists' => false,
-                    'message' => 'manifest.json not found. Click "Scan Assets" to create it.'
-                ];
-            }
-            
-        case 'test':
-            // Test manifest creation
-            $testManifest = [
-                'version' => '3.1-test',
-                'lastUpdated' => date('c'),
-                'test' => true
+                    'english' => [
+                        'word' => trim($row[4]),
+                        'note' => trim($row[5]),
+                        'acceptableAnswers' => explode('/', trim($row[4]))
+                    ],
+                    'maranao' => [
+                        'word' => trim($row[6]),
+                        'note' => trim($row[7]),
+                        'acceptableAnswers' => explode('/', trim($row[6]))
+                    ],
+                    'sinama' => [
+                        'word' => trim($row[8]),
+                        'note' => trim($row[9]),
+                        'acceptableAnswers' => explode('/', trim($row[8]))
+                    ]
+                ],
+                'grammar' => isset($row[10]) ? trim($row[10]) : null,
+                'category' => isset($row[11]) ? trim($row[11]) : null,
+                'subCategory1' => isset($row[12]) ? trim($row[12]) : null,
+                'subCategory2' => isset($row[13]) ? trim($row[13]) : null,
+                'actflEst' => isset($row[14]) ? trim($row[14]) : null,
+                'hasImage' => false,
+                'hasGif' => false,
+                'hasAudio' => false,
+                'printImagePath' => null,
+                'imagePath' => null,
+                'audio' => []
             ];
             
-            $json = json_encode($testManifest, JSON_PRETTY_PRINT);
-            $saved = file_put_contents(MANIFEST_FILE, $json);
-            
-            return [
-                'success' => $saved !== false,
-                'message' => $saved ? 'Test manifest created' : 'Failed to create test manifest',
-                'bytesWritten' => $saved,
-                'manifestPath' => MANIFEST_FILE,
-                'manifestExists' => file_exists(MANIFEST_FILE),
-                'dirWritable' => is_writable(dirname(MANIFEST_FILE))
-            ];
-            
-        default:
-            return [
-                'success' => false,
-                'error' => 'Invalid action'
-            ];
-    }
-}
-
-/**
- * Handle Language CSV upload
- */
-function handleLanguageUpload($file) {
-    // Check if assets directory exists
-    if (!is_dir(ASSETS_DIR)) {
-        if (!mkdir(ASSETS_DIR, 0755, true)) {
-            return ['success' => false, 'error' => 'Cannot create assets directory'];
+            $cards[] = $card;
         }
-    }
-    
-    // Validate file is CSV
-    $tmpPath = $file['tmp_name'];
-    $originalName = $file['name'];
-    
-    // Read and validate CSV structure
-    $csvFile = fopen($tmpPath, 'r');
-    if (!$csvFile) {
-        return ['success' => false, 'error' => 'Cannot read uploaded file'];
-    }
-    
-    // Read first few rows to validate structure
-    $header = fgetcsv($csvFile);
-    $firstDataRow = fgetcsv($csvFile);
-    fclose($csvFile);
-    
-    // Validate: should have at least 3 columns
-    if (!$firstDataRow || count($firstDataRow) < 3) {
-        return [
-            'success' => false,
-            'error' => "Invalid Language List format. Expected 3 columns (ID, Name, Trigraph), found " . (count($firstDataRow) ?: 0)
-        ];
-    }
-    
-    // Validate first row has numeric ID, text name, and 3-char trigraph
-    $id = trim($firstDataRow[0]);
-    $name = trim($firstDataRow[1]);
-    $trigraph = trim($firstDataRow[2]);
-    
-    if (!is_numeric($id) || empty($name) || strlen($trigraph) !== 3) {
-        return [
-            'success' => false,
-            'error' => "Invalid Language List format. First data row validation failed (ID: '$id', Name: '$name', Trigraph: '$trigraph')"
-        ];
-    }
-    
-    // Save to assets folder as Language_List.csv
-    $destination = LANGUAGE_CSV;
-    if (!move_uploaded_file($tmpPath, $destination)) {
-        return ['success' => false, 'error' => 'Failed to save Language_List.csv'];
-    }
-    
-    error_log("Language_List.csv uploaded successfully from: $originalName");
-    return ['success' => true, 'filename' => $originalName];
-}
-
-/**
- * Handle Word CSV upload
- */
-function handleWordUpload($file) {
-    // Check if assets directory exists
-    if (!is_dir(ASSETS_DIR)) {
-        if (!mkdir(ASSETS_DIR, 0755, true)) {
-            return ['success' => false, 'error' => 'Cannot create assets directory'];
-        }
-    }
-    
-    // Validate file is CSV
-    $tmpPath = $file['tmp_name'];
-    $originalName = $file['name'];
-    
-    // Read and validate CSV structure
-    $csvFile = fopen($tmpPath, 'r');
-    if (!$csvFile) {
-        return ['success' => false, 'error' => 'Cannot read uploaded file'];
-    }
-    
-    // Read first few rows to validate structure
-    $header = fgetcsv($csvFile);
-    $firstDataRow = fgetcsv($csvFile);
-    fclose($csvFile);
-    
-    // Validate: should have at least 16 columns (Lesson through Type)
-    if (!$firstDataRow || count($firstDataRow) < 16) {
-        return [
-            'success' => false,
-            'error' => "Invalid Word List format. Expected 16 columns (Lesson → Type), found " . (count($firstDataRow) ?: 0)
-        ];
-    }
-    
-    // Validate first row has numeric lesson and wordNum
-    $lesson = trim($firstDataRow[0]);
-    $wordNum = trim($firstDataRow[1]);
-    
-    if (!is_numeric($lesson) || !is_numeric($wordNum)) {
-        return [
-            'success' => false,
-            'error' => "Invalid Word List format. First data row validation failed (Lesson: '$lesson', WordNum: '$wordNum' should be numeric)"
-        ];
-    }
-    
-    // Save to assets folder as Word_List.csv
-    $destination = WORD_CSV;
-    if (!move_uploaded_file($tmpPath, $destination)) {
-        return ['success' => false, 'error' => 'Failed to save Word_List.csv'];
-    }
-    
-    error_log("Word_List.csv uploaded successfully from: $originalName");
-    return ['success' => true, 'filename' => $originalName];
-}
-
-/**
- * Handle Media file uploads (images and audio)
- */
-function handleMediaUpload() {
-    // Check if assets directory exists
-    if (!is_dir(ASSETS_DIR)) {
-        if (!mkdir(ASSETS_DIR, 0755, true)) {
-            return ['success' => false, 'error' => 'Cannot create assets directory'];
-        }
-    }
-    
-    $imagesUploaded = 0;
-    $audioUploaded = 0;
-    $errors = [];
-    $imageFiles = [];
-    $audioFiles = [];
-    
-    // Handle image files
-    if (isset($_FILES['imageFiles']) && is_array($_FILES['imageFiles']['name'])) {
-        $imageCount = count($_FILES['imageFiles']['name']);
         
-        for ($i = 0; $i < $imageCount; $i++) {
-            // Skip if there was an upload error
-            if ($_FILES['imageFiles']['error'][$i] !== UPLOAD_ERR_OK) {
-                continue;
-            }
-            
-            $tmpPath = $_FILES['imageFiles']['tmp_name'][$i];
-            $originalName = $_FILES['imageFiles']['name'][$i];
-            $fileSize = $_FILES['imageFiles']['size'][$i];
-            
-            // Validate file extension
-            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-            if (!in_array($ext, ['png', 'gif'])) {
-                $errors[] = "$originalName: Invalid file type (must be PNG or GIF)";
-                continue;
-            }
-            
-            // Validate file size (max 5MB)
-            if ($fileSize > 5 * 1024 * 1024) {
-                $errors[] = "$originalName: File too large (max 5MB)";
-                continue;
-            }
-            
-            // Validate filename pattern: WordNum.word.translation.ext
-            if (!preg_match('/^\d+\.[^.]+\.[^.]+\.(png|gif)$/i', $originalName)) {
-                $errors[] = "$originalName: Invalid naming format (expected: WordNum.word.translation.png/gif)";
-                continue;
-            }
-            
-            // Move file to assets directory
-            $destination = ASSETS_DIR . '/' . $originalName;
-            if (move_uploaded_file($tmpPath, $destination)) {
-                $imagesUploaded++;
-                $imageFiles[] = $originalName;
-                error_log("Image uploaded: $originalName");
-            } else {
-                $errors[] = "$originalName: Failed to save file";
-            }
-        }
+        fclose($file);
     }
     
-    // Handle audio files
-    if (isset($_FILES['audioFiles']) && is_array($_FILES['audioFiles']['name'])) {
-        $audioCount = count($_FILES['audioFiles']['name']);
-        
-        for ($i = 0; $i < $audioCount; $i++) {
-            // Skip if there was an upload error
-            if ($_FILES['audioFiles']['error'][$i] !== UPLOAD_ERR_OK) {
-                continue;
-            }
-            
-            $tmpPath = $_FILES['audioFiles']['tmp_name'][$i];
-            $originalName = $_FILES['audioFiles']['name'][$i];
-            $fileSize = $_FILES['audioFiles']['size'][$i];
-            
-            // Validate file extension
-            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-            if (!in_array($ext, ['mp3', 'm4a'])) {
-                $errors[] = "$originalName: Invalid file type (must be MP3 or M4A)";
-                continue;
-            }
-            
-            // Validate file size (max 10MB)
-            if ($fileSize > 10 * 1024 * 1024) {
-                $errors[] = "$originalName: File too large (max 10MB)";
-                continue;
-            }
-            
-            // Validate filename pattern: WordNum.lang.word.translation.mp3/m4a
-            if (!preg_match('/^\d+\.[a-z]{3}\.[^.]+\.[^.]+\.(mp3|m4a)$/i', $originalName)) {
-                $errors[] = "$originalName: Invalid naming format (expected: WordNum.lang.word.translation.mp3/m4a)";
-                continue;
-            }
-            
-            // Move file to assets directory
-            $destination = ASSETS_DIR . '/' . $originalName;
-            if (move_uploaded_file($tmpPath, $destination)) {
-                $audioUploaded++;
-                $audioFiles[] = $originalName;
-                error_log("Audio uploaded: $originalName");
-            } else {
-                $errors[] = "$originalName: Failed to save file";
-            }
-        }
-    }
-    
-    // Check if at least one file was uploaded
-    if ($imagesUploaded === 0 && $audioUploaded === 0) {
-        return [
-            'success' => false,
-            'error' => 'No valid media files uploaded. ' . implode(' ', $errors),
-            'errors' => $errors
-        ];
-    }
-    
-    // Return success with statistics
-    $response = [
-        'success' => true,
-        'message' => "Media files uploaded successfully",
-        'stats' => [
-            'imagesUploaded' => $imagesUploaded,
-            'audioUploaded' => $audioUploaded,
-            'totalUploaded' => $imagesUploaded + $audioUploaded
-        ],
-        'files' => [
-            'images' => $imageFiles,
-            'audio' => $audioFiles
-        ]
-    ];
-    
-    if (count($errors) > 0) {
-        $response['warnings'] = $errors;
-    }
-    
-    return $response;
+    return $cards;
 }
 
-// Process request and return JSON
-try {
-    $response = handleRequest();
-    echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage(),
-        'line' => $e->getLine()
-    ]);
+function extractWordNum($filename) {
+    // Extract word number from filename: "17.tilaw.taste.png" -> 17
+    if (preg_match('/^(\d+)\./', $filename, $matches)) {
+        return intval($matches[1]);
+    }
+    return null;
+}
+
+function extractAudioInfo($filename) {
+    // Extract word number and language from audio filename
+    // Format: "17.ceb.tilaw.taste.mp3" -> [17, 'ceb']
+    if (preg_match('/^(\d+)\.([a-z]{3})\./', $filename, $matches)) {
+        return [intval($matches[1]), $matches[2]];
+    }
+    return [null, null];
 }
 ?>
