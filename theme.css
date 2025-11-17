@@ -1,0 +1,243 @@
+/* =================================================================
+   CEBUANO LEARNING PLATFORM - THEME & RESPONSIVE STYLES
+   Version 3.1 - November 2025
+   Dark mode, mobile detection, and responsive design
+   ================================================================= */
+
+/* =================================================================
+   MOBILE DETECTION & BASE ADJUSTMENTS
+   ================================================================= */
+
+body.mobile-phone,
+body.mobile-tablet {
+    --spacing-base: 12px;
+    --spacing-small: 6px;
+    --spacing-large: 16px;
+}
+
+/* Mobile header adjustments */
+body.mobile-phone .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+body.mobile-phone .header-title h1 {
+    font-size: 18px;
+}
+
+body.mobile-phone .logo-image {
+    width: 24px;
+    height: 24px;
+}
+
+body.mobile-tablet .logo-image {
+    width: 32px;
+    height: 32px;
+}
+
+body.mobile-phone .header-controls {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+body.mobile-phone .select-control {
+    min-width: 120px;
+    font-size: 13px;
+    padding: 6px 10px;
+}
+
+body.mobile-phone .version-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+}
+
+/* =================================================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ================================================================= */
+
+body.touch-device button,
+body.touch-device .btn,
+body.touch-device .nav-tab {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* =================================================================
+   MOBILE PHONE STYLES
+   ================================================================= */
+
+body.mobile-phone {
+    font-size: 14px;
+}
+
+body.mobile-phone .container {
+    padding: 0 12px 24px;
+}
+
+body.mobile-phone .header {
+    padding: 12px 0;
+}
+
+/* Navigation Tabs - Wrap into 2 rows on mobile */
+body.mobile-phone .nav-tabs {
+    gap: 4px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+body.mobile-phone .nav-tab {
+    padding: 10px 12px;
+    font-size: 12px;
+    gap: 4px;
+    flex: 0 0 calc(33.33% - 6px);
+    min-width: 0;
+    justify-content: center;
+}
+
+body.mobile-phone .nav-tab i {
+    font-size: 14px;
+}
+
+/* Buttons - Larger on mobile */
+body.mobile-phone #startBtn,
+body.mobile-phone button[id*="restart"],
+body.mobile-phone button[id*="Restart"] {
+    padding: 16px 32px;
+    font-size: 18px;
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Prevent iOS zoom on inputs */
+body.mobile-phone input,
+body.mobile-phone textarea {
+    font-size: 16px;
+}
+
+/* =================================================================
+   MODALS - MOBILE RESPONSIVE
+   ================================================================= */
+
+body.mobile-phone .modal-content,
+body.mobile-tablet .modal-content {
+    width: 95%;
+    max-width: none;
+    max-height: 85vh;
+    overflow-y: auto;
+    margin: 20px;
+}
+
+body.mobile-phone .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+body.mobile-tablet .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+body.mobile-phone .modal-header h2 {
+    font-size: 18px;
+}
+
+body.mobile-phone .preview-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+/* Instruction modal mobile */
+body.mobile-phone .instruction-modal,
+body.mobile-tablet .instruction-modal {
+    width: 90%;
+    max-width: none;
+}
+
+body.mobile-phone .instruction-modal .modal-header h2 {
+    font-size: 16px;
+}
+
+body.mobile-phone .instruction-modal .modal-header {
+    padding: 16px;
+}
+
+body.mobile-phone .instruction-body {
+    padding: 20px 16px;
+    font-size: 14px;
+}
+
+body.mobile-phone .instruction-footer {
+    padding: 16px;
+}
+
+body.mobile-phone .instruction-footer .btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+}
+
+/* Login modal mobile */
+body.mobile-phone .login-modal {
+    width: 95%;
+    max-width: none;
+}
+
+body.mobile-phone .login-modal .modal-header h2 {
+    font-size: 18px;
+}
+
+body.mobile-phone .login-modal .modal-body {
+    padding: 20px 16px;
+}
+
+/* =================================================================
+   DESKTOP RESPONSIVE
+   ================================================================= */
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-title h1 {
+        font-size: 20px;
+    }
+
+    .nav-tabs {
+        overflow-x: auto;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* =================================================================
+   ACCESSIBILITY - REDUCED MOTION
+   ================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Simpler shadows on mobile for performance */
+body.mobile-phone .card,
+body.mobile-phone .btn {
+    box-shadow: var(--shadow-sm);
+}
+
+body.mobile-phone .card:hover,
+body.mobile-phone .btn:hover {
+    box-shadow: var(--shadow-md);
+}

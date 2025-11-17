@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-<!-- Bob and Mariel Ward School of Filipino Languages - Version 3.1 - AUTOMATIC CACHE BUSTING - November 2025 -->
+<!-- Bob and Mariel Ward School of Filipino Languages - Version 3.1 - MODULAR CSS - November 2025 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bob and Mariel Ward School of Filipino Languages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=<?php echo filemtime('styles.css'); ?>">
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="styles/core.css?v=<?php echo filemtime('styles/core.css'); ?>">
+    <link rel="stylesheet" href="styles/theme.css?v=<?php echo filemtime('styles/theme.css'); ?>">
+    
+    <!-- Module Styles -->
+    <link rel="stylesheet" href="styles/modules/flashcards.css?v=<?php echo filemtime('styles/modules/flashcards.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/match.css?v=<?php echo filemtime('styles/modules/match.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/match-sound.css?v=<?php echo filemtime('styles/modules/match-sound.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/quiz.css?v=<?php echo filemtime('styles/modules/quiz.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/admin.css?v=<?php echo filemtime('styles/modules/admin.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/pdf-print.css?v=<?php echo filemtime('styles/modules/pdf-print.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/deck-builder.css?v=<?php echo filemtime('styles/modules/deck-builder.css'); ?>">
 </head>
 <body>
     <!-- Header -->

@@ -1,0 +1,232 @@
+/* =================================================================
+   QUIZ MODULE (UNSA NI?) STYLES
+   Version 3.1 - November 2025
+   ================================================================= */
+
+.module-quiz {
+    animation: fadeIn 0.3s ease;
+}
+
+.quiz-container {
+    display: flex;
+    gap: 24px;
+    margin: 24px 0;
+}
+
+.quiz-container .left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.quiz-container .center-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quiz-container .right-panel {
+    flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg-secondary);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.image-section {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    padding: 20px;
+    box-shadow: var(--shadow-lg);
+}
+
+.text-section {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.prompt {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+.input-section {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.user-input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.user-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.correct-word-display {
+    font-size: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.correct-word-display.show {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.feedback-mark {
+    text-align: center;
+    font-size: 64px;
+    margin-top: 16px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.feedback-mark.show {
+    opacity: 1;
+}
+
+.score-item {
+    padding: 12px;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.score-item strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-secondary);
+}
+
+.score-item span {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.congratulations {
+    display: none;
+    text-align: center;
+    padding: 48px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--success);
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* =================================================================
+   MOBILE RESPONSIVE
+   ================================================================= */
+
+/* Mobile: Stack vertically with picture FIRST, input BELOW */
+body.mobile-phone .quiz-container {
+    flex-direction: column;
+    gap: 16px;
+}
+
+body.mobile-phone .quiz-container .left-panel,
+body.mobile-phone .quiz-container .center-panel,
+body.mobile-phone .quiz-container .right-panel {
+    width: 100%;
+}
+
+/* Order: Picture first, then input */
+body.mobile-phone .quiz-container .center-panel {
+    order: 1;
+}
+
+body.mobile-phone .quiz-container .left-panel {
+    order: 2;
+}
+
+body.mobile-phone .quiz-container .right-panel {
+    order: 3;
+}
+
+body.mobile-phone .card-image {
+    max-height: 250px;
+}
+
+body.mobile-phone .user-input {
+    font-size: 16px;
+    padding: 12px;
+}
+
+/* Tablet Portrait - Stack Unsa Ni */
+body.mobile-tablet.portrait .quiz-container {
+    flex-direction: column;
+}
+
+body.mobile-tablet.portrait .quiz-container .left-panel,
+body.mobile-tablet.portrait .quiz-container .center-panel {
+    width: 100%;
+}
+
+/* Landscape - Keep text input accessible */
+body.landscape .quiz-container .left-panel {
+    order: 1;
+}
+
+body.landscape .quiz-container .center-panel {
+    order: 2;
+}
+
+@media (max-width: 968px) {
+    .quiz-container {
+        flex-direction: column;
+    }
+    
+    .quiz-container .right-panel {
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .quiz-container {
+        flex-direction: column;
+    }
+}
