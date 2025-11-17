@@ -1,7 +1,10 @@
 // =================================================================
 // DECK BUILDER MODULE - Bob and Mariel Ward School
-// Version 3.1 - Card Deck Editor and Manager
-// Updated: November 2025 - Enhanced filename visibility in file browser
+// Version 3.2 - Card Deck Editor and Manager
+// Updated: November 2025 - Enhanced with:
+//   1. Dual "Add New Card" buttons (top + bottom)
+//   2. Editable Card # with duplicate detection
+//   3. Categories column with modal editor for Grammar/Category fields
 // =================================================================
 
 class DeckBuilderModule extends LearningModule {
@@ -109,6 +112,13 @@ class DeckBuilderModule extends LearningModule {
                     <span class="legend-item"><span class="type-badge review">R</span> - Review</span>
                 </div>
 
+                <!-- Add New Card Button (Top) -->
+                <div style="margin: 16px 0; text-align: center;">
+                    <button id="addCardBtnTop" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add New Card
+                    </button>
+                </div>
+
                 <!-- Card Table -->
                 <div class="deck-table-container">
                     <table class="deck-table" id="deckTable">
@@ -119,6 +129,7 @@ class DeckBuilderModule extends LearningModule {
                                 <th style="width: 80px;">Card #</th>
                                 <th style="width: 200px;" id="langHeader">Cebuano</th>
                                 <th style="width: 200px;">English</th>
+                                <th style="width: 100px;">Categories</th>
                                 <th style="width: 120px;">Picture (PNG)</th>
                                 <th style="width: 120px;">Animated (GIF)</th>
                                 <th style="width: 150px;">Audio Files</th>
@@ -132,11 +143,72 @@ class DeckBuilderModule extends LearningModule {
                     </table>
                 </div>
 
+                <!-- Add New Card Button (Bottom) -->
+                <div style="margin: 16px 0; text-align: center;">
+                    <button id="addCardBtnBottom" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add New Card
+                    </button>
+                </div>
+
                 <!-- Empty State -->
                 <div class="empty-state" id="emptyState" style="display:none;">
                     <i class="fas fa-layer-group"></i>
                     <h2>No Cards Found</h2>
                     <p>Click "Add New Card" to create your first card, or check your filters.</p>
+                </div>
+            </div>
+
+            <!-- Categories Editor Modal -->
+            <div id="categoriesModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-tags"></i> Edit Categories - Card #<span id="catModalCardNum"></span></h2>
+                        <button id="closeCategoriesModal" class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-book"></i> Grammar
+                            </label>
+                            <input type="text" id="catGrammar" class="form-input" placeholder="e.g., noun, verb, adjective">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-folder"></i> Category
+                            </label>
+                            <input type="text" id="catCategory" class="form-input" placeholder="e.g., food, animals, colors">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-folder-open"></i> SubCategory 1
+                            </label>
+                            <input type="text" id="catSubCategory1" class="form-input" placeholder="e.g., fruits, vegetables">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-folder-open"></i> SubCategory 2
+                            </label>
+                            <input type="text" id="catSubCategory2" class="form-input" placeholder="Optional second subcategory">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-graduation-cap"></i> ACTFL Est
+                            </label>
+                            <input type="text" id="catACTFLEst" class="form-input" placeholder="e.g., Novice Low, Intermediate Mid">
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="saveCategoriesBtn" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Categories
+                        </button>
+                        <button id="cancelCategoriesBtn" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -169,7 +241,7 @@ class DeckBuilderModule extends LearningModule {
             instructionManager.show(
                 'deck-builder',
                 'Deck Builder Guide',
-                'Edit cards directly in the table by clicking on cells. Click on file badges to upload new images or audio. Use "Add New Card" to create cards, and "Save Changes" to update the manifest.'
+                'Edit cards directly in the table by clicking on cells. Click on file badges to upload new images or audio. Use "Add New Card" to create cards, "Categories" button to edit grammar/category fields, and "Save Changes" to update the manifest.'
             );
         }
     }
@@ -206,8 +278,16 @@ class DeckBuilderModule extends LearningModule {
             this.filterAndRenderCards();
         });
 
-        // Add card
+        // Add card - THREE buttons
         document.getElementById('addCardBtn').addEventListener('click', () => {
+            this.addNewCard();
+        });
+        
+        document.getElementById('addCardBtnTop').addEventListener('click', () => {
+            this.addNewCard();
+        });
+        
+        document.getElementById('addCardBtnBottom').addEventListener('click', () => {
             this.addNewCard();
         });
 
@@ -219,6 +299,29 @@ class DeckBuilderModule extends LearningModule {
         // Export CSV
         document.getElementById('exportCSVBtn').addEventListener('click', () => {
             this.exportToCSV();
+        });
+
+        // Categories modal
+        document.getElementById('closeCategoriesModal').addEventListener('click', () => {
+            this.closeCategoriesModal();
+        });
+
+        document.getElementById('cancelCategoriesBtn').addEventListener('click', () => {
+            this.closeCategoriesModal();
+        });
+
+        document.getElementById('saveCategoriesBtn').addEventListener('click', () => {
+            this.saveCategoriesData();
+        });
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('categoriesModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    this.closeCategoriesModal();
+                }
+            }
         });
     }
 
@@ -317,9 +420,10 @@ class DeckBuilderModule extends LearningModule {
         `;
         row.appendChild(typeCell);
 
-        // Card #
+        // Card # - NOW EDITABLE
         const cardNumCell = document.createElement('td');
-        cardNumCell.innerHTML = `<strong>${card.wordNum}</strong>`;
+        cardNumCell.innerHTML = `<input type="number" class="cell-input card-num-input" value="${card.wordNum}" 
+            data-field="wordNum" data-card-id="${card.wordNum}" data-original-id="${card.wordNum}" min="1">`;
         row.appendChild(cardNumCell);
 
         // Language word (editable)
@@ -335,6 +439,15 @@ class DeckBuilderModule extends LearningModule {
         engCell.innerHTML = `<input type="text" class="cell-input" value="${engWord}" 
             data-field="english" data-card-id="${card.wordNum}">`;
         row.appendChild(engCell);
+
+        // Categories button
+        const categoriesCell = document.createElement('td');
+        categoriesCell.innerHTML = `
+            <button class="btn btn-sm btn-secondary categories-btn" data-card-id="${card.wordNum}" title="Edit Categories">
+                Categories
+            </button>
+        `;
+        row.appendChild(categoriesCell);
 
         // Picture PNG
         const pngCell = document.createElement('td');
@@ -359,9 +472,14 @@ class DeckBuilderModule extends LearningModule {
         // Actions
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
-            <button class="btn-icon delete-card-btn" data-card-id="${card.wordNum}" title="Delete Card">
-                <i class="fas fa-trash-alt"></i>
-            </button>
+            <div style="display: flex; gap: 4px; justify-content: center;">
+                <button class="btn-icon add-below-btn" data-card-id="${card.wordNum}" title="Add Card Below" style="color: var(--success);">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="btn-icon delete-card-btn" data-card-id="${card.wordNum}" title="Delete Card">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
         `;
         row.appendChild(actionsCell);
 
@@ -372,12 +490,34 @@ class DeckBuilderModule extends LearningModule {
     }
 
     attachRowEventListeners(row, card) {
-        // Input changes
+        // Input changes - handle card number specially
         row.querySelectorAll('.cell-input, .cell-select').forEach(input => {
-            input.addEventListener('change', (e) => {
-                this.handleFieldEdit(card.wordNum, e.target.dataset.field, e.target.value);
-            });
+            if (input.classList.contains('card-num-input')) {
+                input.addEventListener('blur', (e) => {
+                    this.handleCardNumberChange(card.wordNum, parseInt(e.target.value));
+                });
+            } else {
+                input.addEventListener('change', (e) => {
+                    this.handleFieldEdit(card.wordNum, e.target.dataset.field, e.target.value);
+                });
+            }
         });
+
+        // Categories button
+        const categoriesBtn = row.querySelector('.categories-btn');
+        if (categoriesBtn) {
+            categoriesBtn.addEventListener('click', () => {
+                this.openCategoriesModal(card.wordNum);
+            });
+        }
+
+        // Add below button
+        const addBelowBtn = row.querySelector('.add-below-btn');
+        if (addBelowBtn) {
+            addBelowBtn.addEventListener('click', () => {
+                this.addCardBelow(card.wordNum);
+            });
+        }
 
         // Delete button
         const deleteBtn = row.querySelector('.delete-card-btn');
@@ -386,6 +526,91 @@ class DeckBuilderModule extends LearningModule {
                 this.deleteCard(card.wordNum);
             });
         }
+    }
+
+    handleCardNumberChange(oldCardNum, newCardNum) {
+        if (oldCardNum === newCardNum) return;
+
+        // Check if new card number already exists
+        const existingCard = this.allCards.find(c => c.wordNum === newCardNum && c.wordNum !== oldCardNum);
+        const existingNewCard = this.newCards.find(c => c.wordNum === newCardNum && c.wordNum !== oldCardNum);
+
+        if (existingCard || existingNewCard) {
+            const targetCard = existingCard || existingNewCard;
+            const langWord = this.getCardWord(targetCard, this.currentLanguage);
+            const engWord = this.getCardWord(targetCard, 'english');
+            
+            const message = `?? Card #${newCardNum} already exists:\n\n` +
+                `${this.capitalize(this.currentLanguage)}: ${langWord}\n` +
+                `English: ${engWord}\n` +
+                `Lesson: ${targetCard.lesson}\n\n` +
+                `Note: You can reuse the same card number for different words or audio files. ` +
+                `This is just a reminder that this number is already in use.`;
+            
+            alert(message);
+        }
+
+        // Proceed with the change
+        this.handleFieldEdit(oldCardNum, 'wordNum', newCardNum);
+    }
+
+    openCategoriesModal(cardId) {
+        // Find card
+        let card = this.allCards.find(c => c.wordNum === cardId);
+        if (!card) {
+            card = this.newCards.find(c => c.wordNum === cardId);
+        }
+
+        if (!card) return;
+
+        // Store current card ID for saving
+        this.currentCategoriesCardId = cardId;
+
+        // Populate modal fields
+        document.getElementById('catModalCardNum').textContent = cardId;
+        document.getElementById('catGrammar').value = card.grammar || '';
+        document.getElementById('catCategory').value = card.category || '';
+        document.getElementById('catSubCategory1').value = card.subCategory1 || '';
+        document.getElementById('catSubCategory2').value = card.subCategory2 || '';
+        document.getElementById('catACTFLEst').value = card.actflEst || '';
+
+        // Show modal
+        document.getElementById('categoriesModal').classList.remove('hidden');
+    }
+
+    closeCategoriesModal() {
+        document.getElementById('categoriesModal').classList.add('hidden');
+        this.currentCategoriesCardId = null;
+    }
+
+    saveCategoriesData() {
+        if (!this.currentCategoriesCardId) return;
+
+        // Find card
+        let card = this.allCards.find(c => c.wordNum === this.currentCategoriesCardId);
+        if (!card) {
+            card = this.newCards.find(c => c.wordNum === this.currentCategoriesCardId);
+        }
+
+        if (!card) return;
+
+        // Update card data
+        card.grammar = document.getElementById('catGrammar').value.trim();
+        card.category = document.getElementById('catCategory').value.trim();
+        card.subCategory1 = document.getElementById('catSubCategory1').value.trim();
+        card.subCategory2 = document.getElementById('catSubCategory2').value.trim();
+        card.actflEst = document.getElementById('catACTFLEst').value.trim();
+
+        // Mark as edited
+        this.editedCards.set(this.currentCategoriesCardId, card);
+
+        // Close modal
+        this.closeCategoriesModal();
+
+        // Update UI
+        this.updateUnsavedIndicator();
+
+        toastManager.show('Categories updated! Remember to save changes.', 'success');
     }
 
     createFileUploadBadge(card, type) {
@@ -461,6 +686,17 @@ class DeckBuilderModule extends LearningModule {
             card.lesson = parseInt(value) || 1;
         } else if (field === 'type') {
             card.type = value;
+        } else if (field === 'wordNum') {
+            const newWordNum = parseInt(value);
+            if (!isNaN(newWordNum)) {
+                card.wordNum = newWordNum;
+                // Update the map key
+                if (this.editedCards.has(cardId)) {
+                    const editedCard = this.editedCards.get(cardId);
+                    this.editedCards.delete(cardId);
+                    this.editedCards.set(newWordNum, editedCard);
+                }
+            }
         } else if (['cebuano', 'english', 'maranao', 'sinama'].includes(field)) {
             if (!card.translations) {
                 card.translations = {};
@@ -473,14 +709,38 @@ class DeckBuilderModule extends LearningModule {
         }
 
         // Mark as edited
-        if (!this.editedCards.has(cardId)) {
-            this.editedCards.set(cardId, card);
+        if (!this.editedCards.has(card.wordNum)) {
+            this.editedCards.set(card.wordNum, card);
         }
 
         this.updateUnsavedIndicator();
     }
 
     showFileSelectionModal(cardId, fileType, audioLang = null) {
+        // Find card and get current file
+        let card = this.allCards.find(c => c.wordNum === cardId);
+        if (!card) {
+            card = this.newCards.find(c => c.wordNum === cardId);
+        }
+
+        if (!card) return;
+
+        // Determine current file path
+        let currentFilePath = null;
+        let currentFileName = 'No file selected';
+        
+        if (fileType === 'png') {
+            currentFilePath = card.printImagePath;
+        } else if (fileType === 'gif') {
+            currentFilePath = card.imagePath && card.hasGif ? card.imagePath : null;
+        } else if (fileType === 'audio' && audioLang) {
+            currentFilePath = card.audio && card.audio[audioLang] ? card.audio[audioLang] : null;
+        }
+
+        if (currentFilePath) {
+            currentFileName = currentFilePath.split('/').pop();
+        }
+
         // Create modal overlay
         const modal = document.createElement('div');
         modal.className = 'file-selection-modal';
@@ -508,6 +768,17 @@ class DeckBuilderModule extends LearningModule {
                 <div class="file-selection-body">
                     <!-- Browse Tab -->
                     <div class="tab-content active" id="browseTab">
+                        <!-- Current File Preview -->
+                        <div class="current-file-preview" id="currentFilePreview">
+                            <div class="current-file-header">
+                                <strong><i class="fas fa-file-image"></i> Current File:</strong>
+                                <span class="current-file-name">${currentFileName}</span>
+                            </div>
+                            <div class="current-file-display" id="currentFileDisplay">
+                                ${this.generateCurrentFilePreview(currentFilePath, fileType)}
+                            </div>
+                        </div>
+
                         <div class="file-browser-controls">
                             <input type="text" id="fileBrowserSearch" class="form-input" 
                                 placeholder="Search files...">
@@ -561,6 +832,17 @@ class DeckBuilderModule extends LearningModule {
             if (e.target === modal) closeModal();
         });
 
+        // Setup audio playback for current file if it's audio
+        if (fileType === 'audio' && currentFilePath) {
+            const playBtn = modal.querySelector('#playCurrentAudio');
+            if (playBtn) {
+                playBtn.addEventListener('click', () => {
+                    const audio = new Audio(currentFilePath);
+                    audio.play();
+                });
+            }
+        }
+
         // Load server files
         this.loadServerFiles(fileType, audioLang);
 
@@ -588,6 +870,38 @@ class DeckBuilderModule extends LearningModule {
 
         // Store reference for file selection
         this.currentFileSelectionContext = { cardId, fileType, audioLang, modal, closeModal };
+    }
+
+    generateCurrentFilePreview(filePath, fileType) {
+        if (!filePath) {
+            return `
+                <div class="no-current-file">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>No file currently assigned</p>
+                </div>
+            `;
+        }
+
+        if (fileType === 'png' || fileType === 'gif') {
+            return `
+                <div class="current-image-preview">
+                    <img src="${filePath}" alt="Current file" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px;">
+                </div>
+            `;
+        } else if (fileType === 'audio') {
+            return `
+                <div class="current-audio-preview">
+                    <div class="audio-preview-icon">
+                        <i class="fas fa-file-audio"></i>
+                    </div>
+                    <button class="btn btn-primary btn-sm" id="playCurrentAudio">
+                        <i class="fas fa-play"></i> Play Audio
+                    </button>
+                </div>
+            `;
+        }
+
+        return '';
     }
 
     async loadServerFiles(fileType, audioLang) {
@@ -828,10 +1142,21 @@ class DeckBuilderModule extends LearningModule {
         toastManager.show(`File "${file.name}" uploaded! Remember to save changes.`, 'success');
     }
 
-    addNewCard() {
+    addNewCard(lessonNum = null, insertAfterCardId = null) {
+        // Find the highest card number
+        const allCardNums = [
+            ...this.allCards.map(c => c.wordNum),
+            ...this.newCards.map(c => c.wordNum)
+        ];
+        const maxCardNum = allCardNums.length > 0 ? Math.max(...allCardNums) : 0;
+        const newCardNum = maxCardNum + 1;
+
+        // Use provided lesson or default to filter or 1
+        const lesson = lessonNum !== null ? lessonNum : (parseInt(document.getElementById('lessonFilter').value) || 1);
+
         const newCard = {
-            wordNum: this.nextNewCardId++,
-            lesson: parseInt(document.getElementById('lessonFilter').value) || 1,
+            wordNum: newCardNum,
+            lesson: lesson,
             type: 'N',
             translations: {
                 cebuano: { word: '', note: '', acceptableAnswers: [] },
@@ -852,13 +1177,50 @@ class DeckBuilderModule extends LearningModule {
             actflEst: null
         };
 
-        this.newCards.push(newCard);
+        // If insertAfterCardId is provided, insert at specific position
+        if (insertAfterCardId !== null) {
+            const insertIndex = this.newCards.findIndex(c => c.wordNum === insertAfterCardId);
+            if (insertIndex !== -1) {
+                this.newCards.splice(insertIndex + 1, 0, newCard);
+            } else {
+                this.newCards.push(newCard);
+            }
+        } else {
+            this.newCards.push(newCard);
+        }
+
         this.editedCards.set(newCard.wordNum, newCard);
 
         this.filterAndRenderCards();
         this.updateUnsavedIndicator();
 
-        toastManager.show('New card added. Fill in the details and save.', 'success');
+        // Scroll to the new card
+        setTimeout(() => {
+            const newRow = document.querySelector(`tr[data-card-id="${newCardNum}"]`);
+            if (newRow) {
+                newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Briefly highlight the new row
+                newRow.style.backgroundColor = 'rgba(79, 70, 229, 0.2)';
+                setTimeout(() => {
+                    newRow.style.backgroundColor = '';
+                }, 2000);
+            }
+        }, 100);
+
+        toastManager.show(`New card #${newCardNum} added. Fill in the details and save.`, 'success');
+    }
+
+    addCardBelow(cardId) {
+        // Find the card to get its lesson
+        let card = this.allCards.find(c => c.wordNum === cardId);
+        if (!card) {
+            card = this.newCards.find(c => c.wordNum === cardId);
+        }
+
+        if (!card) return;
+
+        // Add new card with the same lesson
+        this.addNewCard(card.lesson, cardId);
     }
 
     deleteCard(cardId) {

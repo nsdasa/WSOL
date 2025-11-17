@@ -4430,5 +4430,448 @@ body.mobile-phone .instruction-footer .btn i {
    END FILE BROWSER ENHANCEMENTS
    ================================================================= */
 /* =================================================================
+   DECK BUILDER - CATEGORIES BUTTON AND MODAL STYLES
+   Add this to your styles.css file at the end of the Deck Builder section
+   Version 3.2 - November 2025
+   ================================================================= */
+
+/* Categories Button in Table */
+.categories-btn {
+    background: var(--primary);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+    width: 100%;
+}
+
+.categories-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.categories-btn i {
+    font-size: 11px;
+}
+
+/* Categories Modal Specific Styles */
+#categoriesModal .modal-content {
+    max-width: 600px;
+}
+
+#categoriesModal .modal-body {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+#categoriesModal .form-group {
+    margin-bottom: 20px;
+}
+
+#categoriesModal .form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+#categoriesModal .form-label i {
+    color: var(--primary);
+    font-size: 14px;
+}
+
+#categoriesModal .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+#categoriesModal .form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+#categoriesModal .form-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+#categoriesModal .action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+/* Card Number Input Special Styling */
+.card-num-input {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.card-num-input:focus {
+    background: rgba(79, 70, 229, 0.05);
+    border-color: var(--primary);
+}
+
+/* Mobile responsive for categories */
+@media (max-width: 768px) {
+    .categories-btn {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+    
+    #categoriesModal .modal-content {
+        width: 95%;
+        max-width: none;
+    }
+    
+    #categoriesModal .modal-body {
+        padding: 16px;
+        max-height: 50vh;
+    }
+    
+    #categoriesModal .form-group {
+        margin-bottom: 16px;
+    }
+    
+    #categoriesModal .action-buttons {
+        flex-direction: column;
+        padding: 12px 16px;
+        gap: 8px;
+    }
+    
+    #categoriesModal .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Dark mode specific */
+[data-theme="dark"] .categories-btn {
+    background: var(--primary);
+}
+
+[data-theme="dark"] .categories-btn:hover {
+    background: var(--primary-dark);
+}
+
+[data-theme="dark"] #categoriesModal .form-input:focus {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+/* =================================================================
+   DECK BUILDER - CATEGORIES BUTTON AND MODAL STYLES
+   Add this to your styles.css file at the end of the Deck Builder section
+   Version 3.2 - November 2025
+   ================================================================= */
+
+/* Categories Button in Table - TEXT VERSION */
+.categories-btn {
+    background: var(--primary);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.categories-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Add Below Button - Green */
+.add-below-btn {
+    color: var(--success) !important;
+    font-size: 16px;
+}
+
+.add-below-btn:hover {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success) !important;
+    transform: scale(1.1);
+}
+
+/* Current File Preview Section */
+.current-file-preview {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.current-file-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.current-file-header strong {
+    color: var(--text-primary);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.current-file-header i {
+    color: var(--primary);
+}
+
+.current-file-name {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: monospace;
+    background: var(--bg-primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.current-file-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+}
+
+.no-current-file {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px;
+}
+
+.no-current-file i {
+    font-size: 48px;
+    opacity: 0.3;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.no-current-file p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.current-image-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+}
+
+.current-audio-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.audio-preview-icon {
+    font-size: 48px;
+    color: var(--primary);
+}
+
+.audio-preview-icon i {
+    opacity: 0.7;
+}
+
+#playCurrentAudio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Highlight animation for new cards */
+@keyframes highlightNew {
+    0%, 100% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: rgba(79, 70, 229, 0.2);
+    }
+}
+
+/* Categories Modal Specific Styles */
+#categoriesModal .modal-content {
+    max-width: 600px;
+}
+
+#categoriesModal .modal-body {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+#categoriesModal .form-group {
+    margin-bottom: 20px;
+}
+
+#categoriesModal .form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+#categoriesModal .form-label i {
+    color: var(--primary);
+    font-size: 14px;
+}
+
+#categoriesModal .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+#categoriesModal .form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+#categoriesModal .form-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+#categoriesModal .action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+/* Card Number Input Special Styling */
+.card-num-input {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.card-num-input:focus {
+    background: rgba(79, 70, 229, 0.05);
+    border-color: var(--primary);
+}
+
+/* Mobile responsive for categories and current file preview */
+@media (max-width: 768px) {
+    .categories-btn {
+        padding: 5px 8px;
+        font-size: 10px;
+    }
+    
+    .current-file-preview {
+        padding: 12px;
+    }
+    
+    .current-file-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .current-file-name {
+        font-size: 11px;
+        word-break: break-all;
+    }
+    
+    .current-image-preview img {
+        max-height: 150px !important;
+    }
+    
+    #categoriesModal .modal-content {
+        width: 95%;
+        max-width: none;
+    }
+    
+    #categoriesModal .modal-body {
+        padding: 16px;
+        max-height: 50vh;
+    }
+    
+    #categoriesModal .form-group {
+        margin-bottom: 16px;
+    }
+    
+    #categoriesModal .action-buttons {
+        flex-direction: column;
+        padding: 12px 16px;
+        gap: 8px;
+    }
+    
+    #categoriesModal .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Dark mode specific */
+[data-theme="dark"] .categories-btn {
+    background: var(--primary);
+}
+
+[data-theme="dark"] .categories-btn:hover {
+    background: var(--primary-dark);
+}
+
+[data-theme="dark"] #categoriesModal .form-input:focus {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .current-file-preview {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .current-image-preview {
+    background: rgba(0, 0, 0, 0.2);
+}
+/* =================================================================
    END DECK BUILDER MODULE STYLES
    ================================================================= */
