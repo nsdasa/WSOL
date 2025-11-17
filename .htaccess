@@ -1,0 +1,73 @@
+# =================================================================
+# .htaccess - Server-Level Cache Prevention Configuration
+# Bob and Mariel Ward School of Filipino Languages
+# =================================================================
+
+# Enable rewrite engine (if needed)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule>
+
+# =================================================================
+# CRITICAL: PREVENT CACHING OF ASSET MANAGEMENT ENDPOINTS
+# =================================================================
+
+<IfModule mod_headers.c>
+    # Prevent caching of asset-related API endpoints
+    <FilesMatch "(list-assets|scan-assets|rename-asset)\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+    </FilesMatch>
+
+    # Prevent caching of manifest.json
+    <Files "manifest.json">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+    </Files>
+
+    # Prevent caching of CSV files in assets folder
+    <FilesMatch "\.(csv)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+    </FilesMatch>
+</IfModule>
+
+# =================================================================
+# ALLOW NORMAL CACHING FOR ACTUAL MEDIA ASSETS
+# =================================================================
+# We want images and audio to be cached normally for performance
+# Only prevent caching of the LISTS and MANAGEMENT endpoints
+
+<IfModule mod_headers.c>
+    # Allow caching of PNG, GIF, MP3 files (actual learning assets)
+    <FilesMatch "\.(png|gif|mp3|m4a|jpg|jpeg)$">
+        # These can be cached for performance
+        Header set Cache-Control "public, max-age=31536000"
+    </FilesMatch>
+</IfModule>
+
+# =================================================================
+# SECURITY: PREVENT DIRECTORY LISTING
+# =================================================================
+Options -Indexes
+
+# =================================================================
+# SECURITY: PROTECT SENSITIVE FILES
+# =================================================================
+<FilesMatch "(\.htaccess|\.htpasswd|\.env|\.git)">
+    Require all denied
+</FilesMatch>
+
+# =================================================================
+# PHP SETTINGS (if needed)
+# =================================================================
+<IfModule mod_php.c>
+    # Increase upload size limits for media files
+    php_value upload_max_filesize 100M
+    php_value post_max_size 100M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
