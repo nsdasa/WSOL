@@ -4872,6 +4872,139 @@ body.mobile-phone .instruction-footer .btn i {
 [data-theme="dark"] .current-image-preview {
     background: rgba(0, 0, 0, 0.2);
 }
+
 /* =================================================================
    END DECK BUILDER MODULE STYLES
+   ================================================================= */
+/* =================================================================
+   AUTHENTICATION & LOGIN MODAL STYLES
+   Version 3.1 - November 2025
+   Add this to the END of your styles.css file
+   ================================================================= */
+
+/* Login Modal Specific Styling */
+.login-modal {
+    max-width: 450px;
+}
+
+.login-modal .modal-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 20px 24px;
+    border-radius: 12px 12px 0 0;
+}
+
+.login-modal .modal-header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+.login-modal .modal-body {
+    padding: 24px;
+}
+
+.login-modal .form-group {
+    margin-bottom: 0;
+}
+
+.login-error {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 4px solid var(--error);
+    padding: 12px;
+    border-radius: 4px;
+    color: var(--error);
+    font-size: 14px;
+    margin-top: 16px;
+}
+
+.login-error.hidden {
+    display: none;
+}
+
+/* Logout Button Styling */
+#logoutBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    padding: 8px 16px;
+}
+
+#logoutBtn:hover {
+    background: var(--gray-100);
+    border-color: var(--error);
+    color: var(--error);
+}
+
+/* Session Info in Admin Panel */
+.current-session-info {
+    background: var(--bg-primary);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+.current-session-info strong {
+    color: var(--text-primary);
+    margin-right: 8px;
+}
+
+.current-session-info span {
+    font-weight: 500;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .login-modal {
+        width: 95%;
+        max-width: none;
+    }
+    
+    .login-modal .modal-header h2 {
+        font-size: 18px;
+    }
+    
+    .login-modal .modal-body {
+        padding: 20px 16px;
+    }
+    
+    #logoutBtn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    #logoutBtn span {
+        display: none; /* Hide "Logout" text on very small screens */
+    }
+    
+    #logoutBtn {
+        width: auto;
+        padding: 8px;
+    }
+}
+
+/* Dark Mode Specific */
+[data-theme="dark"] .login-modal .modal-header {
+    background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%);
+}
+
+[data-theme="dark"] .login-error {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+[data-theme="dark"] .current-session-info {
+    background: var(--bg-secondary);
+}
+
+/* =================================================================
+   END AUTHENTICATION STYLES
    ================================================================= */
