@@ -1,6 +1,7 @@
 // =================================================================
 // DECK BUILDER MODULE - Bob and Mariel Ward School
 // Version 3.1 - Card Deck Editor and Manager
+// Updated: November 2025 - Enhanced filename visibility in file browser
 // =================================================================
 
 class DeckBuilderModule extends LearningModule {
@@ -646,21 +647,29 @@ class DeckBuilderModule extends LearningModule {
             fileItem.dataset.filetype = file.type;
 
             let preview = '';
+            let isAudio = false;
+            
             if (file.type === 'png' || file.type === 'gif') {
                 preview = `<img src="${file.path}" alt="${file.name}">`;
             } else if (file.type === 'mp3') {
                 preview = `<i class="fas fa-file-audio"></i>`;
+                isAudio = true;
             } else {
                 preview = `<i class="fas fa-file"></i>`;
             }
 
+            // For audio files, make filename much more prominent
+            const filenameDisplay = isAudio 
+                ? `<div class="file-name audio-filename" title="${file.name}">${file.name}</div>`
+                : `<div class="file-name" title="${file.name}">${file.name}</div>`;
+
             fileItem.innerHTML = `
-                <div class="file-preview">${preview}</div>
+                <div class="file-preview ${isAudio ? 'audio-preview' : ''}">${preview}</div>
                 <div class="file-info">
-                    <div class="file-name" title="${file.name}">${file.name}</div>
+                    ${filenameDisplay}
                     <div class="file-meta">
                         <span class="file-size">${this.formatFileSize(file.size)}</span>
-                        ${file.type === 'mp3' ? '<span class="audio-play-btn"><i class="fas fa-play"></i></span>' : ''}
+                        ${file.type === 'mp3' ? '<span class="audio-play-btn" title="Preview audio"><i class="fas fa-play"></i></span>' : ''}
                     </div>
                 </div>
                 <div class="file-select-overlay">

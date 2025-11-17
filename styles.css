@@ -4350,7 +4350,85 @@ body.mobile-phone .instruction-footer .btn i {
         padding: 12px;
     }
 }
+/* =================================================================
+   FILE BROWSER ENHANCEMENTS - Enhanced Filename Visibility
+   Added for Version 3.1 - November 2025
+   ================================================================= */
 
+/* Enhanced filename visibility for file browser */
+.file-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: normal; /* Changed from nowrap to allow wrapping */
+    word-break: break-word; /* Break long filenames */
+    margin-bottom: 4px;
+    line-height: 1.3;
+    min-height: 32px; /* Ensure space for filename */
+}
+
+/* Special styling for audio filenames - make them MUCH more visible */
+.file-name.audio-filename {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary);
+    text-align: center;
+    padding: 4px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme="dark"] .file-name.audio-filename {
+    background: var(--bg-primary);
+    color: var(--primary);
+}
+
+/* Audio preview icon should be smaller to make room for filename */
+.file-preview.audio-preview {
+    height: 60px; /* Reduced from 120px */
+}
+
+.file-preview.audio-preview i {
+    font-size: 32px; /* Smaller icon */
+}
+
+/* Make sure file info section has enough space */
+.file-info {
+    padding: 8px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure file browser items have proper height */
+.file-browser-item {
+    display: flex;
+    flex-direction: column;
+    min-height: 160px; /* Ensure enough height for all content */
+}
+
+/* Play button styling - enhanced */
+.audio-play-btn {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    color: var(--success);
+    font-weight: 600;
+}
+
+.audio-play-btn:hover {
+    background: var(--success);
+    color: white;
+}
+
+/* =================================================================
+   END FILE BROWSER ENHANCEMENTS
+   ================================================================= */
 /* =================================================================
    END DECK BUILDER MODULE STYLES
    ================================================================= */
