@@ -64,6 +64,10 @@
                 <i class="fas fa-print"></i>
                 Print PDF
             </button>
+            <button class="nav-tab" data-module="deck-builder">
+                <i class="fas fa-edit"></i>
+                Deck Builder
+            </button>
             <button class="nav-tab" data-module="admin">
                 <i class="fas fa-tools"></i>
                 Admin
@@ -183,6 +187,7 @@
     <script src="quiz-module.js?v=<?php echo filemtime('quiz-module.js'); ?>"></script>
     <script src="admin-module.js?v=<?php echo filemtime('admin-module.js'); ?>"></script>
     <script src="pdf-module.js?v=<?php echo filemtime('pdf-module.js'); ?>"></script>
+    <script src="deck-builder-module.js?v=<?php echo filemtime('deck-builder-module.js'); ?>"></script>
     
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
