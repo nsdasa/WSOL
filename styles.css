@@ -5008,3 +5008,83 @@ body.mobile-phone .instruction-footer .btn i {
 /* =================================================================
    END AUTHENTICATION STYLES
    ================================================================= */
+/* =================================================================
+   RENAME WARNING MODAL STYLES
+   Version 3.2 - November 2025 - File Rename Warning System
+   ================================================================= */
+
+.rename-warning-modal .modal-content {
+    animation: slideInDown 0.3s ease;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.rename-warning-modal .form-group {
+    margin-bottom: 20px;
+}
+
+.rename-warning-modal .form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.rename-warning-modal .form-label i {
+    color: var(--primary);
+}
+
+.rename-warning-modal #renameInput {
+    font-size: 14px;
+}
+
+.rename-warning-modal #renameInput:focus {
+    border-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .rename-warning-modal .modal-content {
+        width: 95%;
+        max-width: none;
+    }
+    
+    .rename-warning-modal .modal-footer > div {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .rename-warning-modal .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .rename-warning-modal #renameInput {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .rename-warning-modal #renameInput:focus {
+    border-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+}
+
+/* =================================================================
+   END RENAME WARNING MODAL STYLES
+   ================================================================= */

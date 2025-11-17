@@ -5,6 +5,7 @@
 //   1. Dual "Add New Card" buttons (top + bottom)
 //   2. Editable Card # with duplicate detection
 //   3. Categories column with modal editor for Grammar/Category fields
+//   4. File rename warning system with validation
 // =================================================================
 
 class DeckBuilderModule extends LearningModule {
@@ -1035,18 +1036,259 @@ class DeckBuilderModule extends LearningModule {
         this.displayServerFiles(filtered);
     }
 
-    selectExistingFile(file) {
-        const { cardId, fileType, audioLang, closeModal } = this.currentFileSelectionContext;
+    // =================================================================
+    // VALIDATION AND RENAME LOGIC
+    // =================================================================
 
-        // Find card
-        let card = this.allCards.find(c => c.wordNum === cardId);
-        if (!card) {
-            card = this.newCards.find(c => c.wordNum === cardId);
+    /**
+     * Validate if filename matches expected pattern for this card
+     */
+    validateFilename(cardId, filename, fileType, audioLang = null) {
+        const wordNum = cardId;
+        
+        // Extract just the filename without path
+        const basename = filename.split('/').pop();
+        
+        let expectedPattern;
+        let isValid = false;
+        
+        if (fileType === 'png' || fileType === 'gif') {
+            // Expected: WordNum.anything.ext
+            expectedPattern = `${wordNum}.word.translation.${fileType}`;
+            isValid = new RegExp(`^${wordNum}\\.`).test(basename);
+        } else if (fileType === 'audio' && audioLang) {
+            // Expected: WordNum.lang.anything.mp3/m4a
+            expectedPattern = `${wordNum}.${audioLang}.word.translation.mp3`;
+            const ext = basename.split('.').pop();
+            isValid = new RegExp(`^${wordNum}\\.${audioLang}\\.`).test(basename);
         }
+        
+        return {
+            isValid,
+            expectedPattern,
+            actualFilename: basename
+        };
+    }
 
-        if (!card) return;
+    /**
+     * Generate suggested filename based on card data
+     */
+    generateSuggestedFilename(card, fileType, audioLang = null) {
+        const wordNum = card.wordNum;
+        const cebuanoWord = this.getCardWord(card, 'cebuano').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        const englishWord = this.getCardWord(card, 'english').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        
+        if (fileType === 'png') {
+            return `${wordNum}.${cebuanoWord}.${englishWord}.png`;
+        } else if (fileType === 'gif') {
+            return `${wordNum}.${cebuanoWord}.${englishWord}.gif`;
+        } else if (fileType === 'audio' && audioLang) {
+            return `${wordNum}.${audioLang}.${cebuanoWord}.${englishWord}.mp3`;
+        }
+        
+        return null;
+    }
 
-        // Update card with selected file
+    /**
+     * Show rename warning modal
+     */
+    showRenameWarning(file, card, fileType, audioLang = null) {
+        const validation = this.validateFilename(card.wordNum, file.name, fileType, audioLang);
+        
+        if (validation.isValid) {
+            // File is properly named, proceed normally
+            this.linkFileToCard(file, card, fileType, audioLang);
+            return;
+        }
+        
+        // File has incorrect name - show warning
+        const suggestedName = this.generateSuggestedFilename(card, fileType, audioLang);
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal rename-warning-modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white;">
+                    <h2>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Filename Convention Warning
+                    </h2>
+                </div>
+                
+                <div class="modal-body" style="padding: 24px;">
+                    <div style="background: #fff3cd; border-left: 4px solid #f39c12; padding: 16px; border-radius: 4px; margin-bottom: 20px;">
+                        <strong style="color: #856404;">?? This file doesn't follow the naming convention!</strong>
+                        <p style="margin: 8px 0 0 0; color: #856404; font-size: 14px;">
+                            If you link it as-is, it will be <strong>unlinked</strong> when you run "Rescan Assets" in the future.
+                        </p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-file"></i> Current Filename:
+                        </label>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; color: #e74c3c; font-weight: 600;">
+                            ${validation.actualFilename}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-check-circle"></i> Expected Pattern:
+                        </label>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; color: #7f8c8d; font-size: 13px;">
+                            ${validation.expectedPattern}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-magic"></i> Suggested Filename:
+                        </label>
+                        <input type="text" id="renameInput" class="form-input" 
+                            value="${suggestedName}" 
+                            style="font-family: monospace; color: #27ae60; font-weight: 600;">
+                        <p style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
+                            <i class="fas fa-info-circle"></i> You can edit this before renaming
+                        </p>
+                    </div>
+                    
+                    <div style="background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 12px; border-radius: 4px; margin-top: 16px;">
+                        <strong style="color: #0c5460;">?? Tip:</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #0c5460;">
+                            Files with proper names will be automatically linked when you upload CSVs or run asset scans.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="modal-footer" style="padding: 16px 24px; background: #f8f9fa; border-top: 1px solid #dee2e6;">
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button id="renameAndLinkBtn" class="btn btn-success">
+                            <i class="fas fa-check"></i> Rename & Link
+                        </button>
+                        <button id="linkAnywayBtn" class="btn btn-warning">
+                            <i class="fas fa-link"></i> Link Anyway (Not Recommended)
+                        </button>
+                        <button id="cancelLinkBtn" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const renameInput = document.getElementById('renameInput');
+        const renameAndLinkBtn = document.getElementById('renameAndLinkBtn');
+        const linkAnywayBtn = document.getElementById('linkAnywayBtn');
+        const cancelLinkBtn = document.getElementById('cancelLinkBtn');
+        
+        const closeModal = () => {
+            if (document.body.contains(modal)) {
+                document.body.removeChild(modal);
+            }
+        };
+        
+        // Rename and link
+        renameAndLinkBtn.addEventListener('click', async () => {
+            const newFilename = renameInput.value.trim();
+            
+            if (!newFilename) {
+                toastManager.show('Please enter a filename', 'error');
+                return;
+            }
+            
+            // Validate new filename format
+            const newValidation = this.validateFilename(card.wordNum, newFilename, fileType, audioLang);
+            if (!newValidation.isValid) {
+                toastManager.show('New filename still doesn\'t match the expected pattern!', 'error');
+                return;
+            }
+            
+            renameAndLinkBtn.disabled = true;
+            renameAndLinkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Renaming...';
+            
+            const success = await this.renameFileOnServer(file.name, newFilename);
+            
+            if (success) {
+                // Update file object with new name
+                file.name = newFilename;
+                file.path = 'assets/' + newFilename;
+                
+                // Link the renamed file
+                this.linkFileToCard(file, card, fileType, audioLang);
+                
+                closeModal();
+                toastManager.show(`File renamed to "${newFilename}" and linked successfully!`, 'success', 4000);
+            } else {
+                renameAndLinkBtn.disabled = false;
+                renameAndLinkBtn.innerHTML = '<i class="fas fa-check"></i> Rename & Link';
+            }
+        });
+        
+        // Link anyway (without rename)
+        linkAnywayBtn.addEventListener('click', () => {
+            if (confirm('Are you sure? This file will be unlinked if you rescan assets later.')) {
+                this.linkFileToCard(file, card, fileType, audioLang);
+                closeModal();
+                toastManager.show('File linked (but may be unlinked on future scans)', 'warning', 4000);
+            }
+        });
+        
+        // Cancel
+        cancelLinkBtn.addEventListener('click', closeModal);
+        
+        // Close on escape
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+        
+        // Focus on input
+        setTimeout(() => renameInput.focus(), 100);
+    }
+
+    /**
+     * Rename file on server via PHP endpoint
+     */
+    async renameFileOnServer(oldFilename, newFilename) {
+        try {
+            const response = await fetch('rename-asset.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    oldFilename: oldFilename,
+                    newFilename: newFilename
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                debugLogger.log(2, `File renamed: ${oldFilename} ? ${newFilename}`);
+                return true;
+            } else {
+                toastManager.show(`Rename failed: ${result.error}`, 'error', 5000);
+                debugLogger.log(1, `Rename failed: ${result.error}`);
+                return false;
+            }
+        } catch (err) {
+            toastManager.show(`Error renaming file: ${err.message}`, 'error', 5000);
+            debugLogger.log(1, `Rename error: ${err.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Link file to card (after validation/rename)
+     */
+    linkFileToCard(file, card, fileType, audioLang = null) {
         if (fileType === 'png') {
             card.printImagePath = file.path;
             card.hasImage = true;
@@ -1059,17 +1301,31 @@ class DeckBuilderModule extends LearningModule {
             card.audio[audioLang] = file.path;
             card.hasAudio = true;
         }
-
+        
         // Mark as edited
-        this.editedCards.set(cardId, card);
-
+        this.editedCards.set(card.wordNum, card);
+        
         // Re-render
         this.filterAndRenderCards();
         this.updateUnsavedIndicator();
+    }
 
+    selectExistingFile(file) {
+        const { cardId, fileType, audioLang, closeModal } = this.currentFileSelectionContext;
+
+        // Find card
+        let card = this.allCards.find(c => c.wordNum === cardId);
+        if (!card) {
+            card = this.newCards.find(c => c.wordNum === cardId);
+        }
+
+        if (!card) return;
+
+        // Close the file browser modal first
         closeModal();
 
-        toastManager.show(`File "${file.name}" linked to card!`, 'success');
+        // VALIDATE FILENAME - Show rename warning if needed
+        this.showRenameWarning(file, card, fileType, audioLang);
     }
 
     formatFileSize(bytes) {

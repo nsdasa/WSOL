@@ -193,22 +193,22 @@
 14,185,Kay,Is,,,,,,,Noun,,,,Novice-High,N
 14,186,Naa/naay,There is/has/have,,,,,,,Adjective,,,,Novice-Mid,N
 15,187,Bayad,Pay,,,,,,,Adjective,,,,Novice-High,N
-50,188,taas,,long/tall,,matas,,taha,,Adjective,Function Word,Adjective,Dimension,Novice-Mid,2
-50,189,mubo,,short,,mebaba,,pandak / pu'ut,,Adjective,Function Word,Adjective,Dimension,Novice-Mid,1
-50,156,ihap,,count,,bilang,,itung,,Noun,Function Word,Quantifier,Quantifier,Novice-High,1
-50,191,kita,,see,,keilay  / miyailay,,n'da,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
-50,158,simhot,,smell/sniff,Verb,kambaw,,bau,,Verb,You,Sensation,Perception,Novice-Mid,1
-50,159,dungog,,hear,,keneg,,bahingaw,,Verb,You,Sensation,Perception,Novice-Mid,1
-50,160,i-sulti,,speak,,petiroon / tiroon,,yuk,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
-50,161,inyo / inyong,,your / yours,,iyo / niyo / rekano,,bi,,Pronoun,You,Pronoun,Pronoun,Novice-Mid,1
-51,180,baso,,drinking cup,,tagayan,,sawan,,Noun,Home,Utensil,Utensil,Novice-Low,1
-51,197,inom,,drink,,minom,,inom,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
-51,174,kan-anan,,dining room,,pekanan,,pagkakan'an,,Noun,Home,Location,Location,Novice-High,1
-51,171,kaon,"short ""a""",eat,Verb,ken,,m'ngan,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
-51,178,kutsara,,spoon,,saridot,,suru,,Noun,Home,Utensil,Utensil,Novice-Low,1
-51,176,pagkaon ,"long ""a""",food,,penganengken,,pagkakan,,Noun,Home,Food,Food,Novice-Mid,1
-51,177,plato,,plate,,lapad,,lai,,Noun,Home,Utensil,Utensil,Novice-Low,1
-51,170,tilaw,,taste,,taaman,,timtim,,Verb,You,Personal Action,Personal Action,Novice-Mid,1
-51,179,tinidor,,fork,,tinidor,,tinerol,,Noun,Home,Utensil,Utensil,Novice-Low,1
-51,181,tubig,,water,,ig,,bohe,,Noun,World,Food,Geography,Novice-Mid,1
-51,175,kusina,,kitchen,,tolang,,kusina,,Noun,Home,Location,Location,Novice-High,1
+99,188,taas,,long/tall,,matas,,taha,,Adjective,Function Word,Adjective,Dimension,Novice-Mid,N
+99,189,mubo,,short,,mebaba,,pandak / pu'ut,,Adjective,Function Word,Adjective,Dimension,Novice-Mid,N
+99,156,ihap,,count,,bilang,,itung,,Noun,Function Word,Quantifier,Quantifier,Novice-High,N
+99,191,kita,,see,,keilay  / miyailay,,n'da,,Verb,You,Personal Action,Personal Action,Novice-Mid,N
+99,158,simhot,,smell/sniff,Verb,kambaw,,bau,,Verb,You,Sensation,Perception,Novice-Mid,N
+99,159,dungog,,hear,,keneg,,bahingaw,,Verb,You,Sensation,Perception,Novice-Mid,N
+99,160,i-sulti,,speak,,petiroon / tiroon,,yuk,,Verb,You,Personal Action,Personal Action,Novice-Mid,N
+99,161,inyo / inyong,,your / yours,,iyo / niyo / rekano,,bi,,Pronoun,You,Pronoun,Pronoun,Novice-Mid,N
+100,180,baso,,drinking cup,,tagayan,,sawan,,Noun,Home,Utensil,Utensil,Novice-Low,N
+100,197,inom,,drink,,minom,,inom,,Verb,You,Personal Action,Personal Action,Novice-Mid,N
+100,174,kan-anan,,dining room,,pekanan,,pagkakan'an,,Noun,Home,Location,Location,Novice-High,N
+100,171,kaon,"short ""a""",eat,Verb,ken,,m'ngan,,Verb,You,Personal Action,Personal Action,Novice-Mid,N
+100,178,kutsara,,spoon,,saridot,,suru,,Noun,Home,Utensil,Utensil,Novice-Low,N
+100,176,pagkaon ,"long ""a""",food,,penganengken,,pagkakan,,Noun,Home,Food,Food,Novice-Mid,N
+100,177,plato,,plate,,lapad,,lai,,Noun,Home,Utensil,Utensil,Novice-Low,N
+100,170,tilaw,,taste,,taaman,,timtim,,Verb,You,Personal Action,Personal Action,Novice-Mid,N
+100,179,tinidor,,fork,,tinidor,,tinerol,,Noun,Home,Utensil,Utensil,Novice-Low,N
+100,181,tubig,,water,,ig,,bohe,,Noun,World,Food,Geography,Novice-Mid,N
+100,175,kusina,,kitchen,,tolang,,kusina,,Noun,Home,Location,Location,Novice-High,N
