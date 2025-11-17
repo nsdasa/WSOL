@@ -1,6 +1,6 @@
 // =================================================================
 // CEBUANO LEARNING PLATFORM - Core Application
-// Version 3.1 - November 2025 - WITH AUTHENTICATION
+// Version 3.1 - November 2025 - WITH AUTHENTICATION + CACHE PREVENTION
 // =================================================================
 
 // Global instances
@@ -153,11 +153,11 @@ class DeviceDetector {
         
         // Log changes
         if (oldType !== this.deviceType) {
-            debugLogger?.log(3, `Device type changed: ${oldType} → ${this.deviceType}`);
+            debugLogger?.log(3, `Device type changed: ${oldType} ? ${this.deviceType}`);
         }
         
         if (oldOrientation !== this.orientation) {
-            debugLogger?.log(3, `Orientation changed: ${oldOrientation} → ${this.orientation}`);
+            debugLogger?.log(3, `Orientation changed: ${oldOrientation} ? ${this.orientation}`);
         }
         
         // Trigger re-render if device type changed and a module is active
@@ -398,7 +398,7 @@ class InstructionManager {
 }
 
 // =================================================================
-// ASSET MANAGER
+// ASSET MANAGER - WITH CACHE PREVENTION
 // =================================================================
 class AssetManager {
     constructor() {
@@ -414,10 +414,23 @@ class AssetManager {
     
     async loadManifest() {
         try {
-            const response = await fetch('assets/manifest.json');
+            // Add timestamp to prevent URL-based caching
+            const timestamp = new Date().getTime();
+            
+            const response = await fetch(`assets/manifest.json?_=${timestamp}`, {
+                method: 'GET',
+                cache: 'no-store', // Force no caching
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
+            
             this.manifest = await response.json();
             this.cards = this.manifest.cards || [];
             this.languages = this.manifest.languages || [];
@@ -909,7 +922,7 @@ class AssetScanner {
             const preview = document.createElement('div');
             preview.className = 'preview-card';
             
-            let imgHtml = '<div style="width:60px;height:60px;background:#ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;">📷</div>';
+            let imgHtml = '<div style="width:60px;height:60px;background:#ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;">??</div>';
             
             try {
                 if (card.imageHandle) {
@@ -926,7 +939,7 @@ class AssetScanner {
                 ${imgHtml}
                 <div class="cebuano">${card.cebuano}</div>
                 <div class="english">${card.english}</div>
-                ${card.hasAudio ? '<div class="audio-indicator">🔊</div>' : ''}
+                ${card.hasAudio ? '<div class="audio-indicator">??</div>' : ''}
             `;
             
             previewContainer.appendChild(preview);

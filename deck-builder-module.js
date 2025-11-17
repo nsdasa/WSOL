@@ -1,11 +1,12 @@
 // =================================================================
 // DECK BUILDER MODULE - Bob and Mariel Ward School
-// Version 3.2 - Card Deck Editor and Manager
+// Version 3.2 - Card Deck Editor and Manager - WITH CACHE PREVENTION
 // Updated: November 2025 - Enhanced with:
 //   1. Dual "Add New Card" buttons (top + bottom)
 //   2. Editable Card # with duplicate detection
 //   3. Categories column with modal editor for Grammar/Category fields
 //   4. File rename warning system with validation
+//   5. Complete cache prevention on all fetch calls
 // =================================================================
 
 class DeckBuilderModule extends LearningModule {
@@ -907,8 +908,18 @@ class DeckBuilderModule extends LearningModule {
 
     async loadServerFiles(fileType, audioLang) {
         try {
-            // Call PHP endpoint to get file list
-            const response = await fetch('list-assets.php?type=' + fileType);
+            // CACHE PREVENTION: Add timestamp and no-cache headers
+            const timestamp = new Date().getTime();
+            const response = await fetch(`list-assets.php?type=${fileType}&_=${timestamp}`, {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+            
             const result = await response.json();
 
             if (result.success) {
@@ -1257,15 +1268,19 @@ class DeckBuilderModule extends LearningModule {
      */
     async renameFileOnServer(oldFilename, newFilename) {
         try {
-            const response = await fetch('rename-asset.php', {
+            // CACHE PREVENTION: Add timestamp and no-cache headers
+            const timestamp = new Date().getTime();
+            const response = await fetch(`rename-asset.php?_=${timestamp}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache'
                 },
                 body: JSON.stringify({
                     oldFilename: oldFilename,
                     newFilename: newFilename
-                })
+                }),
+                cache: 'no-store'
             });
             
             const result = await response.json();

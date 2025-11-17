@@ -82,7 +82,7 @@ class AdminModule extends LearningModule {
                             <div class="file-upload-container" id="wordUploadContainer">
                                 <label class="file-upload-label">
                                     <i class="fas fa-list"></i> Word List CSV
-                                    <span class="file-hint">Expected: 16 columns (Lesson → Type)</span>
+                                    <span class="file-hint">Expected: 16 columns (Lesson ? Type)</span>
                                 </label>
                                 <input type="file" id="wordFileInput" accept=".csv" class="file-input">
                                 <div class="file-status" id="wordFileStatus">No file selected</div>
@@ -394,7 +394,7 @@ class AdminModule extends LearningModule {
                     languageStatus.style.color = 'var(--text-secondary)';
                 } else {
                     this.languageFile = file;
-                    languageStatus.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                    languageStatus.textContent = `? ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
                     languageStatus.style.color = 'var(--success)';
                     debugLogger.log(3, `Language CSV selected: ${file.name}`);
                 }
@@ -417,7 +417,7 @@ class AdminModule extends LearningModule {
                     wordStatus.style.color = 'var(--text-secondary)';
                 } else {
                     this.wordFile = file;
-                    wordStatus.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                    wordStatus.textContent = `? ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
                     wordStatus.style.color = 'var(--success)';
                     debugLogger.log(3, `Word CSV selected: ${file.name}`);
                 }
@@ -466,9 +466,15 @@ class AdminModule extends LearningModule {
                 formData.append('wordFile', this.wordFile);
             }
             
-            const response = await fetch('scan-assets.php?action=upload', {
+            // CACHE PREVENTION: Add timestamp and no-cache headers
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=upload&_=${timestamp}`, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
             });
             
             const result = await response.json();
@@ -510,7 +516,18 @@ class AdminModule extends LearningModule {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
             
             try {
-                const response = await fetch('scan-assets.php?action=scan');
+                // CACHE PREVENTION: Add timestamp and no-cache headers
+                const timestamp = new Date().getTime();
+                const response = await fetch(`scan-assets.php?action=scan&_=${timestamp}`, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
                 const result = await response.json();
                 
                 if (result.success) {
@@ -536,12 +553,12 @@ class AdminModule extends LearningModule {
     showScanResults(result) {
         const gifInfo = result.stats.totalGif > 0 ? `\n- GIF Files: ${result.stats.totalGif}` : '';
         const pngInfo = result.stats.totalPng > 0 ? `\n- PNG Files: ${result.stats.totalPng}` : '';
-        const issuesText = result.issues.length > 0 ? `\n⚠️ Issues: ${result.issues.length}` : '\n✅ No issues';
+        const issuesText = result.issues.length > 0 ? `\n?? Issues: ${result.issues.length}` : '\n? No issues';
         
-        let message = `✅ Scan Complete!\n\n📊 Stats:\n- Cards: ${result.stats.totalCards}\n- With Audio: ${result.stats.cardsWithAudio}${pngInfo}${gifInfo}\n- Audio Files: ${result.stats.totalAudio}${issuesText}`;
+        let message = `? Scan Complete!\n\n?? Stats:\n- Cards: ${result.stats.totalCards}\n- With Audio: ${result.stats.cardsWithAudio}${pngInfo}${gifInfo}\n- Audio Files: ${result.stats.totalAudio}${issuesText}`;
         
         if (result.reportUrl) {
-            message += '\n\n📄 Detailed report generated!';
+            message += '\n\n?? Detailed report generated!';
         }
         
         // Create a custom modal-style alert with download button
@@ -549,15 +566,15 @@ class AdminModule extends LearningModule {
         alertDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-primary);padding:30px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:10000;max-width:500px;';
         
         alertDiv.innerHTML = `
-            <h3 style="margin:0 0 20px 0;color:var(--text-primary);">✅ Processing Complete!</h3>
+            <h3 style="margin:0 0 20px 0;color:var(--text-primary);">? Processing Complete!</h3>
             <div style="background:var(--bg-secondary);padding:15px;border-radius:5px;margin-bottom:20px;white-space:pre-line;font-family:monospace;font-size:13px;color:var(--text-primary);">
-                <strong>📊 Statistics:</strong>
-                • Cards: ${result.stats.totalCards}
-                • With Audio: ${result.stats.cardsWithAudio}
-                ${result.stats.totalPng ? `• PNG Files: ${result.stats.totalPng}` : ''}
-                ${result.stats.totalGif ? `• GIF Files: ${result.stats.totalGif}` : ''}
-                • Audio Files: ${result.stats.totalAudio}
-                ${result.issues.length > 0 ? `\n⚠️ Issues: ${result.issues.length}` : '\n✅ No issues found'}
+                <strong>?? Statistics:</strong>
+                � Cards: ${result.stats.totalCards}
+                � With Audio: ${result.stats.cardsWithAudio}
+                ${result.stats.totalPng ? `� PNG Files: ${result.stats.totalPng}` : ''}
+                ${result.stats.totalGif ? `� GIF Files: ${result.stats.totalGif}` : ''}
+                � Audio Files: ${result.stats.totalAudio}
+                ${result.issues.length > 0 ? `\n?? Issues: ${result.issues.length}` : '\n? No issues found'}
             </div>
             ${result.reportUrl ? `
                 <div style="margin-bottom:15px;">
@@ -664,9 +681,15 @@ class AdminModule extends LearningModule {
                 formData.append('audioFiles[]', file);
             });
             
-            const response = await fetch('scan-assets.php?action=uploadMedia', {
+            // CACHE PREVENTION: Add timestamp and no-cache headers
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=uploadMedia&_=${timestamp}`, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
             });
             
             const result = await response.json();
@@ -708,7 +731,18 @@ class AdminModule extends LearningModule {
     
     async triggerAssetScan() {
         try {
-            const response = await fetch('scan-assets.php?action=scan');
+            // CACHE PREVENTION: Add timestamp and no-cache headers
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=scan&_=${timestamp}`, {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+            
             const result = await response.json();
             
             if (result.success) {
