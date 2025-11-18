@@ -18,10 +18,10 @@ class MatchExerciseModule extends LearningModule {
     expandToVirtualCards(cards) {
         const virtualCards = [];
         cards.forEach((card, physicalIndex) => {
-            const acceptableAnswers = card.acceptableAnswers || [card.cebuano];
+            const acceptableAnswers = card.acceptableAnswers || [card.word];
             acceptableAnswers.forEach(targetWord => {
                 virtualCards.push({
-                    cardId: card.wordNum,           // Track original card
+                    cardId: card.cardNum,           // Track original card (v4.0)
                     targetWord: targetWord,         // The specific word to test
                     physicalIndex: physicalIndex,   // Index in allCards array
                     imagePath: card.imagePath,

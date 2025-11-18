@@ -1,24 +1,40 @@
 // =================================================================
 // DECK BUILDER MODULE - Bob and Mariel Ward School
-// Version 3.2 - Card Deck Editor and Manager - WITH CACHE PREVENTION
-// Updated: November 2025 - Enhanced with:
-//   1. Dual "Add New Card" buttons (top + bottom)
-//   2. Editable Card # with duplicate detection
-//   3. Categories column with modal editor for Grammar/Category fields
-//   4. File rename warning system with validation
-//   5. Complete cache prevention on all fetch calls
+// Version 4.0 - Card Deck Editor and Manager - FULLY v4.0 COMPATIBLE
+// Updated: November 2025 - Fixed for v4.0 manifest structure:
+//   1. Per-language card arrays (manifest.cards.ceb[], etc.)
+//   2. Direct card properties (word, english, audio as string)
+//   3. Shared images via manifest.images[cardNum]
+//   4. cardNum instead of wordNum
+//   5. Per-language CSV export
 // =================================================================
 
 class DeckBuilderModule extends LearningModule {
     constructor(assetManager) {
         super(assetManager);
-        this.currentLanguage = 'cebuano'; // Default language filter
+        this.currentTrigraph = 'ceb'; // Default language trigraph
+        this.currentLanguageName = 'Cebuano';
         this.allCards = [];
         this.filteredCards = [];
         this.editedCards = new Map(); // Track unsaved changes
         this.deletedCards = new Set(); // Track deleted card IDs
         this.newCards = []; // Track new cards
         this.nextNewCardId = 10000; // Temporary IDs for new cards
+        
+        // Language name to trigraph mapping
+        this.langNameToTrigraph = {
+            'cebuano': 'ceb',
+            'english': 'eng',
+            'maranao': 'mrw',
+            'sinama': 'sin'
+        };
+        
+        this.trigraphToLangName = {
+            'ceb': 'Cebuano',
+            'eng': 'English',
+            'mrw': 'Maranao',
+            'sin': 'Sinama'
+        };
     }
     
     async render() {
@@ -49,19 +65,18 @@ class DeckBuilderModule extends LearningModule {
                 <div class="deck-controls">
                     <div class="filter-group">
                         <label for="languageFilter">
-                            <i class="fas fa-language"></i> Filter by Language:
+                            <i class="fas fa-language"></i> Language:
                         </label>
                         <select id="languageFilter" class="select-control">
-                            <option value="cebuano">Cebuano</option>
-                            <option value="english">English</option>
-                            <option value="maranao">Maranao</option>
-                            <option value="sinama">Sinama</option>
+                            <option value="ceb">Cebuano</option>
+                            <option value="mrw">Maranao</option>
+                            <option value="sin">Sinama</option>
                         </select>
                     </div>
                     
                     <div class="filter-group">
                         <label for="lessonFilter">
-                            <i class="fas fa-filter"></i> Filter by Lesson:
+                            <i class="fas fa-filter"></i> Lesson:
                         </label>
                         <select id="lessonFilter" class="select-control">
                             <option value="all">All Lessons</option>
@@ -134,7 +149,7 @@ class DeckBuilderModule extends LearningModule {
                                 <th style="width: 100px;">Categories</th>
                                 <th style="width: 120px;">Picture (PNG)</th>
                                 <th style="width: 120px;">Animated (GIF)</th>
-                                <th style="width: 150px;">Audio Files</th>
+                                <th style="width: 100px;">Audio</th>
                                 <th style="width: 120px;">Status</th>
                                 <th style="width: 100px;">Actions</th>
                             </tr>
@@ -217,13 +232,12 @@ class DeckBuilderModule extends LearningModule {
     }
     
     async init() {
-        // Load all cards
-        this.allCards = this.assets.cards || [];
+        // Load cards for current language from v4.0 manifest structure
+        this.loadCardsForLanguage(this.currentTrigraph);
         
         if (this.allCards.length === 0) {
             document.getElementById('emptyState').style.display = 'block';
             document.querySelector('.deck-table-container').style.display = 'none';
-            return;
         }
 
         // Populate lesson filter
@@ -248,12 +262,69 @@ class DeckBuilderModule extends LearningModule {
         }
     }
 
+    /**
+     * Load cards for a specific language from v4.0 manifest
+     */
+    loadCardsForLanguage(trigraph) {
+        this.currentTrigraph = trigraph;
+        this.currentLanguageName = this.trigraphToLangName[trigraph] || 'Unknown';
+        
+        // Access manifest - handle both v4.0 (per-language) and v3.x (flat array) structures
+        const manifest = this.assets.manifest;
+        
+        if (!manifest) {
+            this.allCards = [];
+            debugLogger?.log(1, 'No manifest loaded');
+            return;
+        }
+        
+        // v4.0 structure: manifest.cards is object with trigraph keys
+        if (manifest.cards && typeof manifest.cards === 'object' && !Array.isArray(manifest.cards)) {
+            this.allCards = manifest.cards[trigraph] || [];
+            debugLogger?.log(2, `Loaded ${this.allCards.length} cards for ${this.currentLanguageName} (v4.0 format)`);
+        } 
+        // v3.x structure: manifest.cards is flat array
+        else if (Array.isArray(manifest.cards)) {
+            this.allCards = manifest.cards;
+            debugLogger?.log(2, `Loaded ${this.allCards.length} cards (v3.x flat format)`);
+        }
+        // Fallback to AssetManager.cards
+        else if (Array.isArray(this.assets.cards)) {
+            this.allCards = this.assets.cards;
+            debugLogger?.log(2, `Loaded ${this.allCards.length} cards from AssetManager`);
+        }
+        else {
+            this.allCards = [];
+            debugLogger?.log(1, 'Could not load cards - unknown manifest structure');
+        }
+        
+        // Merge shared images from manifest.images if available
+        if (manifest.images) {
+            this.allCards = this.allCards.map(card => {
+                const cardNum = String(card.cardNum || card.wordNum);
+                const imageData = manifest.images[cardNum];
+                if (imageData) {
+                    return {
+                        ...card,
+                        printImagePath: card.printImagePath || imageData.png || null,
+                        hasGif: card.hasGif || !!imageData.gif,
+                        gifPath: imageData.gif || null
+                    };
+                }
+                return card;
+            });
+        }
+    }
+
     populateLessonFilter() {
         const lessons = new Set();
         this.allCards.forEach(card => lessons.add(card.lesson));
         const sortedLessons = Array.from(lessons).sort((a, b) => a - b);
 
         const lessonFilter = document.getElementById('lessonFilter');
+        // Clear existing options except "All Lessons"
+        lessonFilter.innerHTML = '<option value="all">All Lessons</option>';
+        
         sortedLessons.forEach(lesson => {
             const option = document.createElement('option');
             option.value = lesson;
@@ -263,11 +334,14 @@ class DeckBuilderModule extends LearningModule {
     }
 
     setupEventListeners() {
-        // Language filter
+        // Language filter - now uses trigraph values
         document.getElementById('languageFilter').addEventListener('change', (e) => {
-            this.currentLanguage = e.target.value;
-            document.getElementById('langHeader').textContent = this.capitalize(this.currentLanguage);
+            const trigraph = e.target.value;
+            this.loadCardsForLanguage(trigraph);
+            document.getElementById('langHeader').textContent = this.currentLanguageName;
+            this.populateLessonFilter();
             this.filterAndRenderCards();
+            this.updateStats();
         });
 
         // Lesson filter
@@ -276,7 +350,7 @@ class DeckBuilderModule extends LearningModule {
         });
 
         // Search
-        document.getElementById('searchCards').addEventListener('input', (e) => {
+        document.getElementById('searchCards').addEventListener('input', () => {
             this.filterAndRenderCards();
         });
 
@@ -332,8 +406,11 @@ class DeckBuilderModule extends LearningModule {
         const searchTerm = document.getElementById('searchCards').value.toLowerCase();
 
         this.filteredCards = this.allCards.filter(card => {
+            // Get card ID (support both v4.0 cardNum and v3.x wordNum)
+            const cardId = card.cardNum || card.wordNum;
+            
             // Skip deleted cards
-            if (this.deletedCards.has(card.wordNum)) return false;
+            if (this.deletedCards.has(cardId)) return false;
 
             // Lesson filter
             if (lessonFilter !== 'all' && card.lesson !== parseInt(lessonFilter)) {
@@ -342,8 +419,8 @@ class DeckBuilderModule extends LearningModule {
 
             // Search filter
             if (searchTerm) {
-                const wordText = this.getCardWord(card, this.currentLanguage).toLowerCase();
-                const englishText = this.getCardWord(card, 'english').toLowerCase();
+                const wordText = this.getCardWord(card).toLowerCase();
+                const englishText = this.getCardEnglish(card).toLowerCase();
                 if (!wordText.includes(searchTerm) && !englishText.includes(searchTerm)) {
                     return false;
                 }
@@ -358,8 +435,8 @@ class DeckBuilderModule extends LearningModule {
                 return false;
             }
             if (searchTerm) {
-                const wordText = this.getCardWord(card, this.currentLanguage).toLowerCase();
-                const englishText = this.getCardWord(card, 'english').toLowerCase();
+                const wordText = this.getCardWord(card).toLowerCase();
+                const englishText = this.getCardEnglish(card).toLowerCase();
                 if (!wordText.includes(searchTerm) && !englishText.includes(searchTerm)) {
                     return false;
                 }
@@ -397,10 +474,12 @@ class DeckBuilderModule extends LearningModule {
 
     createCardRow(card) {
         const row = document.createElement('tr');
-        row.dataset.cardId = card.wordNum;
+        // Support both cardNum (v4.0) and wordNum (v3.x)
+        const cardId = card.cardNum || card.wordNum;
+        row.dataset.cardId = cardId;
         
-        const isNewCard = card.wordNum >= this.nextNewCardId - 1000;
-        const isEdited = this.editedCards.has(card.wordNum);
+        const isNewCard = cardId >= this.nextNewCardId - 1000;
+        const isEdited = this.editedCards.has(cardId);
         
         if (isNewCard || isEdited) {
             row.classList.add('edited-row');
@@ -409,13 +488,13 @@ class DeckBuilderModule extends LearningModule {
         // Lesson
         const lessonCell = document.createElement('td');
         lessonCell.innerHTML = `<input type="number" class="cell-input" value="${card.lesson || ''}" 
-            data-field="lesson" data-card-id="${card.wordNum}" min="1" max="100">`;
+            data-field="lesson" data-card-id="${cardId}" min="1" max="100">`;
         row.appendChild(lessonCell);
 
         // Type
         const typeCell = document.createElement('td');
         typeCell.innerHTML = `
-            <select class="cell-select" data-field="type" data-card-id="${card.wordNum}">
+            <select class="cell-select" data-field="type" data-card-id="${cardId}">
                 <option value="N" ${card.type === 'N' ? 'selected' : ''}>N</option>
                 <option value="R" ${card.type === 'R' ? 'selected' : ''}>R</option>
             </select>
@@ -424,28 +503,28 @@ class DeckBuilderModule extends LearningModule {
 
         // Card # - NOW EDITABLE
         const cardNumCell = document.createElement('td');
-        cardNumCell.innerHTML = `<input type="number" class="cell-input card-num-input" value="${card.wordNum}" 
-            data-field="wordNum" data-card-id="${card.wordNum}" data-original-id="${card.wordNum}" min="1">`;
+        cardNumCell.innerHTML = `<input type="number" class="cell-input card-num-input" value="${cardId}" 
+            data-field="cardNum" data-card-id="${cardId}" data-original-id="${cardId}" min="1">`;
         row.appendChild(cardNumCell);
 
         // Language word (editable)
-        const langWord = this.getCardWord(card, this.currentLanguage);
+        const langWord = this.getCardWord(card);
         const langCell = document.createElement('td');
         langCell.innerHTML = `<input type="text" class="cell-input" value="${langWord}" 
-            data-field="${this.currentLanguage}" data-card-id="${card.wordNum}">`;
+            data-field="word" data-card-id="${cardId}">`;
         row.appendChild(langCell);
 
         // English translation (editable)
-        const engWord = this.getCardWord(card, 'english');
+        const engWord = this.getCardEnglish(card);
         const engCell = document.createElement('td');
         engCell.innerHTML = `<input type="text" class="cell-input" value="${engWord}" 
-            data-field="english" data-card-id="${card.wordNum}">`;
+            data-field="english" data-card-id="${cardId}">`;
         row.appendChild(engCell);
 
         // Categories button
         const categoriesCell = document.createElement('td');
         categoriesCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary categories-btn" data-card-id="${card.wordNum}" title="Edit Categories">
+            <button class="btn btn-sm btn-secondary categories-btn" data-card-id="${cardId}" title="Edit Categories">
                 Categories
             </button>
         `;
@@ -461,9 +540,9 @@ class DeckBuilderModule extends LearningModule {
         gifCell.appendChild(this.createFileUploadBadge(card, 'gif'));
         row.appendChild(gifCell);
 
-        // Audio files
+        // Audio - simplified for v4.0 (single language per card)
         const audioCell = document.createElement('td');
-        audioCell.appendChild(this.createAudioBadges(card));
+        audioCell.appendChild(this.createAudioBadge(card));
         row.appendChild(audioCell);
 
         // Status
@@ -475,10 +554,10 @@ class DeckBuilderModule extends LearningModule {
         const actionsCell = document.createElement('td');
         actionsCell.innerHTML = `
             <div style="display: flex; gap: 4px; justify-content: center;">
-                <button class="btn-icon add-below-btn" data-card-id="${card.wordNum}" title="Add Card Below" style="color: var(--success);">
+                <button class="btn-icon add-below-btn" data-card-id="${cardId}" title="Add Card Below" style="color: var(--success);">
                     <i class="fas fa-plus"></i>
                 </button>
-                <button class="btn-icon delete-card-btn" data-card-id="${card.wordNum}" title="Delete Card">
+                <button class="btn-icon delete-card-btn" data-card-id="${cardId}" title="Delete Card">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
@@ -492,15 +571,17 @@ class DeckBuilderModule extends LearningModule {
     }
 
     attachRowEventListeners(row, card) {
+        const cardId = card.cardNum || card.wordNum;
+        
         // Input changes - handle card number specially
         row.querySelectorAll('.cell-input, .cell-select').forEach(input => {
             if (input.classList.contains('card-num-input')) {
                 input.addEventListener('blur', (e) => {
-                    this.handleCardNumberChange(card.wordNum, parseInt(e.target.value));
+                    this.handleCardNumberChange(cardId, parseInt(e.target.value));
                 });
             } else {
                 input.addEventListener('change', (e) => {
-                    this.handleFieldEdit(card.wordNum, e.target.dataset.field, e.target.value);
+                    this.handleFieldEdit(cardId, e.target.dataset.field, e.target.value);
                 });
             }
         });
@@ -509,7 +590,7 @@ class DeckBuilderModule extends LearningModule {
         const categoriesBtn = row.querySelector('.categories-btn');
         if (categoriesBtn) {
             categoriesBtn.addEventListener('click', () => {
-                this.openCategoriesModal(card.wordNum);
+                this.openCategoriesModal(cardId);
             });
         }
 
@@ -517,7 +598,7 @@ class DeckBuilderModule extends LearningModule {
         const addBelowBtn = row.querySelector('.add-below-btn');
         if (addBelowBtn) {
             addBelowBtn.addEventListener('click', () => {
-                this.addCardBelow(card.wordNum);
+                this.addCardBelow(cardId);
             });
         }
 
@@ -525,42 +606,42 @@ class DeckBuilderModule extends LearningModule {
         const deleteBtn = row.querySelector('.delete-card-btn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => {
-                this.deleteCard(card.wordNum);
+                this.deleteCard(cardId);
             });
         }
     }
 
-    handleCardNumberChange(oldCardNum, newCardNum) {
-        if (oldCardNum === newCardNum) return;
+    handleCardNumberChange(oldCardId, newCardId) {
+        if (oldCardId === newCardId) return;
 
         // Check if new card number already exists
-        const existingCard = this.allCards.find(c => c.wordNum === newCardNum && c.wordNum !== oldCardNum);
-        const existingNewCard = this.newCards.find(c => c.wordNum === newCardNum && c.wordNum !== oldCardNum);
+        const existingCard = this.allCards.find(c => (c.cardNum || c.wordNum) === newCardId);
+        const existingNewCard = this.newCards.find(c => (c.cardNum || c.wordNum) === newCardId);
 
         if (existingCard || existingNewCard) {
             const targetCard = existingCard || existingNewCard;
-            const langWord = this.getCardWord(targetCard, this.currentLanguage);
-            const engWord = this.getCardWord(targetCard, 'english');
+            const langWord = this.getCardWord(targetCard);
+            const engWord = this.getCardEnglish(targetCard);
             
-            const message = `?? Card #${newCardNum} already exists:\n\n` +
-                `${this.capitalize(this.currentLanguage)}: ${langWord}\n` +
+            const message = `?? Card #${newCardId} already exists:\n\n` +
+                `${this.currentLanguageName}: ${langWord}\n` +
                 `English: ${engWord}\n` +
                 `Lesson: ${targetCard.lesson}\n\n` +
-                `Note: You can reuse the same card number for different words or audio files. ` +
+                `Note: You can reuse the same card number for shared images. ` +
                 `This is just a reminder that this number is already in use.`;
             
             alert(message);
         }
 
         // Proceed with the change
-        this.handleFieldEdit(oldCardNum, 'wordNum', newCardNum);
+        this.handleFieldEdit(oldCardId, 'cardNum', newCardId);
     }
 
     openCategoriesModal(cardId) {
         // Find card
-        let card = this.allCards.find(c => c.wordNum === cardId);
+        let card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (!card) {
-            card = this.newCards.find(c => c.wordNum === cardId);
+            card = this.newCards.find(c => (c.cardNum || c.wordNum) === cardId);
         }
 
         if (!card) return;
@@ -589,9 +670,9 @@ class DeckBuilderModule extends LearningModule {
         if (!this.currentCategoriesCardId) return;
 
         // Find card
-        let card = this.allCards.find(c => c.wordNum === this.currentCategoriesCardId);
+        let card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCategoriesCardId);
         if (!card) {
-            card = this.newCards.find(c => c.wordNum === this.currentCategoriesCardId);
+            card = this.newCards.find(c => (c.cardNum || c.wordNum) === this.currentCategoriesCardId);
         }
 
         if (!card) return;
@@ -618,21 +699,22 @@ class DeckBuilderModule extends LearningModule {
     createFileUploadBadge(card, type) {
         const container = document.createElement('div');
         container.className = 'file-upload-badge-container';
+        const cardId = card.cardNum || card.wordNum;
 
         let hasFile = false;
         let filename = '';
 
         if (type === 'png') {
-            hasFile = card.printImagePath || card.hasImage;
+            hasFile = !!card.printImagePath;
             filename = card.printImagePath ? card.printImagePath.split('/').pop() : '';
         } else if (type === 'gif') {
-            hasFile = card.hasGif;
-            filename = card.imagePath && card.hasGif ? card.imagePath.split('/').pop() : '';
+            hasFile = card.hasGif || !!card.gifPath;
+            filename = card.gifPath ? card.gifPath.split('/').pop() : '';
         }
 
         const badge = document.createElement('span');
         badge.className = `file-badge ${type} ${hasFile ? 'has-file' : 'no-file'} upload-trigger`;
-        badge.dataset.cardId = card.wordNum;
+        badge.dataset.cardId = cardId;
         badge.dataset.fileType = type;
         badge.innerHTML = hasFile 
             ? `<i class="fas fa-check"></i> ${type.toUpperCase()}`
@@ -640,79 +722,88 @@ class DeckBuilderModule extends LearningModule {
         badge.title = filename || `Click to select or upload ${type.toUpperCase()} file`;
 
         badge.addEventListener('click', () => {
-            this.showFileSelectionModal(card.wordNum, type);
+            this.showFileSelectionModal(cardId, type);
         });
 
         container.appendChild(badge);
         return container;
     }
 
-    createAudioBadges(card) {
+    /**
+     * Create single audio badge for v4.0 (audio is string, not object)
+     */
+    createAudioBadge(card) {
         const container = document.createElement('div');
         container.className = 'audio-badges-container';
+        const cardId = card.cardNum || card.wordNum;
 
-        const languages = ['ceb', 'eng', 'mrw', 'sin'];
-        languages.forEach(lang => {
-            const hasAudio = card.audio && card.audio[lang];
-            const badge = document.createElement('span');
-            badge.className = `file-badge audio ${hasAudio ? 'has-file' : 'no-file'} upload-trigger`;
-            badge.dataset.cardId = card.wordNum;
-            badge.dataset.fileType = 'audio';
-            badge.dataset.audioLang = lang;
-            badge.innerHTML = hasAudio 
-                ? `<i class="fas fa-check"></i> ${lang.toUpperCase()}`
-                : `<i class="fas fa-folder-open"></i> ${lang.toUpperCase()}`;
-            badge.title = hasAudio ? card.audio[lang].split('/').pop() : `Click to select or upload ${lang.toUpperCase()} audio`;
+        // v4.0: audio is a string path, not an object
+        const hasAudio = !!card.audio;
+        const badge = document.createElement('span');
+        badge.className = `file-badge audio ${hasAudio ? 'has-file' : 'no-file'} upload-trigger`;
+        badge.dataset.cardId = cardId;
+        badge.dataset.fileType = 'audio';
+        badge.dataset.audioLang = this.currentTrigraph;
+        
+        const label = this.currentTrigraph.toUpperCase();
+        badge.innerHTML = hasAudio 
+            ? `<i class="fas fa-check"></i> ${label}`
+            : `<i class="fas fa-folder-open"></i> ${label}`;
+        
+        const audioFilename = hasAudio && typeof card.audio === 'string' 
+            ? card.audio.split('/').pop() 
+            : '';
+        badge.title = audioFilename || `Click to select or upload ${label} audio`;
 
-            badge.addEventListener('click', () => {
-                this.showFileSelectionModal(card.wordNum, 'audio', lang);
-            });
-
-            container.appendChild(badge);
+        badge.addEventListener('click', () => {
+            this.showFileSelectionModal(cardId, 'audio', this.currentTrigraph);
         });
 
+        container.appendChild(badge);
         return container;
     }
 
     handleFieldEdit(cardId, field, value) {
         // Find card in allCards or newCards
-        let card = this.allCards.find(c => c.wordNum === cardId);
+        let card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (!card) {
-            card = this.newCards.find(c => c.wordNum === cardId);
+            card = this.newCards.find(c => (c.cardNum || c.wordNum) === cardId);
         }
 
         if (!card) return;
 
-        // Update card data
+        // Update card data based on field
         if (field === 'lesson') {
             card.lesson = parseInt(value) || 1;
         } else if (field === 'type') {
             card.type = value;
-        } else if (field === 'wordNum') {
-            const newWordNum = parseInt(value);
-            if (!isNaN(newWordNum)) {
-                card.wordNum = newWordNum;
+        } else if (field === 'cardNum') {
+            const newCardNum = parseInt(value);
+            if (!isNaN(newCardNum)) {
+                // Update both cardNum and wordNum for compatibility
+                card.cardNum = newCardNum;
+                card.wordNum = newCardNum;
                 // Update the map key
                 if (this.editedCards.has(cardId)) {
                     const editedCard = this.editedCards.get(cardId);
                     this.editedCards.delete(cardId);
-                    this.editedCards.set(newWordNum, editedCard);
+                    this.editedCards.set(newCardNum, editedCard);
                 }
             }
-        } else if (['cebuano', 'english', 'maranao', 'sinama'].includes(field)) {
-            if (!card.translations) {
-                card.translations = {};
-            }
-            if (!card.translations[field]) {
-                card.translations[field] = { word: '', note: '', acceptableAnswers: [] };
-            }
-            card.translations[field].word = value;
-            card.translations[field].acceptableAnswers = value.split('/').map(w => w.trim());
+        } else if (field === 'word') {
+            // v4.0: direct property
+            card.word = value;
+            card.acceptableAnswers = [value];
+        } else if (field === 'english') {
+            // v4.0: direct property
+            card.english = value;
+            card.englishAcceptable = [value];
         }
 
         // Mark as edited
-        if (!this.editedCards.has(card.wordNum)) {
-            this.editedCards.set(card.wordNum, card);
+        const currentCardId = card.cardNum || card.wordNum;
+        if (!this.editedCards.has(currentCardId)) {
+            this.editedCards.set(currentCardId, card);
         }
 
         this.updateUnsavedIndicator();
@@ -720,9 +811,9 @@ class DeckBuilderModule extends LearningModule {
 
     showFileSelectionModal(cardId, fileType, audioLang = null) {
         // Find card and get current file
-        let card = this.allCards.find(c => c.wordNum === cardId);
+        let card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (!card) {
-            card = this.newCards.find(c => c.wordNum === cardId);
+            card = this.newCards.find(c => (c.cardNum || c.wordNum) === cardId);
         }
 
         if (!card) return;
@@ -734,9 +825,10 @@ class DeckBuilderModule extends LearningModule {
         if (fileType === 'png') {
             currentFilePath = card.printImagePath;
         } else if (fileType === 'gif') {
-            currentFilePath = card.imagePath && card.hasGif ? card.imagePath : null;
-        } else if (fileType === 'audio' && audioLang) {
-            currentFilePath = card.audio && card.audio[audioLang] ? card.audio[audioLang] : null;
+            currentFilePath = card.gifPath || (card.hasGif ? card.imagePath : null);
+        } else if (fileType === 'audio') {
+            // v4.0: audio is string
+            currentFilePath = card.audio;
         }
 
         if (currentFilePath) {
@@ -786,23 +878,23 @@ class DeckBuilderModule extends LearningModule {
                                 placeholder="Search files...">
                             <select id="fileBrowserFilter" class="select-control">
                                 <option value="all">All Files</option>
-                                <option value="${fileType}">${fileType.toUpperCase()} Only</option>
+                                <option value="${fileType === 'audio' ? 'audio' : fileType}">${fileType.toUpperCase()} Only</option>
                             </select>
                         </div>
                         <div class="file-browser-grid" id="fileBrowserGrid">
                             <div class="loading-files">
-                                <i class="fas fa-spinner fa-spin"></i> Loading files...
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Loading files...</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Upload Tab -->
                     <div class="tab-content" id="uploadTab">
-                        <div class="upload-zone">
+                        <div class="upload-dropzone">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <h4>Upload New ${fileType.toUpperCase()} File</h4>
-                            <p>Select a file from your computer</p>
-                            <button class="btn btn-primary" id="selectFileBtn">
+                            <p>Drag & drop file here, or click to select</p>
+                            <button id="selectFileBtn" class="btn btn-primary">
                                 <i class="fas fa-folder-open"></i> Select File
                             </button>
                             <input type="file" id="fileUploadInput" style="display:none;">
@@ -908,9 +1000,12 @@ class DeckBuilderModule extends LearningModule {
 
     async loadServerFiles(fileType, audioLang) {
         try {
+            // Map fileType for list-assets.php
+            const apiFileType = fileType === 'audio' ? 'audio' : fileType;
+            
             // CACHE PREVENTION: Add timestamp and no-cache headers
             const timestamp = new Date().getTime();
-            const response = await fetch(`list-assets.php?type=${fileType}&_=${timestamp}`, {
+            const response = await fetch(`list-assets.php?type=${apiFileType}&_=${timestamp}`, {
                 method: 'GET',
                 cache: 'no-store',
                 headers: {
@@ -940,13 +1035,9 @@ class DeckBuilderModule extends LearningModule {
                     <i class="fas fa-exclamation-triangle"></i>
                     <p>Error loading files from server</p>
                     <small>${err.message}</small>
-                    <p style="margin-top:12px;font-size:12px;">
-                        Note: You need to create <code>list-assets.php</code> on your server.
-                        See integration guide for code.
-                    </p>
                 </div>
             `;
-            debugLogger.log(1, `Error loading server files: ${err.message}`);
+            debugLogger?.log(1, `Error loading server files: ${err.message}`);
         }
     }
 
@@ -977,7 +1068,7 @@ class DeckBuilderModule extends LearningModule {
             
             if (file.type === 'png' || file.type === 'gif') {
                 preview = `<img src="${file.path}" alt="${file.name}">`;
-            } else if (file.type === 'mp3') {
+            } else if (file.type === 'audio') {
                 preview = `<i class="fas fa-file-audio"></i>`;
                 isAudio = true;
             } else {
@@ -995,32 +1086,21 @@ class DeckBuilderModule extends LearningModule {
                     ${filenameDisplay}
                     <div class="file-meta">
                         <span class="file-size">${this.formatFileSize(file.size)}</span>
-                        ${file.type === 'mp3' ? '<span class="audio-play-btn" title="Preview audio"><i class="fas fa-play"></i></span>' : ''}
+                        ${isAudio ? '<span class="audio-play-btn" title="Preview audio"><i class="fas fa-play"></i></span>' : ''}
                     </div>
-                </div>
-                <div class="file-select-overlay">
-                    <button class="btn btn-success btn-sm">
-                        <i class="fas fa-check"></i> Select
-                    </button>
                 </div>
             `;
 
-            // Click to select
-            fileItem.addEventListener('click', () => {
+            // Click to select file
+            fileItem.addEventListener('click', (e) => {
+                // Don't select if clicking play button
+                if (e.target.closest('.audio-play-btn')) {
+                    const audio = new Audio(file.path);
+                    audio.play();
+                    return;
+                }
                 this.selectExistingFile(file);
             });
-
-            // Audio preview
-            if (file.type === 'mp3') {
-                const playBtn = fileItem.querySelector('.audio-play-btn');
-                if (playBtn) {
-                    playBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const audio = new Audio(file.path);
-                        audio.play();
-                    });
-                }
-            }
 
             grid.appendChild(fileItem);
         });
@@ -1031,80 +1111,70 @@ class DeckBuilderModule extends LearningModule {
 
         let filtered = this.serverFiles;
 
-        // Filter by type
+        // Apply type filter
         if (filterType !== 'all') {
             filtered = filtered.filter(f => f.type === filterType);
         }
 
-        // Filter by search
+        // Apply search filter
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
-            filtered = filtered.filter(f => 
-                f.name.toLowerCase().includes(term)
-            );
+            filtered = filtered.filter(f => f.name.toLowerCase().includes(term));
         }
 
         this.displayServerFiles(filtered);
     }
 
-    // =================================================================
-    // VALIDATION AND RENAME LOGIC
-    // =================================================================
-
-    /**
-     * Validate if filename matches expected pattern for this card
-     */
-    validateFilename(cardId, filename, fileType, audioLang = null) {
-        const wordNum = cardId;
+    validateFilename(cardNum, filename, fileType, audioLang = null) {
+        const ext = filename.split('.').pop().toLowerCase();
         
-        // Extract just the filename without path
-        const basename = filename.split('/').pop();
+        // Check if filename starts with cardNum
+        const startsWithNum = filename.match(/^(\d+)\./);
         
-        let expectedPattern;
+        let expectedPattern = '';
         let isValid = false;
         
-        if (fileType === 'png' || fileType === 'gif') {
-            // Expected: WordNum.anything.ext
-            expectedPattern = `${wordNum}.word.translation.${fileType}`;
-            isValid = new RegExp(`^${wordNum}\\.`).test(basename);
-        } else if (fileType === 'audio' && audioLang) {
-            // Expected: WordNum.lang.anything.mp3/m4a
-            expectedPattern = `${wordNum}.${audioLang}.word.translation.mp3`;
-            const ext = basename.split('.').pop();
-            isValid = new RegExp(`^${wordNum}\\.${audioLang}\\.`).test(basename);
+        if (fileType === 'png') {
+            expectedPattern = `${cardNum}.*.*.png`;
+            isValid = startsWithNum && parseInt(startsWithNum[1]) === cardNum && ext === 'png';
+        } else if (fileType === 'gif') {
+            expectedPattern = `${cardNum}.*.*.gif`;
+            isValid = startsWithNum && parseInt(startsWithNum[1]) === cardNum && ext === 'gif';
+        } else if (fileType === 'audio') {
+            expectedPattern = `${cardNum}.${audioLang}.*.mp3 or .m4a`;
+            const audioMatch = filename.match(/^(\d+)\.([a-z]{3})\./);
+            isValid = audioMatch && 
+                      parseInt(audioMatch[1]) === cardNum && 
+                      audioMatch[2] === audioLang &&
+                      (ext === 'mp3' || ext === 'm4a');
         }
         
         return {
             isValid,
             expectedPattern,
-            actualFilename: basename
+            actualFilename: filename
         };
     }
 
-    /**
-     * Generate suggested filename based on card data
-     */
     generateSuggestedFilename(card, fileType, audioLang = null) {
-        const wordNum = card.wordNum;
-        const cebuanoWord = this.getCardWord(card, 'cebuano').toLowerCase().replace(/[^a-z0-9-]/g, '-');
-        const englishWord = this.getCardWord(card, 'english').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        const cardId = card.cardNum || card.wordNum;
+        const word = this.getCardWord(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'word';
+        const english = this.getCardEnglish(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'english';
         
         if (fileType === 'png') {
-            return `${wordNum}.${cebuanoWord}.${englishWord}.png`;
+            return `${cardId}.${word}.${english}.png`;
         } else if (fileType === 'gif') {
-            return `${wordNum}.${cebuanoWord}.${englishWord}.gif`;
+            return `${cardId}.${word}.${english}.gif`;
         } else if (fileType === 'audio' && audioLang) {
-            return `${wordNum}.${audioLang}.${cebuanoWord}.${englishWord}.mp3`;
+            return `${cardId}.${audioLang}.${word}.${english}.mp3`;
         }
         
         return null;
     }
 
-    /**
-     * Show rename warning modal
-     */
     showRenameWarning(file, card, fileType, audioLang = null) {
-        const validation = this.validateFilename(card.wordNum, file.name, fileType, audioLang);
+        const cardId = card.cardNum || card.wordNum;
+        const validation = this.validateFilename(cardId, file.name, fileType, audioLang);
         
         if (validation.isValid) {
             // File is properly named, proceed normally
@@ -1163,13 +1233,6 @@ class DeckBuilderModule extends LearningModule {
                             <i class="fas fa-info-circle"></i> You can edit this before renaming
                         </p>
                     </div>
-                    
-                    <div style="background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 12px; border-radius: 4px; margin-top: 16px;">
-                        <strong style="color: #0c5460;">?? Tip:</strong>
-                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #0c5460;">
-                            Files with proper names will be automatically linked when you upload CSVs or run asset scans.
-                        </p>
-                    </div>
                 </div>
                 
                 <div class="modal-footer" style="padding: 16px 24px; background: #f8f9fa; border-top: 1px solid #dee2e6;">
@@ -1178,7 +1241,7 @@ class DeckBuilderModule extends LearningModule {
                             <i class="fas fa-check"></i> Rename & Link
                         </button>
                         <button id="linkAnywayBtn" class="btn btn-warning">
-                            <i class="fas fa-link"></i> Link Anyway (Not Recommended)
+                            <i class="fas fa-link"></i> Link Anyway
                         </button>
                         <button id="cancelLinkBtn" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Cancel
@@ -1210,41 +1273,28 @@ class DeckBuilderModule extends LearningModule {
                 return;
             }
             
-            // Validate new filename format
-            const newValidation = this.validateFilename(card.wordNum, newFilename, fileType, audioLang);
-            if (!newValidation.isValid) {
-                toastManager.show('New filename still doesn\'t match the expected pattern!', 'error');
-                return;
-            }
-            
             renameAndLinkBtn.disabled = true;
             renameAndLinkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Renaming...';
             
             const success = await this.renameFileOnServer(file.name, newFilename);
             
             if (success) {
-                // Update file object with new name
                 file.name = newFilename;
                 file.path = 'assets/' + newFilename;
-                
-                // Link the renamed file
                 this.linkFileToCard(file, card, fileType, audioLang);
-                
                 closeModal();
-                toastManager.show(`File renamed to "${newFilename}" and linked successfully!`, 'success', 4000);
+                toastManager.show(`File renamed and linked successfully!`, 'success', 4000);
             } else {
                 renameAndLinkBtn.disabled = false;
                 renameAndLinkBtn.innerHTML = '<i class="fas fa-check"></i> Rename & Link';
             }
         });
         
-        // Link anyway (without rename)
+        // Link anyway
         linkAnywayBtn.addEventListener('click', () => {
-            if (confirm('Are you sure? This file will be unlinked if you rescan assets later.')) {
-                this.linkFileToCard(file, card, fileType, audioLang);
-                closeModal();
-                toastManager.show('File linked (but may be unlinked on future scans)', 'warning', 4000);
-            }
+            this.linkFileToCard(file, card, fileType, audioLang);
+            closeModal();
+            toastManager.show('File linked (may be unlinked on future scans)', 'warning', 4000);
         });
         
         // Cancel
@@ -1259,16 +1309,11 @@ class DeckBuilderModule extends LearningModule {
         };
         document.addEventListener('keydown', escHandler);
         
-        // Focus on input
         setTimeout(() => renameInput.focus(), 100);
     }
 
-    /**
-     * Rename file on server via PHP endpoint
-     */
     async renameFileOnServer(oldFilename, newFilename) {
         try {
-            // CACHE PREVENTION: Add timestamp and no-cache headers
             const timestamp = new Date().getTime();
             const response = await fetch(`rename-asset.php?_=${timestamp}`, {
                 method: 'POST',
@@ -1286,39 +1331,33 @@ class DeckBuilderModule extends LearningModule {
             const result = await response.json();
             
             if (result.success) {
-                debugLogger.log(2, `File renamed: ${oldFilename} ? ${newFilename}`);
+                debugLogger?.log(2, `File renamed: ${oldFilename} ? ${newFilename}`);
                 return true;
             } else {
                 toastManager.show(`Rename failed: ${result.error}`, 'error', 5000);
-                debugLogger.log(1, `Rename failed: ${result.error}`);
                 return false;
             }
         } catch (err) {
             toastManager.show(`Error renaming file: ${err.message}`, 'error', 5000);
-            debugLogger.log(1, `Rename error: ${err.message}`);
             return false;
         }
     }
 
-    /**
-     * Link file to card (after validation/rename)
-     */
     linkFileToCard(file, card, fileType, audioLang = null) {
         if (fileType === 'png') {
             card.printImagePath = file.path;
-            card.hasImage = true;
         } else if (fileType === 'gif') {
-            card.imagePath = file.path;
+            card.gifPath = file.path;
             card.hasGif = true;
-            card.hasImage = true;
-        } else if (fileType === 'audio' && audioLang) {
-            if (!card.audio) card.audio = {};
-            card.audio[audioLang] = file.path;
+        } else if (fileType === 'audio') {
+            // v4.0: audio is string
+            card.audio = file.path;
             card.hasAudio = true;
         }
         
         // Mark as edited
-        this.editedCards.set(card.wordNum, card);
+        const cardId = card.cardNum || card.wordNum;
+        this.editedCards.set(cardId, card);
         
         // Re-render
         this.filterAndRenderCards();
@@ -1328,18 +1367,14 @@ class DeckBuilderModule extends LearningModule {
     selectExistingFile(file) {
         const { cardId, fileType, audioLang, closeModal } = this.currentFileSelectionContext;
 
-        // Find card
-        let card = this.allCards.find(c => c.wordNum === cardId);
+        let card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (!card) {
-            card = this.newCards.find(c => c.wordNum === cardId);
+            card = this.newCards.find(c => (c.cardNum || c.wordNum) === cardId);
         }
 
         if (!card) return;
 
-        // Close the file browser modal first
         closeModal();
-
-        // VALIDATE FILENAME - Show rename warning if needed
         this.showRenameWarning(file, card, fileType, audioLang);
     }
 
@@ -1350,7 +1385,6 @@ class DeckBuilderModule extends LearningModule {
     }
 
     async handleFileUpload(cardId, fileType, audioLang = null, file = null) {
-        // If no file provided, open file picker
         if (!file) {
             const input = document.createElement('input');
             input.type = 'file';
@@ -1360,7 +1394,7 @@ class DeckBuilderModule extends LearningModule {
             } else if (fileType === 'gif') {
                 input.accept = 'image/gif';
             } else if (fileType === 'audio') {
-                input.accept = 'audio/mp3,audio/mpeg';
+                input.accept = 'audio/mp3,audio/mpeg,audio/m4a';
             }
 
             input.onchange = async (e) => {
@@ -1377,80 +1411,71 @@ class DeckBuilderModule extends LearningModule {
         toastManager.show(`Uploading ${file.name}...`, 'warning', 2000);
 
         // In production, this would upload to server
-        // For now, we'll simulate by creating object URL
         const url = URL.createObjectURL(file);
 
-        // Find card
-        let card = this.allCards.find(c => c.wordNum === cardId);
+        let card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (!card) {
-            card = this.newCards.find(c => c.wordNum === cardId);
+            card = this.newCards.find(c => (c.cardNum || c.wordNum) === cardId);
         }
 
         if (!card) return;
 
-        // Update card with file info
+        // Generate proper filename
+        const word = this.getCardWord(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'word';
+        const english = this.getCardEnglish(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'english';
+        const ext = file.name.split('.').pop();
+
         if (fileType === 'png') {
-            card.printImagePath = `assets/${cardId}.${file.name.split('.').pop()}`;
-            card.hasImage = true;
+            card.printImagePath = `assets/${cardId}.${word}.${english}.png`;
         } else if (fileType === 'gif') {
-            card.imagePath = `assets/${cardId}.${file.name.split('.').pop()}`;
+            card.gifPath = `assets/${cardId}.${word}.${english}.gif`;
             card.hasGif = true;
-            card.hasImage = true;
         } else if (fileType === 'audio' && audioLang) {
-            if (!card.audio) card.audio = {};
-            card.audio[audioLang] = `assets/${cardId}.${audioLang}.${file.name.split('.').pop()}`;
+            card.audio = `assets/${cardId}.${audioLang}.${word}.${english}.${ext}`;
             card.hasAudio = true;
         }
 
-        // Mark as edited
         this.editedCards.set(cardId, card);
-
-        // Re-render table
         this.filterAndRenderCards();
-
         this.updateUnsavedIndicator();
 
-        toastManager.show(`File "${file.name}" uploaded! Remember to save changes.`, 'success');
+        toastManager.show(`File uploaded! Remember to save changes.`, 'success');
     }
 
     addNewCard(lessonNum = null, insertAfterCardId = null) {
         // Find the highest card number
         const allCardNums = [
-            ...this.allCards.map(c => c.wordNum),
-            ...this.newCards.map(c => c.wordNum)
+            ...this.allCards.map(c => c.cardNum || c.wordNum),
+            ...this.newCards.map(c => c.cardNum || c.wordNum)
         ];
         const maxCardNum = allCardNums.length > 0 ? Math.max(...allCardNums) : 0;
         const newCardNum = maxCardNum + 1;
 
-        // Use provided lesson or default to filter or 1
         const lesson = lessonNum !== null ? lessonNum : (parseInt(document.getElementById('lessonFilter').value) || 1);
 
+        // Create card in v4.0 format
         const newCard = {
-            wordNum: newCardNum,
+            cardNum: newCardNum,
             lesson: lesson,
             type: 'N',
-            translations: {
-                cebuano: { word: '', note: '', acceptableAnswers: [] },
-                english: { word: '', note: '', acceptableAnswers: [] },
-                maranao: { word: '', note: '', acceptableAnswers: [] },
-                sinama: { word: '', note: '', acceptableAnswers: [] }
-            },
-            imagePath: null,
-            printImagePath: null,
-            hasImage: false,
-            hasGif: false,
+            word: '',
+            english: '',
+            acceptableAnswers: [],
+            englishAcceptable: [],
+            grammar: '',
+            category: '',
+            subCategory1: '',
+            subCategory2: '',
+            actflEst: '',
+            audio: null,
             hasAudio: false,
-            audio: {},
-            grammar: null,
-            category: null,
-            subCategory1: null,
-            subCategory2: null,
-            actflEst: null
+            printImagePath: null,
+            hasGif: false,
+            gifPath: null
         };
 
-        // If insertAfterCardId is provided, insert at specific position
         if (insertAfterCardId !== null) {
-            const insertIndex = this.newCards.findIndex(c => c.wordNum === insertAfterCardId);
+            const insertIndex = this.newCards.findIndex(c => (c.cardNum || c.wordNum) === insertAfterCardId);
             if (insertIndex !== -1) {
                 this.newCards.splice(insertIndex + 1, 0, newCard);
             } else {
@@ -1460,17 +1485,15 @@ class DeckBuilderModule extends LearningModule {
             this.newCards.push(newCard);
         }
 
-        this.editedCards.set(newCard.wordNum, newCard);
+        this.editedCards.set(newCard.cardNum, newCard);
 
         this.filterAndRenderCards();
         this.updateUnsavedIndicator();
 
-        // Scroll to the new card
         setTimeout(() => {
             const newRow = document.querySelector(`tr[data-card-id="${newCardNum}"]`);
             if (newRow) {
                 newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Briefly highlight the new row
                 newRow.style.backgroundColor = 'rgba(79, 70, 229, 0.2)';
                 setTimeout(() => {
                     newRow.style.backgroundColor = '';
@@ -1482,26 +1505,22 @@ class DeckBuilderModule extends LearningModule {
     }
 
     addCardBelow(cardId) {
-        // Find the card to get its lesson
-        let card = this.allCards.find(c => c.wordNum === cardId);
+        let card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (!card) {
-            card = this.newCards.find(c => c.wordNum === cardId);
+            card = this.newCards.find(c => (c.cardNum || c.wordNum) === cardId);
         }
 
         if (!card) return;
 
-        // Add new card with the same lesson
         this.addNewCard(card.lesson, cardId);
     }
 
     deleteCard(cardId) {
         if (!confirm('Are you sure you want to delete this card?')) return;
 
-        // Mark as deleted
         this.deletedCards.add(cardId);
 
-        // Remove from newCards if it's a new card
-        const newCardIndex = this.newCards.findIndex(c => c.wordNum === cardId);
+        const newCardIndex = this.newCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
         if (newCardIndex !== -1) {
             this.newCards.splice(newCardIndex, 1);
         }
@@ -1522,30 +1541,28 @@ class DeckBuilderModule extends LearningModule {
             return;
         }
 
-        // In production, this would send data to server
-        // For now, update local manifest
-
         // Apply edits
         this.editedCards.forEach((editedCard, cardId) => {
-            const index = this.allCards.findIndex(c => c.wordNum === cardId);
+            const index = this.allCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
             if (index !== -1) {
                 this.allCards[index] = editedCard;
             } else {
-                // New card
                 this.allCards.push(editedCard);
             }
         });
 
         // Apply deletions
         this.deletedCards.forEach(cardId => {
-            const index = this.allCards.findIndex(c => c.wordNum === cardId);
+            const index = this.allCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
             if (index !== -1) {
                 this.allCards.splice(index, 1);
             }
         });
 
-        // Update asset manager
-        this.assets.cards = this.allCards;
+        // Update manifest structure
+        if (this.assets.manifest && this.assets.manifest.cards) {
+            this.assets.manifest.cards[this.currentTrigraph] = this.allCards;
+        }
 
         // Clear tracking
         this.editedCards.clear();
@@ -1558,10 +1575,12 @@ class DeckBuilderModule extends LearningModule {
         this.updateUnsavedIndicator();
 
         toastManager.show('Changes saved successfully!', 'success', 3000);
-
-        debugLogger.log(2, `Deck Builder: Saved changes to ${this.allCards.length} cards`);
+        debugLogger?.log(2, `Deck Builder: Saved ${this.allCards.length} cards for ${this.currentLanguageName}`);
     }
 
+    /**
+     * Export to per-language CSV (v4.0 format)
+     */
     exportToCSV() {
         const csv = this.generateCSV();
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1569,19 +1588,21 @@ class DeckBuilderModule extends LearningModule {
         
         const link = document.createElement('a');
         link.href = url;
-        link.download = `Word_List_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `Word_List_${this.currentLanguageName}_${new Date().toISOString().split('T')[0]}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        toastManager.show('CSV exported successfully!', 'success');
+        toastManager.show(`CSV exported for ${this.currentLanguageName}!`, 'success');
     }
 
+    /**
+     * Generate per-language CSV (v4.0 format - 12 columns)
+     */
     generateCSV() {
         const headers = [
-            'Lesson', 'WordNum', 'Cebuano', 'CebuanoNote', 'English', 'EnglishNote',
-            'Maranao', 'MaranaoNote', 'Sinama', 'SinamaNote',
+            'Lesson', 'CardNum', 'Word', 'WordNote', 'English', 'EnglishNote',
             'Grammar', 'Category', 'SubCategory1', 'SubCategory2', 'ACTFLEst', 'Type'
         ];
 
@@ -1590,15 +1611,11 @@ class DeckBuilderModule extends LearningModule {
         this.allCards.forEach(card => {
             const row = [
                 card.lesson || '',
-                card.wordNum || '',
-                this.escapeCSV(card.translations?.cebuano?.word || ''),
-                this.escapeCSV(card.translations?.cebuano?.note || ''),
-                this.escapeCSV(card.translations?.english?.word || ''),
-                this.escapeCSV(card.translations?.english?.note || ''),
-                this.escapeCSV(card.translations?.maranao?.word || ''),
-                this.escapeCSV(card.translations?.maranao?.note || ''),
-                this.escapeCSV(card.translations?.sinama?.word || ''),
-                this.escapeCSV(card.translations?.sinama?.note || ''),
+                card.cardNum || card.wordNum || '',
+                this.escapeCSV(this.getCardWord(card)),
+                '', // WordNote - not currently tracked in v4.0
+                this.escapeCSV(this.getCardEnglish(card)),
+                '', // EnglishNote - not currently tracked in v4.0
                 this.escapeCSV(card.grammar || ''),
                 this.escapeCSV(card.category || ''),
                 this.escapeCSV(card.subCategory1 || ''),
@@ -1627,11 +1644,11 @@ class DeckBuilderModule extends LearningModule {
         let newWords = 0;
 
         this.allCards.forEach(card => {
-            if (this.getStatusClass(card) === 'status-complete-animated' || 
-                this.getStatusClass(card) === 'status-complete-static') {
+            const status = this.getStatusClass(card);
+            if (status === 'status-complete-animated' || status === 'status-complete-static') {
                 complete++;
             }
-            if (this.getStatusClass(card) === 'status-missing') {
+            if (status === 'status-missing') {
                 missing++;
             }
             if (card.type === 'N') {
@@ -1660,17 +1677,42 @@ class DeckBuilderModule extends LearningModule {
         }
     }
 
-    getCardWord(card, language) {
-        if (!card.translations || !card.translations[language]) {
-            return '';
+    /**
+     * Get word for current language - v4.0 uses direct properties
+     */
+    getCardWord(card) {
+        // v4.0: direct card.word property
+        if (card.word !== undefined) {
+            return card.word || '';
         }
-        return card.translations[language].word || '';
+        // v3.x fallback: translations object
+        if (card.translations) {
+            const langName = this.trigraphToLangName[this.currentTrigraph]?.toLowerCase() || 'cebuano';
+            return card.translations[langName]?.word || '';
+        }
+        return '';
+    }
+
+    /**
+     * Get English translation - v4.0 uses direct property
+     */
+    getCardEnglish(card) {
+        // v4.0: direct card.english property
+        if (card.english !== undefined) {
+            return card.english || '';
+        }
+        // v3.x fallback
+        if (card.translations?.english) {
+            return card.translations.english.word || '';
+        }
+        return '';
     }
 
     getStatusClass(card) {
-        const hasPng = card.printImagePath || card.hasImage;
-        const hasGif = card.hasGif;
-        const hasAudio = card.hasAudio;
+        const hasPng = !!card.printImagePath;
+        const hasGif = card.hasGif || !!card.gifPath;
+        // v4.0: audio is string, not object
+        const hasAudio = !!card.audio || card.hasAudio;
 
         if (hasPng && hasGif && hasAudio) return 'status-complete-animated';
         if (hasPng && hasAudio) return 'status-complete-static';

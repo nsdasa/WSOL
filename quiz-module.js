@@ -194,7 +194,7 @@ class UnsaNiQuizModule extends LearningModule {
         
         const userAnswer = document.getElementById('userInput').value.trim().toLowerCase();
         // UPDATED: Check against all acceptable answers
-        const acceptableAnswers = this.currentCard.acceptableAnswers || [this.currentCard.cebuano];
+        const acceptableAnswers = this.currentCard.acceptableAnswers || [this.currentCard.word];
         const isCorrect = acceptableAnswers.some(answer => answer.toLowerCase() === userAnswer);
         
         const feedbackMark = document.getElementById('feedbackMark');
@@ -265,8 +265,8 @@ class UnsaNiQuizModule extends LearningModule {
             const item = document.createElement('div');
             item.className = 'review-item';
             item.innerHTML = `
-                <img src="${card.imagePath}" alt="${card.cebuano}" class="review-image">
-                <div class="review-word">${card.cebuano}</div>
+                <img src="${card.imagePath}" alt="${card.word}" class="review-image">
+                <div class="review-word">${card.word}</div>
                 <div class="selected-word">${response ? response.userAnswer : 'No answer'} <span class="match-mark ${response && response.isCorrect ? 'correct' : 'incorrect'}">${response && response.isCorrect ? 'OK' : 'X'}</span></div>
             `;
             grid.appendChild(item);

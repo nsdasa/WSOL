@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-<!-- Bob and Mariel Ward School of Filipino Languages - Version 3.1 - MODULAR CSS - November 2025 -->
+<!-- Bob and Mariel Ward School of Filipino Languages - Version 4.0 - FULLY RESTORED - November 18, 2025 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bob and Mariel Ward School of Filipino Languages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Core Styles -->
+    <!-- Core Styles with Cache Busting -->
     <link rel="stylesheet" href="styles/core.css?v=<?php echo filemtime('styles/core.css'); ?>">
     <link rel="stylesheet" href="styles/theme.css?v=<?php echo filemtime('styles/theme.css'); ?>">
     
@@ -29,7 +29,7 @@
                     <img id="logoImg" src="assets/logo.png" alt="Logo" class="logo-image" style="display: none;" onload="this.style.display='inline-block';" onerror="this.style.display='none'">
                     Bob and Mariel Ward School of Filipino Languages
                 </h1>
-                <span class="version-badge">v3.1</span>
+                <span class="version-badge">v4.0</span>
             </div>
             <div class="header-controls">
                 <div class="language-selector">
@@ -72,10 +72,6 @@
                 <i class="fas fa-question-circle"></i>
                 Unsa Ni?
             </button>
-            <button class="nav-tab" data-module="pdf-print">
-                <i class="fas fa-print"></i>
-                Print PDF
-            </button>
             <button class="nav-tab" data-module="deck-builder">
                 <i class="fas fa-edit"></i>
                 Deck Builder
@@ -84,78 +80,14 @@
                 <i class="fas fa-tools"></i>
                 Admin
             </button>
+            <button class="nav-tab" data-module="pdf">
+                <i class="fas fa-print"></i>
+                Print PDFs
+            </button>
         </div>
 
         <!-- Module Container -->
-        <div id="moduleContainer" class="tab-content active"></div>
-    </div>
-
-    <!-- Scan Assets Modal -->
-    <div id="scanModal" class="modal hidden">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h2><i class="fas fa-search"></i> Asset Scanner</h2>
-                <button id="closeScanModal" class="close-btn">&times;</button>
-            </div>
-
-            <div id="scanProgress" class="scan-section hidden">
-                <div class="loading-spinner"></div>
-                <p id="scanProgressText" class="scan-message">Initializing scan...</p>
-            </div>
-
-            <div id="scanResults" class="scan-section hidden">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-image"></i></div>
-                        <div class="stat-value" id="totalImages">0</div>
-                        <div class="stat-label">Images Found</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-music"></i></div>
-                        <div class="stat-value" id="totalAudio">0</div>
-                        <div class="stat-label">Audio Files</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-value" id="totalCards">0</div>
-                        <div class="stat-label">Complete Cards</div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Validation Results</h3>
-                    </div>
-                    <div id="validationIssues" class="validation-list"></div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-eye"></i> Card Preview (First 10)</h3>
-                    </div>
-                    <div id="cardPreview" class="preview-grid"></div>
-                </div>
-
-                <div class="action-buttons">
-                    <button id="downloadManifest" class="btn btn-primary">
-                        <i class="fas fa-download"></i> Download manifest.json
-                    </button>
-                    <button id="cancelScan" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Close
-                    </button>
-                </div>
-            </div>
-
-            <div id="scanError" class="scan-section hidden">
-                <div class="empty-state error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p id="errorMessage"></p>
-                    <button id="retryScan" class="btn btn-primary">
-                        <i class="fas fa-redo"></i> Retry
-                    </button>
-                </div>
-            </div>
-        </div>
+        <div id="moduleContainer" class="module-container"></div>
     </div>
 
     <!-- Toast Container -->
@@ -205,7 +137,41 @@
         </div>
     </div>
 
-    <!-- Debug Console (Hidden - Debug log now only shows in Admin tab) -->
+    <!-- SCAN RESULTS MODAL - FULLY RESTORED -->
+    <div id="scanModal" class="modal hidden">
+        <div class="modal-content scan-modal" style="max-width:600px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-check-circle" style="color:#4CAF50"></i> Asset Scan Complete!</h2>
+                <button id="closeScanModal" class="btn-icon"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+                        <div class="stat-value" id="scanTotalCards">0</div>
+                        <div class="stat-label">Total Cards</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-volume-up"></i></div>
+                        <div class="stat-value" id="scanWithAudio">0</div>
+                        <div class="stat-label">With Audio</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-images"></i></div>
+                        <div class="stat-value" id="scanTotalImages">0</div>
+                        <div class="stat-label">Images Found</div>
+                    </div>
+                </div>
+                <div style="text-align:center;margin-top:24px;">
+                    <a id="scanReportLink" href="#" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-file-alt"></i> Open Full HTML Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Console -->
     <div id="debugConsole" class="debug-console">
         <div class="debug-header">
             <span><i class="fas fa-terminal"></i> Debug Log</span>
@@ -216,7 +182,7 @@
         <div id="debugLog" class="debug-log"></div>
     </div>
 
-    <!-- Core Application Script (includes base LearningModule class) -->
+    <!-- Core Application Script -->
     <script src="app.js?v=<?php echo filemtime('app.js'); ?>"></script>
     
     <!-- Authentication Manager -->

@@ -2,7 +2,7 @@ class MatchSoundModule extends LearningModule {
     constructor(assetManager) {
         super(assetManager);
         this.allCards = [];
-        this.virtualCards = []; // ADDED: Virtual cards for multi-word support
+        this.virtualCards = []; // Virtual cards for multi-word support
         this.currentMode = 'review';
         this.unmatched = new Set();
         this.currentShown = new Set();
@@ -16,14 +16,16 @@ class MatchSoundModule extends LearningModule {
         this.correctCounts = new Map(); // Track how many times each card answered correctly
     }
     
-    // ADDED: Expand physical cards into virtual cards (one per acceptable answer)
+    // Expand physical cards into virtual cards (one per acceptable answer)
+    // UPDATED for v4.0: Uses card.cardNum and card.word instead of card.wordNum and card.cebuano
     expandToVirtualCards(cards) {
         const virtualCards = [];
         cards.forEach((card, physicalIndex) => {
-            const acceptableAnswers = card.acceptableAnswers || [card.cebuano];
+            // v4.0: Use card.acceptableAnswers (populated by enrichCard), fallback to card.word
+            const acceptableAnswers = card.acceptableAnswers || [card.word];
             acceptableAnswers.forEach(targetWord => {
                 virtualCards.push({
-                    cardId: card.wordNum,           // Track original card
+                    cardId: card.cardNum,           // v4.0: Use cardNum instead of wordNum
                     targetWord: targetWord,         // The specific word to test
                     physicalIndex: physicalIndex,   // Index in allCards array
                     imagePath: card.imagePath,
@@ -94,7 +96,8 @@ class MatchSoundModule extends LearningModule {
         }
         
         // Audio Match requires BOTH images (to show) and audio (to play)
-        this.allCards = this.assets.getCards({ hasAudio: true }).filter(card => card.hasImage);
+        // v4.0: getCards returns enriched cards with normalized properties
+        this.allCards = this.assets.getCards({ hasAudio: true, hasImage: true });
         
         if (this.allCards.length === 0) {
             document.getElementById('matchingContainer').innerHTML = `
@@ -153,7 +156,7 @@ class MatchSoundModule extends LearningModule {
         this.scoreTracker.reset();
         this.matches = [];
         
-        // UPDATED: Expand to virtual cards
+        // Expand to virtual cards
         this.virtualCards = this.expandToVirtualCards(this.allCards);
         this.unmatched = new Set(this.virtualCards.map((_, i) => i));
         this.presentedAudioIndices = new Set(); // Reset presented audio tracker
@@ -199,14 +202,14 @@ class MatchSoundModule extends LearningModule {
         this.currentTargetIdx = selectFrom[Math.floor(Math.random() * selectFrom.length)];
         this.presentedAudioIndices.add(this.currentTargetIdx);
         
-        // UPDATED: Get virtual card instead of physical card
+        // Get virtual card
         const virtualCard = this.virtualCards[this.currentTargetIdx];
         
         const audioSpeaker = document.createElement('div');
         audioSpeaker.className = 'audio-speaker-big';
         audioSpeaker.dataset.side = 'audio';
-        audioSpeaker.dataset.targetWord = virtualCard.targetWord; // UPDATED
-        audioSpeaker.dataset.cardId = virtualCard.cardId; // ADDED
+        audioSpeaker.dataset.targetWord = virtualCard.targetWord;
+        audioSpeaker.dataset.cardId = virtualCard.cardId;
         
         audioSpeaker.innerHTML = '<i class="fas fa-volume-up"></i>';
         
@@ -226,14 +229,14 @@ class MatchSoundModule extends LearningModule {
         const available = [...this.unmatched];
         if (available.length === 0) return;
         
-        // CRITICAL: Get current target's cardId for exclusion
+        // Get current target's cardId for exclusion
         const currentVirtualCard = this.virtualCards[this.currentTargetIdx];
         const currentCardId = currentVirtualCard.cardId;
         
         // Start with the correct answer
         let shown = [this.currentTargetIdx];
         
-        // UPDATED: Filter out pictures from the same physical card
+        // Filter out pictures from the same physical card
         const eligibleForDistractors = available.filter(idx => {
             const vc = this.virtualCards[idx];
             return vc.cardId !== currentCardId; // Exclude same-card words
@@ -283,20 +286,34 @@ class MatchSoundModule extends LearningModule {
         });
     }
     
+    // FIXED: Alt text bug - don't reveal answer while image loads
     createPictureItem(virtualCard, virtualIdx) {
         const item = document.createElement('div');
-        item.className = 'item';
+        item.className = 'item loading'; // Start with loading state
         item.dataset.side = 'picture';
-        item.dataset.targetWord = virtualCard.targetWord; // UPDATED
-        item.dataset.virtualIdx = virtualIdx; // UPDATED
-        item.dataset.cardId = virtualCard.cardId; // ADDED
+        item.dataset.targetWord = virtualCard.targetWord;
+        item.dataset.virtualIdx = virtualIdx;
+        item.dataset.cardId = virtualCard.cardId;
         
         const dot = document.createElement('div');
         dot.className = 'dot';
         
         const img = document.createElement('img');
+        // FIX: Use empty alt to prevent answer reveal during load
+        img.alt = '';
+        
+        // Handle image load/error states
+        img.onload = () => {
+            item.classList.remove('loading');
+        };
+        img.onerror = () => {
+            item.classList.remove('loading');
+            item.classList.add('load-error');
+            // Set a fallback indicator
+            img.alt = '?';
+        };
+        
         img.src = virtualCard.imagePath;
-        img.alt = virtualCard.targetWord;
         
         item.appendChild(dot);
         item.appendChild(img);
@@ -458,7 +475,7 @@ class MatchSoundModule extends LearningModule {
     }
     
     updateProgress() {
-        const total = this.virtualCards.length; // UPDATED: Use virtual cards count
+        const total = this.virtualCards.length;
         const completed = total - this.unmatched.size;
         const percentage = Math.round((completed / total) * 100);
         
@@ -471,7 +488,7 @@ class MatchSoundModule extends LearningModule {
         document.getElementById('reviewContainer').style.display = 'block';
         
         const total = this.matches.length;
-        const correct = this.matches.filter(m => m.playedCebuano === m.selectedPictureCard.targetWord).length; // UPDATED
+        const correct = this.matches.filter(m => m.playedCebuano === m.selectedPictureCard.targetWord).length;
         const percentage = Math.round((correct / total) * 100);
         
         document.getElementById('scoreValue').textContent = percentage;
@@ -481,7 +498,7 @@ class MatchSoundModule extends LearningModule {
         grid.innerHTML = '';
         
         this.matches.forEach(match => {
-            const isCorrect = match.playedCebuano === match.selectedPictureCard.targetWord; // UPDATED
+            const isCorrect = match.playedCebuano === match.selectedPictureCard.targetWord;
             const item = document.createElement('div');
             item.className = 'review-item';
             item.innerHTML = `

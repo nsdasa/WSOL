@@ -3,6 +3,64 @@
    Version 3.1 - November 2025
    ================================================================= */
 
+/* =================================================================
+   VERSION 4.0 ADDITIONS - Independent Lessons Per Language
+   ================================================================= */
+
+/* Admin - Version Notice */
+.version-notice {
+    background: var(--primary-light);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--primary);
+}
+
+.version-notice strong {
+    color: var(--primary-dark);
+}
+
+.version-notice p {
+    margin: 8px 0 0 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Admin - Stat Detail (small text under stats) */
+.stat-detail {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* Admin - Language Uploads Grid */
+.language-uploads {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+/* Manifest details in admin */
+.manifest-details {
+    font-size: 14px;
+}
+
+.manifest-details p {
+    margin: 8px 0;
+}
+
+.manifest-details > div {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+/* =================================================================
+   BASE ADMIN STYLES
+   ================================================================= */
+
 .module-admin .admin-section {
     margin-bottom: 32px;
 }
@@ -388,6 +446,21 @@ body.mobile-phone #logoutBtn {
     font-size: 13px;
 }
 
+/* Mobile styles for v4.0 admin elements */
+body.mobile-phone .version-notice,
+body.mobile-tablet .version-notice {
+    padding: 10px 12px;
+}
+
+body.mobile-phone .language-uploads,
+body.mobile-tablet .language-uploads {
+    grid-template-columns: 1fr;
+}
+
+body.mobile-phone .manifest-details > div {
+    padding: 10px;
+}
+
 @media (max-width: 768px) {
     .module-status-grid {
         grid-template-columns: 1fr;
@@ -399,6 +472,14 @@ body.mobile-phone #logoutBtn {
     
     .segmented-option {
         min-width: auto;
+    }
+    
+    .language-uploads {
+        grid-template-columns: 1fr;
+    }
+    
+    .version-notice {
+        padding: 10px 12px;
     }
 }
 
@@ -428,4 +509,12 @@ body.mobile-phone #logoutBtn {
 
 [data-theme="dark"] .login-error {
     background: rgba(239, 68, 68, 0.15);
+}
+
+[data-theme="dark"] .version-notice {
+    background: var(--primary-light);
+}
+
+[data-theme="dark"] .manifest-details > div {
+    background: var(--bg-secondary);
 }

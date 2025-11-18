@@ -1036,6 +1036,59 @@
 }
 
 /* =================================================================
+   VERSION 4.0 ADDITIONS - Language Selector & Independent Lessons
+   ================================================================= */
+
+/* Deck Builder - Language Selector (Primary Control) */
+.deck-language-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    color: white;
+}
+
+.deck-language-selector label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.deck-language-selector .select-lg {
+    padding: 10px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 180px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.95);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.deck-language-selector .select-lg:hover {
+    border-color: rgba(255,255,255,0.6);
+}
+
+.deck-language-selector .select-lg:focus {
+    border-color: white;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.2);
+}
+
+.language-card-count {
+    margin-left: auto;
+    background: rgba(255,255,255,0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* =================================================================
    MOBILE RESPONSIVE
    ================================================================= */
 
@@ -1113,6 +1166,24 @@
 
     .audio-badges-container {
         flex-direction: column;
+    }
+    
+    /* Deck Language Selector Mobile */
+    .deck-language-selector {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px 16px;
+    }
+    
+    .deck-language-selector .select-lg {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .language-card-count {
+        margin-left: 0;
+        text-align: center;
     }
     
     .file-selection-content {

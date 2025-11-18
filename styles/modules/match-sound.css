@@ -1,6 +1,7 @@
 /* =================================================================
    AUDIO MATCH MODULE STYLES
-   Version 3.1 - November 2025
+   Version 4.0 - November 2025
+   Updated with loading states to prevent answer reveal
    ================================================================= */
 
 .module-match-sound {
@@ -51,6 +52,7 @@
     object-fit: contain;
     object-position: center;
     border-radius: 4px;
+    transition: opacity 0.3s ease;
 }
 
 .pictures-row .item.matched {
@@ -80,6 +82,60 @@
     background: var(--success);
     border-color: var(--success);
 }
+
+/* =================================================================
+   LOADING STATE - Prevents answer reveal during image load
+   ================================================================= */
+
+.pictures-row .item.loading {
+    pointer-events: none; /* Prevent clicks while loading */
+}
+
+.pictures-row .item.loading img {
+    opacity: 0; /* Hide image until loaded */
+}
+
+.pictures-row .item.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Error state for failed image loads */
+.pictures-row .item.load-error {
+    background: var(--bg-secondary);
+}
+
+.pictures-row .item.load-error img {
+    opacity: 0.3;
+}
+
+.pictures-row .item.load-error::after {
+    content: '?';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+/* =================================================================
+   AUDIO SECTION
+   ================================================================= */
 
 .audio-section {
     display: flex;
@@ -186,6 +242,13 @@ body.mobile-phone .audio-speaker-big i {
 body.mobile-phone .picture-only {
     min-height: 200px;
     min-width: 200px;
+}
+
+/* Smaller loading spinner on mobile */
+body.mobile-phone .pictures-row .item.loading::before {
+    width: 30px;
+    height: 30px;
+    border-width: 2px;
 }
 
 body.mobile-tablet .pictures-row {

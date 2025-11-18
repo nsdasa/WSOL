@@ -1,13 +1,29 @@
+// =================================================================
+// ADMIN MODULE - Version 4.0
+// November 2025 - Per-language card support
+// =================================================================
+
 class AdminModule extends LearningModule {
     constructor(assetManager) {
         super(assetManager);
         this.languageFile = null;
-        this.wordFile = null;
+        this.wordFiles = {}; // Per-language word files
         this.imageFiles = [];
         this.audioFiles = [];
+        this.statsInterval = null;
     }
-    
+
     async render() {
+        // Get languages from manifest for word file inputs
+        const languages = this.assets.manifest?.languages || [
+            {trigraph: 'ceb', name: 'Cebuano'},
+            {trigraph: 'mrw', name: 'Maranao'},
+            {trigraph: 'sin', name: 'Sinama'}
+        ];
+
+        // Filter out English (it's the target language)
+        const targetLanguages = languages.filter(l => l.trigraph.toLowerCase() !== 'eng');
+
         this.container.innerHTML = `
             <div class="card module-admin">
                 <div class="card-header">
@@ -20,16 +36,22 @@ class AdminModule extends LearningModule {
 
                 <div class="admin-section">
                     <h3 class="section-title"><i class="fas fa-heartbeat"></i> System Status</h3>
+                    <div class="version-notice">
+                        <strong>Manifest Version:</strong> <span id="manifestVersion">--</span>
+                        <p>Last Updated: <span id="manifestLastUpdated">--</span></p>
+                    </div>
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-icon"><i class="fas fa-images"></i></div>
                             <div class="stat-value" id="adminTotalCards">0</div>
                             <div class="stat-label">Cards Loaded</div>
+                            <div class="stat-detail" id="adminCardsDetail"></div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon"><i class="fas fa-volume-up"></i></div>
                             <div class="stat-value" id="adminAudioCards">0</div>
                             <div class="stat-label">With Audio</div>
+                            <div class="stat-detail" id="adminAudioDetail"></div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon"><i class="fas fa-gamepad"></i></div>
@@ -37,6 +59,7 @@ class AdminModule extends LearningModule {
                             <div class="stat-label">Active Modules</div>
                         </div>
                     </div>
+                    <div id="languageStatsContainer" class="manifest-details"></div>
                 </div>
 
                 <div class="admin-section">
@@ -48,7 +71,7 @@ class AdminModule extends LearningModule {
                     <h3 class="section-title"><i class="fas fa-sync-alt"></i> CSV Data Management</h3>
                     <div class="card" style="background:var(--bg-secondary);">
                         <p style="margin-bottom:16px;color:var(--text-secondary);">
-                            Upload and process your Language List and/or Word List CSV files. The system will validate the format and update the manifest.
+                            Upload and process your Language List and Word List CSV files. In v4.0, each language has its own Word List file.
                         </p>
                         
                         <div class="csv-upload-section">
@@ -65,7 +88,7 @@ class AdminModule extends LearningModule {
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="updateType" value="word">
-                                        <span>Word List Only</span>
+                                        <span>Word Lists Only</span>
                                     </label>
                                 </div>
                             </div>
@@ -79,13 +102,23 @@ class AdminModule extends LearningModule {
                                 <div class="file-status" id="languageFileStatus">No file selected</div>
                             </div>
                             
-                            <div class="file-upload-container" id="wordUploadContainer">
-                                <label class="file-upload-label">
-                                    <i class="fas fa-list"></i> Word List CSV
-                                    <span class="file-hint">Expected: 16 columns (Lesson ? Type)</span>
+                            <div id="wordUploadContainer">
+                                <label class="file-upload-label" style="margin-bottom:16px;">
+                                    <i class="fas fa-list"></i> Word List CSVs (per language)
+                                    <span class="file-hint">v4.0: Each language has its own word list file</span>
                                 </label>
-                                <input type="file" id="wordFileInput" accept=".csv" class="file-input">
-                                <div class="file-status" id="wordFileStatus">No file selected</div>
+                                <div class="language-uploads" id="wordFileInputs">
+                                    ${targetLanguages.map(lang => `
+                                        <div class="file-upload-container word-file-row" data-trigraph="${lang.trigraph}">
+                                            <label class="file-upload-label">
+                                                <i class="fas fa-file-csv"></i> ${lang.name}
+                                                <span class="file-hint">Word_List_${lang.name}.csv</span>
+                                            </label>
+                                            <input type="file" name="wordFile_${lang.trigraph}" accept=".csv" class="file-input">
+                                            <div class="file-status">No file selected</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>
                         </div>
                         
@@ -105,7 +138,7 @@ class AdminModule extends LearningModule {
                     <h3 class="section-title"><i class="fas fa-photo-video"></i> Media Files Upload</h3>
                     <div class="card" style="background:var(--bg-secondary);">
                         <p style="margin-bottom:16px;color:var(--text-secondary);">
-                            Upload image files (PNG/GIF) and audio files (MP3) for your words. Files must follow the naming convention.
+                            Upload image files (PNG/GIF) and audio files (MP3/M4A) for your words. Files must follow the naming convention.
                         </p>
                         
                         <div class="csv-upload-section">
@@ -199,7 +232,7 @@ class AdminModule extends LearningModule {
             </div>
         `;
     }
-    
+
     async init() {
         this.updateStats();
         this.updateModuleStatus();
@@ -209,11 +242,11 @@ class AdminModule extends LearningModule {
         this.setupMediaUpload();
         this.setupAssetScanner();
         this.updateDebugLog();
-        
+
         this.statsInterval = setInterval(() => {
             this.updateStats();
         }, 5000);
-        
+
         // Show instructions (warning)
         if (instructionManager) {
             instructionManager.show(
@@ -223,74 +256,101 @@ class AdminModule extends LearningModule {
             );
         }
     }
-    
-    setupSessionTimeout() {
-        const timeoutInput = document.getElementById('sessionTimeoutInput');
-        const saveTimeoutBtn = document.getElementById('saveTimeoutBtn');
-        const sessionStatusText = document.getElementById('sessionStatusText');
-        
-        // Load current timeout value
-        if (authManager && authManager.authenticated) {
-            timeoutInput.value = authManager.timeoutMinutes || 30;
-            sessionStatusText.textContent = `Active - ${authManager.timeoutMinutes} minute timeout`;
-            sessionStatusText.style.color = 'var(--success)';
-        } else {
-            sessionStatusText.textContent = 'Not logged in';
-            sessionStatusText.style.color = 'var(--text-secondary)';
-        }
-        
-        // Save timeout button
-        if (saveTimeoutBtn) {
-            saveTimeoutBtn.addEventListener('click', async () => {
-                const minutes = parseInt(timeoutInput.value);
-                
-                if (isNaN(minutes) || minutes < 5 || minutes > 480) {
-                    toastManager.show('Timeout must be between 5 and 480 minutes', 'error');
-                    return;
-                }
-                
-                if (!authManager || !authManager.authenticated) {
-                    toastManager.show('You must be logged in to change this setting', 'warning');
-                    return;
-                }
-                
-                saveTimeoutBtn.disabled = true;
-                saveTimeoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-                
-                const success = await authManager.setSessionTimeout(minutes);
-                
-                if (success) {
-                    sessionStatusText.textContent = `Active - ${minutes} minute timeout`;
-                }
-                
-                saveTimeoutBtn.disabled = false;
-                saveTimeoutBtn.innerHTML = '<i class="fas fa-save"></i> Update Timeout';
-            });
-        }
-    }
-    
+
     updateStats() {
-        const totalCards = this.assets.cards.length;
-        const audioCards = this.assets.cards.filter(c => c.hasAudio).length;
-        const moduleCount = Object.keys(router.routes).length;
+        const manifest = this.assets.manifest;
+        
+        // Handle v4.0 per-language cards structure
+        let totalCards = 0;
+        let totalAudio = 0;
+        
+        if (manifest?.stats) {
+            totalCards = manifest.stats.totalCards || 0;
+            totalAudio = manifest.stats.cardsWithAudio || 0;
+        } else if (manifest?.cards) {
+            // v4.0: cards is object with trigraph keys
+            if (typeof manifest.cards === 'object' && !Array.isArray(manifest.cards)) {
+                Object.values(manifest.cards).forEach(langCards => {
+                    if (Array.isArray(langCards)) {
+                        totalCards += langCards.length;
+                        totalAudio += langCards.filter(c => c.hasAudio).length;
+                    }
+                });
+            } else if (Array.isArray(manifest.cards)) {
+                // v3.x fallback: cards is flat array
+                totalCards = manifest.cards.length;
+                totalAudio = manifest.cards.filter(c => c.hasAudio).length;
+            }
+        }
+        
+        const moduleCount = router?.routes ? Object.keys(router.routes).length : 0;
         
         document.getElementById('adminTotalCards').textContent = totalCards;
-        document.getElementById('adminAudioCards').textContent = audioCards;
+        document.getElementById('adminAudioCards').textContent = totalAudio;
         document.getElementById('adminModuleCount').textContent = moduleCount;
+        
+        // Show manifest version info
+        const versionEl = document.getElementById('manifestVersion');
+        const lastUpdatedEl = document.getElementById('manifestLastUpdated');
+        
+        if (versionEl && manifest) {
+            versionEl.textContent = manifest.version || '3.x';
+        }
+        
+        if (lastUpdatedEl && manifest?.lastUpdated) {
+            const date = new Date(manifest.lastUpdated);
+            lastUpdatedEl.textContent = date.toLocaleString();
+        }
+        
+        // Show per-language stats for v4.0
+        const langStatsContainer = document.getElementById('languageStatsContainer');
+        if (langStatsContainer && manifest?.stats?.languageStats) {
+            const langStats = manifest.stats.languageStats;
+            let html = '<h4 style="margin:0 0 12px 0;font-size:14px;color:var(--text-primary);">Per-Language Breakdown:</h4>';
+            
+            Object.entries(langStats).forEach(([trigraph, stats]) => {
+                const langName = this.assets.manifest?.languages?.find(l => l.trigraph === trigraph)?.name || trigraph.toUpperCase();
+                const lessons = stats.lessons?.length || 0;
+                html += `
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);">
+                        <span><strong>${langName}</strong></span>
+                        <span>${stats.totalCards} cards, ${stats.cardsWithAudio} audio, ${lessons} lessons</span>
+                    </div>
+                `;
+            });
+            
+            langStatsContainer.innerHTML = html;
+        }
+        
+        // Update detail text
+        const cardsDetail = document.getElementById('adminCardsDetail');
+        const audioDetail = document.getElementById('adminAudioDetail');
+        
+        if (cardsDetail && manifest?.stats?.totalImages) {
+            cardsDetail.textContent = `${manifest.stats.totalImages} images`;
+        }
+        
+        if (audioDetail && manifest?.stats?.totalAudio) {
+            audioDetail.textContent = `${manifest.stats.totalAudio} files`;
+        }
     }
-    
+
     updateModuleStatus() {
         const modules = [
             { name: 'Flashcards', key: 'flashcards', icon: 'fa-layer-group' },
             { name: 'Picture Match', key: 'match', icon: 'fa-link' },
             { name: 'Audio Match', key: 'match-sound', icon: 'fa-volume-up' },
             { name: 'Unsa Ni Quiz', key: 'quiz', icon: 'fa-question-circle' },
+            { name: 'Deck Builder', key: 'deck-builder', icon: 'fa-edit' },
+            { name: 'Print PDF', key: 'pdf', icon: 'fa-print' },
             { name: 'Admin Panel', key: 'admin', icon: 'fa-tools' }
         ];
         
         const container = document.getElementById('moduleStatus');
+        if (!container) return;
+        
         container.innerHTML = modules.map(module => {
-            const isRegistered = router.routes[module.key] !== undefined;
+            const isRegistered = router?.routes?.[module.key] !== undefined;
             const statusClass = isRegistered ? 'success' : 'error';
             const statusIcon = isRegistered ? 'fa-check-circle' : 'fa-times-circle';
             const statusText = isRegistered ? 'Functional' : 'Not Loaded';
@@ -311,7 +371,7 @@ class AdminModule extends LearningModule {
             `;
         }).join('');
     }
-    
+
     setupDebugControls() {
         document.querySelectorAll('.segmented-option').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -323,7 +383,7 @@ class AdminModule extends LearningModule {
             });
         });
         
-        const currentLevel = debugLogger.level;
+        const currentLevel = debugLogger?.level || 2;
         document.querySelectorAll('.segmented-option').forEach(btn => {
             if (parseInt(btn.dataset.level) === currentLevel) {
                 btn.classList.add('active');
@@ -332,28 +392,81 @@ class AdminModule extends LearningModule {
             }
         });
         
-        document.getElementById('adminShowDebug').addEventListener('change', (e) => {
-            const debugConsole = document.getElementById('debugConsole');
-            if (e.target.checked) {
-                debugConsole.classList.add('visible');
-            } else {
-                debugConsole.classList.remove('visible');
-            }
-        });
+        const showDebugCheckbox = document.getElementById('adminShowDebug');
+        if (showDebugCheckbox) {
+            showDebugCheckbox.addEventListener('change', (e) => {
+                const debugConsole = document.getElementById('debugConsole');
+                if (debugConsole) {
+                    if (e.target.checked) {
+                        debugConsole.classList.add('visible');
+                    } else {
+                        debugConsole.classList.remove('visible');
+                    }
+                }
+            });
+        }
         
-        document.getElementById('clearDebugBtn').addEventListener('click', () => {
-            debugLogger.clear();
-            this.updateDebugLog();
-            toastManager.show('Debug log cleared', 'success');
-        });
+        const clearDebugBtn = document.getElementById('clearDebugBtn');
+        if (clearDebugBtn) {
+            clearDebugBtn.addEventListener('click', () => {
+                debugLogger?.clear();
+                this.updateDebugLog();
+                toastManager.show('Debug log cleared', 'success');
+            });
+        }
     }
-    
+
+    setupSessionTimeout() {
+        const timeoutInput = document.getElementById('sessionTimeoutInput');
+        const saveTimeoutBtn = document.getElementById('saveTimeoutBtn');
+        const sessionStatusText = document.getElementById('sessionStatusText');
+        
+        // Load current timeout value
+        if (authManager?.authenticated) {
+            if (timeoutInput) timeoutInput.value = authManager.timeoutMinutes || 30;
+            if (sessionStatusText) {
+                sessionStatusText.textContent = `Active - ${authManager.timeoutMinutes} minute timeout`;
+                sessionStatusText.style.color = 'var(--success)';
+            }
+        } else if (sessionStatusText) {
+            sessionStatusText.textContent = 'Not logged in';
+            sessionStatusText.style.color = 'var(--text-secondary)';
+        }
+        
+        // Save timeout button
+        if (saveTimeoutBtn) {
+            saveTimeoutBtn.addEventListener('click', async () => {
+                const minutes = parseInt(timeoutInput?.value);
+                
+                if (isNaN(minutes) || minutes < 5 || minutes > 480) {
+                    toastManager.show('Timeout must be between 5 and 480 minutes', 'error');
+                    return;
+                }
+                
+                if (!authManager?.authenticated) {
+                    toastManager.show('You must be logged in to change this setting', 'warning');
+                    return;
+                }
+                
+                saveTimeoutBtn.disabled = true;
+                saveTimeoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                
+                const success = await authManager.setSessionTimeout(minutes);
+                
+                if (success && sessionStatusText) {
+                    sessionStatusText.textContent = `Active - ${minutes} minute timeout`;
+                }
+                
+                saveTimeoutBtn.disabled = false;
+                saveTimeoutBtn.innerHTML = '<i class="fas fa-save"></i> Update Timeout';
+            });
+        }
+    }
+
     setupCSVUpload() {
         const languageInput = document.getElementById('languageFileInput');
-        const wordInput = document.getElementById('wordFileInput');
         const uploadBtn = document.getElementById('uploadProcessBtn');
         const languageStatus = document.getElementById('languageFileStatus');
-        const wordStatus = document.getElementById('wordFileStatus');
         const languageContainer = document.getElementById('languageUploadContainer');
         const wordContainer = document.getElementById('wordUploadContainer');
         
@@ -369,87 +482,116 @@ class AdminModule extends LearningModule {
                 } else if (value === 'language') {
                     languageContainer.style.display = 'block';
                     wordContainer.style.display = 'none';
-                    this.wordFile = null;
-                    wordStatus.textContent = 'No file selected';
+                    this.wordFiles = {};
+                    this.clearWordFileStatuses();
                 } else if (value === 'word') {
                     languageContainer.style.display = 'none';
                     wordContainer.style.display = 'block';
                     this.languageFile = null;
-                    languageStatus.textContent = 'No file selected';
+                    if (languageStatus) {
+                        languageStatus.textContent = 'No file selected';
+                        languageStatus.style.color = 'var(--text-secondary)';
+                    }
                 }
                 
                 this.updateUploadButton();
             });
         });
         
-        // Handle file selections
-        languageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                if (!file.name.toLowerCase().endsWith('.csv')) {
-                    toastManager.show('Please select a CSV file', 'error');
-                    languageInput.value = '';
+        // Handle language file selection
+        if (languageInput) {
+            languageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.csv')) {
+                        toastManager.show('Please select a CSV file', 'error');
+                        languageInput.value = '';
+                        this.languageFile = null;
+                        languageStatus.textContent = 'No file selected';
+                        languageStatus.style.color = 'var(--text-secondary)';
+                    } else {
+                        this.languageFile = file;
+                        languageStatus.textContent = `? ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        languageStatus.style.color = 'var(--success)';
+                        debugLogger?.log(3, `Language CSV selected: ${file.name}`);
+                    }
+                } else {
                     this.languageFile = null;
                     languageStatus.textContent = 'No file selected';
                     languageStatus.style.color = 'var(--text-secondary)';
-                } else {
-                    this.languageFile = file;
-                    languageStatus.textContent = `? ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-                    languageStatus.style.color = 'var(--success)';
-                    debugLogger.log(3, `Language CSV selected: ${file.name}`);
                 }
-            } else {
-                this.languageFile = null;
-                languageStatus.textContent = 'No file selected';
-                languageStatus.style.color = 'var(--text-secondary)';
-            }
-            this.updateUploadButton();
-        });
+                this.updateUploadButton();
+            });
+        }
         
-        wordInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                if (!file.name.toLowerCase().endsWith('.csv')) {
-                    toastManager.show('Please select a CSV file', 'error');
-                    wordInput.value = '';
-                    this.wordFile = null;
-                    wordStatus.textContent = 'No file selected';
-                    wordStatus.style.color = 'var(--text-secondary)';
+        // Handle per-language word file selections
+        document.querySelectorAll('#wordFileInputs input[type="file"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                const row = e.target.closest('.word-file-row');
+                const status = row.querySelector('.file-status');
+                const trigraph = row.dataset.trigraph;
+                
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.csv')) {
+                        toastManager.show('Please select a CSV file', 'error');
+                        input.value = '';
+                        delete this.wordFiles[trigraph];
+                        status.textContent = 'No file selected';
+                        status.style.color = 'var(--text-secondary)';
+                    } else {
+                        this.wordFiles[trigraph] = file;
+                        status.textContent = `? ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        status.style.color = 'var(--success)';
+                        debugLogger?.log(3, `Word CSV selected for ${trigraph}: ${file.name}`);
+                    }
                 } else {
-                    this.wordFile = file;
-                    wordStatus.textContent = `? ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-                    wordStatus.style.color = 'var(--success)';
-                    debugLogger.log(3, `Word CSV selected: ${file.name}`);
+                    delete this.wordFiles[trigraph];
+                    status.textContent = 'No file selected';
+                    status.style.color = 'var(--text-secondary)';
                 }
-            } else {
-                this.wordFile = null;
-                wordStatus.textContent = 'No file selected';
-                wordStatus.style.color = 'var(--text-secondary)';
-            }
-            this.updateUploadButton();
+                this.updateUploadButton();
+            });
         });
         
         // Handle upload button click
-        uploadBtn.addEventListener('click', () => this.uploadAndProcess());
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => this.uploadAndProcess());
+        }
     }
-    
+
+    clearWordFileStatuses() {
+        document.querySelectorAll('#wordFileInputs .word-file-row').forEach(row => {
+            const status = row.querySelector('.file-status');
+            const input = row.querySelector('input[type="file"]');
+            if (status) {
+                status.textContent = 'No file selected';
+                status.style.color = 'var(--text-secondary)';
+            }
+            if (input) input.value = '';
+        });
+    }
+
     updateUploadButton() {
         const uploadBtn = document.getElementById('uploadProcessBtn');
-        const updateType = document.querySelector('input[name="updateType"]:checked').value;
+        if (!uploadBtn) return;
+        
+        const updateType = document.querySelector('input[name="updateType"]:checked')?.value || 'both';
         
         let canUpload = false;
         
         if (updateType === 'both') {
-            canUpload = this.languageFile && this.wordFile;
+            // Need language file AND at least one word file
+            canUpload = this.languageFile && Object.keys(this.wordFiles).length > 0;
         } else if (updateType === 'language') {
-            canUpload = this.languageFile;
+            canUpload = this.languageFile !== null;
         } else if (updateType === 'word') {
-            canUpload = this.wordFile;
+            canUpload = Object.keys(this.wordFiles).length > 0;
         }
         
         uploadBtn.disabled = !canUpload;
     }
-    
+
     async uploadAndProcess() {
         const uploadBtn = document.getElementById('uploadProcessBtn');
         uploadBtn.disabled = true;
@@ -458,13 +600,15 @@ class AdminModule extends LearningModule {
         try {
             const formData = new FormData();
             
+            // Add language file
             if (this.languageFile) {
                 formData.append('languageFile', this.languageFile);
             }
             
-            if (this.wordFile) {
-                formData.append('wordFile', this.wordFile);
-            }
+            // Add per-language word files
+            Object.entries(this.wordFiles).forEach(([trigraph, file]) => {
+                formData.append(`wordFile_${trigraph}`, file);
+            });
             
             // CACHE PREVENTION: Add timestamp and no-cache headers
             const timestamp = new Date().getTime();
@@ -484,84 +628,96 @@ class AdminModule extends LearningModule {
                 this.showScanResults(result);
                 await assetManager.loadManifest();
                 this.updateStats();
-                debugLogger.log(2, `Upload complete: ${result.stats.totalCards} cards, ${result.stats.cardsWithAudio} with audio`);
+                debugLogger?.log(2, `Upload complete: ${result.stats?.totalCards || 0} cards, ${result.stats?.cardsWithAudio || 0} with audio`);
             } else {
                 toastManager.show(`Upload failed: ${result.error || result.message}`, 'error', 5000);
-                debugLogger.log(1, `Upload failed: ${result.error || result.message}`);
+                debugLogger?.log(1, `Upload failed: ${result.error || result.message}`);
             }
         } catch (err) {
             toastManager.show(`Error: ${err.message}`, 'error', 5000);
-            debugLogger.log(1, `Upload error: ${err.message}`);
+            debugLogger?.log(1, `Upload error: ${err.message}`);
         } finally {
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload & Process';
             
             // Clear file selections
-            document.getElementById('languageFileInput').value = '';
-            document.getElementById('wordFileInput').value = '';
+            const languageInput = document.getElementById('languageFileInput');
+            if (languageInput) languageInput.value = '';
             this.languageFile = null;
-            this.wordFile = null;
-            document.getElementById('languageFileStatus').textContent = 'No file selected';
-            document.getElementById('wordFileStatus').textContent = 'No file selected';
-            document.getElementById('languageFileStatus').style.color = 'var(--text-secondary)';
-            document.getElementById('wordFileStatus').style.color = 'var(--text-secondary)';
+            const languageStatus = document.getElementById('languageFileStatus');
+            if (languageStatus) {
+                languageStatus.textContent = 'No file selected';
+                languageStatus.style.color = 'var(--text-secondary)';
+            }
+            
+            this.wordFiles = {};
+            this.clearWordFileStatuses();
             this.updateUploadButton();
         }
     }
-    
+
     setupAssetScanner() {
-        document.getElementById('scanAssetsBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('scanAssetsBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+        const scanBtn = document.getElementById('scanAssetsBtn');
+        if (!scanBtn) return;
+        
+        scanBtn.addEventListener('click', async () => {
+            scanBtn.disabled = true;
+            scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
             
             try {
-                // CACHE PREVENTION: Add timestamp and no-cache headers
-                const timestamp = new Date().getTime();
-                const response = await fetch(`scan-assets.php?action=scan&_=${timestamp}`, {
-                    method: 'GET',
-                    cache: 'no-store',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    toastManager.show('Assets scanned! manifest.json updated.', 'success', 5000);
-                    this.updateStats();
-                    this.showScanResults(result);
-                    await assetManager.loadManifest();
-                    debugLogger.log(2, `Scanned: ${result.stats.totalCards} cards, ${result.stats.cardsWithAudio} with audio`);
-                } else {
-                    toastManager.show(`Scan failed: ${result.error || result.message}`, 'error', 5000);
-                    debugLogger.log(1, `Scan failed: ${result.error || result.message}`);
-                }
-            } catch (err) {
-                toastManager.show(`Error: ${err.message}`, 'error', 5000);
-                debugLogger.log(1, `Scan error: ${err.message}`);
+                await this.triggerAssetScan();
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
+                scanBtn.disabled = false;
+                scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
             }
         });
     }
-    
+
+    async triggerAssetScan() {
+        try {
+            // CACHE PREVENTION: Add timestamp and no-cache headers
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=scan&_=${timestamp}`, {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                toastManager.show('Assets scanned! manifest.json updated.', 'success', 5000);
+                this.showScanResults(result);
+                await assetManager.loadManifest();
+                this.updateStats();
+                debugLogger?.log(2, `Scanned: ${result.stats?.totalCards || 0} cards, ${result.stats?.cardsWithAudio || 0} with audio`);
+            } else {
+                toastManager.show(`Scan failed: ${result.error || result.message}`, 'error', 5000);
+                debugLogger?.log(1, `Scan failed: ${result.error || result.message}`);
+            }
+        } catch (err) {
+            toastManager.show(`Error: ${err.message}`, 'error', 5000);
+            debugLogger?.log(1, `Scan error: ${err.message}`);
+        }
+    }
+
     showScanResults(result) {
-        const gifInfo = result.stats.totalGif > 0 ? `\n- GIF Files: ${result.stats.totalGif}` : '';
-        const pngInfo = result.stats.totalPng > 0 ? `\n- PNG Files: ${result.stats.totalPng}` : '';
-        const issuesText = result.issues.length > 0 ? `\n?? Issues: ${result.issues.length}` : '\n? No issues';
+        const stats = result.stats || {};
         
-        let message = `? Scan Complete!\n\n?? Stats:\n- Cards: ${result.stats.totalCards}\n- With Audio: ${result.stats.cardsWithAudio}${pngInfo}${gifInfo}\n- Audio Files: ${result.stats.totalAudio}${issuesText}`;
-        
-        if (result.reportUrl) {
-            message += '\n\n?? Detailed report generated!';
+        // Build per-language stats text
+        let langStatsText = '';
+        if (stats.languageStats) {
+            Object.entries(stats.languageStats).forEach(([trigraph, ls]) => {
+                const langName = this.assets.manifest?.languages?.find(l => l.trigraph === trigraph)?.name || trigraph.toUpperCase();
+                langStatsText += `\n  ${langName}: ${ls.totalCards} cards, ${ls.cardsWithAudio} audio`;
+            });
         }
         
-        // Create a custom modal-style alert with download button
+        // Create a custom modal-style alert
         const alertDiv = document.createElement('div');
         alertDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-primary);padding:30px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:10000;max-width:500px;';
         
@@ -569,17 +725,18 @@ class AdminModule extends LearningModule {
             <h3 style="margin:0 0 20px 0;color:var(--text-primary);">? Processing Complete!</h3>
             <div style="background:var(--bg-secondary);padding:15px;border-radius:5px;margin-bottom:20px;white-space:pre-line;font-family:monospace;font-size:13px;color:var(--text-primary);">
                 <strong>?? Statistics:</strong>
-                • Cards: ${result.stats.totalCards}
-                • With Audio: ${result.stats.cardsWithAudio}
-                ${result.stats.totalPng ? `• PNG Files: ${result.stats.totalPng}` : ''}
-                ${result.stats.totalGif ? `• GIF Files: ${result.stats.totalGif}` : ''}
-                • Audio Files: ${result.stats.totalAudio}
-                ${result.issues.length > 0 ? `\n?? Issues: ${result.issues.length}` : '\n? No issues found'}
+                  Total Cards: ${stats.totalCards || 0}
+                  With Audio: ${stats.cardsWithAudio || 0}
+                ${stats.totalPng ? `  PNG Files: ${stats.totalPng}` : ''}
+                ${stats.totalGif ? `  GIF Files: ${stats.totalGif}` : ''}
+                ${stats.totalAudio ? `  Audio Files: ${stats.totalAudio}` : ''}
+                ${stats.totalImages ? `  Total Images: ${stats.totalImages}` : ''}
+                ${langStatsText ? `\n<strong>Per-Language:</strong>${langStatsText}` : ''}
             </div>
             ${result.reportUrl ? `
                 <div style="margin-bottom:15px;">
                     <a href="${result.reportUrl}" target="_blank" class="btn btn-primary" style="display:inline-block;text-decoration:none;">
-                        <i class="fas fa-download"></i> View Detailed Report
+                        <i class="fas fa-file-alt"></i> View Detailed Report
                     </a>
                 </div>
             ` : ''}
@@ -601,68 +758,72 @@ class AdminModule extends LearningModule {
         closeBtn.addEventListener('click', closeAlert);
         overlay.addEventListener('click', closeAlert);
         
-        if (result.issues.length > 0) {
-            debugLogger.log(2, '=== Scan Issues ===');
-            result.issues.forEach(issue => {
-                debugLogger.log(issue.type === 'error' ? 1 : 2, `${issue.file}: ${issue.message}`);
-            });
-        }
-    }
-    
-    updateDebugLog() {
-        const logContainer = document.getElementById('adminDebugLog');
-        const debugLog = document.getElementById('debugLog');
-        
-        if (debugLog) {
-            logContainer.innerHTML = debugLog.innerHTML || '<div style="color:var(--text-secondary);text-align:center;padding:24px;">No debug messages yet</div>';
-        }
-        
-        setTimeout(() => {
-            if (router.currentModule instanceof AdminModule) {
-                this.updateDebugLog();
+        // Also update the scan modal if it exists (v4.0 index.php)
+        const scanModal = document.getElementById('scanModal');
+        if (scanModal) {
+            const totalCardsEl = document.getElementById('scanTotalCards');
+            const withAudioEl = document.getElementById('scanWithAudio');
+            const totalImagesEl = document.getElementById('scanTotalImages');
+            const reportLink = document.getElementById('scanReportLink');
+            
+            if (totalCardsEl) totalCardsEl.textContent = stats.totalCards || 0;
+            if (withAudioEl) withAudioEl.textContent = stats.cardsWithAudio || 0;
+            if (totalImagesEl) totalImagesEl.textContent = stats.totalImages || stats.totalPng || 0;
+            
+            if (reportLink && result.reportUrl) {
+                reportLink.href = result.reportUrl;
+                reportLink.style.display = 'inline-block';
             }
-        }, 2000);
+        }
     }
-    
+
     setupMediaUpload() {
         const imageInput = document.getElementById('imageFilesInput');
         const audioInput = document.getElementById('audioFilesInput');
         const uploadBtn = document.getElementById('uploadMediaBtn');
         
-        imageInput.addEventListener('change', (e) => {
-            this.imageFiles = Array.from(e.target.files);
-            const status = document.getElementById('imageFilesStatus');
-            if (this.imageFiles.length > 0) {
-                status.textContent = `${this.imageFiles.length} file(s) selected`;
-                status.style.color = 'var(--success)';
-            } else {
-                status.textContent = 'No files selected';
-                status.style.color = 'var(--text-secondary)';
-            }
-            this.updateMediaUploadButton();
-        });
+        if (imageInput) {
+            imageInput.addEventListener('change', (e) => {
+                this.imageFiles = Array.from(e.target.files);
+                const status = document.getElementById('imageFilesStatus');
+                if (this.imageFiles.length > 0) {
+                    status.textContent = `${this.imageFiles.length} file(s) selected`;
+                    status.style.color = 'var(--success)';
+                } else {
+                    status.textContent = 'No files selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                this.updateMediaUploadButton();
+            });
+        }
         
-        audioInput.addEventListener('change', (e) => {
-            this.audioFiles = Array.from(e.target.files);
-            const status = document.getElementById('audioFilesStatus');
-            if (this.audioFiles.length > 0) {
-                status.textContent = `${this.audioFiles.length} file(s) selected`;
-                status.style.color = 'var(--success)';
-            } else {
-                status.textContent = 'No files selected';
-                status.style.color = 'var(--text-secondary)';
-            }
-            this.updateMediaUploadButton();
-        });
+        if (audioInput) {
+            audioInput.addEventListener('change', (e) => {
+                this.audioFiles = Array.from(e.target.files);
+                const status = document.getElementById('audioFilesStatus');
+                if (this.audioFiles.length > 0) {
+                    status.textContent = `${this.audioFiles.length} file(s) selected`;
+                    status.style.color = 'var(--success)';
+                } else {
+                    status.textContent = 'No files selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                this.updateMediaUploadButton();
+            });
+        }
         
-        uploadBtn.addEventListener('click', () => this.uploadMediaFiles());
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => this.uploadMediaFiles());
+        }
     }
-    
+
     updateMediaUploadButton() {
         const uploadBtn = document.getElementById('uploadMediaBtn');
-        uploadBtn.disabled = this.imageFiles.length === 0 && this.audioFiles.length === 0;
+        if (uploadBtn) {
+            uploadBtn.disabled = this.imageFiles.length === 0 && this.audioFiles.length === 0;
+        }
     }
-    
+
     async uploadMediaFiles() {
         const uploadBtn = document.getElementById('uploadMediaBtn');
         uploadBtn.disabled = true;
@@ -696,7 +857,7 @@ class AdminModule extends LearningModule {
             
             if (result.success) {
                 toastManager.show(
-                    `Media uploaded! ${result.stats.imagesUploaded} images, ${result.stats.audioUploaded} audio files. Processing...`, 
+                    `Media uploaded! ${result.stats?.imagesUploaded || 0} images, ${result.stats?.audioUploaded || 0} audio files. Processing...`, 
                     'success', 
                     5000
                 );
@@ -704,58 +865,55 @@ class AdminModule extends LearningModule {
                 // Automatically trigger asset scan after upload
                 await this.triggerAssetScan();
                 
-                debugLogger.log(2, `Media upload: ${result.stats.imagesUploaded} images, ${result.stats.audioUploaded} audio`);
+                debugLogger?.log(2, `Media upload: ${result.stats?.imagesUploaded || 0} images, ${result.stats?.audioUploaded || 0} audio`);
             } else {
                 toastManager.show(`Upload failed: ${result.error || result.message}`, 'error', 5000);
-                debugLogger.log(1, `Media upload failed: ${result.error || result.message}`);
+                debugLogger?.log(1, `Media upload failed: ${result.error || result.message}`);
             }
         } catch (err) {
             toastManager.show(`Error: ${err.message}`, 'error', 5000);
-            debugLogger.log(1, `Media upload error: ${err.message}`);
+            debugLogger?.log(1, `Media upload error: ${err.message}`);
         } finally {
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Media Files';
             
             // Clear file selections
-            document.getElementById('imageFilesInput').value = '';
-            document.getElementById('audioFilesInput').value = '';
+            const imageInput = document.getElementById('imageFilesInput');
+            const audioInput = document.getElementById('audioFilesInput');
+            if (imageInput) imageInput.value = '';
+            if (audioInput) audioInput.value = '';
             this.imageFiles = [];
             this.audioFiles = [];
-            document.getElementById('imageFilesStatus').textContent = 'No files selected';
-            document.getElementById('audioFilesStatus').textContent = 'No files selected';
-            document.getElementById('imageFilesStatus').style.color = 'var(--text-secondary)';
-            document.getElementById('audioFilesStatus').style.color = 'var(--text-secondary)';
+            
+            const imageStatus = document.getElementById('imageFilesStatus');
+            const audioStatus = document.getElementById('audioFilesStatus');
+            if (imageStatus) {
+                imageStatus.textContent = 'No files selected';
+                imageStatus.style.color = 'var(--text-secondary)';
+            }
+            if (audioStatus) {
+                audioStatus.textContent = 'No files selected';
+                audioStatus.style.color = 'var(--text-secondary)';
+            }
             this.updateMediaUploadButton();
         }
     }
-    
-    async triggerAssetScan() {
-        try {
-            // CACHE PREVENTION: Add timestamp and no-cache headers
-            const timestamp = new Date().getTime();
-            const response = await fetch(`scan-assets.php?action=scan&_=${timestamp}`, {
-                method: 'GET',
-                cache: 'no-store',
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showScanResults(result);
-                await assetManager.loadManifest();
-                this.updateStats();
-                debugLogger.log(2, `Auto-scan complete: ${result.stats.totalCards} cards, ${result.stats.cardsWithAudio} with audio`);
-            }
-        } catch (err) {
-            debugLogger.log(1, `Auto-scan error: ${err.message}`);
+
+    updateDebugLog() {
+        const logContainer = document.getElementById('adminDebugLog');
+        const debugLog = document.getElementById('debugLog');
+        
+        if (logContainer && debugLog) {
+            logContainer.innerHTML = debugLog.innerHTML || '<div style="color:var(--text-secondary);text-align:center;padding:24px;">No debug messages yet</div>';
         }
+        
+        setTimeout(() => {
+            if (router?.currentModule instanceof AdminModule) {
+                this.updateDebugLog();
+            }
+        }, 2000);
     }
-    
+
     destroy() {
         if (this.statsInterval) {
             clearInterval(this.statsInterval);

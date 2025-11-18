@@ -1,6 +1,6 @@
 // =================================================================
 // CEBUANO LEARNING PLATFORM - Core Application
-// Version 3.1 - November 2025 - WITH AUTHENTICATION + CACHE PREVENTION
+// Version 4.0 - November 2025 - Per-language card support
 // =================================================================
 
 // Global instances
@@ -398,14 +398,14 @@ class InstructionManager {
 }
 
 // =================================================================
-// ASSET MANAGER - WITH CACHE PREVENTION
+// ASSET MANAGER - Version 4.0 - Per-language card support
 // =================================================================
 class AssetManager {
     constructor() {
         this.manifest = null;
-        this.cards = [];
+        this.cards = [];           // Cards for current language
         this.languages = [];
-        this.lessons = [];
+        this.lessons = [];         // Lessons for current language
         this.currentLanguage = null;
         this.currentLesson = null;
         this.imageUrls = new Map();
@@ -432,19 +432,25 @@ class AssetManager {
             }
             
             this.manifest = await response.json();
-            this.cards = this.manifest.cards || [];
             this.languages = this.manifest.languages || [];
             
-            // Extract unique lessons
-            const lessonSet = new Set();
-            this.cards.forEach(card => lessonSet.add(card.lesson));
-            this.lessons = Array.from(lessonSet).sort((a, b) => a - b);
+            // Detect manifest version
+            const isV4 = this.manifest.version === '4.0' || 
+                        (this.manifest.cards && typeof this.manifest.cards === 'object' && !Array.isArray(this.manifest.cards));
             
-            debugLogger.log(2, `Loaded ${this.cards.length} cards, ${this.languages.length} languages, ${this.lessons.length} lessons from manifest`);
+            if (isV4) {
+                debugLogger.log(2, `Loaded v4.0 manifest with ${this.languages.length} languages`);
+            } else {
+                // v3.x fallback - cards is flat array
+                this.cards = this.manifest.cards || [];
+                const lessonSet = new Set();
+                this.cards.forEach(card => lessonSet.add(card.lesson));
+                this.lessons = Array.from(lessonSet).sort((a, b) => a - b);
+                debugLogger.log(2, `Loaded v3.x manifest: ${this.cards.length} cards, ${this.lessons.length} lessons`);
+            }
             
             // Initialize selectors
             this.populateLanguageSelector();
-            this.populateLessonSelector();
             
             return this.cards;
         } catch (err) {
@@ -470,7 +476,9 @@ class AssetManager {
         
         // Auto-select first language if none selected
         if (!this.currentLanguage && this.languages.length > 0) {
-            const defaultLang = this.languages.find(l => l.trigraph.toLowerCase() === 'ceb') || this.languages[0];
+            const defaultLang = this.languages.find(l => l.trigraph.toLowerCase() === 'ceb') || 
+                               this.languages.find(l => l.trigraph.toLowerCase() !== 'eng') ||
+                               this.languages[0];
             selector.value = defaultLang.trigraph.toLowerCase();
             this.setLanguage(defaultLang.trigraph.toLowerCase());
         }
@@ -492,18 +500,49 @@ class AssetManager {
         if (!this.currentLesson && this.lessons.length > 0) {
             selector.value = this.lessons[0];
             this.setLesson(this.lessons[0]);
+        } else if (this.currentLesson && this.lessons.includes(this.currentLesson)) {
+            // Keep current lesson if it exists in new language
+            selector.value = this.currentLesson;
+        } else if (this.lessons.length > 0) {
+            // Reset to first lesson if current doesn't exist
+            selector.value = this.lessons[0];
+            this.setLesson(this.lessons[0]);
         }
     }
     
     setLanguage(languageTrigraph) {
         const lang = this.languages.find(l => l.trigraph.toLowerCase() === languageTrigraph.toLowerCase());
-        if (lang) {
-            this.currentLanguage = lang;
+        if (!lang) return false;
+        
+        this.currentLanguage = lang;
+        const trigraph = lang.trigraph.toLowerCase();
+        
+        // Check if v4.0 manifest (cards is object with trigraph keys)
+        if (this.manifest.cards && typeof this.manifest.cards === 'object' && !Array.isArray(this.manifest.cards)) {
+            // v4.0: Load cards for this language
+            this.cards = this.manifest.cards[trigraph] || [];
+            
+            // Get lessons for this language from languageStats
+            if (this.manifest.stats?.languageStats?.[trigraph]?.lessons) {
+                this.lessons = this.manifest.stats.languageStats[trigraph].lessons.sort((a, b) => a - b);
+            } else {
+                // Fallback: extract from cards
+                const lessonSet = new Set();
+                this.cards.forEach(card => lessonSet.add(card.lesson));
+                this.lessons = Array.from(lessonSet).sort((a, b) => a - b);
+            }
+            
+            debugLogger.log(2, `Language set to: ${lang.name} (${trigraph}) - ${this.cards.length} cards, ${this.lessons.length} lessons`);
+        } else {
+            // v3.x: Cards are flat array, just update currentLanguage
             debugLogger.log(2, `Language set to: ${lang.name} (${lang.trigraph})`);
-            this.updateModuleTitles();
-            return true;
         }
-        return false;
+        
+        // Update lesson selector for new language
+        this.populateLessonSelector();
+        this.updateModuleTitles();
+        
+        return true;
     }
     
     setLesson(lessonNum) {
@@ -522,31 +561,19 @@ class AssetManager {
         // This is called after language or lesson selection
     }
     
+    // Get language name from trigraph
+    getLanguageName(trigraph) {
+        const lang = this.languages.find(l => l.trigraph.toLowerCase() === trigraph.toLowerCase());
+        return lang ? lang.name : trigraph.toUpperCase();
+    }
+    
     getCards(filters = {}) {
         let filtered = [...this.cards];
         
         // Filter by lesson (use currentLesson if not specified)
         const lessonFilter = filters.lesson !== undefined ? filters.lesson : this.currentLesson;
-        if (lessonFilter !== null) {
+        if (lessonFilter !== null && lessonFilter !== undefined) {
             filtered = filtered.filter(card => card.lesson === lessonFilter);
-        }
-        
-        // Filter by language (use currentLanguage if not specified)
-        const langFilter = filters.language || (this.currentLanguage ? this.currentLanguage.trigraph.toLowerCase() : null);
-        if (langFilter) {
-            filtered = filtered.filter(card => {
-                // Check if the card has the language
-                const langKey = langFilter === 'ceb' ? 'cebuano' : 
-                               langFilter === 'eng' ? 'english' :
-                               langFilter === 'mrw' ? 'maranao' :
-                               langFilter === 'sin' ? 'sinama' : null;
-                
-                // Handle both structures: card.translations.cebuano (new) or card.cebuano (old)
-                if (card.translations && card.translations[langKey]) {
-                    return true;
-                }
-                return langKey && card[langKey];
-            });
         }
         
         // Filter by audio availability
@@ -556,63 +583,163 @@ class AssetManager {
         
         // Filter by image availability
         if (filters.hasImage !== undefined) {
-            filtered = filtered.filter(card => card.hasImage === filters.hasImage);
+            filtered = filtered.filter(card => {
+                const hasImg = card.hasImage || card.printImagePath || card.hasGif;
+                return hasImg === filters.hasImage;
+            });
         }
         
-        // Enrich cards to ensure they have allTranslations structure
+        // Filter by type (N = noun, V = verb, etc.)
+        if (filters.type) {
+            filtered = filtered.filter(card => card.type === filters.type);
+        }
+        
+        // Filter by category
+        if (filters.category) {
+            filtered = filtered.filter(card => card.category === filters.category);
+        }
+        
+        // Enrich cards to ensure consistent structure
         return filtered.map(card => this.enrichCard(card));
     }
     
     enrichCard(card) {
-        // Handle both structures: card.translations (new manifest) or flat properties (old)
-        let allTranslations;
+        // Detect manifest version based on card structure
+        const isV4Card = card.word !== undefined && card.english !== undefined;
         
-        if (card.translations) {
-            // New structure: card.translations already has the correct format
-            allTranslations = card.translations;
+        if (isV4Card) {
+            // v4.0 card structure - direct properties
+            const trigraph = this.currentLanguage?.trigraph?.toLowerCase() || 'ceb';
+            
+            // Build acceptableAnswers
+            let acceptableAnswers = card.acceptableAnswers;
+            if (!acceptableAnswers || !Array.isArray(acceptableAnswers)) {
+                acceptableAnswers = card.word ? card.word.split('/').map(w => w.trim()).filter(w => w) : [];
+            }
+            
+            // Build englishAcceptable
+            let englishAcceptable = card.englishAcceptable;
+            if (!englishAcceptable || !Array.isArray(englishAcceptable)) {
+                englishAcceptable = card.english ? card.english.split('/').map(w => w.trim()).filter(w => w) : [];
+            }
+            
+            // Get image path (prefer GIF for display, PNG for print)
+            const imagePath = card.hasGif ? 
+                (this.manifest.images?.[card.cardNum]?.gif || card.printImagePath) : 
+                card.printImagePath;
+            
+            return {
+                ...card,
+                // Normalized properties for module compatibility
+                acceptableAnswers,
+                englishAcceptable,
+                audioPath: card.audio || null,
+                imagePath: imagePath,
+                // Keep word/english as primary display
+                word: card.word,
+                english: card.english,
+                // For v3.x compatibility in modules that expect translations
+                allTranslations: {
+                    [this.getLangKeyFromTrigraph(trigraph)]: {
+                        word: card.word,
+                        note: card.wordNote || '',
+                        acceptableAnswers
+                    },
+                    english: {
+                        word: card.english,
+                        note: card.englishNote || '',
+                        acceptableAnswers: englishAcceptable
+                    }
+                }
+            };
         } else {
-            // Old structure: build from flat properties
-            allTranslations = {
-                cebuano: card.cebuano ? { word: card.cebuano, note: card.cebuanoNote || '' } : null,
-                english: card.english ? { word: card.english, note: card.englishNote || '' } : null,
-                maranao: card.maranao ? { word: card.maranao, note: card.maranaoNote || '' } : null,
-                sinama: card.sinama ? { word: card.sinama, note: card.sinamaNote || '' } : null
+            // v3.x card structure - translations object
+            let allTranslations;
+            
+            if (card.translations) {
+                allTranslations = card.translations;
+            } else {
+                allTranslations = {
+                    cebuano: card.cebuano ? { word: card.cebuano, note: card.cebuanoNote || '' } : null,
+                    english: card.english ? { word: card.english, note: card.englishNote || '' } : null,
+                    maranao: card.maranao ? { word: card.maranao, note: card.maranaoNote || '' } : null,
+                    sinama: card.sinama ? { word: card.sinama, note: card.sinamaNote || '' } : null
+                };
+            }
+            
+            // Get learning language key
+            const learningLangKey = this.currentLanguage ? this.currentLanguage.trigraph.toLowerCase() : 'ceb';
+            const learningLangName = this.getLangKeyFromTrigraph(learningLangKey);
+            
+            // Get primary translation for current learning language
+            const primaryTranslation = allTranslations[learningLangName];
+            
+            // Build acceptableAnswers
+            let acceptableAnswers;
+            if (primaryTranslation) {
+                if (primaryTranslation.acceptableAnswers && Array.isArray(primaryTranslation.acceptableAnswers)) {
+                    acceptableAnswers = primaryTranslation.acceptableAnswers;
+                } else {
+                    acceptableAnswers = primaryTranslation.word.split(',').map(w => w.trim()).filter(w => w);
+                }
+            } else {
+                acceptableAnswers = [card.cebuano || ''];
+            }
+            
+            // Get audio path for current language
+            const audioPath = card.audio && card.audio[learningLangKey] ? 
+                card.audio[learningLangKey] : null;
+            
+            return {
+                ...card,
+                allTranslations,
+                acceptableAnswers,
+                audioPath: audioPath || card.audioPath,
+                imagePath: card.imagePath || card.printImagePath,
+                // Add v4-style properties for compatibility
+                word: primaryTranslation?.word || card.cebuano || '',
+                english: allTranslations.english?.word || card.english || ''
             };
         }
+    }
+    
+    // Convert trigraph to language key name
+    getLangKeyFromTrigraph(trigraph) {
+        const map = {
+            'ceb': 'cebuano',
+            'eng': 'english',
+            'mrw': 'maranao',
+            'sin': 'sinama'
+        };
+        return map[trigraph.toLowerCase()] || trigraph.toLowerCase();
+    }
+    
+    // Get image path for a card (handles both v3 and v4)
+    getImagePath(card) {
+        if (card.imagePath) return card.imagePath;
+        if (card.printImagePath) return card.printImagePath;
         
-        // Get learning language key
-        const learningLangKey = this.currentLanguage ? this.currentLanguage.trigraph.toLowerCase() : 'ceb';
-        const learningLangName = learningLangKey === 'ceb' ? 'cebuano' :
-                                learningLangKey === 'eng' ? 'english' :
-                                learningLangKey === 'mrw' ? 'maranao' :
-                                learningLangKey === 'sin' ? 'sinama' : 'cebuano';
-        
-        // Get primary translation for current learning language
-        const primaryTranslation = allTranslations[learningLangName];
-        
-        // Use existing acceptableAnswers if available, otherwise build from word
-        let acceptableAnswers;
-        if (primaryTranslation) {
-            if (primaryTranslation.acceptableAnswers && Array.isArray(primaryTranslation.acceptableAnswers)) {
-                acceptableAnswers = primaryTranslation.acceptableAnswers;
-            } else {
-                acceptableAnswers = primaryTranslation.word.split(',').map(w => w.trim()).filter(w => w);
-            }
-        } else {
-            acceptableAnswers = [card.cebuano || ''];
+        // v4.0: Check manifest.images
+        const cardNum = card.cardNum || card.wordNum;
+        if (cardNum && this.manifest.images?.[cardNum]) {
+            const imgData = this.manifest.images[cardNum];
+            return imgData.gif || imgData.png || null;
         }
         
-        // Get audio path for current language
-        const audioPath = card.audio && card.audio[learningLangKey] ? 
-            card.audio[learningLangKey] : null;
-        
-        return {
-            ...card,
-            allTranslations,
-            acceptableAnswers,
-            audioPath: audioPath || card.audioPath,
-            imagePath: card.imagePath || card.printImagePath
-        };
+        return null;
+    }
+    
+    // Get audio path for a card
+    getAudioPath(card) {
+        if (card.audioPath) return card.audioPath;
+        if (card.audio) {
+            // v4.0: audio is direct string path
+            if (typeof card.audio === 'string') return card.audio;
+            // v3.x: audio is object with trigraph keys
+            const trigraph = this.currentLanguage?.trigraph?.toLowerCase() || 'ceb';
+            return card.audio[trigraph] || null;
+        }
+        return null;
     }
     
     revokeAllUrls() {
@@ -1095,7 +1222,7 @@ async function init() {
         router.register('match', MatchExerciseModule);
         router.register('match-sound', MatchSoundModule);
         router.register('quiz', UnsaNiQuizModule);
-        router.register('pdf-print', PDFPrintModule);
+        router.register('pdf', PDFPrintModule);
         router.register('deck-builder', DeckBuilderModule);
         router.register('admin', AdminModule);
     }

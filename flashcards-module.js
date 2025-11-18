@@ -4,17 +4,12 @@ class FlashcardsModule extends LearningModule {
         this.cards = [];
         this.currentIndex = 0;
         this.cardsPerPage = deviceDetector ? deviceDetector.getCardsPerPage() : 4;
-        this.secondaryLanguages = ['english']; // Default to English
+        // v4.0: Cards only contain learning language + English
     }
     
     async render() {
         const langName = this.assets.currentLanguage?.name || 'Language';
         const lessonNum = this.assets.currentLesson || 'Lesson';
-        
-        // Get available languages excluding the current learning language
-        const currentLang = this.assets.currentLanguage?.name.toLowerCase();
-        const allLanguages = ['cebuano', 'english', 'maranao', 'sinama'];
-        const availableSecondary = allLanguages.filter(lang => lang !== currentLang);
         
         this.container.innerHTML = `
             <div class="container module-flashcards">
@@ -23,22 +18,6 @@ class FlashcardsModule extends LearningModule {
                     <button id="prevBtn">< Previous</button>
                     <button id="restartBtn" class="btn-secondary"><i class="fas fa-redo"></i> Restart</button>
                     <button id="nextBtn">Next ></button>
-                </div>
-                <div class="flashcard-options">
-                    <label>Translation Languages:</label>
-                    <div class="language-checkboxes">
-                        ${availableSecondary.map(lang => `
-                            <label class="checkbox-label">
-                                <input type="checkbox" 
-                                       class="secondary-lang-checkbox" 
-                                       value="${lang}" 
-                                       ${this.secondaryLanguages.includes(lang) ? 'checked' : ''}
-                                       ${this.secondaryLanguages.length >= 2 && !this.secondaryLanguages.includes(lang) ? 'disabled' : ''}>
-                                ${lang.charAt(0).toUpperCase() + lang.slice(1)}
-                            </label>
-                        `).join('')}
-                    </div>
-                    <div class="language-hint">Select up to 2 languages to show on card backs</div>
                 </div>
                 <div id="cardsGrid" class="cards-grid"></div>
             </div>
@@ -69,33 +48,6 @@ class FlashcardsModule extends LearningModule {
             `;
             return;
         }
-        
-        // Setup secondary language checkboxes
-        document.querySelectorAll('.secondary-lang-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                const lang = e.target.value;
-                
-                if (e.target.checked) {
-                    if (this.secondaryLanguages.length < 2) {
-                        this.secondaryLanguages.push(lang);
-                    }
-                } else {
-                    this.secondaryLanguages = this.secondaryLanguages.filter(l => l !== lang);
-                }
-                
-                // Update checkbox states (disable if 2 are selected)
-                document.querySelectorAll('.secondary-lang-checkbox').forEach(cb => {
-                    if (!cb.checked && this.secondaryLanguages.length >= 2) {
-                        cb.disabled = true;
-                    } else {
-                        cb.disabled = false;
-                    }
-                });
-                
-                // Re-render current page with new languages
-                this.renderPage();
-            });
-        });
         
         document.getElementById('prevBtn').addEventListener('click', () => this.previousPage());
         document.getElementById('nextBtn').addEventListener('click', () => this.nextPage());
@@ -140,24 +92,23 @@ class FlashcardsModule extends LearningModule {
             
             const img = document.createElement('img');
             img.src = card.imagePath;
-            img.alt = `${card.cebuano} - ${card.english}`;
+            // v4.0 fix: Use card.word instead of card.cebuano
+            img.alt = `${card.word} - ${card.english}`;
             img.onerror = () => {
                 img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
             };
             
-            // Fix issue #1: Add timeout and proper error handling for image loading
-            await new Promise((resolve, reject) => {
+            // Add timeout and proper error handling for image loading
+            await new Promise((resolve) => {
                 const timeout = setTimeout(() => {
                     debugLogger?.log(2, `Image load timeout for: ${card.imagePath}`);
-                    // Set default height and resolve anyway
                     cardContainer.style.height = '300px';
                     cardEl.style.height = '300px';
                     resolve();
-                }, 5000); // 5 second timeout
+                }, 5000);
                 
                 img.onload = () => {
                     clearTimeout(timeout);
-                    // Cap height at 300px for consistent display
                     const maxHeight = 300;
                     cardContainer.style.height = `${maxHeight}px`;
                     cardEl.style.height = `${maxHeight}px`;
@@ -169,7 +120,7 @@ class FlashcardsModule extends LearningModule {
                     debugLogger?.log(2, `Image load error for: ${card.imagePath}`);
                     cardContainer.style.height = '300px';
                     cardEl.style.height = '300px';
-                    resolve(); // Resolve even on error to not block rendering
+                    resolve();
                 };
             });
             
@@ -200,7 +151,6 @@ class FlashcardsModule extends LearningModule {
                     return baseSize;
                 }
                 
-                // Smooth reduction: 1.2px per character over 6
                 const reduction = (length - 6) * 1.2;
                 const calculated = baseSize - reduction;
                 const final = Math.max(minSize, calculated);
@@ -214,52 +164,43 @@ class FlashcardsModule extends LearningModule {
                 return getDynamicFontSize(word, 18, 14);
             };
             
-            // Get the learning language name
-            const learningLang = this.assets.currentLanguage.name.toLowerCase();
+            // v4.0: Use normalized card properties directly
             const learningLangLabel = this.assets.currentLanguage.name;
-            const learningTranslation = card.allTranslations[learningLang];
+            const primaryWord = card.word;
+            const primaryNote = card.wordNote || '';
+            const englishWord = card.english;
+            const englishNote = card.englishNote || '';
             
-            if (!learningTranslation) {
-                debugLogger?.log(1, `ERROR: No translation found for learning language: ${learningLang}`);
-                return;
+            if (!primaryWord) {
+                debugLogger?.log(1, `ERROR: No word found for card ${card.cardNum}`);
+                continue;
             }
             
-            const primaryFontSize = getDynamicFontSize(learningTranslation.word);
-            debugLogger?.log(3, `Primary word "${learningTranslation.word}" will render at ${primaryFontSize}px`);
+            const primaryFontSize = getDynamicFontSize(primaryWord);
+            const englishFontSize = getSecondaryFontSize(englishWord);
             
-            // Build the card back HTML
+            debugLogger?.log(3, `Primary word "${primaryWord}" will render at ${primaryFontSize}px`);
+            debugLogger?.log(3, `English word "${englishWord}" will render at ${englishFontSize}px`);
+            
+            // Build the card back HTML - v4.0: Always show learning language + English
             let backHTML = `
                 <div class="card-back-content">
                     <div class="primary-word-box">
                         <div class="primary-lang-label">${learningLangLabel.toUpperCase()}</div>
-                        <div class="primary-word" style="font-size: ${primaryFontSize}px;">${learningTranslation.word}</div>
-                        ${learningTranslation.note ? `<div class="primary-note">${learningTranslation.note}</div>` : ''}
+                        <div class="primary-word" style="font-size: ${primaryFontSize}px;">${primaryWord}</div>
+                        ${primaryNote ? `<div class="primary-note">${primaryNote}</div>` : ''}
                     </div>
+                    <div class="secondary-language">
+                        <div class="secondary-lang-label">English:</div>
+                        <div class="secondary-word" style="font-size: ${englishFontSize}px;">${englishWord}</div>
+                        ${englishNote ? `<div class="secondary-note">${englishNote}</div>` : ''}
+                    </div>
+                </div>
             `;
             
-            // Add selected secondary languages
-            this.secondaryLanguages.forEach(langKey => {
-                const translation = card.allTranslations[langKey];
-                const langLabel = langKey.charAt(0).toUpperCase() + langKey.slice(1);
-                
-                if (translation && translation.word) {
-                    const secondaryFontSize = getSecondaryFontSize(translation.word);
-                    debugLogger?.log(3, `Secondary word "${translation.word}" (${langLabel}) will render at ${secondaryFontSize}px`);
-                    
-                    backHTML += `
-                        <div class="secondary-language">
-                            <div class="secondary-lang-label">${langLabel}:</div>
-                            <div class="secondary-word" style="font-size: ${secondaryFontSize}px;">${translation.word}</div>
-                            ${translation.note ? `<div class="secondary-note">${translation.note}</div>` : ''}
-                        </div>
-                    `;
-                }
-            });
-            
-            backHTML += '</div>';
             back.innerHTML = backHTML;
             
-            debugLogger?.log(3, `Card back HTML generated with ${this.secondaryLanguages.length} secondary languages`);
+            debugLogger?.log(3, `Card back HTML generated for card ${card.cardNum}`);
             
             if (card.hasAudio) {
                 const speakerBack = document.createElement('div');
@@ -275,6 +216,9 @@ class FlashcardsModule extends LearningModule {
             
             cardEl.appendChild(front);
             cardEl.appendChild(back);
+            
+            // Store primaryWord for flip handler
+            const wordLength = primaryWord.length;
             
             cardEl.addEventListener('click', () => {
                 const front = cardEl.querySelector('.card-front');
@@ -297,14 +241,13 @@ class FlashcardsModule extends LearningModule {
                     cardEl.classList.remove('flipped');
                 } else {
                     // Flipping to back - check if expansion needed
-                    const wordLength = learningTranslation.word.length;
-                    const needsExpansion = wordLength > 6; // Changed from 8 to 6
+                    const needsExpansion = wordLength > 6;
                     
                     if (needsExpansion) {
-                        debugLogger?.log(3, `Long word "${learningTranslation.word}" (${wordLength} chars) - expanding card`);
+                        debugLogger?.log(3, `Long word (${wordLength} chars) - expanding card`);
                         cardContainer.classList.add('card-expanded');
                     } else {
-                        debugLogger?.log(3, `Short word "${learningTranslation.word}" (${wordLength} chars) - normal width`);
+                        debugLogger?.log(3, `Short word (${wordLength} chars) - normal width`);
                         cardContainer.classList.remove('card-expanded');
                     }
                     
