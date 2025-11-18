@@ -150,24 +150,25 @@ class FlashcardsModule extends LearningModule {
                 const timeout = setTimeout(() => {
                     debugLogger?.log(2, `Image load timeout for: ${card.imagePath}`);
                     // Set default height and resolve anyway
-                    cardContainer.style.height = '200px';
-                    cardEl.style.height = '200px';
+                    cardContainer.style.height = '300px';
+                    cardEl.style.height = '300px';
                     resolve();
                 }, 5000); // 5 second timeout
                 
                 img.onload = () => {
                     clearTimeout(timeout);
-                    const imgHeight = img.naturalHeight || 200;
-                    cardContainer.style.height = `${imgHeight}px`;
-                    cardEl.style.height = `${imgHeight}px`;
+                    // Cap height at 300px for consistent display
+                    const maxHeight = 300;
+                    cardContainer.style.height = `${maxHeight}px`;
+                    cardEl.style.height = `${maxHeight}px`;
                     resolve();
                 };
                 
                 img.onerror = () => {
                     clearTimeout(timeout);
                     debugLogger?.log(2, `Image load error for: ${card.imagePath}`);
-                    cardContainer.style.height = '200px';
-                    cardEl.style.height = '200px';
+                    cardContainer.style.height = '300px';
+                    cardEl.style.height = '300px';
                     resolve(); // Resolve even on error to not block rendering
                 };
             });
