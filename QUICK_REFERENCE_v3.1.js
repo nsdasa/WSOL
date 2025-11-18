@@ -1,13 +1,14 @@
 /***************************************************************************
  * BOB AND MARIEL WARD SCHOOL OF FILIPINO LANGUAGES
- * QUICK REFERENCE GUIDE v3.1 (UPDATED)
+ * QUICK REFERENCE GUIDE v3.1 (UPDATED - MODULAR CSS)
  * 
  * CHANGES IN v3.1:
- * - ✅ CSV Upload System (upload files via web interface)
- * - ✅ Type column added (N=New, R=Review) at index 15
- * - ✅ wordVersion column removed
- * - ✅ NULL handling for blank grammar fields
- * - ✅ Any CSV filename accepted (validates content only)
+ * - ? CSV Upload System (upload files via web interface)
+ * - ? Type column added (N=New, R=Review) at index 15
+ * - ? wordVersion column removed
+ * - ? NULL handling for blank grammar fields
+ * - ? Any CSV filename accepted (validates content only)
+ * - ? MODULAR CSS: Split into 9 files for context efficiency
  * 
  * USAGE: Paste this at the start of conversations when working on modules
  * FULL CONTEXT: See original analysis conversation for deep dive
@@ -16,10 +17,10 @@
 /* ========================================================================
    WHEN TO USE THIS REFERENCE
    ======================================================================== */
-// ✅ Editing a single module and need architecture context
-// ✅ Can't access conversation history
-// ✅ Quick reminder of API methods
-// ❌ Don't paste this if just referencing past conversation
+// ? Editing a single module and need architecture context
+// ? Can't access conversation history
+// ? Quick reminder of API methods
+// ? Don't paste this if just referencing past conversation
 
 /* ========================================================================
    ARCHITECTURE OVERVIEW
@@ -27,20 +28,86 @@
 Tech Stack:     Vanilla JS (ES6+), PHP backend, JSON manifest, CSS3
 Pattern:        SPA with hash-based routing
 Base Class:     LearningModule (all modules extend this)
-Lifecycle:      constructor() → render() → init() → destroy()
-Entry Point:    index.php → app.js → module files
-Version:        3.1 (CSV Upload System)
+Lifecycle:      constructor() ? render() ? init() ? destroy()
+Entry Point:    index.php ? app.js ? module files
+Version:        3.1 (CSV Upload System + Modular CSS)
 
 File Structure:
-├── app.js                 // Core: managers, base classes, router
-├── [module]-module.js     // Individual learning modules
-├── scan-assets.php        // Server-side: CSV upload + asset processor
-├── styles.css             // Responsive design + CSV upload styles
-└── assets/
-    ├── manifest.json      // Generated card catalog (auto-created)
-    ├── Language_List.csv  // Language definitions (uploaded via web)
-    ├── Word_List.csv      // Word translations (uploaded via web)
-    └── [files]            // PNG/GIF/MP3 following naming convention
++-- app.js                 // Core: managers, base classes, router
++-- [module]-module.js     // Individual learning modules
++-- scan-assets.php        // Server-side: CSV upload + asset processor
++-- styles/                // Modular CSS (v3.1+)
+�   +-- core.css          // Shared: variables, header, buttons, forms, modals (~400 lines)
+�   +-- theme.css         // Dark mode, mobile responsive, device detection (~200 lines)
+�   +-- modules/
+�       +-- flashcards.css      (~250 lines)
+�       +-- match.css           (~200 lines)
+�       +-- match-sound.css     (~150 lines)
+�       +-- quiz.css            (~200 lines)
+�       +-- admin.css           (~300 lines)
+�       +-- pdf-print.css       (~400 lines)
+�       +-- deck-builder.css    (~800 lines)
++-- assets/
+    +-- manifest.json      // Generated card catalog (auto-created)
+    +-- Language_List.csv  // Language definitions (uploaded via web)
+    +-- Word_List.csv      // Word translations (uploaded via web)
+    +-- [files]            // PNG/GIF/MP3 following naming convention
+
+/* ========================================================================
+   MODULAR CSS ARCHITECTURE (v3.1+)
+   ======================================================================== */
+
+// WHY MODULAR?
+// - Context Window Efficiency: Only load relevant CSS files in conversations
+// - Before: 2,700 lines every time
+// - Now: ~600 lines core + ~800 lines target module = ~1,400 lines max
+// - SAVES ~1,300 LINES = More room for actual problem-solving!
+
+// CSS LOADING (All modules loaded upfront in index.php):
+<link rel="stylesheet" href="styles/core.css?v=...">           // Required
+<link rel="stylesheet" href="styles/theme.css?v=...">          // Required
+<link rel="stylesheet" href="styles/modules/flashcards.css?v=...">
+<link rel="stylesheet" href="styles/modules/match.css?v=...">
+<link rel="stylesheet" href="styles/modules/match-sound.css?v=...">
+<link rel="stylesheet" href="styles/modules/quiz.css?v=...">
+<link rel="stylesheet" href="styles/modules/admin.css?v=...">
+<link rel="stylesheet" href="styles/modules/pdf-print.css?v=...">
+<link rel="stylesheet" href="styles/modules/deck-builder.css?v=...">
+
+// CORE.CSS (~400 lines) - Always needed:
+- CSS custom properties (:root)
+- Base styles & reset
+- Header & navigation
+- Cards & buttons
+- Forms & inputs
+- Modals (scan, instruction, login)
+- Toast notifications
+- Empty states
+- Utility classes
+
+// THEME.CSS (~200 lines) - Always needed:
+- Dark mode support ([data-theme="dark"])
+- Mobile detection classes (body.mobile-phone, body.mobile-tablet)
+- Touch device optimizations (body.touch-device)
+- Responsive breakpoints (@media queries)
+- Device-specific adjustments
+- Reduced motion support
+
+// MODULE CSS FILES - Module-specific:
+Each file contains only the styles for that specific module, including:
+- Module layout & structure
+- Game/activity mechanics
+- Mobile responsive overrides
+- Module-specific animations
+
+// WHEN WORKING ON A MODULE:
+// 1. In Claude conversations, only reference:
+//    - core.css (if touching shared components)
+//    - theme.css (if touching responsive/dark mode)
+//    - The specific module's CSS file
+// 2. Example: Working on Deck Builder?
+//    - Upload: core.css (~400 lines) + deck-builder.css (~800 lines)
+//    - Total: ~1,200 lines vs 2,700 lines before!
 
 /* ========================================================================
    CSV UPLOAD SYSTEM (v3.1 - NEW MAJOR FEATURE)
@@ -61,7 +128,7 @@ Language CSV: Must have 3 columns (ID, Name, Trigraph)
 - Trigraph must be exactly 3 characters
 - Any filename accepted (validates structure, not name)
 
-Word CSV: Must have 16 columns (Lesson → Type)
+Word CSV: Must have 16 columns (Lesson ? Type)
 - Lesson must be numeric
 - WordNum must be numeric
 - Type column at index [15]: "N" (New) or "R" (Review)
@@ -169,7 +236,7 @@ expandToVirtualCards(cards) {
 const currentCardId = this.virtualCards[this.currentTargetIdx].cardId;
 const eligibleDistractors = available.filter(idx => {
     const vc = this.virtualCards[idx];
-    return vc.cardId !== currentCardId;  // ← Prevents "eat" + "taste" together
+    return vc.cardId !== currentCardId;  // ? Prevents "eat" + "taste" together
 });
 
 // USAGE IN MODULES:
@@ -327,7 +394,7 @@ if (this.currentMode === 'test') {
     // ... maranao, sinama
   },
   
-  // ⚠️ CHANGED IN v3.1:
+  // ?? CHANGED IN v3.1:
   type: "N",                     // NEW: "N" (New word) or "R" (Review word)
   grammar: "verb",               // CHANGED: Now returns null if blank (not empty string)
   category: null,                // CHANGED: Returns null instead of ""
@@ -347,12 +414,12 @@ if (this.currentMode === 'test') {
 }
 
 // NULL Checking Pattern (NEW in v3.1):
-if (card.grammar) {  // ✅ Simple truthiness check now works
+if (card.grammar) {  // ? Simple truthiness check now works
     // Grammar exists and is not null
 }
 
 // Old pattern (no longer needed):
-if (card.grammar && card.grammar !== '') {  // ❌ Unnecessary in v3.1
+if (card.grammar && card.grammar !== '') {  // ? Unnecessary in v3.1
     // Grammar exists
 }
 
@@ -418,9 +485,9 @@ verb, actions, senses, , novice-mid, N
 // wordVersion column (was index 16) - no longer exists
 
 // Acceptable Answers Parsing (Unchanged):
-"tilaw/lami" → acceptableAnswers: ["tilaw", "lami"]
-"long/tall" → acceptableAnswers: ["long", "tall"]
-"your / yours" → acceptableAnswers: ["your", "yours"] (spaces handled)
+"tilaw/lami" ? acceptableAnswers: ["tilaw", "lami"]
+"long/tall" ? acceptableAnswers: ["long", "tall"]
+"your / yours" ? acceptableAnswers: ["your", "yours"] (spaces handled)
 
 /* ========================================================================
    RESPONSIVE DESIGN HELPERS
@@ -436,7 +503,7 @@ body.touch-device              // Has touch capability
 body[data-device="mobile-phone"]
 body[data-orientation="portrait"]
 
-// CSS targeting examples
+// CSS targeting examples (in module CSS files)
 body.mobile-phone .cards-grid { 
     grid-template-columns: 1fr;  // Single column
 }
@@ -551,7 +618,7 @@ if (reviewRepsInput) {
 }
 
 /* ========================================================================
-   CSS CUSTOM PROPERTIES (Available globally)
+   CSS CUSTOM PROPERTIES (Defined in styles/core.css)
    ======================================================================== */
 --primary: #4F46E5              // Primary brand color
 --primary-dark: #4338CA          // Darker shade
@@ -569,25 +636,83 @@ if (reviewRepsInput) {
 --shadow-lg: 0 10px 15px rgba... // Large shadow
 
 /* ========================================================================
-   CSV UPLOAD STYLES (v3.1 - NEW)
+   MODULE-SPECIFIC CSS CLASSES (Know which file to edit)
    ======================================================================== */
 
-.csv-upload-section        // Container for upload interface
-.upload-options            // Upload type selection container
-.radio-group               // Radio button container
-.radio-option              // Individual radio button wrapper (styled)
-.radio-option:has(input:checked)  // Selected state
-.file-upload-container     // Dashed border file upload areas
-.file-upload-label         // Label with icon and hint text
-.file-hint                 // Format hint (small, italic text)
-.file-input                // Styled file input
-.file-status               // Shows filename and size
-.file-status.has-file      // Green checkmark when file selected
+// FLASHCARDS (styles/modules/flashcards.css):
+.module-flashcards             // Container
+.flashcard-options             // Language selection UI
+.language-checkboxes           // Checkbox group
+.cards-grid                    // Grid layout (responsive)
+.card-container                // Individual card wrapper
+.card-front / .card-back       // Card sides
+.card-back-content             // Back content wrapper
+.primary-word-box              // Primary language box
+.secondary-language            // Secondary language box
+.speaker-icon                  // Audio play button
 
-// Mobile responsive adjustments
-body.mobile-phone .csv-upload-section // Stacks vertically
-body.mobile-phone .radio-group         // Full width
-body.mobile-phone .file-upload-container // Compact padding
+// PICTURE MATCH (styles/modules/match.css):
+.module-match                  // Container
+.mode-buttons                  // Review/Test toggle
+.review-settings               // Repetition input
+.progress-section              // Progress bar
+.matching-container            // Two-column layout
+.column                        // Left/right columns
+.item                          // Clickable item
+.lines-overlay                 // SVG line container
+.feedback                      // Correct/incorrect overlay
+.review-container              // Final results
+
+// AUDIO MATCH (styles/modules/match-sound.css):
+.module-match-sound            // Container
+.matching-container-sound      // Vertical layout
+.pictures-row                  // Picture grid
+.audio-section                 // Audio button area
+.audio-speaker-big             // Large speaker button
+.picture-only                  // Single picture mode
+.dot                           // Selection indicator
+
+// UNSA NI (styles/modules/quiz.css):
+.module-quiz                   // Container
+.quiz-container                // Three-column layout
+.left-panel                    // Input section
+.center-panel                  // Image section
+.right-panel                   // Score panel
+.text-section                  // Input area
+.user-input                    // Text input
+.card-image                    // Display image
+.score-item                    // Score display
+
+// ADMIN (styles/modules/admin.css):
+.module-admin                  // Container
+.module-status-grid            // Status cards
+.module-status-item            // Individual status
+.csv-upload-section            // Upload UI
+.radio-option                  // Upload type selector
+.file-upload-container         // File drop zone
+.debug-log-container           // Debug output
+
+// PDF PRINT (styles/modules/pdf-print.css):
+.module-pdf-print              // Container
+.config-card                   // Configuration sections
+.format-selection-card         // Format picker
+.filter-options                // Radio buttons
+.card-preview-grid             // Preview tiles
+.preview-card-item             // Preview card
+.print-preview-modal           // PDF preview
+.processing-message            // Loading overlay
+
+// DECK BUILDER (styles/modules/deck-builder.css):
+.module-deck-builder           // Container
+.deck-header                   // Top section
+.deck-controls                 // Filters & search
+.deck-table                    // Main table
+.cell-input                    // Editable cell
+.file-badge                    // File status badge
+.categories-btn                // Categories editor
+.file-selection-modal          // File picker
+.file-browser-grid             // File grid
+.current-file-preview          // Current file display
 
 /* ========================================================================
    COMMON DEBUGGING PATTERNS
@@ -597,7 +722,7 @@ body.mobile-phone .file-upload-container // Compact padding
 debugLogger.log(3, `Loaded ${this.allCards.length} cards for lesson ${this.assets.currentLesson}`);
 
 // Track virtual card expansion
-debugLogger.log(3, `Expanded ${this.allCards.length} physical → ${this.virtualCards.length} virtual cards`);
+debugLogger.log(3, `Expanded ${this.allCards.length} physical ? ${this.virtualCards.length} virtual cards`);
 
 // Monitor matching
 debugLogger.log(2, `Selected: ${selectedWord}, Expected: ${expectedWord}, Match: ${isCorrect}`);
@@ -619,49 +744,62 @@ if (card.type === 'N') {
    ======================================================================== */
 
 Problem: Cards not loading
-→ Check: assetManager.currentLanguage and currentLesson are set
-→ Check: manifest.json exists and has cards for that lesson
-→ Debug: console.log(this.assets.getCards())
+? Check: assetManager.currentLanguage and currentLesson are set
+? Check: manifest.json exists and has cards for that lesson
+? Debug: console.log(this.assets.getCards())
 
 Problem: Audio not playing
-→ Check: card.hasAudio === true
-→ Check: audioPath exists and file is accessible
-→ Debug: Try playing in browser directly: new Audio(path).play()
+? Check: card.hasAudio === true
+? Check: audioPath exists and file is accessible
+? Debug: Try playing in browser directly: new Audio(path).play()
 
 Problem: Virtual cards showing same-card distractors
-→ Check: Exclusion logic uses cardId not virtualIdx
-→ Debug: Log currentCardId and distractor cardIds
+? Check: Exclusion logic uses cardId not virtualIdx
+? Debug: Log currentCardId and distractor cardIds
 
 Problem: Review mode not removing cards
-→ Check: correctCounts reaching reviewRepetitions threshold
-→ Debug: Log this.correctCounts after each answer
+? Check: correctCounts reaching reviewRepetitions threshold
+? Debug: Log this.correctCounts after each answer
 
 Problem: Responsive layout broken
-→ Check: DeviceDetector initialized before modules
-→ Check: Body classes applied (mobile-phone, etc.)
-→ Debug: console.log(deviceDetector.deviceType)
+? Check: DeviceDetector initialized before modules
+? Check: Body classes applied (mobile-phone, etc.)
+? Debug: console.log(deviceDetector.deviceType)
 
 Problem: Module not rendering
-→ Check: Module registered in router (app.js init)
-→ Check: Module class exported/available globally
-→ Debug: console.log(router.routes)
+? Check: Module registered in router (app.js init)
+? Check: Module class exported/available globally
+? Debug: console.log(router.routes)
 
 Problem: CSV upload not working (NEW in v3.1)
-→ Check: File extension is .csv
-→ Check: Browser console for validation errors
-→ Check: Server permissions (assets/ folder writable)
-→ Check: PHP upload limits (default 2MB, increase if needed)
-→ Debug: Check Network tab for server response
+? Check: File extension is .csv
+? Check: Browser console for validation errors
+? Check: Server permissions (assets/ folder writable)
+? Check: PHP upload limits (default 2MB, increase if needed)
+? Debug: Check Network tab for server response
 
 Problem: Type column not showing (NEW in v3.1)
-→ Check: Word_List.csv has 16 columns (not 15)
-→ Check: Type column at index 15 has "N" or "R"
-→ Debug: console.log(card.type)
+? Check: Word_List.csv has 16 columns (not 15)
+? Check: Type column at index 15 has "N" or "R"
+? Debug: console.log(card.type)
 
 Problem: Grammar fields showing null
-→ This is CORRECT in v3.1 (changed from empty strings)
-→ Use: if (card.grammar) { ... } for checking
-→ Old code: if (card.grammar && card.grammar !== '') still works
+? This is CORRECT in v3.1 (changed from empty strings)
+? Use: if (card.grammar) { ... } for checking
+? Old code: if (card.grammar && card.grammar !== '') still works
+
+Problem: CSS not loading (MODULAR CSS)
+? Check: All CSS files linked in index.php
+? Check: File paths correct (styles/core.css, styles/modules/...)
+? Check: PHP filemtime() function working (for cache busting)
+? Clear browser cache: Ctrl+Shift+R
+? Debug: View page source, verify all <link> tags present
+
+Problem: Module styles missing
+? Check: Corresponding module CSS file exists
+? Check: Module CSS file linked in index.php
+? Verify: CSS file has correct classes for your module
+? Debug: Inspect element, check if classes are defined
 
 /* ========================================================================
    API REFERENCE - SCAN ASSETS (UPDATED v3.1)
@@ -852,22 +990,26 @@ FLASHCARDS MODULE:
 - Supports multi-language back display (max 2 secondary languages)
 - Auto-expands for long words (.card-expanded class)
 - Speaker icon plays audio for current learning language
+- CSS: styles/modules/flashcards.css
 
 MATCH MODULES (Picture/Audio):
 - ALWAYS show 4 options in both Review and Test modes
 - Use virtual cards + exclusion logic for multi-word entries
 - Review mode: configurable repetitions before mastery
 - Test mode: swap all options after each selection
+- CSS: styles/modules/match.css, styles/modules/match-sound.css
 
 QUIZ MODULE:
 - Spaced repetition: wrong answers reappear after 3+ cards
 - Mobile layout: Image on top, input below
 - Accepts all words in acceptableAnswers array
+- CSS: styles/modules/quiz.css
 
 PDF MODULE:
 - Three formats: Flashcards (2-sided), Unsa Ni (worksheet), Matching (game)
 - Live preview in modal before download
 - Flashcards: 4 per page, back positions horizontally flipped for duplex
+- CSS: styles/modules/pdf-print.css
 
 ADMIN MODULE (UPDATED v3.1):
 - Real-time stats (refresh every 5 seconds)
@@ -875,18 +1017,27 @@ ADMIN MODULE (UPDATED v3.1):
 - "Upload & Process" - Uploads CSVs + scans assets
 - "Rescan Assets Only" - Just rescans existing files
 - Debug log synced with main debug console
+- CSS: styles/modules/admin.css
+
+DECK BUILDER MODULE:
+- Edit cards inline with immediate feedback
+- Upload images/audio via file browser
+- Categories editor for grammar metadata
+- Add/delete cards with real-time validation
+- CSS: styles/modules/deck-builder.css (~800 lines - largest module)
 
 /* ========================================================================
    VERSION HISTORY
    ======================================================================== */
 
 v3.1 (Current) - November 2025
-- ✅ CSV Upload System via web interface
-- ✅ Type column added (N=New, R=Review)
-- ✅ wordVersion column removed
-- ✅ NULL handling for blank grammar fields
-- ✅ Any CSV filename accepted (validates content)
-- ✅ Enhanced validation with detailed error messages
+- ? CSV Upload System via web interface
+- ? Type column added (N=New, R=Review)
+- ? wordVersion column removed
+- ? NULL handling for blank grammar fields
+- ? Any CSV filename accepted (validates content)
+- ? Enhanced validation with detailed error messages
+- ? MODULAR CSS: Split into 9 files for context efficiency
 
 v3.0 - November 2025
 - Multi-language support (4 languages)
@@ -897,7 +1048,14 @@ v3.0 - November 2025
 - Asset management via PHP backend
 
 /* ========================================================================
-   END OF QUICK REFERENCE v3.1
+   END OF QUICK REFERENCE v3.1 (MODULAR CSS)
    Save this file as: QUICK_REFERENCE_v3.1.js or .md
    Paste when starting conversations about single-module edits
+   
+   CONTEXT EFFICIENCY TIP:
+   When working on a specific module, upload only:
+   - This reference file
+   - styles/core.css (~400 lines)
+   - styles/modules/[your-module].css (~150-800 lines)
+   = ~1,000 lines total vs 2,700+ before!
    ======================================================================== */
