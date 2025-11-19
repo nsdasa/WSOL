@@ -638,7 +638,7 @@ class DeckBuilderModule extends LearningModule {
     createCardRow(card) {
         const row = document.createElement('tr');
         // Support both cardNum (v4.0) and wordNum (v3.x)
-        const cardId = card.cardNum || card.wordNum;
+        const cardId = parseInt(card.cardNum || card.wordNum) || 0;
         row.dataset.cardId = cardId;
         
         const isNewCard = cardId >= this.nextNewCardId - 1000;
@@ -1817,27 +1817,62 @@ class DeckBuilderModule extends LearningModule {
             card = this.newCards.find(c => (c.cardNum || c.wordNum) === cardId);
         }
 
-        if (!card) return;
+        if (!card) {
+            toastManager.show('Error: Card not found', 'error');
+            return;
+        }
 
         const word = this.getCardWord(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'word';
         const english = this.getCardEnglish(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'english';
         const defaultFilename = `${cardId}.${audioLang}.${word}.${english}.wav`;
 
         // Show filename edit dialog
-        this.showFilenameDialog(defaultFilename, (finalFilename) => {
-            // Update card with audio path
-            card.audio = `assets/${finalFilename}`;
-            card.hasAudio = true;
+        this.showFilenameDialog(defaultFilename, async (finalFilename) => {
+            // Show uploading message
+            toastManager.show('Uploading audio...', 'warning', 3000);
 
-            // Mark as edited
-            this.editedCards.set(cardId, card);
+            try {
+                // Upload the audio blob to the server
+                const formData = new FormData();
+                formData.append('audio', this.audioRecorder.audioBlob, finalFilename);
+                formData.append('filename', finalFilename);
 
-            // Close modal and refresh
-            closeModal();
-            this.filterAndRenderCards();
-            this.updateUnsavedIndicator();
+                const response = await fetch('upload-audio.php', {
+                    method: 'POST',
+                    body: formData
+                });
 
-            toastManager.show(`Audio recorded as ${finalFilename}. Remember to save changes.`, 'success');
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update card with audio path
+                    card.audio = `assets/${finalFilename}`;
+                    card.hasAudio = true;
+
+                    // Mark as edited
+                    this.editedCards.set(cardId, card);
+
+                    // Close the file selection modal
+                    try {
+                        if (closeModal && typeof closeModal === 'function') {
+                            closeModal();
+                        }
+                    } catch (err) {
+                        console.error('Error closing modal:', err);
+                    }
+
+                    // Refresh the UI
+                    this.filterAndRenderCards();
+                    this.updateUnsavedIndicator();
+
+                    toastManager.show(`Audio saved as ${finalFilename}. Remember to save changes.`, 'success');
+                } else {
+                    toastManager.show(`Upload failed: ${result.error}`, 'error');
+                }
+            } catch (err) {
+                console.error('Error uploading audio:', err);
+                toastManager.show(`Upload error: ${err.message}`, 'error');
+            }
         }, null, 'audio');
     }
 
