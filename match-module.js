@@ -36,11 +36,15 @@ class MatchExerciseModule extends LearningModule {
     
     async render() {
         const langName = this.assets.currentLanguage?.name || 'Language';
-        const lessonNum = this.assets.currentLesson || 'Lesson';
+        
+        // v4.2: Check if advanced filter is active
+        const lessonDisplay = (filterManager && filterManager.isActive()) 
+            ? 'Special' 
+            : (this.assets.currentLesson || 'Lesson');
         
         this.container.innerHTML = `
             <div class="container module-match">
-                <h1>Picture Match (${langName}: Lesson ${lessonNum})</h1>
+                <h1>Picture Match (${langName}: ${lessonDisplay})</h1>
                 <div class="controls">
                     <div class="mode-buttons">
                         <button class="mode-btn active" data-mode="review">Review Mode</button>
@@ -80,8 +84,9 @@ class MatchExerciseModule extends LearningModule {
     }
     
     async init() {
-        // Check if language and lesson are selected
-        if (!this.assets.currentLanguage || !this.assets.currentLesson) {
+        // v4.2: Check if language and lesson/filter are selected
+        const hasFilter = filterManager && filterManager.isActive();
+        if (!this.assets.currentLanguage || (!this.assets.currentLesson && !hasFilter)) {
             document.getElementById('matchingContainer').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -97,7 +102,8 @@ class MatchExerciseModule extends LearningModule {
             document.getElementById('matchingContainer').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p>No cards available for this lesson.</p>
+                    <p>No cards available for this ${hasFilter ? 'filter' : 'lesson'}.</p>
+                    <p>Please ${hasFilter ? 'adjust your filters' : 'scan assets or select a different lesson'}.</p>
                 </div>
             `;
             return;
@@ -176,156 +182,101 @@ class MatchExerciseModule extends LearningModule {
     
     renderPicture() {
         const pictureSection = document.getElementById('pictureSection');
-        pictureSection.innerHTML = '';
         
-        const available = [...this.unmatched];
-        if (available.length === 0) return;
-        
-        // In test mode, prioritize pictures that haven't been presented yet
-        let unpresented = available.filter(idx => !this.presentedPictureIndices.has(idx));
-        
-        // If all have been presented, reset the tracker
-        if (unpresented.length === 0 && available.length > 0) {
-            this.presentedPictureIndices.clear();
-            unpresented = available;
+        // Check if we've shown all pictures - means we're done
+        if (this.unmatched.size === 0) {
+            if (this.currentMode === 'review') {
+                pictureSection.innerHTML = `
+                    <div class="completion-message" style="text-align: center; padding: 20px;">
+                        <i class="fas fa-check-circle" style="font-size: 48px; color: var(--success); margin-bottom: 12px;"></i>
+                        <h3>Excellent! All cards mastered!</h3>
+                        <p>Click "Restart" to practice again.</p>
+                    </div>
+                `;
+            }
+            return;
         }
         
-        // Select from unpresented pictures
-        const selectFrom = unpresented.length > 0 ? unpresented : available;
-        this.currentTargetIdx = selectFrom[Math.floor(Math.random() * selectFrom.length)];
-        this.presentedPictureIndices.add(this.currentTargetIdx);
+        // Select a target from unmatched
+        const unmatchedArray = Array.from(this.unmatched);
         
-        // UPDATED: Get virtual card instead of physical card
-        const virtualCard = this.virtualCards[this.currentTargetIdx];
+        // For test mode, prioritize pictures that haven't been presented yet
+        let availableForPresentation = unmatchedArray.filter(idx => !this.presentedPictureIndices.has(idx));
+        if (availableForPresentation.length === 0) {
+            // All have been presented at least once, just use any unmatched
+            availableForPresentation = unmatchedArray;
+        }
         
-        const pictureContainer = document.createElement('div');
-        pictureContainer.className = 'audio-speaker-big picture-only';
-        pictureContainer.dataset.side = 'picture';
-        pictureContainer.dataset.targetWord = virtualCard.targetWord; // UPDATED
-        pictureContainer.dataset.cardId = virtualCard.cardId; // ADDED
-        pictureContainer.id = 'currentPicture';
+        const randomIdx = availableForPresentation[Math.floor(Math.random() * availableForPresentation.length)];
+        this.currentTargetIdx = randomIdx;
+        this.presentedPictureIndices.add(randomIdx); // Mark as presented
         
-        const img = document.createElement('img');
-        img.src = virtualCard.imagePath;
-        img.alt = virtualCard.targetWord;
-        img.style.maxWidth = '100%';
-        img.style.maxHeight = '100%';
-        img.style.objectFit = 'contain';
+        const targetCard = this.virtualCards[randomIdx];
         
-        pictureContainer.appendChild(img);
-        pictureSection.appendChild(pictureContainer);
+        pictureSection.innerHTML = `
+            <div class="picture-only">
+                <img src="${targetCard.imagePath}" alt="Match this picture">
+            </div>
+        `;
     }
     
     renderWords() {
         const wordsRow = document.getElementById('wordsRow');
         wordsRow.innerHTML = '';
         
-        const available = [...this.unmatched];
-        if (available.length === 0) return;
+        if (this.unmatched.size === 0 || this.currentTargetIdx === null) return;
         
-        // CRITICAL: Get current target's cardId for exclusion
-        const currentVirtualCard = this.virtualCards[this.currentTargetIdx];
-        const currentCardId = currentVirtualCard.cardId;
+        const targetCard = this.virtualCards[this.currentTargetIdx];
+        const maxPictures = deviceDetector ? deviceDetector.getMaxPictures() : 4;
         
-        // Start with the correct answer
-        let shown = [this.currentTargetIdx];
-        
-        // UPDATED: Filter out words from the same physical card
-        const eligibleForDistractors = available.filter(idx => {
-            const vc = this.virtualCards[idx];
-            return vc.cardId !== currentCardId; // Exclude same-card words
+        // Get other unmatched cards (excluding cards that share words with target)
+        const otherUnmatched = Array.from(this.unmatched).filter(idx => {
+            const card = this.virtualCards[idx];
+            // Exclude if it's a variant of the same physical card
+            if (card.cardId === targetCard.cardId) return false;
+            // Exclude if any of its words overlap with target's words
+            return !card.allWords.some(w => targetCard.allWords.includes(w));
         });
         
-        // Determine target count - ALWAYS 4 options in BOTH modes
-        const maxWords = 4;
-        const targetCount = maxWords;
+        // Shuffle and take up to (maxPictures - 1) other cards
+        const shuffled = otherUnmatched.sort(() => Math.random() - 0.5).slice(0, maxPictures - 1);
         
-        // If we have fewer eligible than needed, include matched cards (both modes)
-        if (eligibleForDistractors.length < (targetCount - 1)) {
-            const allIndices = this.virtualCards.map((_, i) => i);
-            const matched = allIndices.filter(i => !available.includes(i) && this.virtualCards[i].cardId !== currentCardId);
+        // Create array with target and others, then shuffle positions
+        const displayWords = [this.currentTargetIdx, ...shuffled].sort(() => Math.random() - 0.5);
+        
+        displayWords.forEach(virtualIdx => {
+            const card = this.virtualCards[virtualIdx];
             
-            // Add eligible unmatched first
-            eligibleForDistractors.forEach(idx => {
-                if (shown.length < targetCount && !shown.includes(idx)) {
-                    shown.push(idx);
-                }
-            });
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.innerHTML = `
+                <span class="word">${card.targetWord}</span>
+                <div class="dot" data-idx="${virtualIdx}"></div>
+            `;
             
-            // Then add matched if needed (both modes now)
-            matched.forEach(idx => {
-                if (shown.length < targetCount && !shown.includes(idx)) {
-                    shown.push(idx);
-                }
-            });
-        } else {
-            // Normal mode: fill from eligible distractors (up to 4 total, including correct answer)
-            const shuffled = [...eligibleForDistractors].sort(() => Math.random() - 0.5);
-            const neededCount = Math.min(targetCount - 1, shuffled.length); // -1 because we already have correct answer
-            for (let i = 0; i < neededCount; i++) {
-                if (!shown.includes(shuffled[i])) {
-                    shown.push(shuffled[i]);
-                }
-            }
-        }
-        
-        // Shuffle the shown words
-        shown.sort(() => Math.random() - 0.5);
-        
-        // Render word buttons
-        shown.forEach(virtualIdx => {
-            const virtualCard = this.virtualCards[virtualIdx];
-            const item = this.createWordItem(virtualCard, virtualIdx);
+            item.addEventListener('click', () => this.selectWord(item, virtualIdx));
             wordsRow.appendChild(item);
         });
     }
     
-    createWordItem(virtualCard, virtualIdx) {
-        const item = document.createElement('div');
-        item.className = 'item';
-        item.dataset.side = 'word';
-        item.dataset.targetWord = virtualCard.targetWord; // UPDATED
-        item.dataset.virtualIdx = virtualIdx; // UPDATED
-        item.dataset.cardId = virtualCard.cardId; // ADDED
+    selectWord(item, virtualIdx) {
+        // Process the match immediately
+        const selectedCard = this.virtualCards[virtualIdx];
+        const targetCard = this.virtualCards[this.currentTargetIdx];
+        const selectedWord = selectedCard.targetWord;
         
-        const dot = document.createElement('div');
-        dot.className = 'dot';
+        // Compare selected word against all acceptable answers for target
+        const isCorrect = targetCard.allWords.includes(selectedWord);
         
-        const word = document.createElement('div');
-        word.className = 'word';
-        word.textContent = virtualCard.targetWord; // UPDATED
-        word.style.fontSize = '20px';
-        word.style.fontWeight = '600';
-        word.style.textAlign = 'center';
-        word.style.padding = '10px';
-        
-        item.appendChild(dot);
-        item.appendChild(word);
-        item.addEventListener('click', (e) => this.handleClick(e, item));
-        
-        return item;
-    }
-    
-    handleClick(event, item) {
-        event.stopPropagation();
-        
-        // Only handle word clicks - picture is just for display
-        if (item.dataset.side !== 'word') return;
-        
+        // Find the dot for visual feedback
         const dot = item.querySelector('.dot');
-        const virtualIdx = parseInt(item.dataset.virtualIdx); // UPDATED
-        const selectedWord = item.dataset.targetWord; // UPDATED
-        const expectedWord = this.virtualCards[this.currentTargetIdx].targetWord; // UPDATED
         
-        const isCorrect = selectedWord === expectedWord;
+        // Get the picture container for line drawing
+        const pictureContainer = document.querySelector('.picture-only');
         
-        // Get picture container for line drawing
-        const pictureContainer = document.getElementById('currentPicture');
-        if (!pictureContainer) return;
-        
-        // Draw line from picture center to word
+        // Draw line from picture to selected word
         const lineColor = this.currentMode === 'test' || isCorrect ? 'green' : 'red';
-        const line = this.drawLineFromPicture(pictureContainer, dot, lineColor);
+        const line = pictureContainer && dot ? this.drawLineFromPicture(pictureContainer, dot, lineColor) : null;
         
         if (this.currentMode === 'review') {
             this.showFeedback(isCorrect ? 'OK' : 'X', isCorrect ? 'correct' : 'incorrect');

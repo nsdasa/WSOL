@@ -35,8 +35,17 @@ switch ($action) {
 function handleLogin() {
     $password = $_POST['password'] ?? '';
     
+    // Check which role the password matches
+    $role = null;
     if ($password === ADMIN_PASSWORD) {
+        $role = 'admin';
+    } elseif ($password === VOICE_RECORDER_PASSWORD) {
+        $role = 'voice-recorder';
+    }
+    
+    if ($role) {
         $_SESSION['admin_logged_in'] = true;
+        $_SESSION['user_role'] = $role;
         $_SESSION['login_time'] = time();
         $_SESSION['last_activity'] = time();
         
@@ -47,6 +56,7 @@ function handleLogin() {
         
         echo json_encode([
             'success' => true,
+            'role' => $role,
             'timeout_minutes' => $_SESSION['timeout_minutes']
         ]);
     } else {
@@ -86,6 +96,7 @@ function checkSession() {
     
     echo json_encode([
         'authenticated' => true,
+        'role' => $_SESSION['user_role'] ?? 'admin',
         'timeout_minutes' => $timeout_minutes,
         'time_remaining' => $timeout_seconds - (time() - $last_activity)
     ]);

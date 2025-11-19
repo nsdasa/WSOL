@@ -8,6 +8,7 @@ class AuthManager {
         this.authenticated = false;
         this.checkingAuth = false;
         this.timeoutMinutes = 30;
+        this.role = null; // 'admin' or 'voice-recorder'
     }
     
     async init() {
@@ -51,7 +52,10 @@ class AuthManager {
             
             if (this.authenticated) {
                 this.timeoutMinutes = result.timeout_minutes || 30;
+                this.role = result.role || 'admin';
                 this.addLogoutButton();
+            } else {
+                this.role = null;
             }
             
             return this.authenticated;
@@ -130,6 +134,7 @@ class AuthManager {
             if (result.success) {
                 this.authenticated = true;
                 this.timeoutMinutes = result.timeout_minutes || 30;
+                this.role = result.role || 'admin';
                 
                 // Hide modal
                 document.getElementById('loginModal').classList.add('hidden');
@@ -142,8 +147,9 @@ class AuthManager {
                     this.loginResolve(true);
                 }
                 
-                toastManager?.show('Login successful!', 'success');
-                debugLogger?.log(2, 'Admin authenticated successfully');
+                const roleDisplay = this.role === 'admin' ? 'Admin' : 'Voice Recorder';
+                toastManager?.show(`Login successful! Role: ${roleDisplay}`, 'success');
+                debugLogger?.log(2, `Authenticated as ${this.role}`);
             } else {
                 errorDiv.textContent = result.error || 'Login failed';
                 errorDiv.classList.remove('hidden');
@@ -176,6 +182,7 @@ class AuthManager {
             await fetch('auth.php?action=logout');
             
             this.authenticated = false;
+            this.role = null;
             this.removeLogoutButton();
             
             toastManager?.show('Logged out successfully', 'success');
@@ -242,5 +249,40 @@ class AuthManager {
             toastManager?.show('Error updating session timeout', 'error');
             return false;
         }
+    }
+    
+    /**
+     * Check if current user is admin
+     */
+    isAdmin() {
+        return this.authenticated && this.role === 'admin';
+    }
+    
+    /**
+     * Check if current user is voice recorder
+     */
+    isVoiceRecorder() {
+        return this.authenticated && this.role === 'voice-recorder';
+    }
+    
+    /**
+     * Check if user has permission for a specific action
+     * Voice Recorder can only: filter, view, record/upload audio
+     * Admin can do everything
+     */
+    hasPermission(action) {
+        if (!this.authenticated) return false;
+        if (this.role === 'admin') return true;
+        
+        // Voice Recorder permissions
+        const voiceRecorderAllowed = [
+            'view',
+            'filter',
+            'audio-upload',
+            'audio-record',
+            'audio-select'
+        ];
+        
+        return voiceRecorderAllowed.includes(action);
     }
 }

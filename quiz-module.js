@@ -15,11 +15,15 @@ class UnsaNiQuizModule extends LearningModule {
     
     async render() {
         const langName = this.assets.currentLanguage?.name || 'Language';
-        const lessonNum = this.assets.currentLesson || 'Lesson';
+        
+        // v4.2: Check if advanced filter is active
+        const lessonDisplay = (filterManager && filterManager.isActive()) 
+            ? 'Special' 
+            : (this.assets.currentLesson || 'Lesson');
         
         this.container.innerHTML = `
             <div class="container module-quiz">
-                <h1>Unsa Ni? (${langName}: Lesson ${lessonNum})</h1>
+                <h1>Unsa Ni? (${langName}: ${lessonDisplay})</h1>
                 <div class="controls">
                     <div class="mode-buttons">
                         <button class="mode-btn active" data-mode="review">Review Mode</button>
@@ -31,7 +35,7 @@ class UnsaNiQuizModule extends LearningModule {
                 <div class="quiz-container" id="quizContainer" style="display:none;">
                     <div class="left-panel">
                         <div class="text-section">
-                            <div class="prompt">Type the Cebuano word:</div>
+                            <div class="prompt">Type the ${langName} word:</div>
                             <div class="input-section">
                                 <input type="text" id="userInput" class="user-input" placeholder="Enter word...">
                                 <button id="submitBtn">Submit</button>
@@ -69,8 +73,9 @@ class UnsaNiQuizModule extends LearningModule {
     }
     
     async init() {
-        // Check if language and lesson are selected
-        if (!this.assets.currentLanguage || !this.assets.currentLesson) {
+        // v4.2: Check if language and lesson/filter are selected
+        const hasFilter = filterManager && filterManager.isActive();
+        if (!this.assets.currentLanguage || (!this.assets.currentLesson && !hasFilter)) {
             document.getElementById('quizContainer').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -87,7 +92,8 @@ class UnsaNiQuizModule extends LearningModule {
             document.getElementById('quizContainer').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p>No cards available for this lesson.</p>
+                    <p>No cards available for this ${hasFilter ? 'filter' : 'lesson'}.</p>
+                    <p>Please ${hasFilter ? 'adjust your filters' : 'scan assets or select a different lesson'}.</p>
                 </div>
             `;
             document.getElementById('quizContainer').style.display = 'flex';

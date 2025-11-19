@@ -21,6 +21,10 @@ class DeckBuilderModule extends LearningModule {
         this.newCards = []; // Track new cards
         this.nextNewCardId = 10000; // Temporary IDs for new cards
         
+        // Role-based access
+        this.userRole = null; // 'admin' or 'voice-recorder'
+        this.isAdmin = false;
+        
         // Sorting state
         this.sortColumn = 'lesson'; // Default sort by lesson
         this.sortDirection = 'asc'; // Default ascending
@@ -42,6 +46,13 @@ class DeckBuilderModule extends LearningModule {
     }
     
     async render() {
+        // Check user role
+        this.userRole = window.authManager?.role || 'admin';
+        this.isAdmin = this.userRole === 'admin';
+        
+        const adminOnlyClass = this.isAdmin ? '' : 'hidden';
+        const roleIndicator = this.isAdmin ? '' : '<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Voice Recorder Mode</span>';
+        
         this.container.innerHTML = `
             <div class="card module-deck-builder">
                 <div class="deck-header">
@@ -49,14 +60,15 @@ class DeckBuilderModule extends LearningModule {
                         <h1>
                             <i class="fas fa-layer-group"></i>
                             Deck Builder
+                            ${roleIndicator}
                         </h1>
                         <p class="deck-description">Create, edit, and manage your language learning cards</p>
                     </div>
                     <div class="deck-actions">
-                        <button id="addCardBtn" class="btn btn-success">
+                        <button id="addCardBtn" class="btn btn-success ${adminOnlyClass}">
                             <i class="fas fa-plus"></i> Add New Card
                         </button>
-                        <button id="saveChangesBtn" class="btn btn-primary" disabled>
+                        <button id="saveChangesBtn" class="btn btn-primary ${adminOnlyClass}" disabled>
                             <i class="fas fa-save"></i> Save Changes
                         </button>
                         <button id="exportCSVBtn" class="btn btn-secondary">
@@ -130,13 +142,13 @@ class DeckBuilderModule extends LearningModule {
                         <input type="text" id="searchCards" class="form-input" placeholder="Search words...">
                     </div>
 
-                    <button id="addCardBtnTop" class="btn btn-success">
+                    <button id="addCardBtnTop" class="btn btn-success ${adminOnlyClass}">
                         <i class="fas fa-plus"></i> Add New Card
                     </button>
 
                     <div class="stats-mini">
                         <span id="cardCount">0 cards</span>
-                        <span id="unsavedCount" class="unsaved-indicator hidden">0 unsaved</span>
+                        <span id="unsavedCount" class="unsaved-indicator hidden ${adminOnlyClass}">0 unsaved</span>
                     </div>
                 </div>
 
@@ -648,16 +660,20 @@ class DeckBuilderModule extends LearningModule {
             row.classList.add('edited-row');
         }
 
+        // Disabled attribute for voice recorder
+        const disabledAttr = this.isAdmin ? '' : 'disabled';
+        const readonlyClass = this.isAdmin ? '' : 'readonly-field';
+
         // Lesson
         const lessonCell = document.createElement('td');
-        lessonCell.innerHTML = `<input type="number" class="cell-input" value="${card.lesson || ''}" 
-            data-field="lesson" data-card-id="${cardId}" min="1" max="100">`;
+        lessonCell.innerHTML = `<input type="number" class="cell-input ${readonlyClass}" value="${card.lesson || ''}" 
+            data-field="lesson" data-card-id="${cardId}" min="1" max="100" ${disabledAttr}>`;
         row.appendChild(lessonCell);
 
         // Type
         const typeCell = document.createElement('td');
         typeCell.innerHTML = `
-            <select class="cell-select" data-field="type" data-card-id="${cardId}">
+            <select class="cell-select ${readonlyClass}" data-field="type" data-card-id="${cardId}" ${disabledAttr}>
                 <option value="N" ${card.type === 'N' ? 'selected' : ''}>N</option>
                 <option value="R" ${card.type === 'R' ? 'selected' : ''}>R</option>
             </select>
@@ -666,8 +682,8 @@ class DeckBuilderModule extends LearningModule {
 
         // Card # - NOW EDITABLE
         const cardNumCell = document.createElement('td');
-        cardNumCell.innerHTML = `<input type="number" class="cell-input card-num-input" value="${cardId}" 
-            data-field="cardNum" data-card-id="${cardId}" data-original-id="${cardId}" min="1">`;
+        cardNumCell.innerHTML = `<input type="number" class="cell-input card-num-input ${readonlyClass}" value="${cardId}" 
+            data-field="cardNum" data-card-id="${cardId}" data-original-id="${cardId}" min="1" ${disabledAttr}>`;
         row.appendChild(cardNumCell);
 
         // Language word (editable) with notes icon
@@ -676,9 +692,9 @@ class DeckBuilderModule extends LearningModule {
         const langCell = document.createElement('td');
         langCell.innerHTML = `
             <div class="word-cell-container">
-                <input type="text" class="cell-input word-input" value="${langWord}" 
-                    data-field="word" data-card-id="${cardId}">
-                <button class="notes-btn ${hasWordNote ? 'has-note' : ''}" data-card-id="${cardId}" data-note-type="word" title="${hasWordNote ? 'Edit note' : 'Add note'}">
+                <input type="text" class="cell-input word-input ${readonlyClass}" value="${langWord}" 
+                    data-field="word" data-card-id="${cardId}" ${disabledAttr}>
+                <button class="notes-btn ${hasWordNote ? 'has-note' : ''} ${this.isAdmin ? '' : 'hidden'}" data-card-id="${cardId}" data-note-type="word" title="${hasWordNote ? 'Edit note' : 'Add note'}">
                     <i class="fas fa-sticky-note"></i>
                     ${hasWordNote ? '<i class="fas fa-check note-check"></i>' : ''}
                 </button>
@@ -692,9 +708,9 @@ class DeckBuilderModule extends LearningModule {
         const engCell = document.createElement('td');
         engCell.innerHTML = `
             <div class="word-cell-container">
-                <input type="text" class="cell-input word-input" value="${engWord}" 
-                    data-field="english" data-card-id="${cardId}">
-                <button class="notes-btn ${hasEngNote ? 'has-note' : ''}" data-card-id="${cardId}" data-note-type="english" title="${hasEngNote ? 'Edit note' : 'Add note'}">
+                <input type="text" class="cell-input word-input ${readonlyClass}" value="${engWord}" 
+                    data-field="english" data-card-id="${cardId}" ${disabledAttr}>
+                <button class="notes-btn ${hasEngNote ? 'has-note' : ''} ${this.isAdmin ? '' : 'hidden'}" data-card-id="${cardId}" data-note-type="english" title="${hasEngNote ? 'Edit note' : 'Add note'}">
                     <i class="fas fa-sticky-note"></i>
                     ${hasEngNote ? '<i class="fas fa-check note-check"></i>' : ''}
                 </button>
@@ -705,18 +721,18 @@ class DeckBuilderModule extends LearningModule {
         // Categories button
         const categoriesCell = document.createElement('td');
         categoriesCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary categories-btn" data-card-id="${cardId}" title="Edit Categories">
+            <button class="btn btn-sm btn-secondary categories-btn ${this.isAdmin ? '' : 'hidden'}" data-card-id="${cardId}" title="Edit Categories">
                 Categories
             </button>
         `;
         row.appendChild(categoriesCell);
 
-        // Picture PNG
+        // Picture PNG - only clickable for admin
         const pngCell = document.createElement('td');
         pngCell.appendChild(this.createFileUploadBadge(card, 'png'));
         row.appendChild(pngCell);
 
-        // Animated GIF
+        // Animated GIF - only clickable for admin
         const gifCell = document.createElement('td');
         gifCell.appendChild(this.createFileUploadBadge(card, 'gif'));
         row.appendChild(gifCell);
@@ -731,18 +747,22 @@ class DeckBuilderModule extends LearningModule {
         statusCell.innerHTML = `<span class="status ${this.getStatusClass(card)}">${this.getStatusText(card)}</span>`;
         row.appendChild(statusCell);
 
-        // Actions
+        // Actions - hide for voice recorder
         const actionsCell = document.createElement('td');
-        actionsCell.innerHTML = `
-            <div style="display: flex; gap: 4px; justify-content: center;">
-                <button class="btn-icon add-below-btn" data-card-id="${cardId}" title="Add Card Below" style="color: var(--success);">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <button class="btn-icon delete-card-btn" data-card-id="${cardId}" title="Delete Card">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>
-        `;
+        if (this.isAdmin) {
+            actionsCell.innerHTML = `
+                <div style="display: flex; gap: 4px; justify-content: center;">
+                    <button class="btn-icon add-below-btn" data-card-id="${cardId}" title="Add Card Below" style="color: var(--success);">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="btn-icon delete-card-btn" data-card-id="${cardId}" title="Delete Card">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            actionsCell.innerHTML = `<span class="text-muted">-</span>`;
+        }
         row.appendChild(actionsCell);
 
         // Attach event listeners
@@ -979,17 +999,22 @@ class DeckBuilderModule extends LearningModule {
         }
 
         const badge = document.createElement('span');
-        badge.className = `file-badge ${type} ${hasFile ? 'has-file' : 'no-file'} upload-trigger`;
+        badge.className = `file-badge ${type} ${hasFile ? 'has-file' : 'no-file'} ${this.isAdmin ? 'upload-trigger' : 'disabled-badge'}`;
         badge.dataset.cardId = cardId;
         badge.dataset.fileType = type;
         badge.innerHTML = hasFile 
             ? `<i class="fas fa-check"></i> ${type.toUpperCase()}`
             : `<i class="fas fa-folder-open"></i> ${type.toUpperCase()}`;
-        badge.title = filename || `Click to select or upload ${type.toUpperCase()} file`;
+        badge.title = this.isAdmin 
+            ? (filename || `Click to select or upload ${type.toUpperCase()} file`)
+            : `${type.toUpperCase()} - Admin only`;
 
-        badge.addEventListener('click', () => {
-            this.showFileSelectionModal(cardId, type);
-        });
+        // Only allow click for admin
+        if (this.isAdmin) {
+            badge.addEventListener('click', () => {
+                this.showFileSelectionModal(cardId, type);
+            });
+        }
 
         container.appendChild(badge);
         return container;
@@ -1421,14 +1446,20 @@ class DeckBuilderModule extends LearningModule {
                 if (count > 0) {
                     countdownNumber.textContent = count;
                 } else if (count === 0) {
+                    // Show "Speak" and immediately start recording
                     countdownNumber.textContent = 'Speak';
                     countdownNumber.classList.add('speak');
-                } else {
                     clearInterval(interval);
-                    countdownDisplay.classList.add('hidden');
-                    recordStatus.classList.remove('hidden');
-                    countdownNumber.classList.remove('speak');
+                    
+                    // Start recording immediately when "Speak" appears
                     resolve();
+                    
+                    // Hide countdown after 300ms (recording already started)
+                    setTimeout(() => {
+                        countdownDisplay.classList.add('hidden');
+                        recordStatus.classList.remove('hidden');
+                        countdownNumber.classList.remove('speak');
+                    }, 300);
                 }
             }, 1000);
         });
@@ -1826,6 +1857,18 @@ class DeckBuilderModule extends LearningModule {
         const english = this.getCardEnglish(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'english';
         const defaultFilename = `${cardId}.${audioLang}.${word}.${english}.wav`;
 
+        // Store the audio blob before closing modal (modal cleanup destroys it)
+        const audioBlob = this.audioRecorder.audioBlob;
+
+        // Close the file selection modal immediately
+        try {
+            if (closeModal && typeof closeModal === 'function') {
+                closeModal();
+            }
+        } catch (err) {
+            console.error('Error closing modal:', err);
+        }
+
         // Show filename edit dialog
         this.showFilenameDialog(defaultFilename, async (finalFilename) => {
             // Show uploading message
@@ -1834,7 +1877,7 @@ class DeckBuilderModule extends LearningModule {
             try {
                 // Upload the audio blob to the server
                 const formData = new FormData();
-                formData.append('audio', this.audioRecorder.audioBlob, finalFilename);
+                formData.append('audio', audioBlob, finalFilename);
                 formData.append('filename', finalFilename);
 
                 const response = await fetch('upload-audio.php', {
@@ -1851,15 +1894,6 @@ class DeckBuilderModule extends LearningModule {
 
                     // Mark as edited
                     this.editedCards.set(cardId, card);
-
-                    // Close the file selection modal
-                    try {
-                        if (closeModal && typeof closeModal === 'function') {
-                            closeModal();
-                        }
-                    } catch (err) {
-                        console.error('Error closing modal:', err);
-                    }
 
                     // Refresh the UI
                     this.filterAndRenderCards();

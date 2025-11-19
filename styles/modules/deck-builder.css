@@ -1784,3 +1784,59 @@
 [data-theme="dark"] .current-image-preview {
     background: rgba(0, 0, 0, 0.2);
 }
+
+/* =================================================================
+   ROLE-BASED ACCESS STYLES
+   ================================================================= */
+
+/* Voice Recorder Mode Badge */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 12px;
+    vertical-align: middle;
+}
+
+.role-badge.voice-recorder {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+}
+
+.role-badge i {
+    font-size: 10px;
+}
+
+/* Disabled/Read-only fields for voice recorder */
+.readonly-field {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-secondary) !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.readonly-field:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Disabled badge styling */
+.disabled-badge {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+}
+
+.disabled-badge:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Text muted for empty action cells */
+.text-muted {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}

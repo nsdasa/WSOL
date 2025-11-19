@@ -40,11 +40,15 @@ class MatchSoundModule extends LearningModule {
     
     async render() {
         const langName = this.assets.currentLanguage?.name || 'Language';
-        const lessonNum = this.assets.currentLesson || 'Lesson';
+        
+        // v4.2: Check if advanced filter is active
+        const lessonDisplay = (filterManager && filterManager.isActive()) 
+            ? 'Special' 
+            : (this.assets.currentLesson || 'Lesson');
         
         this.container.innerHTML = `
             <div class="container module-match-sound">
-                <h1>Audio Match (${langName}: Lesson ${lessonNum})</h1>
+                <h1>Audio Match (${langName}: ${lessonDisplay})</h1>
                 <div class="controls">
                     <div class="mode-buttons">
                         <button class="mode-btn active" data-mode="review">Review Mode</button>
@@ -84,8 +88,9 @@ class MatchSoundModule extends LearningModule {
     }
     
     async init() {
-        // Check if language and lesson are selected
-        if (!this.assets.currentLanguage || !this.assets.currentLesson) {
+        // v4.2: Check if language and lesson/filter are selected
+        const hasFilter = filterManager && filterManager.isActive();
+        if (!this.assets.currentLanguage || (!this.assets.currentLesson && !hasFilter)) {
             document.getElementById('matchingContainer').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -105,8 +110,8 @@ class MatchSoundModule extends LearningModule {
             document.getElementById('matchingContainer').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p>No cards available with both images and audio for this lesson.</p>
-                    <p>Please ensure your cards have both image files and audio files.</p>
+                    <p>No cards available with both images and audio for this ${hasFilter ? 'filter' : 'lesson'}.</p>
+                    <p>Please ${hasFilter ? 'adjust your filters or ' : ''}ensure your cards have both image files and audio files.</p>
                 </div>
             `;
             return;
@@ -185,239 +190,196 @@ class MatchSoundModule extends LearningModule {
     
     renderAudio() {
         const audioSection = document.getElementById('audioSection');
-        audioSection.innerHTML = '';
         
-        const available = [...this.unmatched];
-        if (available.length === 0) return;
-        
-        // In test mode, prioritize audio that hasn't been presented yet
-        let unpresented = available.filter(idx => !this.presentedAudioIndices.has(idx));
-        
-        // If all have been presented, reset the tracker
-        if (unpresented.length === 0 && available.length > 0) {
-            this.presentedAudioIndices.clear();
-            unpresented = available;
+        // Check if we've matched everything
+        if (this.unmatched.size === 0) {
+            if (this.currentMode === 'review') {
+                audioSection.innerHTML = `
+                    <div class="completion-message" style="text-align: center; padding: 20px;">
+                        <i class="fas fa-check-circle" style="font-size: 48px; color: var(--success); margin-bottom: 12px;"></i>
+                        <h3>Excellent! All cards mastered!</h3>
+                        <p>Click "Restart" to practice again.</p>
+                    </div>
+                `;
+            }
+            return;
         }
         
-        // Select from unpresented audio
-        const selectFrom = unpresented.length > 0 ? unpresented : available;
-        this.currentTargetIdx = selectFrom[Math.floor(Math.random() * selectFrom.length)];
-        this.presentedAudioIndices.add(this.currentTargetIdx);
+        // Select a target audio from unmatched
+        const unmatchedArray = Array.from(this.unmatched);
         
-        // Get virtual card
-        const virtualCard = this.virtualCards[this.currentTargetIdx];
+        // For test mode, prioritize audio that hasn't been presented yet
+        let availableForPresentation = unmatchedArray.filter(idx => !this.presentedAudioIndices.has(idx));
+        if (availableForPresentation.length === 0) {
+            // All have been presented at least once, just use any unmatched
+            availableForPresentation = unmatchedArray;
+        }
         
-        const audioSpeaker = document.createElement('div');
-        audioSpeaker.className = 'audio-speaker-big';
-        audioSpeaker.dataset.side = 'audio';
-        audioSpeaker.dataset.targetWord = virtualCard.targetWord;
-        audioSpeaker.dataset.cardId = virtualCard.cardId;
+        const randomIdx = availableForPresentation[Math.floor(Math.random() * availableForPresentation.length)];
+        this.currentTargetIdx = randomIdx;
+        this.presentedAudioIndices.add(randomIdx);
         
-        audioSpeaker.innerHTML = '<i class="fas fa-volume-up"></i>';
+        const targetCard = this.virtualCards[randomIdx];
         
-        const dot = document.createElement('div');
-        dot.className = 'dot';
+        audioSection.innerHTML = `
+            <div class="audio-speaker-big">
+                <i class="fas fa-volume-up"></i>
+                <div class="dot"></div>
+            </div>
+        `;
         
-        audioSpeaker.appendChild(dot);
-        audioSpeaker.addEventListener('click', (e) => this.handleClick(e, audioSpeaker));
-        
-        audioSection.appendChild(audioSpeaker);
+        const speaker = audioSection.querySelector('.audio-speaker-big');
+        speaker.addEventListener('click', () => {
+            const audio = new Audio(targetCard.audioPath);
+            audio.play().catch(err => debugLogger?.log(1, `Audio play error: ${err.message}`));
+        });
     }
     
     renderPictures() {
         const picturesRow = document.getElementById('picturesRow');
         picturesRow.innerHTML = '';
         
-        const available = [...this.unmatched];
-        if (available.length === 0) return;
+        if (this.unmatched.size === 0 || this.currentTargetIdx < 0) return;
         
-        // Get current target's cardId for exclusion
-        const currentVirtualCard = this.virtualCards[this.currentTargetIdx];
-        const currentCardId = currentVirtualCard.cardId;
+        const targetCard = this.virtualCards[this.currentTargetIdx];
+        const maxPictures = deviceDetector ? deviceDetector.getMaxPictures() : 4;
         
-        // Start with the correct answer
-        let shown = [this.currentTargetIdx];
-        
-        // Filter out pictures from the same physical card
-        const eligibleForDistractors = available.filter(idx => {
-            const vc = this.virtualCards[idx];
-            return vc.cardId !== currentCardId; // Exclude same-card words
+        // Get other unmatched cards (excluding cards that share words with target)
+        const otherUnmatched = Array.from(this.unmatched).filter(idx => {
+            const card = this.virtualCards[idx];
+            // Exclude if it's a variant of the same physical card
+            if (card.cardId === targetCard.cardId) return false;
+            // Exclude if any of its words overlap with target's words
+            return !card.allWords.some(w => targetCard.allWords.includes(w));
         });
         
-        // Determine target count - ALWAYS 4 options in BOTH modes
-        const maxPictures = 4;
-        const targetCount = maxPictures;
+        // Shuffle and take up to (maxPictures - 1) other cards
+        const shuffled = otherUnmatched.sort(() => Math.random() - 0.5).slice(0, maxPictures - 1);
         
-        // If we have fewer eligible than needed, include matched cards (both modes)
-        if (eligibleForDistractors.length < (targetCount - 1)) {
-            const allIndices = this.virtualCards.map((_, i) => i);
-            const matched = allIndices.filter(i => !available.includes(i) && this.virtualCards[i].cardId !== currentCardId);
+        // Create array with target and others, then shuffle positions
+        const displayPictures = [this.currentTargetIdx, ...shuffled].sort(() => Math.random() - 0.5);
+        
+        displayPictures.forEach(virtualIdx => {
+            const card = this.virtualCards[virtualIdx];
             
-            // Add eligible unmatched first
-            eligibleForDistractors.forEach(idx => {
-                if (shown.length < targetCount && !shown.includes(idx)) {
-                    shown.push(idx);
-                }
-            });
+            const item = document.createElement('div');
+            item.className = 'item loading'; // Start with loading state
             
-            // Then add matched if needed (both modes now)
-            matched.forEach(idx => {
-                if (shown.length < targetCount && !shown.includes(idx)) {
-                    shown.push(idx);
-                }
-            });
-        } else {
-            // Normal mode: fill from eligible distractors (up to 4 total, including correct answer)
-            const shuffled = [...eligibleForDistractors].sort(() => Math.random() - 0.5);
-            const neededCount = Math.min(targetCount - 1, shuffled.length); // -1 because we already have correct answer
-            for (let i = 0; i < neededCount; i++) {
-                if (!shown.includes(shuffled[i])) {
-                    shown.push(shuffled[i]);
-                }
-            }
-        }
-        
-        // Shuffle the shown pictures
-        shown.sort(() => Math.random() - 0.5);
-        
-        // Render picture items
-        shown.forEach(virtualIdx => {
-            const virtualCard = this.virtualCards[virtualIdx];
-            const item = this.createPictureItem(virtualCard, virtualIdx);
+            const img = document.createElement('img');
+            img.alt = 'Match picture';
+            
+            // Handle image load
+            img.onload = () => {
+                item.classList.remove('loading');
+            };
+            
+            img.onerror = () => {
+                item.classList.remove('loading');
+                item.classList.add('load-error');
+                debugLogger?.log(2, `Failed to load image: ${card.imagePath}`);
+            };
+            
+            // Set src after handlers
+            img.src = card.imagePath;
+            
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.dataset.idx = virtualIdx;
+            
+            item.appendChild(img);
+            item.appendChild(dot);
+            
+            item.addEventListener('click', () => this.selectPicture(item, virtualIdx));
             picturesRow.appendChild(item);
         });
     }
     
-    // FIXED: Alt text bug - don't reveal answer while image loads
-    createPictureItem(virtualCard, virtualIdx) {
-        const item = document.createElement('div');
-        item.className = 'item loading'; // Start with loading state
-        item.dataset.side = 'picture';
-        item.dataset.targetWord = virtualCard.targetWord;
-        item.dataset.virtualIdx = virtualIdx;
-        item.dataset.cardId = virtualCard.cardId;
+    selectPicture(item, virtualIdx) {
+        // Prevent selection while loading
+        if (item.classList.contains('loading')) return;
         
-        const dot = document.createElement('div');
-        dot.className = 'dot';
+        // Process the match immediately
+        const selectedCard = this.virtualCards[virtualIdx];
+        const targetCard = this.virtualCards[this.currentTargetIdx];
+        const expected = targetCard.targetWord;
         
-        const img = document.createElement('img');
-        // FIX: Use empty alt to prevent answer reveal during load
-        img.alt = '';
+        // Compare selected card against all acceptable answers for target
+        const isCorrect = targetCard.allWords.includes(selectedCard.targetWord);
         
-        // Handle image load/error states
-        img.onload = () => {
-            item.classList.remove('loading');
-        };
-        img.onerror = () => {
-            item.classList.remove('loading');
-            item.classList.add('load-error');
-            // Set a fallback indicator
-            img.alt = '?';
-        };
-        
-        img.src = virtualCard.imagePath;
-        
-        item.appendChild(dot);
-        item.appendChild(img);
-        item.addEventListener('click', (e) => this.handleClick(e, item));
-        
-        return item;
-    }
-    
-    handleClick(event, item) {
-        event.stopPropagation();
+        // Find the dot for visual feedback
         const dot = item.querySelector('.dot');
         
-        // If clicking the audio speaker, just play the sound
-        if (item.dataset.side === 'audio') {
-            const targetVirtualCard = this.virtualCards[this.currentTargetIdx];
-            if (targetVirtualCard && targetVirtualCard.audioPath) {
-                const audio = new Audio(targetVirtualCard.audioPath);
-                audio.play().catch(e => debugLogger.log(1, `Audio play error: ${e.message}`));
-            }
-            return; // Don't select anything, just play sound
-        }
+        // Get the audio speaker for line drawing
+        const audioSpeaker = document.querySelector('.audio-speaker-big');
+        const audioDot = audioSpeaker ? audioSpeaker.querySelector('.dot') : null;
         
-        // If clicking a picture, directly match it
-        if (item.dataset.side === 'picture') {
-            const virtualIdx = parseInt(item.dataset.virtualIdx);
-            const actual = item.dataset.targetWord;
-            const expected = this.virtualCards[this.currentTargetIdx].targetWord;
-            
-            const isCorrect = expected === actual;
-            
-            // Get audio speaker for line drawing
-            const audioSpeaker = document.querySelector('.audio-speaker-big');
-            const audioDot = audioSpeaker ? audioSpeaker.querySelector('.dot') : null;
-            
-            const lineColor = this.currentMode === 'test' || isCorrect ? 'green' : 'red';
-            const line = audioDot ? this.drawLine(audioDot, dot, lineColor) : null;
-            
-            if (this.currentMode === 'review') {
-                this.showFeedback(isCorrect ? 'OK' : 'X', isCorrect ? 'correct' : 'incorrect');
-                if (isCorrect) {
-                    // Increment correct count
-                    const currentCount = this.correctCounts.get(virtualIdx) || 0;
-                    this.correctCounts.set(virtualIdx, currentCount + 1);
-                    
-                    // Only remove from unmatched if reached the required repetitions
-                    if (this.correctCounts.get(virtualIdx) >= this.reviewRepetitions) {
-                        this.unmatched.delete(virtualIdx);
-                        item.classList.add('matched');
-                        dot.classList.add('matched');
-                        setTimeout(() => this.fadeAndRemove(item, line), 1000);
-                    } else {
-                        // Still need more repetitions - just show feedback and continue
-                        item.classList.add('matched');
-                        dot.classList.add('matched');
-                        setTimeout(() => {
-                            if (line) {
-                                const svg = document.getElementById('linesSvg');
-                                if (svg.contains(line)) svg.removeChild(line);
-                            }
-                            // Refresh for next round
-                            this.renderAudio();
-                            this.renderPictures();
-                            this.updateProgress();
-                        }, 1000);
-                    }
+        const lineColor = this.currentMode === 'test' || isCorrect ? 'green' : 'red';
+        const line = audioDot ? this.drawLine(audioDot, dot, lineColor) : null;
+        
+        if (this.currentMode === 'review') {
+            this.showFeedback(isCorrect ? 'OK' : 'X', isCorrect ? 'correct' : 'incorrect');
+            if (isCorrect) {
+                // Increment correct count
+                const currentCount = this.correctCounts.get(virtualIdx) || 0;
+                this.correctCounts.set(virtualIdx, currentCount + 1);
+                
+                // Only remove from unmatched if reached the required repetitions
+                if (this.correctCounts.get(virtualIdx) >= this.reviewRepetitions) {
+                    this.unmatched.delete(virtualIdx);
+                    item.classList.add('matched');
+                    dot.classList.add('matched');
+                    setTimeout(() => this.fadeAndRemove(item, line), 1000);
                 } else {
+                    // Still need more repetitions - just show feedback and continue
+                    item.classList.add('matched');
+                    dot.classList.add('matched');
                     setTimeout(() => {
                         if (line) {
                             const svg = document.getElementById('linesSvg');
                             if (svg.contains(line)) svg.removeChild(line);
                         }
+                        // Refresh for next round
+                        this.renderAudio();
+                        this.renderPictures();
+                        this.updateProgress();
                     }, 1000);
                 }
             } else {
-                // Test mode
-                this.matches.push({
-                    playedCebuano: expected,
-                    selectedPictureCard: this.virtualCards[virtualIdx]
-                });
-                
-                this.scoreTracker.recordAnswer(isCorrect, this.virtualCards[virtualIdx].originalCard);
-                this.unmatched.delete(virtualIdx);
-                item.classList.add('matched');
-                dot.classList.add('matched');
-                
-                // In test mode, swap ALL 4 cards after selection
                 setTimeout(() => {
                     if (line) {
                         const svg = document.getElementById('linesSvg');
                         if (svg.contains(line)) svg.removeChild(line);
                     }
-                    
-                    if (this.unmatched.size === 0) {
-                        this.showTestReview();
-                    } else {
-                        // Refresh audio and ALL pictures for next round
-                        this.renderAudio();
-                        this.renderPictures();
-                        this.updateProgress();
-                    }
                 }, 1000);
             }
+        } else {
+            // Test mode
+            this.matches.push({
+                playedCebuano: expected,
+                selectedPictureCard: this.virtualCards[virtualIdx]
+            });
+            
+            this.scoreTracker.recordAnswer(isCorrect, this.virtualCards[virtualIdx].originalCard);
+            this.unmatched.delete(virtualIdx);
+            item.classList.add('matched');
+            dot.classList.add('matched');
+            
+            // In test mode, swap ALL 4 cards after selection
+            setTimeout(() => {
+                if (line) {
+                    const svg = document.getElementById('linesSvg');
+                    if (svg.contains(line)) svg.removeChild(line);
+                }
+                
+                if (this.unmatched.size === 0) {
+                    this.showTestReview();
+                } else {
+                    // Refresh audio and ALL pictures for next round
+                    this.renderAudio();
+                    this.renderPictures();
+                    this.updateProgress();
+                }
+            }, 1000);
         }
     }
     
