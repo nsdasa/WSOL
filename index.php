@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-<!-- Bob and Mariel Ward School of Filipino Languages - Version 4.1 - Voice Practice - November 18, 2025 -->
+<!-- Bob and Mariel Ward School of Filipino Languages - Version 4.2 - Advanced Filter - November 2025 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,26 +8,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <?php
-    // ROBUST CACHE BUSTER FUNCTION
-    // Uses __DIR__ for reliable path resolution regardless of working directory
     function cacheBust($file) {
         $fullPath = __DIR__ . '/' . $file;
         if (file_exists($fullPath)) {
             return filemtime($fullPath);
         } else {
-            // Log missing file for debugging (check PHP error log)
             error_log("Cache buster: File not found - " . $fullPath);
-            // Return current timestamp as fallback (forces reload)
             return time();
         }
     }
     ?>
     
-    <!-- Core Styles with Cache Busting -->
     <link rel="stylesheet" href="styles/core.css?v=<?php echo cacheBust('styles/core.css'); ?>">
     <link rel="stylesheet" href="styles/theme.css?v=<?php echo cacheBust('styles/theme.css'); ?>">
-    
-    <!-- Module Styles -->
     <link rel="stylesheet" href="styles/modules/flashcards.css?v=<?php echo cacheBust('styles/modules/flashcards.css'); ?>">
     <link rel="stylesheet" href="styles/modules/match.css?v=<?php echo cacheBust('styles/modules/match.css'); ?>">
     <link rel="stylesheet" href="styles/modules/match-sound.css?v=<?php echo cacheBust('styles/modules/match-sound.css'); ?>">
@@ -35,12 +28,9 @@
     <link rel="stylesheet" href="styles/modules/admin.css?v=<?php echo cacheBust('styles/modules/admin.css'); ?>">
     <link rel="stylesheet" href="styles/modules/pdf-print.css?v=<?php echo cacheBust('styles/modules/pdf-print.css'); ?>">
     <link rel="stylesheet" href="styles/modules/deck-builder.css?v=<?php echo cacheBust('styles/modules/deck-builder.css'); ?>">
-    
-    <!-- Voice Practice Styles -->
     <link rel="stylesheet" href="styles/modules/voice-practice.css?v=<?php echo cacheBust('styles/modules/voice-practice.css'); ?>">
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <div class="header-content">
             <div class="header-title">
@@ -48,7 +38,7 @@
                     <img id="logoImg" src="assets/logo.png" alt="Logo" class="logo-image" style="display: none;" onload="this.style.display='inline-block';" onerror="this.style.display='none'">
                     Bob and Mariel Ward School of Filipino Languages
                 </h1>
-                <span class="version-badge">v4.1</span>
+                <span class="version-badge">v4.2</span>
             </div>
             <div class="header-controls">
                 <div class="language-selector">
@@ -63,6 +53,13 @@
                         <option value="">Select Lesson...</option>
                     </select>
                 </div>
+                <div class="filter-button-container">
+                    <button id="advancedFilterBtn">
+                        <i class="fas fa-filter"></i>
+                        <span>Advanced Filter</span>
+                        <span class="filter-indicator"></span>
+                    </button>
+                </div>
                 <button id="themeToggle" class="theme-toggle">
                     <i class="fas fa-moon"></i>
                     <span>Dark Mode</span>
@@ -71,9 +68,7 @@
         </div>
     </div>
 
-    <!-- Main Container -->
     <div class="container">
-        <!-- Navigation Tabs -->
         <div class="nav-tabs">
             <button class="nav-tab active" data-module="flashcards">
                 <i class="fas fa-layer-group"></i>
@@ -104,15 +99,11 @@
                 Print PDFs
             </button>
         </div>
-
-        <!-- Module Container -->
         <div id="moduleContainer" class="module-container"></div>
     </div>
 
-    <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Instruction Modal -->
     <div id="instructionModal" class="modal hidden">
         <div class="modal-content instruction-modal">
             <div class="modal-header">
@@ -129,7 +120,6 @@
         </div>
     </div>
 
-    <!-- Login Modal -->
     <div id="loginModal" class="modal hidden">
         <div class="modal-content login-modal">
             <div class="modal-header">
@@ -156,7 +146,84 @@
         </div>
     </div>
 
-    <!-- SCAN RESULTS MODAL - FULLY RESTORED -->
+    <div id="advancedFilterModal" class="modal hidden">
+        <div class="modal-content filter-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-filter"></i> Advanced Filter</h2>
+                <button id="closeFilterModal" class="btn-icon"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="filter-section-title">Lesson Range</div>
+                <div class="lesson-range-row">
+                    <div class="filter-group">
+                        <label for="filterStartLesson">Start Lesson</label>
+                        <select id="filterStartLesson">
+                            <option value="">All</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterEndLesson">End Lesson</label>
+                        <select id="filterEndLesson">
+                            <option value="">All</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="filter-hint">Select a range of lessons or leave as "All"</p>
+                
+                <div class="filter-section-divider">
+                    <div class="filter-section-title">Card Properties</div>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filterGrammar">Grammar</label>
+                    <select id="filterGrammar">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filterCategory">Category</label>
+                    <select id="filterCategory">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filterSubCategory1">Sub-Category 1</label>
+                    <select id="filterSubCategory1">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filterSubCategory2">Sub-Category 2</label>
+                    <select id="filterSubCategory2">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filterActfl">ACTFL Level</label>
+                    <select id="filterActfl">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                
+                <div class="filter-match-count">
+                    <span id="filterMatchCount">0 cards match</span>
+                </div>
+            </div>
+            <div class="filter-footer">
+                <button id="clearFiltersBtn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Clear Filters
+                </button>
+                <button id="applyFiltersBtn" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="scanModal" class="modal hidden">
         <div class="modal-content scan-modal" style="max-width:600px;">
             <div class="modal-header">
@@ -190,7 +257,6 @@
         </div>
     </div>
 
-    <!-- Debug Console -->
     <div id="debugConsole" class="debug-console">
         <div class="debug-header">
             <span><i class="fas fa-terminal"></i> Debug Log</span>
@@ -201,16 +267,9 @@
         <div id="debugLog" class="debug-log"></div>
     </div>
 
-    <!-- Core Application Script -->
     <script src="app.js?v=<?php echo cacheBust('app.js'); ?>"></script>
-    
-    <!-- Authentication Manager -->
     <script src="auth-manager.js?v=<?php echo cacheBust('auth-manager.js'); ?>"></script>
-    
-    <!-- Voice Practice Module (load before flashcards) -->
     <script src="voice-practice-module.js?v=<?php echo cacheBust('voice-practice-module.js'); ?>"></script>
-    
-    <!-- Individual Module Scripts -->
     <script src="flashcards-module.js?v=<?php echo cacheBust('flashcards-module.js'); ?>"></script>
     <script src="match-module.js?v=<?php echo cacheBust('match-module.js'); ?>"></script>
     <script src="match-sound-module.js?v=<?php echo cacheBust('match-sound-module.js'); ?>"></script>
@@ -218,8 +277,6 @@
     <script src="admin-module.js?v=<?php echo cacheBust('admin-module.js'); ?>"></script>
     <script src="pdf-module.js?v=<?php echo cacheBust('pdf-module.js'); ?>"></script>
     <script src="deck-builder-module.js?v=<?php echo cacheBust('deck-builder-module.js'); ?>"></script>
-    
-    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>

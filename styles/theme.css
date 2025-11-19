@@ -116,6 +116,45 @@ body.mobile-phone textarea {
     font-size: 16px;
 }
 
+/* Mobile: Filter button and modal */
+body.mobile-phone #advancedFilterBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+body.mobile-phone #advancedFilterBtn span {
+    display: none;
+}
+
+body.mobile-phone .filter-modal {
+    width: 95%;
+    max-width: none;
+}
+
+body.mobile-phone .filter-modal .modal-body {
+    padding: 16px;
+    max-height: 50vh;
+}
+
+body.mobile-phone .lesson-range-row {
+    flex-direction: column;
+    gap: 16px;
+}
+
+body.mobile-phone .filter-footer {
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.mobile-phone .filter-footer .btn {
+    width: 100%;
+}
+
+/* Tablet filter adjustments */
+body.mobile-tablet .filter-modal {
+    max-width: 500px;
+}
+
 /* =================================================================
    MODALS - MOBILE RESPONSIVE
    ================================================================= */

@@ -4,21 +4,20 @@ class FlashcardsModule extends LearningModule {
         this.cards = [];
         this.currentIndex = 0;
         this.cardsPerPage = deviceDetector ? deviceDetector.getCardsPerPage() : 4;
-        // v4.0: Cards only contain learning language + English
     }
     
     async render() {
         const langName = this.assets.currentLanguage?.name || 'Language';
-        const lessonNum = this.assets.currentLesson || 'Lesson';
+        const lessonDisplay = (filterManager && filterManager.isActive()) 
+            ? 'Special' 
+            : (this.assets.currentLesson || 'Lesson');
         
-        // Check if voice practice is enabled
         const vpEnabled = voicePracticeManager ? voicePracticeManager.isEnabled() : false;
         
         this.container.innerHTML = `
             <div class="container module-flashcards">
-                <h1>Flashcards (${langName}: Lesson ${lessonNum})</h1>
+                <h1>Flashcards (${langName}: ${lessonDisplay})</h1>
                 
-                <!-- Voice Practice Toggle -->
                 <div class="vp-toggle-container">
                     <label>
                         <input type="checkbox" id="vpToggle" ${vpEnabled ? 'checked' : ''}>
@@ -37,8 +36,8 @@ class FlashcardsModule extends LearningModule {
     }
     
     async init() {
-        // Check if language and lesson are selected
-        if (!this.assets.currentLanguage || !this.assets.currentLesson) {
+        const hasFilter = filterManager && filterManager.isActive();
+        if (!this.assets.currentLanguage || (!this.assets.currentLesson && !hasFilter)) {
             document.getElementById('cardsGrid').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -54,8 +53,8 @@ class FlashcardsModule extends LearningModule {
             document.getElementById('cardsGrid').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p>No cards available for this lesson.</p>
-                    <p>Please scan assets or select a different lesson.</p>
+                    <p>No cards available for this ${hasFilter ? 'filter' : 'lesson'}.</p>
+                    <p>Please ${hasFilter ? 'adjust your filters' : 'scan assets or select a different lesson'}.</p>
                 </div>
             `;
             return;
@@ -65,13 +64,11 @@ class FlashcardsModule extends LearningModule {
         document.getElementById('nextBtn').addEventListener('click', () => this.nextPage());
         document.getElementById('restartBtn').addEventListener('click', () => this.restart());
         
-        // Voice practice toggle
         const vpToggle = document.getElementById('vpToggle');
         if (vpToggle) {
             vpToggle.addEventListener('change', (e) => {
                 if (voicePracticeManager) {
                     voicePracticeManager.setEnabled(e.target.checked);
-                    // Re-render to show/hide mic icons
                     this.renderPage();
                 }
             });
@@ -79,7 +76,6 @@ class FlashcardsModule extends LearningModule {
         
         await this.renderPage();
         
-        // Show instructions
         if (instructionManager) {
             instructionManager.show(
                 'flashcards',
@@ -103,7 +99,6 @@ class FlashcardsModule extends LearningModule {
         
         grid.innerHTML = '';
         
-        // Check if voice practice is enabled
         const vpEnabled = voicePracticeManager ? voicePracticeManager.isEnabled() : false;
         
         for (const card of pageCards) {
@@ -120,13 +115,11 @@ class FlashcardsModule extends LearningModule {
             
             const img = document.createElement('img');
             img.src = card.imagePath;
-            // v4.0 fix: Use card.word instead of card.cebuano
             img.alt = `${card.word} - ${card.english}`;
             img.onerror = () => {
                 img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
             };
             
-            // Add timeout and proper error handling for image loading
             await new Promise((resolve) => {
                 const timeout = setTimeout(() => {
                     debugLogger?.log(2, `Image load timeout for: ${card.imagePath}`);
@@ -154,7 +147,6 @@ class FlashcardsModule extends LearningModule {
             
             front.appendChild(img);
             
-            // Speaker icon (right side)
             if (card.hasAudio) {
                 const speaker = document.createElement('div');
                 speaker.className = 'speaker-icon';
@@ -167,7 +159,6 @@ class FlashcardsModule extends LearningModule {
                 front.appendChild(speaker);
             }
             
-            // Mic icon (left side) - Voice Practice
             if (card.hasAudio && vpEnabled) {
                 const mic = document.createElement('div');
                 mic.className = 'mic-icon';
@@ -186,28 +177,20 @@ class FlashcardsModule extends LearningModule {
             back.style.display = 'none';
             back.style.opacity = '0';
             
-            // Dynamic font size calculation based on word length
             const getDynamicFontSize = (word, baseSize = 28, minSize = 16) => {
                 const length = word.length;
                 if (length <= 6) {
-                    debugLogger?.log(3, `Font calc: "${word}" (${length} chars) -> ${baseSize}px (short word)`);
                     return baseSize;
                 }
-                
                 const reduction = (length - 6) * 1.2;
                 const calculated = baseSize - reduction;
-                const final = Math.max(minSize, calculated);
-                
-                debugLogger?.log(3, `Font calc: "${word}" (${length} chars) -> reduction: ${reduction}px, calculated: ${calculated}px, final: ${final}px`);
-                return final;
+                return Math.max(minSize, calculated);
             };
             
-            // Secondary word dynamic sizing (smaller base)
             const getSecondaryFontSize = (word) => {
                 return getDynamicFontSize(word, 18, 14);
             };
             
-            // v4.0: Use normalized card properties directly
             const learningLangLabel = this.assets.currentLanguage.name;
             const primaryWord = card.word;
             const primaryNote = card.wordNote || '';
@@ -222,10 +205,6 @@ class FlashcardsModule extends LearningModule {
             const primaryFontSize = getDynamicFontSize(primaryWord);
             const englishFontSize = getSecondaryFontSize(englishWord);
             
-            debugLogger?.log(3, `Primary word "${primaryWord}" will render at ${primaryFontSize}px`);
-            debugLogger?.log(3, `English word "${englishWord}" will render at ${englishFontSize}px`);
-            
-            // Build the card back HTML - v4.0: Always show learning language + English
             let backHTML = `
                 <div class="card-back-content">
                     <div class="primary-word-box">
@@ -243,9 +222,6 @@ class FlashcardsModule extends LearningModule {
             
             back.innerHTML = backHTML;
             
-            debugLogger?.log(3, `Card back HTML generated for card ${card.cardNum}`);
-            
-            // Speaker icon on back
             if (card.hasAudio) {
                 const speakerBack = document.createElement('div');
                 speakerBack.className = 'speaker-icon';
@@ -258,7 +234,6 @@ class FlashcardsModule extends LearningModule {
                 back.appendChild(speakerBack);
             }
             
-            // Mic icon on back - Voice Practice
             if (card.hasAudio && vpEnabled) {
                 const micBack = document.createElement('div');
                 micBack.className = 'mic-icon';
@@ -275,7 +250,6 @@ class FlashcardsModule extends LearningModule {
             cardEl.appendChild(front);
             cardEl.appendChild(back);
             
-            // Store primaryWord for flip handler
             const wordLength = primaryWord.length;
             
             cardEl.addEventListener('click', () => {
@@ -283,11 +257,7 @@ class FlashcardsModule extends LearningModule {
                 const back = cardEl.querySelector('.card-back');
                 
                 if (cardEl.classList.contains('flipped')) {
-                    // Flipping to front - remove expansion
-                    debugLogger?.log(3, `Flipping to front, removing card expansion`);
                     cardContainer.classList.remove('card-expanded');
-                    
-                    // Show front
                     back.style.opacity = '0';
                     setTimeout(() => {
                         back.style.display = 'none';
@@ -298,18 +268,13 @@ class FlashcardsModule extends LearningModule {
                     }, 300);
                     cardEl.classList.remove('flipped');
                 } else {
-                    // Flipping to back - check if expansion needed
                     const needsExpansion = wordLength > 6;
-                    
                     if (needsExpansion) {
-                        debugLogger?.log(3, `Long word (${wordLength} chars) - expanding card`);
                         cardContainer.classList.add('card-expanded');
                     } else {
-                        debugLogger?.log(3, `Short word (${wordLength} chars) - normal width`);
                         cardContainer.classList.remove('card-expanded');
                     }
                     
-                    // Show back
                     front.style.opacity = '0';
                     setTimeout(() => {
                         front.style.display = 'none';

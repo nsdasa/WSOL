@@ -908,6 +908,194 @@ button[id*="Restart"]:active {
 }
 
 /* =================================================================
+   ADVANCED FILTER MODAL
+   ================================================================= */
+
+.filter-button-container {
+    display: flex;
+    align-items: center;
+}
+
+#advancedFilterBtn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#advancedFilterBtn:hover {
+    background: var(--gray-100);
+    border-color: var(--primary);
+}
+
+#advancedFilterBtn.filter-active {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+#advancedFilterBtn .filter-indicator {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: none;
+}
+
+#advancedFilterBtn.filter-active .filter-indicator {
+    display: inline-block;
+}
+
+.filter-modal {
+    max-width: 600px;
+    width: 95%;
+}
+
+.filter-modal .modal-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 20px 24px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-modal .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+.filter-modal .modal-header .btn-icon {
+    color: white;
+    opacity: 0.8;
+}
+
+.filter-modal .modal-header .btn-icon:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.filter-modal .modal-body {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-group select:hover {
+    border-color: var(--primary);
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.lesson-range-row {
+    display: flex;
+    gap: 16px;
+}
+
+.lesson-range-row .filter-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.filter-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 4px;
+}
+
+.filter-match-count {
+    text-align: center;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-top: 20px;
+    border: 1px solid var(--border-color);
+}
+
+#filterMatchCount {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--success);
+}
+
+.filter-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-radius: 0 0 12px 12px;
+}
+
+.filter-footer .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+.filter-section-divider {
+    border-top: 1px solid var(--border-color);
+    margin: 20px 0;
+    padding-top: 20px;
+}
+
+.filter-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+
+/* =================================================================
    UTILITY CLASSES
    ================================================================= */
 

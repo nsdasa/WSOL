@@ -1,6 +1,6 @@
 // =================================================================
 // CEBUANO LEARNING PLATFORM - Core Application
-// Version 4.0 - November 2025 - Per-language card support
+// Version 4.2 - November 2025 - Advanced Filter Support
 // =================================================================
 
 // Global instances
@@ -13,6 +13,7 @@ let themeManager;
 let toastManager;
 let deviceDetector;
 let instructionManager;
+let filterManager;
 
 // =================================================================
 // BASE MODULE CLASS (Previously in modules.js)
@@ -398,6 +399,356 @@ class InstructionManager {
 }
 
 // =================================================================
+// FILTER MANAGER - Advanced Filtering System
+// =================================================================
+class FilterManager {
+    constructor() {
+        this.filters = {
+            startLesson: null,
+            endLesson: null,
+            grammar: null,
+            category: null,
+            subCategory1: null,
+            subCategory2: null,
+            actflEst: null
+        };
+        this.isAdvancedFilterActive = false;
+        this.modal = null;
+        this.filterOptions = {
+            lessons: [],
+            grammar: [],
+            category: [],
+            subCategory1: [],
+            subCategory2: [],
+            actflEst: []
+        };
+    }
+    
+    init() {
+        this.modal = document.getElementById('advancedFilterModal');
+        
+        const filterBtn = document.getElementById('advancedFilterBtn');
+        if (filterBtn) {
+            filterBtn.addEventListener('click', () => this.showModal());
+        }
+        
+        const closeBtn = document.getElementById('closeFilterModal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hideModal());
+        }
+        
+        const applyBtn = document.getElementById('applyFiltersBtn');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => this.applyFilters());
+        }
+        
+        const clearBtn = document.getElementById('clearFiltersBtn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearFilters());
+        }
+        
+        if (this.modal) {
+            this.modal.addEventListener('click', (e) => {
+                if (e.target === this.modal) {
+                    this.hideModal();
+                }
+            });
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.modal && !this.modal.classList.contains('hidden')) {
+                this.hideModal();
+            }
+        });
+        
+        const selectors = ['filterStartLesson', 'filterEndLesson', 'filterGrammar', 
+                          'filterCategory', 'filterSubCategory1', 'filterSubCategory2', 'filterActfl'];
+        selectors.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('change', () => this.updateMatchCount());
+            }
+        });
+        
+        debugLogger?.log(3, 'FilterManager initialized');
+    }
+    
+    populateFilterOptions() {
+        if (!assetManager || !assetManager.cards || assetManager.cards.length === 0) {
+            debugLogger?.log(2, 'No cards available for filter options');
+            return;
+        }
+        
+        const cards = assetManager.cards;
+        const lessons = new Set();
+        const grammar = new Set();
+        const category = new Set();
+        const subCategory1 = new Set();
+        const subCategory2 = new Set();
+        const actflEst = new Set();
+        
+        cards.forEach(card => {
+            if (card.lesson) lessons.add(card.lesson);
+            if (card.grammar) grammar.add(card.grammar);
+            if (card.category) category.add(card.category);
+            if (card.subCategory1) subCategory1.add(card.subCategory1);
+            if (card.subCategory2) subCategory2.add(card.subCategory2);
+            if (card.actflEst) actflEst.add(card.actflEst);
+        });
+        
+        this.filterOptions.lessons = Array.from(lessons).sort((a, b) => a - b);
+        this.filterOptions.grammar = Array.from(grammar).sort();
+        this.filterOptions.category = Array.from(category).sort();
+        this.filterOptions.subCategory1 = Array.from(subCategory1).sort();
+        this.filterOptions.subCategory2 = Array.from(subCategory2).sort();
+        this.filterOptions.actflEst = Array.from(actflEst).sort();
+        
+        this.populateDropdown('filterStartLesson', this.filterOptions.lessons, true);
+        this.populateDropdown('filterEndLesson', this.filterOptions.lessons, true);
+        this.populateDropdown('filterGrammar', this.filterOptions.grammar);
+        this.populateDropdown('filterCategory', this.filterOptions.category);
+        this.populateDropdown('filterSubCategory1', this.filterOptions.subCategory1);
+        this.populateDropdown('filterSubCategory2', this.filterOptions.subCategory2);
+        this.populateDropdown('filterActfl', this.filterOptions.actflEst);
+        
+        debugLogger?.log(3, `Filter options populated: ${this.filterOptions.lessons.length} lessons`);
+    }
+    
+    populateDropdown(elementId, options, isLesson = false) {
+        const select = document.getElementById(elementId);
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">All</option>';
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.textContent = isLesson ? `Lesson ${opt}` : opt;
+            select.appendChild(option);
+        });
+    }
+    
+    showModal() {
+        this.populateFilterOptions();
+        this.restoreFilterValues();
+        this.updateMatchCount();
+        if (this.modal) {
+            this.modal.classList.remove('hidden');
+        }
+    }
+    
+    hideModal() {
+        if (this.modal) {
+            this.modal.classList.add('hidden');
+        }
+    }
+    
+    restoreFilterValues() {
+        const setSelectValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value || '';
+        };
+        
+        setSelectValue('filterStartLesson', this.filters.startLesson);
+        setSelectValue('filterEndLesson', this.filters.endLesson);
+        setSelectValue('filterGrammar', this.filters.grammar);
+        setSelectValue('filterCategory', this.filters.category);
+        setSelectValue('filterSubCategory1', this.filters.subCategory1);
+        setSelectValue('filterSubCategory2', this.filters.subCategory2);
+        setSelectValue('filterActfl', this.filters.actflEst);
+    }
+    
+    getSelectedFilters() {
+        const getValue = (id) => {
+            const el = document.getElementById(id);
+            return el && el.value ? el.value : null;
+        };
+        
+        return {
+            startLesson: getValue('filterStartLesson') ? parseInt(getValue('filterStartLesson')) : null,
+            endLesson: getValue('filterEndLesson') ? parseInt(getValue('filterEndLesson')) : null,
+            grammar: getValue('filterGrammar'),
+            category: getValue('filterCategory'),
+            subCategory1: getValue('filterSubCategory1'),
+            subCategory2: getValue('filterSubCategory2'),
+            actflEst: getValue('filterActfl')
+        };
+    }
+    
+    getMatchingCards() {
+        if (!assetManager || !assetManager.cards) return [];
+        
+        const filters = this.getSelectedFilters();
+        let cards = [...assetManager.cards];
+        
+        if (filters.startLesson !== null || filters.endLesson !== null) {
+            const start = filters.startLesson || 1;
+            const end = filters.endLesson || 999;
+            cards = cards.filter(card => card.lesson >= start && card.lesson <= end);
+        }
+        
+        if (filters.grammar) {
+            cards = cards.filter(card => card.grammar === filters.grammar);
+        }
+        if (filters.category) {
+            cards = cards.filter(card => card.category === filters.category);
+        }
+        if (filters.subCategory1) {
+            cards = cards.filter(card => card.subCategory1 === filters.subCategory1);
+        }
+        if (filters.subCategory2) {
+            cards = cards.filter(card => card.subCategory2 === filters.subCategory2);
+        }
+        if (filters.actflEst) {
+            cards = cards.filter(card => card.actflEst === filters.actflEst);
+        }
+        
+        return cards;
+    }
+    
+    updateMatchCount() {
+        const matchingCards = this.getMatchingCards();
+        const countEl = document.getElementById('filterMatchCount');
+        if (countEl) {
+            countEl.textContent = `${matchingCards.length} card${matchingCards.length !== 1 ? 's' : ''} match`;
+            countEl.style.color = matchingCards.length === 0 ? 'var(--error)' : 'var(--success)';
+        }
+    }
+    
+    applyFilters() {
+        const filters = this.getSelectedFilters();
+        const matchingCards = this.getMatchingCards();
+        
+        if (matchingCards.length === 0) {
+            toastManager?.show('No cards match the selected filters', 'warning');
+            return;
+        }
+        
+        const hasAdvancedFilter = filters.grammar || filters.category || 
+                                  filters.subCategory1 || filters.subCategory2 || 
+                                  filters.actflEst ||
+                                  (filters.startLesson !== null && filters.endLesson !== null && 
+                                   filters.startLesson !== filters.endLesson);
+        
+        this.filters = filters;
+        this.isAdvancedFilterActive = hasAdvancedFilter || 
+                                      (filters.startLesson !== null || filters.endLesson !== null);
+        
+        const filterBtn = document.getElementById('advancedFilterBtn');
+        if (filterBtn) {
+            filterBtn.classList.toggle('filter-active', this.isAdvancedFilterActive);
+        }
+        
+        const lessonSelect = document.getElementById('lessonSelect');
+        if (lessonSelect) {
+            if (this.isAdvancedFilterActive) {
+                lessonSelect.disabled = true;
+                lessonSelect.value = '';
+                const specialOption = document.createElement('option');
+                specialOption.value = 'special';
+                specialOption.textContent = 'Special (Filtered)';
+                specialOption.id = 'specialFilterOption';
+                lessonSelect.appendChild(specialOption);
+                lessonSelect.value = 'special';
+            } else {
+                lessonSelect.disabled = false;
+                const specialOpt = document.getElementById('specialFilterOption');
+                if (specialOpt) specialOpt.remove();
+            }
+        }
+        
+        this.hideModal();
+        toastManager?.show(`Filter applied: ${matchingCards.length} cards`, 'success');
+        debugLogger?.log(2, `Advanced filter applied: ${matchingCards.length} cards match`);
+        
+        if (router && router.currentModule) {
+            const currentModuleName = window.location.hash.slice(1) || 'flashcards';
+            router.navigate(currentModuleName);
+        }
+    }
+    
+    clearFilters() {
+        this.filters = {
+            startLesson: null,
+            endLesson: null,
+            grammar: null,
+            category: null,
+            subCategory1: null,
+            subCategory2: null,
+            actflEst: null
+        };
+        this.isAdvancedFilterActive = false;
+        
+        ['filterStartLesson', 'filterEndLesson', 'filterGrammar', 'filterCategory', 
+         'filterSubCategory1', 'filterSubCategory2', 'filterActfl'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        const filterBtn = document.getElementById('advancedFilterBtn');
+        if (filterBtn) {
+            filterBtn.classList.remove('filter-active');
+        }
+        
+        const lessonSelect = document.getElementById('lessonSelect');
+        if (lessonSelect) {
+            lessonSelect.disabled = false;
+            const specialOpt = document.getElementById('specialFilterOption');
+            if (specialOpt) specialOpt.remove();
+            
+            if (assetManager && assetManager.lessons.length > 0) {
+                lessonSelect.value = assetManager.lessons[0];
+                assetManager.setLesson(assetManager.lessons[0]);
+            }
+        }
+        
+        this.updateMatchCount();
+        toastManager?.show('Filters cleared', 'success');
+        debugLogger?.log(2, 'Advanced filters cleared');
+        
+        if (router && router.currentModule) {
+            const currentModuleName = window.location.hash.slice(1) || 'flashcards';
+            router.navigate(currentModuleName);
+        }
+    }
+    
+    isActive() {
+        return this.isAdvancedFilterActive;
+    }
+    
+    getFilteredCards(cards) {
+        if (!this.isAdvancedFilterActive) {
+            return null;
+        }
+        
+        let filtered = [...cards];
+        
+        if (this.filters.startLesson !== null || this.filters.endLesson !== null) {
+            const start = this.filters.startLesson || 1;
+            const end = this.filters.endLesson || 999;
+            filtered = filtered.filter(card => card.lesson >= start && card.lesson <= end);
+        }
+        
+        if (this.filters.grammar) {
+            filtered = filtered.filter(card => card.grammar === this.filters.grammar);
+        }
+        if (this.filters.category) {
+            filtered = filtered.filter(card => card.category === this.filters.category);
+        }
+        if (this.filters.subCategory1) {
+            filtered = filtered.filter(card => card.subCategory1 === this.filters.subCategory1);
+        }
+        if (this.filters.subCategory2) {
+            filtered = filtered.filter(card => card.subCategory2 === this.filters.subCategory2);
+        }
+        if (this.filters.actflEst) {
+            filtered = filtered.filter(card => card.actflEst === this.filters.actflEst);
+        }
+        
+        return filtered;
+    }
+}
+
+// =================================================================
 // ASSET MANAGER - Version 4.0 - Per-language card support
 // =================================================================
 class AssetManager {
@@ -540,6 +891,12 @@ class AssetManager {
         
         // Update lesson selector for new language
         this.populateLessonSelector();
+        
+        // Clear advanced filters when language changes
+        if (filterManager && filterManager.isAdvancedFilterActive) {
+            filterManager.clearFilters();
+        }
+        
         this.updateModuleTitles();
         
         return true;
@@ -570,10 +927,18 @@ class AssetManager {
     getCards(filters = {}) {
         let filtered = [...this.cards];
         
-        // Filter by lesson (use currentLesson if not specified)
-        const lessonFilter = filters.lesson !== undefined ? filters.lesson : this.currentLesson;
-        if (lessonFilter !== null && lessonFilter !== undefined) {
-            filtered = filtered.filter(card => card.lesson === lessonFilter);
+        // Check if advanced filter is active
+        if (filterManager && filterManager.isActive()) {
+            filtered = filterManager.getFilteredCards(this.cards);
+            if (filtered === null) {
+                filtered = [...this.cards];
+            }
+        } else {
+            // Normal lesson filtering
+            const lessonFilter = filters.lesson !== undefined ? filters.lesson : this.currentLesson;
+            if (lessonFilter !== null && lessonFilter !== undefined) {
+                filtered = filtered.filter(card => card.lesson === lessonFilter);
+            }
         }
         
         // Filter by audio availability
@@ -1162,6 +1527,10 @@ async function init() {
     instructionManager = new InstructionManager();
     instructionManager.init();
     
+    // Initialize filter manager
+    filterManager = new FilterManager();
+    filterManager.init();
+    
     assetManager = new AssetManager();
     try {
         await assetManager.loadManifest();
@@ -1193,6 +1562,13 @@ async function init() {
             const trigraph = e.target.value;
             if (trigraph && assetManager.setLanguage(trigraph)) {
                 toastManager.show(`Language changed to ${assetManager.currentLanguage.name}`, 'success');
+                
+                // Update filter button appearance
+                const filterBtn = document.getElementById('advancedFilterBtn');
+                if (filterBtn) {
+                    filterBtn.classList.remove('filter-active');
+                }
+                
                 // Re-render current module if one is active
                 if (router.currentModule) {
                     const currentModuleName = window.location.hash.slice(1) || 'flashcards';
@@ -1204,8 +1580,33 @@ async function init() {
     
     if (lessonSelect) {
         lessonSelect.addEventListener('change', async (e) => {
+            // Ignore if "special" is selected (from advanced filter)
+            if (e.target.value === 'special') return;
+            
             const lessonNum = parseInt(e.target.value);
             if (lessonNum && assetManager.setLesson(lessonNum)) {
+                // Clear advanced filter when manually selecting a lesson
+                if (filterManager && filterManager.isActive()) {
+                    filterManager.filters = {
+                        startLesson: null,
+                        endLesson: null,
+                        grammar: null,
+                        category: null,
+                        subCategory1: null,
+                        subCategory2: null,
+                        actflEst: null
+                    };
+                    filterManager.isAdvancedFilterActive = false;
+                    
+                    const filterBtn = document.getElementById('advancedFilterBtn');
+                    if (filterBtn) {
+                        filterBtn.classList.remove('filter-active');
+                    }
+                    
+                    const specialOpt = document.getElementById('specialFilterOption');
+                    if (specialOpt) specialOpt.remove();
+                }
+                
                 toastManager.show(`Lesson changed to ${lessonNum}`, 'success');
                 // Re-render current module if one is active
                 if (router.currentModule) {
