@@ -11,13 +11,25 @@ class FlashcardsModule extends LearningModule {
         const langName = this.assets.currentLanguage?.name || 'Language';
         const lessonNum = this.assets.currentLesson || 'Lesson';
         
+        // Check if voice practice is enabled
+        const vpEnabled = voicePracticeManager ? voicePracticeManager.isEnabled() : false;
+        
         this.container.innerHTML = `
             <div class="container module-flashcards">
                 <h1>Flashcards (${langName}: Lesson ${lessonNum})</h1>
+                
+                <!-- Voice Practice Toggle -->
+                <div class="vp-toggle-container">
+                    <label>
+                        <input type="checkbox" id="vpToggle" ${vpEnabled ? 'checked' : ''}>
+                        <i class="fas fa-microphone"></i> Enable Voice Practice
+                    </label>
+                </div>
+                
                 <div class="controls">
-                    <button id="prevBtn">< Previous</button>
-                    <button id="restartBtn" class="btn-secondary"><i class="fas fa-redo"></i> Restart</button>
-                    <button id="nextBtn">Next ></button>
+                    <button id="prevBtn" class="btn btn-secondary"><i class="fas fa-chevron-left"></i> Previous</button>
+                    <button id="restartBtn" class="btn btn-primary"><i class="fas fa-redo"></i> Restart</button>
+                    <button id="nextBtn" class="btn btn-secondary">Next <i class="fas fa-chevron-right"></i></button>
                 </div>
                 <div id="cardsGrid" class="cards-grid"></div>
             </div>
@@ -53,6 +65,18 @@ class FlashcardsModule extends LearningModule {
         document.getElementById('nextBtn').addEventListener('click', () => this.nextPage());
         document.getElementById('restartBtn').addEventListener('click', () => this.restart());
         
+        // Voice practice toggle
+        const vpToggle = document.getElementById('vpToggle');
+        if (vpToggle) {
+            vpToggle.addEventListener('change', (e) => {
+                if (voicePracticeManager) {
+                    voicePracticeManager.setEnabled(e.target.checked);
+                    // Re-render to show/hide mic icons
+                    this.renderPage();
+                }
+            });
+        }
+        
         await this.renderPage();
         
         // Show instructions
@@ -60,7 +84,8 @@ class FlashcardsModule extends LearningModule {
             instructionManager.show(
                 'flashcards',
                 'Flashcards Instructions',
-                'Click on the Speaker icon to hear the word. Click on the picture to see the word.'
+                'Click on the Speaker icon to hear the word. Click on the picture to see the word.' + 
+                (voicePracticeManager?.isEnabled() ? ' Click the Mic icon to practice pronunciation.' : '')
             );
         }
     }
@@ -77,6 +102,9 @@ class FlashcardsModule extends LearningModule {
         const pageCards = this.cards.slice(start, end);
         
         grid.innerHTML = '';
+        
+        // Check if voice practice is enabled
+        const vpEnabled = voicePracticeManager ? voicePracticeManager.isEnabled() : false;
         
         for (const card of pageCards) {
             const cardContainer = document.createElement('div');
@@ -126,6 +154,7 @@ class FlashcardsModule extends LearningModule {
             
             front.appendChild(img);
             
+            // Speaker icon (right side)
             if (card.hasAudio) {
                 const speaker = document.createElement('div');
                 speaker.className = 'speaker-icon';
@@ -136,6 +165,20 @@ class FlashcardsModule extends LearningModule {
                     audio.play().catch(err => debugLogger.log(1, `Audio play error: ${err.message}`));
                 });
                 front.appendChild(speaker);
+            }
+            
+            // Mic icon (left side) - Voice Practice
+            if (card.hasAudio && vpEnabled) {
+                const mic = document.createElement('div');
+                mic.className = 'mic-icon';
+                mic.innerHTML = '<i class="fas fa-microphone"></i>';
+                mic.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (voicePracticeManager) {
+                        voicePracticeManager.startPractice(card);
+                    }
+                });
+                front.appendChild(mic);
             }
             
             const back = document.createElement('div');
@@ -202,6 +245,7 @@ class FlashcardsModule extends LearningModule {
             
             debugLogger?.log(3, `Card back HTML generated for card ${card.cardNum}`);
             
+            // Speaker icon on back
             if (card.hasAudio) {
                 const speakerBack = document.createElement('div');
                 speakerBack.className = 'speaker-icon';
@@ -212,6 +256,20 @@ class FlashcardsModule extends LearningModule {
                     audio.play().catch(err => debugLogger.log(1, `Audio play error: ${err.message}`));
                 });
                 back.appendChild(speakerBack);
+            }
+            
+            // Mic icon on back - Voice Practice
+            if (card.hasAudio && vpEnabled) {
+                const micBack = document.createElement('div');
+                micBack.className = 'mic-icon';
+                micBack.innerHTML = '<i class="fas fa-microphone"></i>';
+                micBack.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (voicePracticeManager) {
+                        voicePracticeManager.startPractice(card);
+                    }
+                });
+                back.appendChild(micBack);
             }
             
             cardEl.appendChild(front);

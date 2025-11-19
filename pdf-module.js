@@ -281,21 +281,26 @@ class PDFPrintModule extends LearningModule {
     updateCardPreview() {
         const allCards = this.assets.cards || [];
         
+        let filteredCards = [];
+        
         if (this.filterType === 'lesson') {
             const lessonFrom = parseInt(document.getElementById('lessonFromFilter').value);
             const lessonTo = parseInt(document.getElementById('lessonToFilter').value);
             const minLesson = Math.min(lessonFrom, lessonTo);
             const maxLesson = Math.max(lessonFrom, lessonTo);
             
-            this.selectedCards = allCards.filter(c => c.lesson >= minLesson && c.lesson <= maxLesson);
+            filteredCards = allCards.filter(c => c.lesson >= minLesson && c.lesson <= maxLesson);
         } else {
             const grammarType = document.getElementById('grammarFilter').value;
             if (grammarType) {
-                this.selectedCards = allCards.filter(c => c.grammar === grammarType);
+                filteredCards = allCards.filter(c => c.grammar === grammarType);
             } else {
-                this.selectedCards = [];
+                filteredCards = [];
             }
         }
+        
+        // Enrich cards for v4.0 compatibility (adds imagePath, word, english, allTranslations)
+        this.selectedCards = filteredCards.map(card => this.assets.enrichCard(card));
         
         const previewCount = document.getElementById('cardPreviewCount');
         const generateBtn = document.getElementById('generatePDFBtn');
@@ -846,7 +851,11 @@ class PDFPrintModule extends LearningModule {
             
             // Load and draw image
             try {
-                const imgData = await this.loadImageAsDataURL(card.imagePath);
+                const imgPath = card.imagePath || card.printImagePath;
+                if (!imgPath) {
+                    throw new Error('No image path available');
+                }
+                const imgData = await this.loadImageAsDataURL(imgPath);
                 const imgWidth = cardWidth * 0.8;
                 const imgHeight = cardHeight * 0.8;
                 const imgX = pos.x + (cardWidth - imgWidth) / 2;
@@ -891,8 +900,8 @@ class PDFPrintModule extends LearningModule {
             doc.setFillColor(255, 255, 255);
             doc.rect(pos.x + 1, pos.y + 1, cardWidth - 2, cardHeight - 2, 'F');
             
-            // Get translations
-            const learningTranslation = card.translations[learningLang.toLowerCase()];
+            // Get translations - use v4.0 normalized properties
+            const learningWord = card.word || '';
             
             let yOffset = pos.y + 25;
             const centerX = pos.x + cardWidth / 2;
@@ -907,12 +916,18 @@ class PDFPrintModule extends LearningModule {
             // Learning language word (large, bold)
             doc.setFontSize(28);
             doc.setFont('helvetica', 'bold');
-            doc.text(learningTranslation.word, centerX, yOffset, { align: 'center' });
+            doc.text(learningWord, centerX, yOffset, { align: 'center' });
             yOffset += 15;
             
             // Add selected secondary languages
             this.selectedLanguages.forEach(langKey => {
-                const translation = card.translations[langKey];
+                // Use allTranslations for compatibility, fallback to english property
+                let translation;
+                if (card.allTranslations && card.allTranslations[langKey]) {
+                    translation = card.allTranslations[langKey];
+                } else if (langKey === 'english' && card.english) {
+                    translation = { word: card.english };
+                }
                 const langLabel = langKey.charAt(0).toUpperCase() + langKey.slice(1);
                 
                 if (translation && translation.word) {

@@ -366,8 +366,8 @@ class MatchExerciseModule extends LearningModule {
                 selectedWord: selectedWord
             });
             
-            this.scoreTracker.recordAnswer(isCorrect, this.virtualCards[virtualIdx].originalCard); // UPDATED
-            this.unmatched.delete(virtualIdx); // UPDATED
+            this.scoreTracker.recordAnswer(isCorrect, this.virtualCards[this.currentTargetIdx].originalCard); // FIX: Use target, not selected
+            this.unmatched.delete(this.currentTargetIdx); // FIX: Remove TARGET picture, not selected word
             item.classList.add('matched');
             dot.classList.add('matched');
             

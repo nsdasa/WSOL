@@ -1,0 +1,419 @@
+/* =================================================================
+   VOICE PRACTICE MODULE STYLES
+   Version 1.0 - November 2025
+   ================================================================= */
+
+/* =================================================================
+   MIC ICON ON FLASHCARDS
+   ================================================================= */
+
+.mic-icon {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.mic-icon:hover {
+    transform: scale(1.1);
+    background: var(--primary-dark);
+}
+
+.mic-icon.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Mobile adjustments */
+body.mobile-phone .mic-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+}
+
+/* =================================================================
+   VOICE PRACTICE TOGGLE IN CONTROLS
+   ================================================================= */
+
+.vp-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+}
+
+.vp-toggle-container label {
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vp-toggle-container input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* =================================================================
+   VOICE PRACTICE MODAL
+   ================================================================= */
+
+.vp-modal {
+    max-width: 700px;
+    width: 95%;
+}
+
+.vp-body {
+    padding: 24px;
+}
+
+.vp-word-display {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    border-radius: 12px;
+}
+
+.vp-word {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.vp-english {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+/* Start Section */
+.vp-start-section {
+    text-align: center;
+    padding: 32px 16px;
+}
+
+.vp-start-section p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.btn-large {
+    padding: 16px 32px;
+    font-size: 18px;
+}
+
+/* =================================================================
+   COUNTDOWN
+   ================================================================= */
+
+.vp-countdown {
+    text-align: center;
+    padding: 40px 16px;
+}
+
+.vp-countdown-number {
+    font-size: 96px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+    animation: vp-pulse 0.8s infinite;
+}
+
+.vp-countdown-text {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-top: 16px;
+}
+
+@keyframes vp-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.95); }
+}
+
+/* =================================================================
+   RECORDING INDICATOR
+   ================================================================= */
+
+.vp-recording {
+    text-align: center;
+    padding: 40px 16px;
+}
+
+.vp-recording-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #dc2626;
+    font-weight: 600;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.vp-pulse-dot {
+    width: 16px;
+    height: 16px;
+    background: #dc2626;
+    border-radius: 50%;
+    animation: vp-pulse-dot 1.5s infinite;
+}
+
+@keyframes vp-pulse-dot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.5; }
+}
+
+.vp-say-word {
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+.vp-say-word strong {
+    color: var(--primary);
+    font-size: 32px;
+}
+
+/* =================================================================
+   RESULTS
+   ================================================================= */
+
+.vp-results {
+    padding: 16px 0;
+}
+
+.vp-score-display {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.vp-score-circle {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 16px;
+}
+
+.vp-score-circle svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.vp-score-bg {
+    fill: none;
+    stroke: var(--bg-secondary);
+    stroke-width: 8;
+}
+
+.vp-score-fill {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease-in-out;
+}
+
+.vp-score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.vp-feedback {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.vp-feedback.excellent {
+    color: #10b981;
+}
+
+.vp-feedback.great {
+    color: #3b82f6;
+}
+
+.vp-feedback.good {
+    color: #f59e0b;
+}
+
+.vp-feedback.practice {
+    color: #6b7280;
+}
+
+/* =================================================================
+   VISUALIZATION TABS
+   ================================================================= */
+
+.vp-viz-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: var(--bg-secondary);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.vp-viz-tab {
+    flex: 1;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+}
+
+.vp-viz-tab:hover {
+    background: var(--bg-hover);
+}
+
+.vp-viz-tab.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* =================================================================
+   CANVAS CONTAINER
+   ================================================================= */
+
+.vp-canvas-container {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+#vpCanvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+/* =================================================================
+   ACTION BUTTONS
+   ================================================================= */
+
+.vp-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.vp-actions .btn {
+    padding: 12px 20px;
+    font-size: 14px;
+}
+
+/* =================================================================
+   MOBILE RESPONSIVE
+   ================================================================= */
+
+body.mobile-phone .vp-modal {
+    width: 98%;
+    max-height: 90vh;
+}
+
+body.mobile-phone .vp-body {
+    padding: 16px;
+}
+
+body.mobile-phone .vp-word {
+    font-size: 32px;
+}
+
+body.mobile-phone .vp-english {
+    font-size: 16px;
+}
+
+body.mobile-phone .vp-countdown-number {
+    font-size: 72px;
+}
+
+body.mobile-phone .vp-score-circle {
+    width: 120px;
+    height: 120px;
+}
+
+body.mobile-phone .vp-score-text {
+    font-size: 28px;
+}
+
+body.mobile-phone .vp-viz-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+body.mobile-phone .vp-viz-tab {
+    font-size: 11px;
+    padding: 8px 10px;
+    white-space: nowrap;
+}
+
+body.mobile-phone .vp-canvas-container {
+    padding: 12px;
+}
+
+body.mobile-phone .vp-actions {
+    flex-direction: column;
+}
+
+body.mobile-phone .vp-actions .btn {
+    width: 100%;
+}
+
+/* Tablet adjustments */
+body.mobile-tablet .vp-modal {
+    max-width: 600px;
+}
+
+/* =================================================================
+   DARK MODE ADJUSTMENTS
+   ================================================================= */
+
+[data-theme="dark"] .vp-word-display {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(30, 41, 59, 0.8) 100%);
+}
+
+[data-theme="dark"] .vp-canvas-container {
+    background: #0f172a;
+}
+
+/* =================================================================
+   HIDDEN CLASS
+   ================================================================= */
+
+.hidden {
+    display: none !important;
+}

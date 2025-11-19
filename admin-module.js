@@ -1,6 +1,7 @@
 // =================================================================
-// ADMIN MODULE - Version 4.0
+// ADMIN MODULE - Version 4.0 RESTORED
 // November 2025 - Per-language card support
+// Full functionality with proper icons and modal display
 // =================================================================
 
 class AdminModule extends LearningModule {
@@ -153,218 +154,245 @@ class AdminModule extends LearningModule {
                             
                             <div class="file-upload-container">
                                 <label class="file-upload-label">
-                                    <i class="fas fa-volume-up"></i> Audio Files (MP3/M4A)
-                                    <span class="file-hint">Format: WordNum.lang.word.translation.mp3/m4a (e.g., 17.ceb.tilaw.taste.mp3)</span>
+                                    <i class="fas fa-music"></i> Audio Files (MP3/M4A)
+                                    <span class="file-hint">Format: WordNum.trigraph.word.mp3/m4a (e.g., 17.ceb.tilaw.m4a)</span>
                                 </label>
                                 <input type="file" id="audioFilesInput" accept=".mp3,.m4a" multiple class="file-input">
                                 <div class="file-status" id="audioFilesStatus">No files selected</div>
                             </div>
                         </div>
                         
-                        <button id="uploadMediaBtn" class="btn btn-success btn-lg" disabled>
+                        <button id="uploadMediaBtn" class="btn btn-primary" disabled>
                             <i class="fas fa-cloud-upload-alt"></i> Upload Media Files
                         </button>
-                        <p style="margin-top:12px;font-size:13px;color:var(--text-secondary);">
-                            <i class="fas fa-info-circle"></i> Upload CSVs first, then upload media files. The system will automatically match files to words.
-                        </p>
                     </div>
                 </div>
 
                 <div class="admin-section">
                     <h3 class="section-title"><i class="fas fa-bug"></i> Debug Configuration</h3>
                     <div class="debug-config">
-                        <div class="form-group">
-                            <label class="form-label">Debug Level</label>
-                            <div class="segmented-control">
-                                <button class="segmented-option" data-level="1">
-                                    <i class="fas fa-exclamation-circle"></i> Low
-                                </button>
-                                <button class="segmented-option active" data-level="2">
-                                    <i class="fas fa-exclamation-triangle"></i> Medium
-                                </button>
-                                <button class="segmented-option" data-level="3">
-                                    <i class="fas fa-info-circle"></i> High
+                        <p style="margin-bottom:12px;color:var(--text-secondary);font-size:14px;">
+                            Control the debug logging level for troubleshooting.
+                        </p>
+                        <div class="segmented-control">
+                            <button class="segmented-option ${debugLogger?.level === 0 ? 'active' : ''}" data-level="0">
+                                <i class="fas fa-ban"></i> Off
+                            </button>
+                            <button class="segmented-option ${debugLogger?.level === 1 ? 'active' : ''}" data-level="1">
+                                <i class="fas fa-exclamation-circle"></i> Errors
+                            </button>
+                            <button class="segmented-option ${debugLogger?.level === 2 ? 'active' : ''}" data-level="2">
+                                <i class="fas fa-exclamation-triangle"></i> Warnings
+                            </button>
+                            <button class="segmented-option ${debugLogger?.level === 3 ? 'active' : ''}" data-level="3">
+                                <i class="fas fa-info-circle"></i> All
+                            </button>
+                        </div>
+                        
+                        <div style="margin-top:20px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                <h4 style="margin:0;font-size:14px;color:var(--text-primary);">
+                                    <i class="fas fa-terminal"></i> Debug Log
+                                </h4>
+                                <button id="clearDebugBtn" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-trash-alt"></i> Clear
                                 </button>
                             </div>
+                            <div id="adminDebugLog" class="debug-log-container"></div>
                         </div>
-                        
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="adminShowDebug" checked>
-                            <label for="adminShowDebug">Show Debug Console</label>
-                        </div>
-                        
-                        <button id="clearDebugBtn" class="btn btn-secondary">
-                            <i class="fas fa-trash-alt"></i> Clear Debug Log
-                        </button>
                     </div>
                 </div>
 
                 <div class="admin-section">
-                    <h3 class="section-title"><i class="fas fa-clock"></i> Session Timeout</h3>
-                    <div class="debug-config">
-                        <div class="form-group">
-                            <label class="form-label">Login Session Duration (minutes)</label>
-                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                                <input type="number" id="sessionTimeoutInput" class="form-input" 
-                                    style="width: 120px;" min="5" max="480" step="5" value="30">
-                                <button id="saveTimeoutBtn" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Update Timeout
-                                </button>
-                            </div>
-                            <p style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
-                                <i class="fas fa-info-circle"></i> 
-                                Session expires after this many minutes of inactivity. 
-                                Range: 5-480 minutes (5 min - 8 hours)
-                            </p>
-                        </div>
-                        
-                        <div id="currentSessionInfo" class="current-session-info">
+                    <h3 class="section-title"><i class="fas fa-clock"></i> Session Management</h3>
+                    <div class="card" style="background:var(--bg-secondary);">
+                        <div class="current-session-info">
                             <strong>Current Session:</strong>
                             <span id="sessionStatusText">Not logged in</span>
                         </div>
+                        <div style="margin-top:16px;">
+                            <label class="form-label">Auto-logout Timeout (minutes)</label>
+                            <div style="display:flex;gap:12px;align-items:center;">
+                                <input type="number" id="sessionTimeoutInput" class="form-input" style="width:100px;" min="5" max="480" value="30">
+                                <button id="saveTimeoutBtn" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-save"></i> Update Timeout
+                                </button>
+                            </div>
+                            <p style="margin-top:8px;font-size:12px;color:var(--text-secondary);">
+                                Range: 5-480 minutes. Changes take effect immediately.
+                            </p>
+                        </div>
                     </div>
-                </div>
-
-                <div class="admin-section">
-                    <h3 class="section-title"><i class="fas fa-terminal"></i> Debug Log</h3>
-                    <div class="debug-log-container" id="adminDebugLog"></div>
                 </div>
             </div>
         `;
+
+        this.setupEventListeners();
+        this.updateStats();
+        this.checkModuleStatus();
+        this.updateDebugLog();
     }
 
-    async init() {
-        this.updateStats();
-        this.updateModuleStatus();
+    setupEventListeners() {
+        // Setup all sub-sections
+        this.setupCSVUpload();
+        this.setupAssetScanner();
+        this.setupMediaUpload();
         this.setupDebugControls();
         this.setupSessionTimeout();
-        this.setupCSVUpload();
-        this.setupMediaUpload();
-        this.setupAssetScanner();
-        this.updateDebugLog();
-
-        this.statsInterval = setInterval(() => {
-            this.updateStats();
-        }, 5000);
-
-        // Show instructions (warning)
-        if (instructionManager) {
-            instructionManager.show(
-                'admin',
-                'Admin Panel',
-                '***Unless you are the Admin... don\'t mess with this***'
-            );
+        
+        // Close scan modal button
+        const closeScanModal = document.getElementById('closeScanModal');
+        if (closeScanModal) {
+            closeScanModal.addEventListener('click', () => {
+                document.getElementById('scanModal')?.classList.add('hidden');
+            });
         }
     }
 
     updateStats() {
         const manifest = this.assets.manifest;
-        
-        // Handle v4.0 per-language cards structure
-        let totalCards = 0;
-        let totalAudio = 0;
-        
-        if (manifest?.stats) {
-            totalCards = manifest.stats.totalCards || 0;
-            totalAudio = manifest.stats.cardsWithAudio || 0;
-        } else if (manifest?.cards) {
-            // v4.0: cards is object with trigraph keys
-            if (typeof manifest.cards === 'object' && !Array.isArray(manifest.cards)) {
-                Object.values(manifest.cards).forEach(langCards => {
-                    if (Array.isArray(langCards)) {
-                        totalCards += langCards.length;
-                        totalAudio += langCards.filter(c => c.hasAudio).length;
-                    }
-                });
-            } else if (Array.isArray(manifest.cards)) {
-                // v3.x fallback: cards is flat array
-                totalCards = manifest.cards.length;
-                totalAudio = manifest.cards.filter(c => c.hasAudio).length;
-            }
-        }
-        
-        const moduleCount = router?.routes ? Object.keys(router.routes).length : 0;
-        
-        document.getElementById('adminTotalCards').textContent = totalCards;
-        document.getElementById('adminAudioCards').textContent = totalAudio;
-        document.getElementById('adminModuleCount').textContent = moduleCount;
-        
-        // Show manifest version info
+        if (!manifest) return;
+
+        // Update version info
         const versionEl = document.getElementById('manifestVersion');
         const lastUpdatedEl = document.getElementById('manifestLastUpdated');
         
-        if (versionEl && manifest) {
-            versionEl.textContent = manifest.version || '3.x';
-        }
-        
-        if (lastUpdatedEl && manifest?.lastUpdated) {
-            const date = new Date(manifest.lastUpdated);
-            lastUpdatedEl.textContent = date.toLocaleString();
-        }
-        
-        // Show per-language stats for v4.0
-        const langStatsContainer = document.getElementById('languageStatsContainer');
-        if (langStatsContainer && manifest?.stats?.languageStats) {
-            const langStats = manifest.stats.languageStats;
-            let html = '<h4 style="margin:0 0 12px 0;font-size:14px;color:var(--text-primary);">Per-Language Breakdown:</h4>';
-            
-            Object.entries(langStats).forEach(([trigraph, stats]) => {
-                const langName = this.assets.manifest?.languages?.find(l => l.trigraph === trigraph)?.name || trigraph.toUpperCase();
-                const lessons = stats.lessons?.length || 0;
-                html += `
-                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);">
-                        <span><strong>${langName}</strong></span>
-                        <span>${stats.totalCards} cards, ${stats.cardsWithAudio} audio, ${lessons} lessons</span>
-                    </div>
-                `;
+        if (versionEl) versionEl.textContent = manifest.version || '3.1';
+        if (lastUpdatedEl) lastUpdatedEl.textContent = manifest.lastUpdated || 'Unknown';
+
+        // Calculate total cards across all languages
+        let totalCards = 0;
+        let totalAudio = 0;
+        const langDetails = [];
+
+        if (manifest.cards) {
+            Object.entries(manifest.cards).forEach(([trigraph, cards]) => {
+                if (Array.isArray(cards)) {
+                    const langName = manifest.languages?.find(l => l.trigraph === trigraph)?.name || trigraph;
+                    const audioCount = cards.filter(c => c.hasAudio).length;
+                    totalCards += cards.length;
+                    totalAudio += audioCount;
+                    langDetails.push(`${langName}: ${cards.length}`);
+                }
             });
-            
+        }
+
+        // Update stat cards
+        const totalCardsEl = document.getElementById('adminTotalCards');
+        const audioCardsEl = document.getElementById('adminAudioCards');
+        const moduleCountEl = document.getElementById('adminModuleCount');
+        const cardsDetailEl = document.getElementById('adminCardsDetail');
+        const audioDetailEl = document.getElementById('adminAudioDetail');
+        
+        if (totalCardsEl) totalCardsEl.textContent = totalCards;
+        if (audioCardsEl) audioCardsEl.textContent = totalAudio;
+        if (moduleCountEl) moduleCountEl.textContent = '7'; // Fixed number of modules
+        
+        if (cardsDetailEl && langDetails.length > 0) {
+            cardsDetailEl.textContent = langDetails.join(' | ');
+        }
+        
+        if (audioDetailEl && totalCards > 0) {
+            const percentage = Math.round((totalAudio / totalCards) * 100);
+            audioDetailEl.textContent = `${percentage}% coverage`;
+        }
+
+        // Update language stats container
+        const langStatsContainer = document.getElementById('languageStatsContainer');
+        if (langStatsContainer && manifest.stats?.languageStats) {
+            let html = '<p><strong>Per-Language Statistics:</strong></p><div>';
+            Object.entries(manifest.stats.languageStats).forEach(([trigraph, stats]) => {
+                const langName = manifest.languages?.find(l => l.trigraph === trigraph)?.name || trigraph;
+                html += `<p><strong>${langName}:</strong> ${stats.totalCards} cards, ${stats.cardsWithAudio} with audio, ${stats.lessons?.length || 0} lessons</p>`;
+            });
+            html += '</div>';
             langStatsContainer.innerHTML = html;
-        }
-        
-        // Update detail text
-        const cardsDetail = document.getElementById('adminCardsDetail');
-        const audioDetail = document.getElementById('adminAudioDetail');
-        
-        if (cardsDetail && manifest?.stats?.totalImages) {
-            cardsDetail.textContent = `${manifest.stats.totalImages} images`;
-        }
-        
-        if (audioDetail && manifest?.stats?.totalAudio) {
-            audioDetail.textContent = `${manifest.stats.totalAudio} files`;
         }
     }
 
-    updateModuleStatus() {
+    checkModuleStatus() {
+        const statusContainer = document.getElementById('moduleStatus');
+        if (!statusContainer) return;
+
+        // Check if a module's nav tab exists
+        const hasNavTab = (moduleKey) => {
+            return document.querySelector(`.nav-tab[data-module="${moduleKey}"]`) !== null;
+        };
+
+        // Get current language cards from manifest
+        const currentLang = document.getElementById('languageSelect')?.value || 'ceb';
+        const cards = this.assets.manifest?.cards?.[currentLang] || [];
+        
+        // Count cards with specific features
+        const totalCards = cards.length;
+        const cardsWithImages = cards.filter(c => c.printImagePath).length;
+        const cardsWithAudio = cards.filter(c => c.hasAudio).length;
+
         const modules = [
-            { name: 'Flashcards', key: 'flashcards', icon: 'fa-layer-group' },
-            { name: 'Picture Match', key: 'match', icon: 'fa-link' },
-            { name: 'Audio Match', key: 'match-sound', icon: 'fa-volume-up' },
-            { name: 'Unsa Ni Quiz', key: 'quiz', icon: 'fa-question-circle' },
-            { name: 'Deck Builder', key: 'deck-builder', icon: 'fa-edit' },
-            { name: 'Print PDF', key: 'pdf', icon: 'fa-print' },
-            { name: 'Admin Panel', key: 'admin', icon: 'fa-tools' }
+            { 
+                name: 'Flashcards', 
+                icon: 'fa-layer-group', 
+                moduleKey: 'flashcards',
+                check: () => hasNavTab('flashcards') && totalCards > 0,
+                detail: `${totalCards} cards`
+            },
+            { 
+                name: 'Picture Match', 
+                icon: 'fa-link', 
+                moduleKey: 'match',
+                check: () => hasNavTab('match') && cardsWithImages > 0,
+                detail: `${cardsWithImages} with images`
+            },
+            { 
+                name: 'Audio Match', 
+                icon: 'fa-volume-up', 
+                moduleKey: 'match-sound',
+                check: () => hasNavTab('match-sound') && cardsWithAudio > 0,
+                detail: `${cardsWithAudio} with audio`
+            },
+            { 
+                name: 'Unsa Ni Quiz', 
+                icon: 'fa-question-circle', 
+                moduleKey: 'quiz',
+                check: () => hasNavTab('quiz') && cardsWithImages > 0,
+                detail: `${cardsWithImages} with images`
+            },
+            { 
+                name: 'Deck Builder', 
+                icon: 'fa-edit', 
+                moduleKey: 'deck-builder',
+                check: () => hasNavTab('deck-builder') && totalCards > 0,
+                detail: `${totalCards} cards`
+            },
+            { 
+                name: 'PDF Print', 
+                icon: 'fa-print', 
+                moduleKey: 'pdf',
+                check: () => hasNavTab('pdf') && cardsWithImages > 0,
+                detail: `${cardsWithImages} printable`
+            },
+            { 
+                name: 'Admin Panel', 
+                icon: 'fa-tools', 
+                moduleKey: 'admin',
+                check: () => hasNavTab('admin'),
+                detail: 'System tools'
+            }
         ];
-        
-        const container = document.getElementById('moduleStatus');
-        if (!container) return;
-        
-        container.innerHTML = modules.map(module => {
-            const isRegistered = router?.routes?.[module.key] !== undefined;
-            const statusClass = isRegistered ? 'success' : 'error';
-            const statusIcon = isRegistered ? 'fa-check-circle' : 'fa-times-circle';
-            const statusText = isRegistered ? 'Functional' : 'Not Loaded';
-            
+
+        statusContainer.innerHTML = modules.map(mod => {
+            const isLoaded = mod.check();
             return `
-                <div class="module-status-item ${statusClass}">
+                <div class="module-status-item ${isLoaded ? 'success' : 'error'}">
                     <div class="module-icon">
-                        <i class="fas ${module.icon}"></i>
+                        <i class="fas ${mod.icon}"></i>
                     </div>
                     <div class="module-info">
-                        <div class="module-name">${module.name}</div>
+                        <div class="module-name">${mod.name}</div>
                         <div class="module-status">
-                            <i class="fas ${statusIcon}"></i>
-                            ${statusText}
+                            <i class="fas ${isLoaded ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                            ${isLoaded ? mod.detail : 'Not Available'}
                         </div>
                     </div>
                 </div>
@@ -373,38 +401,22 @@ class AdminModule extends LearningModule {
     }
 
     setupDebugControls() {
-        document.querySelectorAll('.segmented-option').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.segmented-option').forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                const level = parseInt(e.currentTarget.dataset.level);
-                debugLogger.setLevel(level);
-                toastManager.show(`Debug level set to ${['Low', 'Medium', 'High'][level-1]}`, 'success');
-            });
-        });
-        
-        const currentLevel = debugLogger?.level || 2;
-        document.querySelectorAll('.segmented-option').forEach(btn => {
-            if (parseInt(btn.dataset.level) === currentLevel) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-        
-        const showDebugCheckbox = document.getElementById('adminShowDebug');
-        if (showDebugCheckbox) {
-            showDebugCheckbox.addEventListener('change', (e) => {
-                const debugConsole = document.getElementById('debugConsole');
-                if (debugConsole) {
-                    if (e.target.checked) {
-                        debugConsole.classList.add('visible');
-                    } else {
-                        debugConsole.classList.remove('visible');
-                    }
+        // Debug level buttons
+        document.querySelectorAll('.segmented-option[data-level]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const level = parseInt(btn.dataset.level);
+                if (debugLogger) {
+                    debugLogger.setLevel(level);
+                    
+                    // Update active state
+                    document.querySelectorAll('.segmented-option[data-level]').forEach(b => {
+                        b.classList.toggle('active', parseInt(b.dataset.level) === level);
+                    });
+                    
+                    toastManager.show(`Debug level set to ${level === 0 ? 'Off' : level === 1 ? 'Errors' : level === 2 ? 'Warnings' : 'All'}`, 'success');
                 }
             });
-        }
+        });
         
         const clearDebugBtn = document.getElementById('clearDebugBtn');
         if (clearDebugBtn) {
@@ -708,39 +720,105 @@ class AdminModule extends LearningModule {
     showScanResults(result) {
         const stats = result.stats || {};
         
-        // Build per-language stats text
-        let langStatsText = '';
+        // Use the pre-built scan modal from index.php
+        const scanModal = document.getElementById('scanModal');
+        
+        if (scanModal) {
+            // Populate the modal with stats
+            const totalCardsEl = document.getElementById('scanTotalCards');
+            const withAudioEl = document.getElementById('scanWithAudio');
+            const totalImagesEl = document.getElementById('scanTotalImages');
+            const reportLink = document.getElementById('scanReportLink');
+            
+            if (totalCardsEl) totalCardsEl.textContent = stats.totalCards || 0;
+            if (withAudioEl) withAudioEl.textContent = stats.cardsWithAudio || 0;
+            if (totalImagesEl) totalImagesEl.textContent = stats.totalImages || stats.totalPng || 0;
+            
+            if (reportLink && result.reportUrl) {
+                reportLink.href = result.reportUrl;
+                reportLink.style.display = 'inline-flex';
+            }
+            
+            // Show the modal
+            scanModal.classList.remove('hidden');
+        } else {
+            // Fallback: Create a styled modal if the pre-built one doesn't exist
+            this.showFallbackScanModal(result, stats);
+        }
+    }
+
+    showFallbackScanModal(result, stats) {
+        // Build per-language stats HTML
+        let langStatsHtml = '';
         if (stats.languageStats) {
+            langStatsHtml = '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-color);">';
+            langStatsHtml += '<h4 style="margin:0 0 12px 0;font-size:14px;color:var(--text-secondary);"><i class="fas fa-globe"></i> Per-Language Breakdown</h4>';
             Object.entries(stats.languageStats).forEach(([trigraph, ls]) => {
                 const langName = this.assets.manifest?.languages?.find(l => l.trigraph === trigraph)?.name || trigraph.toUpperCase();
-                langStatsText += `\n  ${langName}: ${ls.totalCards} cards, ${ls.cardsWithAudio} audio`;
+                langStatsHtml += `
+                    <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg-primary);border-radius:4px;margin-bottom:6px;">
+                        <span style="font-weight:600;color:var(--text-primary);">${langName}</span>
+                        <span style="color:var(--text-secondary);">${ls.totalCards} cards, ${ls.cardsWithAudio} with audio</span>
+                    </div>
+                `;
             });
+            langStatsHtml += '</div>';
         }
         
-        // Create a custom modal-style alert
+        // Create modal HTML
         const alertDiv = document.createElement('div');
-        alertDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-primary);padding:30px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:10000;max-width:500px;';
+        alertDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-primary);padding:0;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:10000;max-width:500px;width:90%;overflow:hidden;';
         
         alertDiv.innerHTML = `
-            <h3 style="margin:0 0 20px 0;color:var(--text-primary);">? Processing Complete!</h3>
-            <div style="background:var(--bg-secondary);padding:15px;border-radius:5px;margin-bottom:20px;white-space:pre-line;font-family:monospace;font-size:13px;color:var(--text-primary);">
-                <strong>?? Statistics:</strong>
-                  Total Cards: ${stats.totalCards || 0}
-                  With Audio: ${stats.cardsWithAudio || 0}
-                ${stats.totalPng ? `  PNG Files: ${stats.totalPng}` : ''}
-                ${stats.totalGif ? `  GIF Files: ${stats.totalGif}` : ''}
-                ${stats.totalAudio ? `  Audio Files: ${stats.totalAudio}` : ''}
-                ${stats.totalImages ? `  Total Images: ${stats.totalImages}` : ''}
-                ${langStatsText ? `\n<strong>Per-Language:</strong>${langStatsText}` : ''}
+            <div style="background:linear-gradient(135deg, #4CAF50, #45a049);padding:20px 24px;color:white;">
+                <h3 style="margin:0;display:flex;align-items:center;gap:10px;font-size:20px;">
+                    <i class="fas fa-check-circle"></i> Processing Complete!
+                </h3>
             </div>
-            ${result.reportUrl ? `
-                <div style="margin-bottom:15px;">
-                    <a href="${result.reportUrl}" target="_blank" class="btn btn-primary" style="display:inline-block;text-decoration:none;">
-                        <i class="fas fa-file-alt"></i> View Detailed Report
-                    </a>
+            <div style="padding:24px;">
+                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-bottom:16px;">
+                    <div style="text-align:center;padding:16px;background:var(--bg-secondary);border-radius:8px;">
+                        <div style="font-size:28px;font-weight:700;color:var(--primary);">${stats.totalCards || 0}</div>
+                        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Total Cards</div>
+                    </div>
+                    <div style="text-align:center;padding:16px;background:var(--bg-secondary);border-radius:8px;">
+                        <div style="font-size:28px;font-weight:700;color:var(--success);">${stats.cardsWithAudio || 0}</div>
+                        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">With Audio</div>
+                    </div>
+                    <div style="text-align:center;padding:16px;background:var(--bg-secondary);border-radius:8px;">
+                        <div style="font-size:28px;font-weight:700;color:var(--warning);">${stats.totalImages || stats.totalPng || 0}</div>
+                        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Images</div>
+                    </div>
                 </div>
-            ` : ''}
-            <button id="closeAlertBtn" class="btn btn-secondary">Close</button>
+                
+                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-bottom:16px;">
+                    <div style="text-align:center;padding:12px;background:var(--bg-secondary);border-radius:8px;">
+                        <div style="font-size:18px;font-weight:600;color:var(--text-primary);">${stats.totalPng || 0}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">PNG Files</div>
+                    </div>
+                    <div style="text-align:center;padding:12px;background:var(--bg-secondary);border-radius:8px;">
+                        <div style="font-size:18px;font-weight:600;color:var(--text-primary);">${stats.totalGif || 0}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">GIF Files</div>
+                    </div>
+                    <div style="text-align:center;padding:12px;background:var(--bg-secondary);border-radius:8px;">
+                        <div style="font-size:18px;font-weight:600;color:var(--text-primary);">${stats.totalAudio || 0}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Audio Files</div>
+                    </div>
+                </div>
+                
+                ${langStatsHtml}
+                
+                <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+                    ${result.reportUrl ? `
+                        <a href="${result.reportUrl}" target="_blank" class="btn btn-primary" style="flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;">
+                            <i class="fas fa-file-alt"></i> View Detailed Report
+                        </a>
+                    ` : ''}
+                    <button id="closeAlertBtn" class="btn btn-secondary" style="flex:1;">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
         `;
         
         const overlay = document.createElement('div');
@@ -757,24 +835,6 @@ class AdminModule extends LearningModule {
         
         closeBtn.addEventListener('click', closeAlert);
         overlay.addEventListener('click', closeAlert);
-        
-        // Also update the scan modal if it exists (v4.0 index.php)
-        const scanModal = document.getElementById('scanModal');
-        if (scanModal) {
-            const totalCardsEl = document.getElementById('scanTotalCards');
-            const withAudioEl = document.getElementById('scanWithAudio');
-            const totalImagesEl = document.getElementById('scanTotalImages');
-            const reportLink = document.getElementById('scanReportLink');
-            
-            if (totalCardsEl) totalCardsEl.textContent = stats.totalCards || 0;
-            if (withAudioEl) withAudioEl.textContent = stats.cardsWithAudio || 0;
-            if (totalImagesEl) totalImagesEl.textContent = stats.totalImages || stats.totalPng || 0;
-            
-            if (reportLink && result.reportUrl) {
-                reportLink.href = result.reportUrl;
-                reportLink.style.display = 'inline-block';
-            }
-        }
     }
 
     setupMediaUpload() {

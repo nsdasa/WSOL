@@ -186,7 +186,9 @@ class UnsaNiQuizModule extends LearningModule {
         document.getElementById('userInput').value = '';
         document.getElementById('userInput').focus();
         document.getElementById('feedbackMark').classList.remove('show');
+        document.getElementById('feedbackMark').textContent = '';
         document.getElementById('correctWordDisplay').classList.remove('show');
+        document.getElementById('correctWordDisplay').textContent = '';
     }
     
     submitAnswer() {

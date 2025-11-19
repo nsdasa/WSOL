@@ -1,24 +1,43 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-<!-- Bob and Mariel Ward School of Filipino Languages - Version 4.0 - FULLY RESTORED - November 18, 2025 -->
+<!-- Bob and Mariel Ward School of Filipino Languages - Version 4.1 - Voice Practice - November 18, 2025 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bob and Mariel Ward School of Filipino Languages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <?php
+    // ROBUST CACHE BUSTER FUNCTION
+    // Uses __DIR__ for reliable path resolution regardless of working directory
+    function cacheBust($file) {
+        $fullPath = __DIR__ . '/' . $file;
+        if (file_exists($fullPath)) {
+            return filemtime($fullPath);
+        } else {
+            // Log missing file for debugging (check PHP error log)
+            error_log("Cache buster: File not found - " . $fullPath);
+            // Return current timestamp as fallback (forces reload)
+            return time();
+        }
+    }
+    ?>
+    
     <!-- Core Styles with Cache Busting -->
-    <link rel="stylesheet" href="styles/core.css?v=<?php echo filemtime('styles/core.css'); ?>">
-    <link rel="stylesheet" href="styles/theme.css?v=<?php echo filemtime('styles/theme.css'); ?>">
+    <link rel="stylesheet" href="styles/core.css?v=<?php echo cacheBust('styles/core.css'); ?>">
+    <link rel="stylesheet" href="styles/theme.css?v=<?php echo cacheBust('styles/theme.css'); ?>">
     
     <!-- Module Styles -->
-    <link rel="stylesheet" href="styles/modules/flashcards.css?v=<?php echo filemtime('styles/modules/flashcards.css'); ?>">
-    <link rel="stylesheet" href="styles/modules/match.css?v=<?php echo filemtime('styles/modules/match.css'); ?>">
-    <link rel="stylesheet" href="styles/modules/match-sound.css?v=<?php echo filemtime('styles/modules/match-sound.css'); ?>">
-    <link rel="stylesheet" href="styles/modules/quiz.css?v=<?php echo filemtime('styles/modules/quiz.css'); ?>">
-    <link rel="stylesheet" href="styles/modules/admin.css?v=<?php echo filemtime('styles/modules/admin.css'); ?>">
-    <link rel="stylesheet" href="styles/modules/pdf-print.css?v=<?php echo filemtime('styles/modules/pdf-print.css'); ?>">
-    <link rel="stylesheet" href="styles/modules/deck-builder.css?v=<?php echo filemtime('styles/modules/deck-builder.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/flashcards.css?v=<?php echo cacheBust('styles/modules/flashcards.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/match.css?v=<?php echo cacheBust('styles/modules/match.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/match-sound.css?v=<?php echo cacheBust('styles/modules/match-sound.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/quiz.css?v=<?php echo cacheBust('styles/modules/quiz.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/admin.css?v=<?php echo cacheBust('styles/modules/admin.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/pdf-print.css?v=<?php echo cacheBust('styles/modules/pdf-print.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/deck-builder.css?v=<?php echo cacheBust('styles/modules/deck-builder.css'); ?>">
+    
+    <!-- Voice Practice Styles -->
+    <link rel="stylesheet" href="styles/modules/voice-practice.css?v=<?php echo cacheBust('styles/modules/voice-practice.css'); ?>">
 </head>
 <body>
     <!-- Header -->
@@ -29,7 +48,7 @@
                     <img id="logoImg" src="assets/logo.png" alt="Logo" class="logo-image" style="display: none;" onload="this.style.display='inline-block';" onerror="this.style.display='none'">
                     Bob and Mariel Ward School of Filipino Languages
                 </h1>
-                <span class="version-badge">v4.0</span>
+                <span class="version-badge">v4.1</span>
             </div>
             <div class="header-controls">
                 <div class="language-selector">
@@ -183,19 +202,22 @@
     </div>
 
     <!-- Core Application Script -->
-    <script src="app.js?v=<?php echo filemtime('app.js'); ?>"></script>
+    <script src="app.js?v=<?php echo cacheBust('app.js'); ?>"></script>
     
     <!-- Authentication Manager -->
-    <script src="auth-manager.js?v=<?php echo filemtime('auth-manager.js'); ?>"></script>
+    <script src="auth-manager.js?v=<?php echo cacheBust('auth-manager.js'); ?>"></script>
+    
+    <!-- Voice Practice Module (load before flashcards) -->
+    <script src="voice-practice-module.js?v=<?php echo cacheBust('voice-practice-module.js'); ?>"></script>
     
     <!-- Individual Module Scripts -->
-    <script src="flashcards-module.js?v=<?php echo filemtime('flashcards-module.js'); ?>"></script>
-    <script src="match-module.js?v=<?php echo filemtime('match-module.js'); ?>"></script>
-    <script src="match-sound-module.js?v=<?php echo filemtime('match-sound-module.js'); ?>"></script>
-    <script src="quiz-module.js?v=<?php echo filemtime('quiz-module.js'); ?>"></script>
-    <script src="admin-module.js?v=<?php echo filemtime('admin-module.js'); ?>"></script>
-    <script src="pdf-module.js?v=<?php echo filemtime('pdf-module.js'); ?>"></script>
-    <script src="deck-builder-module.js?v=<?php echo filemtime('deck-builder-module.js'); ?>"></script>
+    <script src="flashcards-module.js?v=<?php echo cacheBust('flashcards-module.js'); ?>"></script>
+    <script src="match-module.js?v=<?php echo cacheBust('match-module.js'); ?>"></script>
+    <script src="match-sound-module.js?v=<?php echo cacheBust('match-sound-module.js'); ?>"></script>
+    <script src="quiz-module.js?v=<?php echo cacheBust('quiz-module.js'); ?>"></script>
+    <script src="admin-module.js?v=<?php echo cacheBust('admin-module.js'); ?>"></script>
+    <script src="pdf-module.js?v=<?php echo cacheBust('pdf-module.js'); ?>"></script>
+    <script src="deck-builder-module.js?v=<?php echo cacheBust('deck-builder-module.js'); ?>"></script>
     
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

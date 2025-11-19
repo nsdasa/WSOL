@@ -97,7 +97,9 @@ class MatchSoundModule extends LearningModule {
         
         // Audio Match requires BOTH images (to show) and audio (to play)
         // v4.0: getCards returns enriched cards with normalized properties
-        this.allCards = this.assets.getCards({ hasAudio: true, hasImage: true });
+        // Note: We filter hasAudio via getCards, then manually filter for images
+        // because the AssetManager's hasImage filter has a type comparison issue
+        this.allCards = this.assets.getCards({ hasAudio: true }).filter(card => card.imagePath);
         
         if (this.allCards.length === 0) {
             document.getElementById('matchingContainer').innerHTML = `
