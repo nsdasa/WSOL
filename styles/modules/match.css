@@ -149,6 +149,31 @@
     color: var(--text-primary);
 }
 
+/* Picture-only mode (single large picture) */
+.picture-only {
+    cursor: default;
+    min-height: 300px;
+    min-width: 300px;
+    max-width: 400px;
+    max-height: 400px;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+.picture-only img {
+    border-radius: 8px;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
 .lines-overlay {
     position: absolute;
     top: 0;
@@ -330,7 +355,21 @@ body.mobile-phone .score-value {
     font-size: 36px;
 }
 
+body.mobile-phone .picture-only {
+    min-height: 200px;
+    min-width: 200px;
+    max-width: 280px;
+    max-height: 280px;
+}
+
 @media (max-width: 768px) {
+    .picture-only {
+        min-height: 200px;
+        min-width: 200px;
+        max-width: 300px;
+        max-height: 300px;
+    }
+
     .matching-container {
         flex-direction: column;
     }
