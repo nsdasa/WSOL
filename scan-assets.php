@@ -255,7 +255,12 @@ function detectScanConflicts() {
                 // Check for new audio file when card already has audio
                 if ($hasExistingAudio && isset($newAudioFiles[$trig][$cardNum])) {
                     $newFile = $newAudioFiles[$trig][$cardNum];
-                    $existingFile = basename($existingCard['audio']);
+                    // In v4.0, audio is an array - get first element if array
+                    $existingAudio = $existingCard['audio'];
+                    if (is_array($existingAudio)) {
+                        $existingAudio = reset($existingAudio); // Get first element
+                    }
+                    $existingFile = $existingAudio ? basename($existingAudio) : '';
 
                     if ($newFile !== $existingFile) {
                         $conflicts[] = [
