@@ -12,6 +12,7 @@ let assetScanner;
 let themeManager;
 let toastManager;
 let deviceDetector;
+let browserCapabilityDetector;
 let instructionManager;
 let filterManager;
 
@@ -189,6 +190,99 @@ class DeviceDetector {
     getMaxPictures() {
         // Return appropriate max pictures for matching games
         return 4; // Always 4 across all devices
+    }
+}
+
+// =================================================================
+// BROWSER CAPABILITY DETECTOR
+// =================================================================
+class BrowserCapabilityDetector {
+    constructor() {
+        this.supportsWebP = null;
+        this.supportsWebM = null;
+        this.supportsMP4 = null;
+    }
+
+    async init() {
+        // Detect all format support
+        await Promise.all([
+            this.detectWebP(),
+            this.detectWebM(),
+            this.detectMP4()
+        ]);
+
+        debugLogger?.log(3, `Browser support - WebP: ${this.supportsWebP}, WebM: ${this.supportsWebM}, MP4: ${this.supportsMP4}`);
+    }
+
+    async detectWebP() {
+        return new Promise((resolve) => {
+            const webpData = 'data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=';
+            const img = new Image();
+
+            img.onload = () => {
+                this.supportsWebP = img.width === 1 && img.height === 1;
+                resolve(this.supportsWebP);
+            };
+
+            img.onerror = () => {
+                this.supportsWebP = false;
+                resolve(false);
+            };
+
+            img.src = webpData;
+        });
+    }
+
+    detectWebM() {
+        return new Promise((resolve) => {
+            const video = document.createElement('video');
+            const canPlay = video.canPlayType('video/webm; codecs="vp8, vorbis"');
+            this.supportsWebM = canPlay === 'probably' || canPlay === 'maybe';
+            resolve(this.supportsWebM);
+        });
+    }
+
+    detectMP4() {
+        return new Promise((resolve) => {
+            const video = document.createElement('video');
+            const canPlay = video.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"');
+            this.supportsMP4 = canPlay === 'probably' || canPlay === 'maybe';
+            resolve(this.supportsMP4);
+        });
+    }
+
+    // Helper methods for easy checking
+    shouldUseWebP() {
+        return this.supportsWebP === true;
+    }
+
+    shouldUseWebM() {
+        return this.supportsWebM === true;
+    }
+
+    // Get preferred image format (webp if supported, otherwise png/jpg/jpeg)
+    getPreferredImageFormat(availableFormats) {
+        if (this.supportsWebP && availableFormats.webp) {
+            return 'webp';
+        }
+        // Fallback order: png, jpg, jpeg
+        if (availableFormats.png) return 'png';
+        if (availableFormats.jpg) return 'jpg';
+        if (availableFormats.jpeg) return 'jpeg';
+        return null;
+    }
+
+    // Get preferred video format (webm if supported, otherwise mp4, then gif)
+    getPreferredVideoFormat(availableFormats) {
+        if (this.supportsWebM && availableFormats.webm) {
+            return 'webm';
+        }
+        if (this.supportsMP4 && availableFormats.mp4) {
+            return 'mp4';
+        }
+        // Fallback to GIF (always supported)
+        if (availableFormats.gif) return 'gif';
+        return null;
     }
 }
 
@@ -987,6 +1081,33 @@ class AssetManager {
             if (!englishAcceptable || !Array.isArray(englishAcceptable)) {
                 englishAcceptable = card.english ? card.english.split('/').map(w => w.trim()).filter(w => w) : [];
             }
+
+            // Get image path with browser capability detection
+            let imagePath = null;
+            let isVideo = false;
+
+            const availableFormats = this.manifest.images?.[card.cardNum] || {};
+
+            if (card.hasGif) {
+                // Prefer animated/video formats
+                const videoFormat = browserCapabilityDetector?.getPreferredVideoFormat(availableFormats);
+                if (videoFormat) {
+                    imagePath = availableFormats[videoFormat];
+                    isVideo = videoFormat === 'mp4' || videoFormat === 'webm';
+                } else {
+                    // Fallback to print image if no animation available
+                    imagePath = card.printImagePath;
+                }
+            } else {
+                // Use static image with format preference
+                const imageFormat = browserCapabilityDetector?.getPreferredImageFormat(availableFormats);
+                if (imageFormat) {
+                    imagePath = availableFormats[imageFormat];
+                } else {
+                    // Fallback to printImagePath
+                    imagePath = card.printImagePath;
+                }
+            }
             
             // Get image path (prefer GIF/video for display, PNG for print)
             const imagePath = card.hasGif ?
@@ -1563,7 +1684,11 @@ async function init() {
     
     // Initialize device detector early
     deviceDetector = new DeviceDetector();
-    
+
+    // Initialize browser capability detector
+    browserCapabilityDetector = new BrowserCapabilityDetector();
+    await browserCapabilityDetector.init();
+
     themeManager = new ThemeManager();
     themeManager.init();
     
