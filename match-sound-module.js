@@ -291,21 +291,41 @@ class MatchSoundModule extends LearningModule {
             
             const item = document.createElement('div');
             item.className = 'item loading'; // Start with loading state
-            
-            const img = document.createElement('img');
-            img.alt = 'Match picture';
-            
-            // Handle image load
-            img.onload = () => {
-                item.classList.remove('loading');
-            };
-            
-            img.onerror = () => {
-                item.classList.remove('loading');
-                item.classList.add('load-error');
-                debugLogger?.log(2, `Failed to load image: ${card.imagePath}`);
-            };
-            
+
+            let img;
+            if (card.isVideo) {
+                // Create video element for MP4/WebM files
+                img = document.createElement('video');
+                img.autoplay = true;
+                img.loop = true;
+                img.muted = true;
+                img.playsInline = true;
+
+                img.onloadeddata = () => {
+                    item.classList.remove('loading');
+                };
+
+                img.onerror = () => {
+                    item.classList.remove('loading');
+                    item.classList.add('load-error');
+                    debugLogger?.log(2, `Failed to load video: ${card.imagePath}`);
+                };
+            } else {
+                // Create img element for PNG/JPG/JPEG/WebP/GIF files
+                img = document.createElement('img');
+                img.alt = 'Match picture';
+
+                img.onload = () => {
+                    item.classList.remove('loading');
+                };
+
+                img.onerror = () => {
+                    item.classList.remove('loading');
+                    item.classList.add('load-error');
+                    debugLogger?.log(2, `Failed to load image: ${card.imagePath}`);
+                };
+            }
+
             // Set src after handlers
             img.src = card.imagePath;
             
