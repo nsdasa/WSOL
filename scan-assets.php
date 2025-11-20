@@ -41,6 +41,9 @@ try {
         case 'uploadMedia':
             handleMediaUpload();
             break;
+        case 'detectConflicts':
+            detectScanConflicts();
+            break;
         case 'scan':
         default:
             scanAssets();
@@ -140,6 +143,151 @@ function handleMediaUpload() {
 }
 
 // ------------------------------------------------
+// 2. CONFLICT DETECTION
+// ------------------------------------------------
+function detectScanConflicts() {
+    global $assetsDir, $manifestPath;
+
+    try {
+        $conflicts = [];
+
+        // Load existing manifest
+        if (!file_exists($manifestPath)) {
+            echo json_encode([
+                'success' => true,
+                'hasConflicts' => false,
+                'message' => 'No existing manifest - fresh scan will be performed'
+            ]);
+            return;
+        }
+
+        $manifestJson = file_get_contents($manifestPath);
+        $existingManifest = json_decode($manifestJson, true);
+
+        // Index existing cards
+        $existingCards = [];
+        if ($existingManifest && isset($existingManifest['cards'])) {
+            foreach ($existingManifest['cards'] as $trig => $cards) {
+                foreach ($cards as $card) {
+                    $cardNum = $card['cardNum'] ?? ($card['wordNum'] ?? null);
+                    if ($cardNum) {
+                        $existingCards[$trig][$cardNum] = $card;
+                    }
+                }
+            }
+        }
+
+        // Load CSV data
+        $languages = loadLanguageList($assetsDir . '/Language_List.csv');
+        $langByTrigraph = [];
+        foreach ($languages as $l) $langByTrigraph[$l['trigraph']] = $l['name'];
+
+        // Scan for new asset files
+        $allFiles = scandir($assetsDir);
+        $newAudioFiles = [];
+        $newImageFiles = [];
+
+        foreach ($allFiles as $f) {
+            if ($f === '.' || $f === '..' || is_dir("$assetsDir/$f")) continue;
+            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+
+            if (in_array($ext, ['mp3','m4a','wav','webm'])) {
+                list($num, $trig) = extractAudioInfo($f);
+                if ($num && $trig) {
+                    $newAudioFiles[$trig][$num] = $f;
+                }
+            } elseif ($ext === 'png' || $ext === 'gif') {
+                $num = extractWordNum($f);
+                if ($num) {
+                    $newImageFiles[$num][] = $f;
+                }
+            }
+        }
+
+        // Check each language
+        foreach ($languages as $lang) {
+            $trig = $lang['trigraph'];
+            $csv = "$assetsDir/Word_List_" . $langByTrigraph[$trig] . ".csv";
+            if (!file_exists($csv)) continue;
+
+            $csvCards = loadLanguageWordList($csv);
+
+            foreach ($csvCards as $csvCard) {
+                $cardNum = $csvCard['cardNum'];
+                $existingCard = $existingCards[$trig][$cardNum] ?? null;
+
+                if (!$existingCard) continue; // New card, no conflict
+
+                // Check for text changes when card has assets
+                $hasExistingAudio = !empty($existingCard['audio']);
+                $hasExistingImage = !empty($existingCard['printImagePath']);
+
+                if ($hasExistingAudio || $hasExistingImage) {
+                    $textChanged =
+                        ($existingCard['word'] !== $csvCard['word']) ||
+                        ($existingCard['english'] !== $csvCard['english']) ||
+                        ($existingCard['lesson'] !== $csvCard['lesson']);
+
+                    if ($textChanged) {
+                        $conflicts[] = [
+                            'type' => 'text_change_with_assets',
+                            'cardNum' => $cardNum,
+                            'trigraph' => $trig,
+                            'language' => $langByTrigraph[$trig],
+                            'existing' => [
+                                'word' => $existingCard['word'],
+                                'english' => $existingCard['english'],
+                                'lesson' => $existingCard['lesson'],
+                                'hasAudio' => $hasExistingAudio,
+                                'audio' => $existingCard['audio'] ?? null,
+                                'hasImage' => $hasExistingImage,
+                                'image' => $existingCard['printImagePath'] ?? null
+                            ],
+                            'csv' => [
+                                'word' => $csvCard['word'],
+                                'english' => $csvCard['english'],
+                                'lesson' => $csvCard['lesson']
+                            ]
+                        ];
+                    }
+                }
+
+                // Check for new audio file when card already has audio
+                if ($hasExistingAudio && isset($newAudioFiles[$trig][$cardNum])) {
+                    $newFile = $newAudioFiles[$trig][$cardNum];
+                    $existingFile = basename($existingCard['audio']);
+
+                    if ($newFile !== $existingFile) {
+                        $conflicts[] = [
+                            'type' => 'new_audio_found',
+                            'cardNum' => $cardNum,
+                            'trigraph' => $trig,
+                            'language' => $langByTrigraph[$trig],
+                            'word' => $existingCard['word'],
+                            'existingAudio' => $existingFile,
+                            'newAudio' => $newFile
+                        ];
+                    }
+                }
+            }
+        }
+
+        echo json_encode([
+            'success' => true,
+            'hasConflicts' => count($conflicts) > 0,
+            'conflictCount' => count($conflicts),
+            'conflicts' => $conflicts
+        ]);
+
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Conflict detection error: ' . $e->getMessage()
+        ]);
+    }
+}
+
+// ------------------------------------------------
 // 3. MAIN SCAN FUNCTION
 // ------------------------------------------------
 function scanAssets() {
@@ -149,6 +297,26 @@ function scanAssets() {
         $languages = loadLanguageList($assetsDir . '/Language_List.csv');
     $langByTrigraph = [];
     foreach ($languages as $l) $langByTrigraph[$l['trigraph']] = $l['name'];
+
+    // Load existing manifest for smart merging
+    $existingManifest = null;
+    $existingCards = [];
+    if (file_exists($manifestPath)) {
+        $manifestJson = file_get_contents($manifestPath);
+        $existingManifest = json_decode($manifestJson, true);
+
+        // Index existing cards by cardNum and trigraph for quick lookup
+        if ($existingManifest && isset($existingManifest['cards'])) {
+            foreach ($existingManifest['cards'] as $trig => $cards) {
+                foreach ($cards as $card) {
+                    $cardNum = $card['cardNum'] ?? ($card['wordNum'] ?? null);
+                    if ($cardNum) {
+                        $existingCards[$trig][$cardNum] = $card;
+                    }
+                }
+            }
+        }
+    }
 
     // Temporary storage
     $cardsMaster = [];       // cardNum ? base data
@@ -268,7 +436,12 @@ function scanAssets() {
         foreach ($cardsMaster as $c) {
             if (!isset($c['word'][$trig])) continue;
 
-            // Build audio array matched to word variants
+            $cardNum = $c['cardNum'];
+
+            // Check if this card exists in the previous manifest (SMART MERGE)
+            $existingCard = $existingCards[$trig][$cardNum] ?? null;
+
+            // Build audio array matched to word variants (MULTI-VARIANT)
             $audioArray = [];
             $audioData = $c['audio'][$trig] ?? [];
 
@@ -288,15 +461,28 @@ function scanAssets() {
                 }
             }
 
+            // Smart merge: Preserve existing audio if present (manual recordings are kept!)
+            if ($existingCard && !empty($existingCard['audio'])) {
+                $audioArray = $existingCard['audio'];
+                // Ensure it's an array for multi-variant support
+                if (!is_array($audioArray)) {
+                    $audioArray = [$audioArray];
+                }
+            }
+
             $hasAudio = !empty(array_filter($audioArray));
 
-            // Split words by "/" to create acceptableAnswers arrays
+            // Split words by "/" to create acceptableAnswers arrays (MULTI-VARIANT)
             $wordVariants = array_map('trim', explode('/', $c['word'][$trig]));
             $englishVariants = array_map('trim', explode('/', $c['english'][$trig] ?? ''));
             $cebuanoVariants = [];
             if (!empty($c['cebuano'][$trig])) {
                 $cebuanoVariants = array_map('trim', explode('/', $c['cebuano'][$trig]));
             }
+
+            // Smart merge: Preserve existing image paths
+            $printImagePath = $existingCard['printImagePath'] ?? ($c['printImagePath'] ?? null);
+            $hasGif = $existingCard['hasGif'] ?? ($c['hasGif'] ?? false);
 
             $finalCards[$trig][] = [
                 'lesson' => $c['lesson'],
@@ -318,8 +504,8 @@ function scanAssets() {
                 'cebuanoAcceptable' => $cebuanoVariants,
                 'audio' => $audioArray,
                 'hasAudio' => $hasAudio,
-                'printImagePath' => $c['printImagePath'],
-                'hasGif' => $c['hasGif']
+                'printImagePath' => $printImagePath,
+                'hasGif' => $hasGif
             ];
 
             $langStats['totalCards']++;
