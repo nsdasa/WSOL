@@ -15,17 +15,23 @@ class MatchExerciseModule extends LearningModule {
     }
     
     // ADDED: Expand physical cards into virtual cards (one per acceptable answer)
+    // UPDATED for multi-variant audio: Assigns individual audio to each variant
     expandToVirtualCards(cards) {
         const virtualCards = [];
         cards.forEach((card, physicalIndex) => {
             const acceptableAnswers = card.acceptableAnswers || [card.word];
-            acceptableAnswers.forEach(targetWord => {
+            const audioPaths = card.audioPath || [];  // Array of audio paths
+
+            acceptableAnswers.forEach((targetWord, variantIndex) => {
+                // Match audio to variant by index
+                const individualAudioPath = audioPaths[variantIndex] || null;
+
                 virtualCards.push({
                     cardId: card.cardNum,           // Track original card (v4.0)
                     targetWord: targetWord,         // The specific word to test
                     physicalIndex: physicalIndex,   // Index in allCards array
                     imagePath: card.imagePath,
-                    audioPath: card.audioPath,
+                    audioPath: individualAudioPath, // Individual audio for this variant
                     allWords: acceptableAnswers,    // For exclusion logic
                     originalCard: card              // Full card reference
                 });

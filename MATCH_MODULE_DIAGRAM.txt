@@ -1,0 +1,196 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                    MATCH MODULE DATA FLOW DIAGRAM                              ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ MANIFEST.JSON (v3.x)                                                            │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ {                                                                               │
+│   "languages": [...],                                                          │
+│   "cards": [                                                                   │
+│     {                                                                          │
+│       "wordNum": 1,           ← Card ID                                        │
+│       "lesson": 1,            ← Lesson filter                                  │
+│       "imagePath": "...",     ← Image to display                               │
+│       "audio": {"ceb": "..."},← Audio path                                     │
+│       "translations": {                                                        │
+│         "cebuano": {                                                           │
+│           "word": "Asa",      ← Primary word                                   │
+│           "acceptableAnswers": ["Asa"]  ← ALL valid answers for this word      │
+│         }                                                                      │
+│       }                                                                        │
+│     }, ...                                                                     │
+│   ]                                                                            │
+│ }                                                                              │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        │ AssetManager.loadManifest()
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ ASSETMANAGER STATE                                                              │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ languages = [...loaded from manifest...]                                       │
+│ cards = [] (set when language selected)                                        │
+│ currentLanguage = null (set when language selected)                            │
+│ currentLesson = null (set when lesson selected)                                │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                      ┌─────────────────┼─────────────────┐
+                      │                 │                 │
+        setLanguage("ceb")   setLesson(1)    getCards()
+                      │                 │                 │
+                      ▼                 ▼                 ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ MATCHEXERCISEMODULE.INIT()                                                      │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ this.allCards = assets.getCards()  // Get enriched cards for current lesson   │
+│                                                                                │
+│ Result: [                                                                     │
+│   {                                                                           │
+│     cardNum: 1,                                                              │
+│     word: "Asa",                                                             │
+│     acceptableAnswers: ["Asa"],                                              │
+│     imagePath: "assets/1.Asa.Where.png",                                     │
+│     audioPath: "assets/1.ceb.asa.m4a",                                       │
+│     ... (enriched with normalized properties)                                │
+│   }, ...                                                                     │
+│ ]                                                                            │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                      startExercise() called
+                                        │
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ VIRTUAL CARD EXPANSION                                                          │
+│ expandToVirtualCards(this.allCards)                                            │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ For each physical card with multiple acceptable answers:                       │
+│   Create multiple virtual cards (one per answer variant)                       │
+│                                                                                │
+│ Example:                                                                       │
+│   Physical Card: {word: "cat/kitten", acceptableAnswers: ["cat", "kitten"]}  │
+│   ↓                                                                            │
+│   Virtual Card 0: {targetWord: "cat",    cardId: 1, allWords: ["cat", ...]}  │
+│   Virtual Card 1: {targetWord: "kitten", cardId: 1, allWords: ["cat", ...]}  │
+│                                                                                │
+│ Result: this.virtualCards = [                                                │
+│   {cardId: 1, targetWord: "Asa", physicalIndex: 0, imagePath: "...", ...},   │
+│   {cardId: 2, targetWord: "Sulat", physicalIndex: 1, imagePath: "...", ...}, │
+│   ... (one for each acceptable answer)                                       │
+│ ]                                                                            │
+│                                                                                │
+│ Tracking:                                                                      │
+│   this.unmatched = Set of all virtual card indices [0, 1, 2, ...]            │
+│   this.presentedPictureIndices = Set() (empty at start)                       │
+│   this.correctCounts = Map of {index: 0} for each virtual card               │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                   renderPicture() ──────┼────── renderWords()
+                        │                │                │
+                        ▼                │                ▼
+        ┌──────────────────────────┐     │    ┌──────────────────────────┐
+        │ PICTURE SELECTION        │     │    │ WORD SELECTION           │
+        ├──────────────────────────┤     │    ├──────────────────────────┤
+        │ 1. Get unmatched indices │     │    │ 1. Get target card:      │
+        │    [0, 2, 5, 7]          │     │    │    virtualCards[idx]     │
+        │                          │     │    │                          │
+        │ 2. Prioritize ones not   │     │    │ 2. Filter distractors:   │
+        │    yet presented         │     │    │    - Exclude same cardId │
+        │    [5, 7]                │     │    │    - Exclude same word   │
+        │                          │     │    │    Result: [0, 7, 2]     │
+        │ 3. Random select one:    │     │    │                          │
+        │    Math.random() * len   │     │    │ 3. Shuffle & slice:      │
+        │    → 5                   │     │    │    [0, 7, 2]             │
+        │                          │     │    │    .sort(Math.random)    │
+        │ 4. Display image:        │     │    │    .slice(0, 3)          │
+        │    virtualCards[5]       │     │    │    → [7, 0, 2]           │
+        │    .imagePath            │     │    │                          │
+        └──────────────────────────┘     │    │ 4. Combine target + opts │
+                                          │    │    [5, 7, 0, 2]          │
+                                          │    │                          │
+                                          │    │ 5. Shuffle positions:    │
+                                          │    │    [5, 7, 0, 2]          │
+                                          │    │    .sort(Math.random)    │
+                                          │    │    → [0, 5, 2, 7]        │
+                                          │    │                          │
+                                          │    │ 6. Display 4 words:      │
+                                          │    │    "Sulat", "Asa",       │
+                                          │    │    "Balita", "Sayaw"    │
+                                          │    │                          │
+                                          │    └──────────────────────────┘
+                                          │
+                        User clicks on word option
+                                        │
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ MATCH COMPARISON (selectWord)                                                   │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ selectedCard = virtualCards[clickedIdx]                                        │
+│ targetCard = virtualCards[this.currentTargetIdx]                               │
+│                                                                                │
+│ CRITICAL CHECK:                                                                │
+│   isCorrect = targetCard.allWords.includes(selectedCard.targetWord)            │
+│                                                                                │
+│ Example:                                                                       │
+│   targetCard.allWords = ["Asa"]           (target picture's all answers)       │
+│   selectedCard.targetWord = "Asa"         (clicked word)                       │
+│   Result: true ✓                                                              │
+│                                                                                │
+│   OR if multi-answer card:                                                    │
+│   targetCard.allWords = ["cat", "kitten"] (multi-variant answers)              │
+│   selectedCard.targetWord = "kitten"      (clicked word)                       │
+│   Result: true ✓                                                              │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                            ┌───────────┴───────────┐
+                            │                       │
+                        isCorrect              isCorrect
+                         true                   false
+                            │                       │
+                            ▼                       ▼
+                   ┌─────────────────────┐ ┌──────────────────┐
+                   │ CORRECT (GREEN)     │ │ INCORRECT (RED)  │
+                   ├─────────────────────┤ ├──────────────────┤
+                   │ Review Mode:        │ │ Show feedback: X │
+                   │ - Increment count   │ │ Clear line      │
+                   │ - If count >= 3:    │ │ Stay in game    │
+                   │   Remove from       │ │                 │
+                   │   unmatched         │ │ Test Mode:      │
+                   │ - Show: OK          │ │ - Record error  │
+                   │                     │ │ - Clear line    │
+                   │ Test Mode:          │ │ - Move to next  │
+                   │ - Record correct    │ │                 │
+                   │ - Remove picture    │ │                 │
+                   │ - Show: OK + green  │ │                 │
+                   └─────────────────────┘ └──────────────────┘
+                            │                       │
+                            └───────────┬───────────┘
+                                        │
+                                        ▼
+                    Next Round: renderPicture() + renderWords()
+                                        │
+                                        ▼
+                    When unmatched.size === 0
+                                        │
+                                        ▼
+                            COMPLETION / RESULTS
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                          KEY RANDOMIZATION POINTS                              ║
+╠════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                ║
+║ 1. PICTURE SELECTION (renderPicture, line 210)                                ║
+║    Math.floor(Math.random() * availableForPresentation.length)                 ║
+║    → Random selection from unmatched cards                                    ║
+║                                                                                ║
+║ 2. DISTRACTOR SELECTION (renderWords, line 242)                               ║
+║    otherUnmatched.sort(() => Math.random() - 0.5).slice(0, 3)                 ║
+║    → Shuffle list and take first 3 (randomizes which distractors chosen)       ║
+║                                                                                ║
+║ 3. POSITION RANDOMIZATION (renderWords, line 245)                             ║
+║    displayWords.sort(() => Math.random() - 0.5)                               ║
+║    → Shuffle positions so correct answer appears randomly (1st, 2nd, 3rd, 4th) ║
+║                                                                                ║
+║ RESULT: High entropy in selection - no fixed patterns!                        ║
+║                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝

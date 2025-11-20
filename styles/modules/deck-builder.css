@@ -1486,11 +1486,6 @@
     animation: countdownPop 1s ease;
 }
 
-.countdown-number.speak {
-    color: #22c55e;
-    font-size: 48px;
-}
-
 @keyframes countdownPop {
     0% { transform: scale(0.5); opacity: 0; }
     50% { transform: scale(1.2); }
@@ -1649,10 +1644,6 @@
     
     .countdown-number {
         font-size: 56px;
-    }
-    
-    .countdown-number.speak {
-        font-size: 36px;
     }
     
     .btn-record,

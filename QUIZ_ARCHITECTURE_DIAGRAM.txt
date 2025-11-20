@@ -1,0 +1,438 @@
+================================================================================
+                      QUIZ MODULE ARCHITECTURE & DATA FLOW
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         APPLICATION INITIALIZATION                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  App Start
+    ↓
+    ├─→ Load Manifest JSON ← /assets/assets_old/manifest.json
+    │   ├─→ Parse languages array
+    │   └─→ Parse flat cards array (v3.x format)
+    │
+    ├─→ Initialize AssetManager
+    │   └─→ Store manifest.languages in this.languages
+    │
+    └─→ Populate UI Selectors
+        ├─→ Language Selector (ceb, mrw, sin)
+        └─→ Lesson Selector (derives from cards.lesson values)
+
+================================================================================
+                       USER INTERACTION: SELECT & START
+================================================================================
+
+User Selection Flow:
+  
+  1. SELECT LANGUAGE
+     ├─→ User clicks language dropdown
+     ├─→ AssetManager.setLanguage(trigraph) [app.js:864]
+     ├─→ Load cards for that language
+     │   this.cards = this.manifest.cards.filter(c => c.lesson in currentLang)
+     ├─→ Extract unique lessons from cards
+     │   this.lessons = [...new Set(cards.map(c => c.lesson))].sort()
+     └─→ Populate lesson selector
+
+  2. SELECT LESSON (OR APPLY ADVANCED FILTER)
+     ├─→ User clicks lesson dropdown OR applies advanced filter
+     ├─→ AssetManager.setLesson(lessonNum) [app.js:905]
+     │   OR
+     │   FilterManager.applyFilters() [app.js:617]
+     └─→ currentLesson = lessonNum (or filter becomes active)
+
+  3. OPEN QUIZ MODULE
+     ├─→ Router navigates to 'quiz' module
+     ├─→ UnsaNiQuizModule.render() [quiz-module.js:16]
+     │   └─→ Generate HTML with mode buttons, start button
+     └─→ UnsaNiQuizModule.init() [quiz-module.js:75]
+         ├─→ Verify language & lesson/filter selected
+         ├─→ Get cards: this.rawCards = this.assets.getCards()
+         └─→ Set up event listeners
+
+  4. CLICK START
+     └─→ UnsaNiQuizModule.startQuiz() [quiz-module.js:129]
+
+================================================================================
+                      CARD LOADING & ENRICHMENT PROCESS
+================================================================================
+
+AssetManager.getCards() [app.js:927]
+  │
+  ├─→ Create copy of this.cards array
+  │
+  ├─→ Apply Filters (in order):
+  │   ├─→ Advanced Filter? 
+  │   │   └─→ FilterManager.getFilteredCards() [app.js:718]
+  │   │       ├─→ Filter by lesson range (startLesson-endLesson)
+  │   │       ├─→ Filter by grammar type
+  │   │       ├─→ Filter by category
+  │   │       ├─→ Filter by subCategory1 & subCategory2
+  │   │       └─→ Filter by ACTFL proficiency level
+  │   │
+  │   ├─→ No Filter? 
+  │   │   └─→ Filter by lesson: card.lesson === this.currentLesson
+  │   │
+  │   ├─→ Optional: Filter by audio availability
+  │   ├─→ Optional: Filter by image availability
+  │   ├─→ Optional: Filter by type (N, V, Adj, etc.)
+  │   └─→ Optional: Filter by category
+  │
+  └─→ Enrich Each Card [app.js:971]
+      └─→ enrichCard(card)
+          │
+          ├─→ If v3.x format card (has translations object):
+          │   ├─→ Extract language-specific translation
+          │   │   const learningLangName = trigraphToLangName(currentLang.trigraph)
+          │   │   e.g., 'ceb' → 'cebuano'
+          │   │
+          │   ├─→ Get primary translation for current language
+          │   │   primaryTranslation = translations[learningLangName]
+          │   │
+          │   ├─→ Build acceptableAnswers:
+          │   │   ├─→ If already array: use as-is
+          │   │   └─→ Else: split by comma
+          │   │       "Asa, Unsa" → ["Asa", "Unsa"]
+          │   │
+          │   ├─→ Build imagePath: card.imagePath or card.printImagePath
+          │   │
+          │   ├─→ Build audioPath: 
+          │   │   card.audio[currentLang.trigraph] 
+          │   │   e.g., audio.ceb = "assets/1.ceb.asa.m4a"
+          │   │
+          │   └─→ Return enriched card object
+          │       {
+          │           ...originalCard,
+          │           acceptableAnswers: ["Asa", "Unsa"],
+          │           imagePath: "assets/1.Asa.Where.png",
+          │           audioPath: "assets/1.ceb.asa.m4a",
+          │           word: "Asa",
+          │           english: "Where",
+          │           allTranslations: { cebuano: {...}, english: {...}, ... }
+          │       }
+          │
+          └─→ If v4.0 format card: Similar process with different structure
+
+    Result: Array of enriched cards passed to Quiz
+
+================================================================================
+                     QUIZ INITIALIZATION: CARD SHUFFLING
+================================================================================
+
+UnsaNiQuizModule.startQuiz() [quiz-module.js:129]
+  │
+  ├─→ Reset counters
+  │   ├─→ this.correctCount = 0
+  │   ├─→ this.incorrectCount = 0
+  │   ├─→ this.userResponses = []
+  │   └─→ this.sequenceCounter = 0
+  │
+  └─→ Mode-Specific Setup:
+      │
+      ├─→ TEST MODE [lines 140-145]:
+      │   ├─→ Shuffle cards randomly:
+      │   │   this.shuffledCards = [...this.rawCards]
+      │   │                        .sort(() => Math.random() - 0.5)
+      │   │   
+      │   ├─→ Cards are in RANDOM order
+      │   ├─→ Sequential presentation (card 0 → 1 → 2 → ...)
+      │   ├─→ Score visible (rightPanel shown)
+      │   └─→ At end: Show final score and review
+      │
+      └─→ REVIEW MODE [lines 146-156]:
+          ├─→ Add spaced repetition metadata:
+          │   this.shuffledCards = this.rawCards.map(c => ({
+          │       ...c,
+          │       mastered: false,      // Track if user mastered this card
+          │       minNextShow: -1       // When to show again (-1 = show immediately)
+          │   }))
+          │   
+          ├─→ Cards are NOT shuffled yet
+          ├─→ Selection is DYNAMIC during quiz (see showNextCard)
+          ├─→ Score NOT visible
+          └─→ At end: Show congratulations when all mastered
+
+================================================================================
+                    QUIZ LOOP: CARD SELECTION & DISPLAY
+================================================================================
+
+UnsaNiQuizModule.showNextCard() [quiz-module.js:165]
+  │
+  ├─→ TEST MODE [lines 168-174]:
+  │   │
+  │   ├─→ Check if quiz is complete:
+  │   │   if (currentCardIndex >= shuffledCards.length)
+  │   │       showReview() → EXIT
+  │   │
+  │   └─→ Get next card in sequence:
+  │       card = shuffledCards[currentCardIndex]
+  │       currentCardIndex++
+  │       
+  │   Flow: Card 0 → Card 1 → Card 2 → ... → Card N → Review
+  │
+  └─→ REVIEW MODE [lines 175-188]:
+      │
+      ├─→ Get unmastered cards only:
+      │   const unmastered = shuffledCards.filter(c => !c.mastered)
+      │
+      ├─→ Check if all mastered:
+      │   if (unmastered.length === 0)
+      │       showCongratulations() → EXIT
+      │
+      ├─→ Get cards eligible for presentation (based on spaced repetition):
+      │   const eligible = unmastered.filter(c => c.minNextShow <= sequenceCounter)
+      │
+      ├─→ Card Selection Strategy:
+      │   if (eligible.length === 0) {
+      │       // No cards ready yet, force show first unmastered
+      │       card = unmastered[0]
+      │   } else {
+      │       // Random selection from eligible cards
+      │       card = eligible[Math.floor(Math.random() * eligible.length)]
+      │   }
+      │
+      └─→ Example Spaced Repetition Timeline:
+          Initial state: All 3 cards with minNextShow = -1
+          
+          Sequence 0: Show "Asa"   (eligible: all 3)
+                      ├─ User incorrect
+                      ├─ Set minNextShow = 0 + 3 = 3
+                      └─ sequenceCounter++
+                      
+          Sequence 1: Show "Sulat" (eligible: "Sulat" & "Libro")
+                      ├─ User correct
+                      ├─ Mark mastered = true
+                      └─ sequenceCounter++
+                      
+          Sequence 2: Show "Libro" (eligible: "Libro" only)
+                      ├─ User correct
+                      ├─ Mark mastered = true
+                      └─ sequenceCounter++
+                      
+          Sequence 3: Show "Asa"   (eligible: "Asa" only - minNextShow=3 now valid)
+                      ├─ User correct
+                      ├─ Mark mastered = true
+                      └─ All mastered! → showCongratulations()
+
+Display Card [lines 190-197]:
+  ├─→ Set current card: this.currentCard = card
+  ├─→ Display image: document.getElementById('cardImage').src = card.imagePath
+  ├─→ Clear input: document.getElementById('userInput').value = ''
+  ├─→ Focus input: document.getElementById('userInput').focus()
+  └─→ Clear feedback: feedbackMark.classList.remove('show')
+
+================================================================================
+                      USER ANSWER SUBMISSION & VALIDATION
+================================================================================
+
+User types answer and presses Enter or clicks Submit
+  ↓
+UnsaNiQuizModule.submitAnswer() [quiz-module.js:200]
+  │
+  ├─→ Get user input and normalize:
+  │   const userAnswer = input.value.trim().toLowerCase()
+  │   // Trim whitespace, convert to lowercase
+  │   // "ASA " → "asa"
+  │
+  ├─→ Get acceptable answers from card:
+  │   const acceptableAnswers = currentCard.acceptableAnswers || [currentCard.word]
+  │   // Fallback to card.word if acceptableAnswers not set
+  │   // Example: ["Asa", "Unsa"]
+  │
+  ├─→ Check if answer matches any acceptable answer (case-insensitive):
+  │   const isCorrect = acceptableAnswers.some(answer => answer.toLowerCase() === userAnswer)
+  │   │
+  │   ├─→ "asa" matches "Asa".toLowerCase() → TRUE
+  │   ├─→ "unsa" matches "Unsa".toLowerCase() → TRUE
+  │   └─→ "other" matches none → FALSE
+  │
+  └─→ Handle response based on mode:
+
+      ┌─ TEST MODE [lines 210-224] ─────────────────────────────────────┐
+      │                                                                   │
+      │ Record response:                                                 │
+      │   userResponses[currentCardIndex - 1] = {                        │
+      │       userAnswer: "asa",                                         │
+      │       isCorrect: true                                            │
+      │   }                                                              │
+      │                                                                   │
+      │ If CORRECT:                                                      │
+      │   ├─→ correctCount++                                             │
+      │   ├─→ Show "OK" feedback mark (green)                            │
+      │   └─→ Wait 1500ms → showNextCard()                               │
+      │                                                                   │
+      │ If INCORRECT:                                                    │
+      │   ├─→ incorrectCount++                                           │
+      │   ├─→ Show "X" feedback mark (red)                               │
+      │   ├─→ NO answer explanation shown                                │
+      │   └─→ Wait 1500ms → showNextCard()                               │
+      │                                                                   │
+      │ Scoring updates dynamically:                                     │
+      │   updateScores()                                                 │
+      │   ├─→ Update correctCount display                                │
+      │   └─→ Update incorrectCount display                              │
+      │                                                                   │
+      └───────────────────────────────────────────────────────────────────┘
+
+      ┌─ REVIEW MODE [lines 225-251] ──────────────────────────────────┐
+      │                                                                  │
+      │ If CORRECT:                                                     │
+      │   ├─→ Mark card as mastered: currentCard.mastered = true        │
+      │   ├─→ Show "OK" feedback (green)                                │
+      │   ├─→ Increment sequence counter: sequenceCounter++             │
+      │   └─→ Wait 1500ms → showNextCard()                              │
+      │       (may show different card next)                            │
+      │                                                                  │
+      │ If INCORRECT:                                                   │
+      │   ├─→ Show "X" feedback (red)                                   │
+      │   ├─→ Show correct answer: "Correct: Asa"                       │
+      │   ├─→ Set retry timing:                                         │
+      │   │   currentCard.minNextShow = sequenceCounter + 3             │
+      │   │   (Card will be eligible again 3 cards later)               │
+      │   ├─→ Keep card unmastered (mastered = false)                   │
+      │   ├─→ Increment sequence counter: sequenceCounter++             │
+      │   └─→ Wait 3000ms → showNextCard()                              │
+      │       (shows correct answer for user to learn)                  │
+      │                                                                  │
+      └───────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                         QUIZ COMPLETION & RESULTS
+================================================================================
+
+TEST MODE COMPLETION [lines 259-282]:
+  │
+  └─→ showReview()
+      ├─→ Calculate score:
+      │   percentage = (correctCount / totalCards) * 100
+      │   e.g., 8 correct out of 10 = 80%
+      │
+      ├─→ Display header:
+      │   "Final Score: 8/10 (80%)"
+      │
+      ├─→ Display review grid with each card:
+      │   For each card:
+      │   ├─→ Show image
+      │   ├─→ Show correct word
+      │   ├─→ Show user's answer
+      │   └─→ Show "OK" or "X" indicator
+      │
+      └─→ Show "Try Again" button to restart
+
+REVIEW MODE COMPLETION [lines 284-287]:
+  │
+  └─→ showCongratulations() (triggered when all cards mastered)
+      └─→ Display: "* Congratulations! You've mastered all cards! *"
+
+================================================================================
+                    MANIFEST STRUCTURE (v3.x Format)
+================================================================================
+
+Card Object from Manifest:
+{
+    "wordNum": 1,
+    "lesson": 1,
+    "type": "N",                    // N=noun, V=verb, Adj=adjective, etc.
+    "imagePath": "assets/1.Asa.Where.png",
+    "printImagePath": "assets/1.taas.tall.png",
+    "hasImage": true,
+    "hasGif": false,
+    "hasAudio": true,
+    
+    "audio": {
+        "ceb": "assets/1.ceb.asa.m4a",
+        "mrw": null,                // Optional for other languages
+        "sin": null
+    },
+    
+    "translations": {
+        "cebuano": {
+            "word": "Asa",
+            "note": "Where",
+            "acceptableAnswers": ["Asa"]
+        },
+        "english": {
+            "word": "",
+            "note": "",
+            "acceptableAnswers": []
+        },
+        "maranao": { ... },
+        "sinama": { ... }
+    },
+    
+    "grammar": "Interrogative",     // Linguistic classification
+    "category": null,                // Optional semantic categorization
+    "subCategory1": null,
+    "subCategory2": null,
+    "actflEst": "Novice-Mid"        // ACTFL Proficiency Level
+}
+
+Card After Enrichment (for current language = Cebuano):
+{
+    // ... all original properties ...
+    
+    acceptableAnswers: ["Asa"],     // Extracted from translations
+    imagePath: "assets/1.Asa.Where.png",
+    audioPath: "assets/1.ceb.asa.m4a",
+    word: "Asa",                     // Display word
+    english: "",                     // English translation
+    allTranslations: { ... },        // Full translation object
+    mastered: false,                 // Added by Review mode
+    minNextShow: -1                  // Added by Review mode
+}
+
+================================================================================
+                      KEY RANDOMIZATION MECHANISMS
+================================================================================
+
+TEST MODE - Fisher-Yates Style Shuffle:
+  this.shuffledCards = [...this.rawCards].sort(() => Math.random() - 0.5)
+  
+  ├─→ Not cryptographically secure
+  ├─→ Results in pseudo-random order
+  ├─→ All cards shuffled once at start
+  └─→ Cards presented sequentially from shuffled array
+
+REVIEW MODE - Dynamic Random Selection with Spaced Repetition:
+  card = eligible[Math.floor(Math.random() * eligible.length)]
+  
+  ├─→ Selects randomly from eligible cards only
+  ├─→ Eligible = unmastered cards that are ready (minNextShow <= sequenceCounter)
+  ├─→ Implements spaced repetition (failed cards delayed 3 turns)
+  └─→ Results in intelligent practice order
+
+================================================================================
+                           FILE STRUCTURE
+================================================================================
+
+/home/user/WSOL/
+├── quiz-module.js                 ← Main quiz implementation (289 lines)
+├── app.js                         ← AssetManager, FilterManager (1700+ lines)
+├── assets/
+│   ├── assets_old/
+│   │   ├── manifest.json          ← Card definitions & metadata
+│   │   ├── 1.Asa.Where.png        ← Quiz images
+│   │   ├── 1.ceb.asa.m4a          ← Quiz audio
+│   │   └── ... (many more cards)
+│   └── ... (current asset structure)
+│
+├── styles/
+│   └── modules/
+│       └── quiz.css               ← Quiz styling
+│
+└── QUICK_REFERENCE.js             ← Helper documentation
+
+Key Classes:
+  - UnsaNiQuizModule (quiz-module.js)
+    └─ extends LearningModule (app.js:21-60)
+  
+  - AssetManager (app.js:754-1118)
+    └─ Handles manifest loading and card enrichment
+  
+  - FilterManager (app.js:404-748)
+    └─ Handles advanced filtering for lesson selection
+  
+  - ScoreTracker (app.js:1123-1161)
+    └─ Tracks quiz performance metrics
+
+================================================================================

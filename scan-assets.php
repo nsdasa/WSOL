@@ -368,6 +368,10 @@ function scanAssets() {
             }
             $cardsMaster[$num]['word'][$trig] = $card['word'];
             $cardsMaster[$num]['english'][$trig] = $card['english'];
+            $cardsMaster[$num]['cebuano'][$trig] = $card['cebuano'] ?? '';
+            $cardsMaster[$num]['wordNote'][$trig] = $card['wordNote'] ?? '';
+            $cardsMaster[$num]['cebuanoNote'][$trig] = $card['cebuanoNote'] ?? '';
+            $cardsMaster[$num]['englishNote'][$trig] = $card['englishNote'] ?? '';
         }
     }
 
@@ -394,11 +398,21 @@ function scanAssets() {
 
     // Link Audio
     foreach ($audioFiles as $f) {
-        list($num, $trig) = extractAudioInfo($f);
+        list($num, $trig, $wordVariant) = extractAudioInfo($f);
         if ($num && $trig && isset($cardsMaster[$num])) {
             $path = "assets/$f";
-            $cardsMaster[$num]['audio'][$trig] = $path;
-            $cardsMaster[$num]['audioFiles'][$trig] = $f;
+
+            // Initialize audio arrays if not set
+            if (!isset($cardsMaster[$num]['audio'][$trig])) {
+                $cardsMaster[$num]['audio'][$trig] = [];
+            }
+            if (!isset($cardsMaster[$num]['audioFiles'][$trig])) {
+                $cardsMaster[$num]['audioFiles'][$trig] = [];
+            }
+
+            // Store audio with word variant as key for proper ordering
+            $cardsMaster[$num]['audio'][$trig][$wordVariant] = $path;
+            $cardsMaster[$num]['audioFiles'][$trig][$wordVariant] = $f;
         }
     }
 
@@ -424,49 +438,71 @@ function scanAssets() {
 
             $cardNum = $c['cardNum'];
 
-            // Check if this card exists in the previous manifest
+            // Check if this card exists in the previous manifest (SMART MERGE)
             $existingCard = $existingCards[$trig][$cardNum] ?? null;
 
-            // Smart merge: Use CSV data for text, preserve existing audio/image links
-            $audioPath = null;
-            $hasAudio = false;
-            $printImagePath = null;
-            $hasGif = false;
+            // Build audio array matched to word variants (MULTI-VARIANT)
+            $audioArray = [];
+            $audioData = $c['audio'][$trig] ?? [];
 
-            if ($existingCard) {
-                // Preserve existing audio link (manual recordings are kept!)
-                $audioPath = $existingCard['audio'] ?? null;
-                $hasAudio = !empty($existingCard['hasAudio']);
-                $printImagePath = $existingCard['printImagePath'] ?? null;
-                $hasGif = !empty($existingCard['hasGif']);
+            if (!empty($audioData) && is_array($audioData)) {
+                // Split word by "/" to get variants
+                $wordVariants = array_map('trim', explode('/', $c['word'][$trig]));
+
+                // Match audio files to variants by word variant key
+                foreach ($wordVariants as $variant) {
+                    $variantLower = strtolower($variant);
+                    if (isset($audioData[$variantLower])) {
+                        $audioArray[] = $audioData[$variantLower];
+                    } else {
+                        // No audio file for this variant
+                        $audioArray[] = null;
+                    }
+                }
             }
 
-            // Override with newly found files from this scan (only if not already linked)
-            if (!$audioPath && isset($c['audio'][$trig])) {
-                $audioPath = $c['audio'][$trig];
-                $hasAudio = true;
+            // Smart merge: Preserve existing audio if present (manual recordings are kept!)
+            if ($existingCard && !empty($existingCard['audio'])) {
+                $audioArray = $existingCard['audio'];
+                // Ensure it's an array for multi-variant support
+                if (!is_array($audioArray)) {
+                    $audioArray = [$audioArray];
+                }
             }
-            if (!$printImagePath && isset($c['printImagePath'])) {
-                $printImagePath = $c['printImagePath'];
+
+            $hasAudio = !empty(array_filter($audioArray));
+
+            // Split words by "/" to create acceptableAnswers arrays (MULTI-VARIANT)
+            $wordVariants = array_map('trim', explode('/', $c['word'][$trig]));
+            $englishVariants = array_map('trim', explode('/', $c['english'][$trig] ?? ''));
+            $cebuanoVariants = [];
+            if (!empty($c['cebuano'][$trig])) {
+                $cebuanoVariants = array_map('trim', explode('/', $c['cebuano'][$trig]));
             }
-            if (!$hasGif && isset($c['hasGif']) && $c['hasGif']) {
-                $hasGif = true;
-            }
+
+            // Smart merge: Preserve existing image paths
+            $printImagePath = $existingCard['printImagePath'] ?? ($c['printImagePath'] ?? null);
+            $hasGif = $existingCard['hasGif'] ?? ($c['hasGif'] ?? false);
 
             $finalCards[$trig][] = [
                 'lesson' => $c['lesson'],
                 'cardNum' => $c['cardNum'],
                 'word' => $c['word'][$trig],
+                'wordNote' => $c['wordNote'][$trig] ?? '',
                 'english' => $c['english'][$trig] ?? '',
+                'englishNote' => $c['englishNote'][$trig] ?? '',
+                'cebuano' => $c['cebuano'][$trig] ?? '',
+                'cebuanoNote' => $c['cebuanoNote'][$trig] ?? '',
                 'grammar' => $c['grammar'],
                 'category' => $c['category'],
                 'subCategory1' => $c['subCategory1'],
                 'subCategory2' => $c['subCategory2'],
                 'actflEst' => $c['actflEst'],
                 'type' => $c['type'],
-                'acceptableAnswers' => [$c['word'][$trig]],
-                'englishAcceptable' => [$c['english'][$trig] ?? ''],
-                'audio' => $audioPath,
+                'acceptableAnswers' => $wordVariants,
+                'englishAcceptable' => $englishVariants,
+                'cebuanoAcceptable' => $cebuanoVariants,
+                'audio' => $audioArray,
                 'hasAudio' => $hasAudio,
                 'printImagePath' => $printImagePath,
                 'hasGif' => $hasGif
@@ -557,23 +593,57 @@ function loadLanguageWordList($path) {
 
     $headers = fgetcsv($file); // read header
 
+    // Detect format by checking if "Cebuano Word" column exists
+    // Cebuano CSV: Word, WordNote, English, EnglishNote (columns 2-5)
+    // Other languages: Word, WordNote, Cebuano Word, CebuanoNote, English, EnglishNote (columns 2-7)
+    $hasCebuanoColumn = false;
+    foreach ($headers as $header) {
+        if (stripos($header, 'Cebuano') !== false && stripos($header, 'Word') !== false) {
+            $hasCebuanoColumn = true;
+            break;
+        }
+    }
+
     while (($row = fgetcsv($file)) !== false) {
         if (count($row) < 6) continue;
 
-        $cards[] = [
-            'lesson' => (int)$row[0],
-            'cardNum' => (int)$row[1],
-            'word' => trim($row[2]),
-            'wordNote' => $row[3] ?? '',
-            'english' => trim($row[4]),
-            'englishNote' => $row[5] ?? '',
-            'grammar' => $row[6] ?? '',
-            'category' => $row[7] ?? '',
-            'subCategory1' => $row[8] ?? '',
-            'subCategory2' => $row[9] ?? '',
-            'actflEst' => $row[10] ?? '',
-            'type' => $row[11] ?? 'N'
-        ];
+        if ($hasCebuanoColumn) {
+            // Non-Cebuano format: includes Cebuano translation
+            $cards[] = [
+                'lesson' => (int)$row[0],
+                'cardNum' => (int)$row[1],
+                'word' => trim($row[2]),
+                'wordNote' => $row[3] ?? '',
+                'cebuano' => trim($row[4]),        // Cebuano translation
+                'cebuanoNote' => $row[5] ?? '',
+                'english' => trim($row[6]),        // English translation
+                'englishNote' => $row[7] ?? '',
+                'grammar' => $row[8] ?? '',
+                'category' => $row[9] ?? '',
+                'subCategory1' => $row[10] ?? '',
+                'subCategory2' => $row[11] ?? '',
+                'actflEst' => $row[12] ?? '',
+                'type' => $row[13] ?? 'N'
+            ];
+        } else {
+            // Cebuano format: word IS Cebuano, only English translation
+            $cards[] = [
+                'lesson' => (int)$row[0],
+                'cardNum' => (int)$row[1],
+                'word' => trim($row[2]),
+                'wordNote' => $row[3] ?? '',
+                'cebuano' => trim($row[2]),        // Word itself is Cebuano
+                'cebuanoNote' => $row[3] ?? '',
+                'english' => trim($row[4]),
+                'englishNote' => $row[5] ?? '',
+                'grammar' => $row[6] ?? '',
+                'category' => $row[7] ?? '',
+                'subCategory1' => $row[8] ?? '',
+                'subCategory2' => $row[9] ?? '',
+                'actflEst' => $row[10] ?? '',
+                'type' => $row[11] ?? 'N'
+            ];
+        }
     }
     fclose($file);
     return $cards;
@@ -585,10 +655,12 @@ function extractWordNum($filename) {
 }
 
 function extractAudioInfo($filename) {
-    if (preg_match('/^(\d+)\.([a-z]{3})\./', $filename, $m)) {
-        return [(int)$m[1], $m[2]];
+    // Pattern: {num}.{trigraph}.{wordVariant}.{ext}
+    // Example: 12.ceb.ako.m4a or 12.ceb.ako-ko.m4a (backward compatible)
+    if (preg_match('/^(\d+)\.([a-z]{3})\.([^.]+)\./', $filename, $m)) {
+        return [(int)$m[1], $m[2], $m[3]];  // [cardNum, trigraph, wordVariant]
     }
-    return [null, null];
+    return [null, null, null];
 }
 
 // ------------------------------------------------
@@ -741,9 +813,17 @@ function generateHtmlReport($manifest, $cardsMaster, $languages) {
             $filesHtml .= '<span class="file-badge gif">GIF: ' . htmlspecialchars($card['gifFile']) . '</span> ';
         }
         if ($hasAudio) {
-            foreach ($card['audioFiles'] as $trig => $audioFile) {
+            foreach ($card['audioFiles'] as $trig => $audioFiles) {
                 $trigUpper = strtoupper($trig);
-                $filesHtml .= '<span class="file-badge audio">' . $trigUpper . ': ' . htmlspecialchars($audioFile) . '</span> ';
+                if (is_array($audioFiles)) {
+                    foreach ($audioFiles as $audioFile) {
+                        if ($audioFile) {
+                            $filesHtml .= '<span class="file-badge audio">' . $trigUpper . ': ' . htmlspecialchars($audioFile) . '</span> ';
+                        }
+                    }
+                } else if ($audioFiles) {
+                    $filesHtml .= '<span class="file-badge audio">' . $trigUpper . ': ' . htmlspecialchars($audioFiles) . '</span> ';
+                }
             }
         }
         if (empty($filesHtml)) {
