@@ -634,6 +634,24 @@
     background: #ef4444;
 }
 
+/* Playhead - moving indicator during playback */
+.playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.9);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 15;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+.playhead.active {
+    opacity: 1;
+}
+
 .editor-time {
     text-align: center;
     font-size: 14px;

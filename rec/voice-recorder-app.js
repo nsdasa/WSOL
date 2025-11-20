@@ -355,7 +355,9 @@ class VoiceRecorderApp {
                 isRecording: false,
                 markerStart: 0,
                 markerEnd: 1,
-                playbackAudio: null
+                playbackAudio: null,
+                isPlaying: false,
+                animationId: null
             };
             
             const source = this.audioRecorder.audioContext.createMediaStreamSource(stream);
@@ -555,56 +557,156 @@ class VoiceRecorderApp {
     }
     
     setupEditorControls() {
+        const playBtn = document.getElementById('editorPlayBtn');
+        const pauseBtn = document.getElementById('editorPauseBtn');
+        const stopBtn = document.getElementById('editorStopBtn');
+        const cutBtn = document.getElementById('editorCutBtn');
+        const saveBtn = document.getElementById('editorSaveBtn');
+        const rerecordBtn = document.getElementById('editorRerecordBtn');
+        const playheadEl = document.getElementById('playhead');
+
+        // Create audio element for playback
         const audioUrl = URL.createObjectURL(this.audioRecorder.audioBlob);
         this.audioRecorder.playbackAudio = new Audio(audioUrl);
-        
+
+        // Track animation state
+        this.audioRecorder.isPlaying = false;
+        this.audioRecorder.animationId = null;
+
+        // Update time display during playback
         this.audioRecorder.playbackAudio.addEventListener('timeupdate', () => {
-            document.getElementById('currentTime').textContent = 
-                this.formatTime(this.audioRecorder.playbackAudio.currentTime);
+            document.getElementById('currentTime').textContent = this.formatTime(this.audioRecorder.playbackAudio.currentTime);
         });
-        
-        document.getElementById('editorPlayBtn').onclick = () => {
-            const startTime = this.audioRecorder.markerStart * this.audioRecorder.audioBuffer.duration;
+
+        // Handle audio ending naturally
+        this.audioRecorder.playbackAudio.addEventListener('ended', () => {
+            this.stopPlayback();
+        });
+
+        // Animate playhead function
+        const animatePlayhead = () => {
+            if (!this.audioRecorder.isPlaying) return;
+
+            const audio = this.audioRecorder.playbackAudio;
+            const duration = this.audioRecorder.audioBuffer.duration;
+            const currentTime = audio.currentTime;
+
+            // Calculate boundaries
+            const startTime = this.audioRecorder.markerStart * duration;
+            const endTime = this.audioRecorder.markerEnd * duration;
+
+            // Check if we've reached the end marker
+            if (currentTime >= endTime) {
+                this.stopPlayback();
+                return;
+            }
+
+            // Calculate playhead position as percentage
+            // Map current time to position between markers
+            const progress = (currentTime - startTime) / (endTime - startTime);
+            const playheadPosition = this.audioRecorder.markerStart + (progress * (this.audioRecorder.markerEnd - this.audioRecorder.markerStart));
+
+            playheadEl.style.left = `${playheadPosition * 100}%`;
+
+            // Continue animation
+            this.audioRecorder.animationId = requestAnimationFrame(animatePlayhead);
+        };
+
+        // Play button - play between markers
+        playBtn.onclick = () => {
+            const duration = this.audioRecorder.audioBuffer.duration;
+            const startTime = this.audioRecorder.markerStart * duration;
+
             this.audioRecorder.playbackAudio.currentTime = startTime;
             this.audioRecorder.playbackAudio.play();
+
+            // Show and start playhead animation
+            this.audioRecorder.isPlaying = true;
+            playheadEl.classList.add('active');
+            playheadEl.style.left = `${this.audioRecorder.markerStart * 100}%`;
+            this.audioRecorder.animationId = requestAnimationFrame(animatePlayhead);
         };
-        
-        document.getElementById('editorPauseBtn').onclick = () => {
+
+        // Pause button
+        pauseBtn.onclick = () => {
             this.audioRecorder.playbackAudio.pause();
+            this.audioRecorder.isPlaying = false;
+            if (this.audioRecorder.animationId) {
+                cancelAnimationFrame(this.audioRecorder.animationId);
+            }
+            // Keep playhead visible but stopped
         };
-        
-        document.getElementById('editorStopBtn').onclick = () => {
-            this.audioRecorder.playbackAudio.pause();
-            this.audioRecorder.playbackAudio.currentTime = 0;
-            document.getElementById('currentTime').textContent = '0:00';
+
+        // Stop button
+        stopBtn.onclick = () => {
+            this.stopPlayback();
         };
-        
-        document.getElementById('editorCutBtn').onclick = async () => {
+
+        // Cut button
+        cutBtn.onclick = async () => {
+            // Stop any playback first
+            this.stopPlayback();
+
             await this.cutAudio();
             this.drawWaveform();
+
+            // Update audio for playback
             const newUrl = URL.createObjectURL(this.audioRecorder.audioBlob);
             this.audioRecorder.playbackAudio.src = newUrl;
-            document.getElementById('totalTime').textContent = 
-                this.formatTime(this.audioRecorder.audioBuffer.duration);
-            this.showToast('Audio trimmed', 'success');
+            document.getElementById('totalTime').textContent = this.formatTime(this.audioRecorder.audioBuffer.duration);
+
+            this.showToast('Audio trimmed to markers', 'success');
         };
-        
-        document.getElementById('editorSaveBtn').onclick = () => {
+
+        // Save button
+        saveBtn.onclick = () => {
+            // Stop playback before saving
+            this.stopPlayback();
             this.saveRecording();
         };
-        
-        document.getElementById('editorRerecordBtn').onclick = () => {
+
+        // Re-record button
+        rerecordBtn.onclick = () => {
+            // Stop playback and reset
+            this.stopPlayback();
             this.resetRecordingView();
-            if (this.audioRecorder.playbackAudio) {
-                this.audioRecorder.playbackAudio.pause();
-            }
         };
-        
+
         // Make markers draggable
         this.makeMarkerDraggable('markerStart', 'start');
         this.makeMarkerDraggable('markerEnd', 'end');
     }
-    
+
+    stopPlayback() {
+        if (!this.audioRecorder) return;
+
+        const playheadEl = document.getElementById('playhead');
+
+        // Stop audio
+        if (this.audioRecorder.playbackAudio) {
+            this.audioRecorder.playbackAudio.pause();
+            this.audioRecorder.playbackAudio.currentTime = 0;
+        }
+
+        // Stop animation
+        this.audioRecorder.isPlaying = false;
+        if (this.audioRecorder.animationId) {
+            cancelAnimationFrame(this.audioRecorder.animationId);
+            this.audioRecorder.animationId = null;
+        }
+
+        // Hide playhead
+        if (playheadEl) {
+            playheadEl.classList.remove('active');
+        }
+
+        // Reset time display
+        const currentTimeEl = document.getElementById('currentTime');
+        if (currentTimeEl) {
+            currentTimeEl.textContent = '0:00';
+        }
+    }
+
     makeMarkerDraggable(markerId, type) {
         const marker = document.getElementById(markerId);
         const canvas = document.getElementById('waveformCanvas');

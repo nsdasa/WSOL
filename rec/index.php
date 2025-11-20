@@ -257,6 +257,7 @@ function cacheBust($file) {
                                 <canvas id="waveformCanvas" width="600" height="150"></canvas>
                                 <div class="marker marker-start" id="markerStart"></div>
                                 <div class="marker marker-end" id="markerEnd"></div>
+                                <div class="playhead" id="playhead"></div>
                             </div>
                             <div class="editor-time">
                                 <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
