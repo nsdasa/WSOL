@@ -188,7 +188,42 @@ class UnsaNiQuizModule extends LearningModule {
         }
         
         this.currentCard = card;
-        document.getElementById('cardImage').src = card.imagePath;
+
+        // Replace img element with video element if needed
+        const imageSection = document.querySelector('.image-section');
+        const oldElement = document.getElementById('cardImage');
+
+        if (card.isVideo) {
+            // Create video element
+            const video = document.createElement('video');
+            video.id = 'cardImage';
+            video.className = 'card-image';
+            video.src = card.imagePath;
+            video.autoplay = true;
+            video.loop = true;
+            video.muted = true;
+            video.playsInline = true;
+            if (oldElement) {
+                oldElement.replaceWith(video);
+            } else {
+                imageSection.appendChild(video);
+            }
+        } else {
+            // Create or update img element
+            if (oldElement && oldElement.tagName === 'VIDEO') {
+                // Replace video with img
+                const img = document.createElement('img');
+                img.id = 'cardImage';
+                img.className = 'card-image';
+                img.src = card.imagePath;
+                img.alt = 'Card';
+                oldElement.replaceWith(img);
+            } else {
+                // Just update existing img src
+                document.getElementById('cardImage').src = card.imagePath;
+            }
+        }
+
         document.getElementById('userInput').value = '';
         document.getElementById('userInput').focus();
         document.getElementById('feedbackMark').classList.remove('show');

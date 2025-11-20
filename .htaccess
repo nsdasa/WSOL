@@ -54,8 +54,8 @@
 # Only prevent caching of the LISTS and MANAGEMENT endpoints
 
 <IfModule mod_headers.c>
-    # Allow caching of PNG, GIF, MP3 files (actual learning assets)
-    <FilesMatch "\.(png|gif|mp3|m4a|jpg|jpeg)$">
+    # Allow caching of image, video, and audio files (actual learning assets)
+    <FilesMatch "\.(png|jpg|jpeg|webp|gif|mp4|webm|mp3|m4a)$">
         # These can be cached for performance
         Header set Cache-Control "public, max-age=31536000"
     </FilesMatch>
