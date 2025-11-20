@@ -1224,6 +1224,7 @@ class DeckBuilderModule extends LearningModule {
                                     <canvas id="waveformCanvas" width="600" height="150"></canvas>
                                     <div class="marker marker-start" id="markerStart"></div>
                                     <div class="marker marker-end" id="markerEnd"></div>
+                                    <div class="playhead" id="playhead"></div>
                                 </div>
                                 <div class="editor-time-display">
                                     <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
@@ -1639,37 +1640,90 @@ class DeckBuilderModule extends LearningModule {
         const canvas = modal.querySelector('#waveformCanvas');
         const markerStartEl = modal.querySelector('#markerStart');
         const markerEndEl = modal.querySelector('#markerEnd');
+        const playheadEl = modal.querySelector('#playhead');
 
         // Create audio element for playback
         const audioUrl = URL.createObjectURL(this.audioRecorder.audioBlob);
         this.audioRecorder.playbackAudio = new Audio(audioUrl);
+        
+        // Track animation state
+        this.audioRecorder.isPlaying = false;
+        this.audioRecorder.animationId = null;
 
         // Update time display during playback
         this.audioRecorder.playbackAudio.addEventListener('timeupdate', () => {
             modal.querySelector('#currentTime').textContent = this.formatTime(this.audioRecorder.playbackAudio.currentTime);
         });
 
-        // Play button
+        // Handle audio ending naturally
+        this.audioRecorder.playbackAudio.addEventListener('ended', () => {
+            this.stopPlayback(modal);
+        });
+
+        // Animate playhead function
+        const animatePlayhead = () => {
+            if (!this.audioRecorder.isPlaying) return;
+            
+            const audio = this.audioRecorder.playbackAudio;
+            const duration = this.audioRecorder.audioBuffer.duration;
+            const currentTime = audio.currentTime;
+            
+            // Calculate boundaries
+            const startTime = this.audioRecorder.markerStart * duration;
+            const endTime = this.audioRecorder.markerEnd * duration;
+            
+            // Check if we've reached the end marker
+            if (currentTime >= endTime) {
+                this.stopPlayback(modal);
+                return;
+            }
+            
+            // Calculate playhead position as percentage
+            // Map current time to position between markers
+            const progress = (currentTime - startTime) / (endTime - startTime);
+            const playheadPosition = this.audioRecorder.markerStart + (progress * (this.audioRecorder.markerEnd - this.audioRecorder.markerStart));
+            
+            playheadEl.style.left = `${playheadPosition * 100}%`;
+            
+            // Continue animation
+            this.audioRecorder.animationId = requestAnimationFrame(animatePlayhead);
+        };
+
+        // Play button - play between markers
         playBtn.addEventListener('click', () => {
-            const startTime = this.audioRecorder.markerStart * this.audioRecorder.audioBuffer.duration;
+            const duration = this.audioRecorder.audioBuffer.duration;
+            const startTime = this.audioRecorder.markerStart * duration;
+            
             this.audioRecorder.playbackAudio.currentTime = startTime;
             this.audioRecorder.playbackAudio.play();
+            
+            // Show and start playhead animation
+            this.audioRecorder.isPlaying = true;
+            playheadEl.classList.add('active');
+            playheadEl.style.left = `${this.audioRecorder.markerStart * 100}%`;
+            this.audioRecorder.animationId = requestAnimationFrame(animatePlayhead);
         });
 
         // Pause button
         pauseBtn.addEventListener('click', () => {
             this.audioRecorder.playbackAudio.pause();
+            this.audioRecorder.isPlaying = false;
+            if (this.audioRecorder.animationId) {
+                cancelAnimationFrame(this.audioRecorder.animationId);
+            }
+            // Keep playhead visible but stopped
         });
 
         // Stop button
         stopBtn.addEventListener('click', () => {
-            this.audioRecorder.playbackAudio.pause();
-            this.audioRecorder.playbackAudio.currentTime = 0;
-            modal.querySelector('#currentTime').textContent = '0:00';
+            this.stopPlayback(modal);
         });
 
         // Cut button
         cutBtn.addEventListener('click', async () => {
+            // Stop any playback first
+            this.stopPlayback(modal);
+            
             await this.cutAudio();
             this.drawWaveform(modal);
             
@@ -1683,11 +1737,16 @@ class DeckBuilderModule extends LearningModule {
 
         // Save button
         saveBtn.addEventListener('click', () => {
+            // Stop playback before saving
+            this.stopPlayback(modal);
             this.saveRecordedAudio(cardId, audioLang, closeModal);
         });
 
         // Re-record button
         rerecordBtn.addEventListener('click', () => {
+            // Stop playback and reset
+            this.stopPlayback(modal);
+            
             // Reset to recording view
             const recordView = modal.querySelector('#recordView');
             const editorView = modal.querySelector('#editorView');
@@ -1710,6 +1769,39 @@ class DeckBuilderModule extends LearningModule {
         // Make markers draggable
         this.makeMarkerDraggable(markerStartEl, canvas, 'start', modal);
         this.makeMarkerDraggable(markerEndEl, canvas, 'end', modal);
+    }
+
+    /**
+     * Stop playback and reset playhead
+     */
+    stopPlayback(modal) {
+        if (!this.audioRecorder) return;
+        
+        const playheadEl = modal.querySelector('#playhead');
+        
+        // Stop audio
+        if (this.audioRecorder.playbackAudio) {
+            this.audioRecorder.playbackAudio.pause();
+            this.audioRecorder.playbackAudio.currentTime = 0;
+        }
+        
+        // Stop animation
+        this.audioRecorder.isPlaying = false;
+        if (this.audioRecorder.animationId) {
+            cancelAnimationFrame(this.audioRecorder.animationId);
+            this.audioRecorder.animationId = null;
+        }
+        
+        // Hide playhead
+        if (playheadEl) {
+            playheadEl.classList.remove('active');
+        }
+        
+        // Reset time display
+        const currentTimeEl = modal.querySelector('#currentTime');
+        if (currentTimeEl) {
+            currentTimeEl.textContent = '0:00';
+        }
     }
 
     /**
@@ -2012,6 +2104,10 @@ class DeckBuilderModule extends LearningModule {
      */
     cleanupAudioRecorder() {
         if (this.audioRecorder) {
+            // Cancel any running animation
+            if (this.audioRecorder.animationId) {
+                cancelAnimationFrame(this.audioRecorder.animationId);
+            }
             if (this.audioRecorder.mediaRecorder && this.audioRecorder.isRecording) {
                 this.audioRecorder.mediaRecorder.stop();
             }
