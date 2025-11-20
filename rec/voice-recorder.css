@@ -220,6 +220,16 @@
     font-weight: 500;
 }
 
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-buttons .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Table Container */
 .table-container {
     flex: 1;
