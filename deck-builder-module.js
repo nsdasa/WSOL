@@ -22,7 +22,7 @@ class DeckBuilderModule extends LearningModule {
         this.nextNewCardId = 10000; // Temporary IDs for new cards
         
         // Role-based access
-        this.userRole = null; // 'admin' or 'voice-recorder'
+        this.userRole = null; // 'admin', 'deck-manager', or 'voice-recorder'
         this.isAdmin = false;
         
         // Sorting state
@@ -48,10 +48,13 @@ class DeckBuilderModule extends LearningModule {
     async render() {
         // Check user role
         this.userRole = window.authManager?.role || 'admin';
-        this.isAdmin = this.userRole === 'admin';
-        
+        // Deck managers have same access as admins in deck builder
+        this.isAdmin = (this.userRole === 'admin' || this.userRole === 'deck-manager');
+
         const adminOnlyClass = this.isAdmin ? '' : 'hidden';
-        const roleIndicator = this.isAdmin ? '' : '<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Voice Recorder Mode</span>';
+        const roleIndicator = this.userRole === 'deck-manager' ? '<span class="role-badge deck-manager"><i class="fas fa-edit"></i> Deck Manager</span>' :
+                             this.isAdmin ? '' :
+                             '<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Voice Recorder Mode</span>';
         
         this.container.innerHTML = `
             <div class="card module-deck-builder">

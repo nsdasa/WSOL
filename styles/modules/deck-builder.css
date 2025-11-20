@@ -1825,6 +1825,11 @@
     color: white;
 }
 
+.role-badge.deck-manager {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
 .role-badge i {
     font-size: 10px;
 }
