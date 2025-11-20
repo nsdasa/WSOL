@@ -14,6 +14,7 @@ class MatchSoundModule extends LearningModule {
         this.scoreTracker = new ScoreTracker();
         this.reviewRepetitions = 3; // Default: need to get each word correct 3 times
         this.correctCounts = new Map(); // Track how many times each card answered correctly
+        this.currentAudio = null; // Store current audio for auto-play and replay
     }
     
     // Expand physical cards into virtual cards (one per acceptable answer)
@@ -233,12 +234,32 @@ class MatchSoundModule extends LearningModule {
                 <div class="dot"></div>
             </div>
         `;
-        
+
         const speaker = audioSection.querySelector('.audio-speaker-big');
+
+        // Store current audio for replay functionality
+        if (targetCard.audioPath) {
+            this.currentAudio = new Audio(targetCard.audioPath);
+        } else {
+            this.currentAudio = null;
+        }
+
         speaker.addEventListener('click', () => {
-            const audio = new Audio(targetCard.audioPath);
-            audio.play().catch(err => debugLogger?.log(1, `Audio play error: ${err.message}`));
+            if (this.currentAudio) {
+                this.currentAudio.currentTime = 0; // Reset to beginning
+                this.currentAudio.play().catch(err => debugLogger?.log(1, `Audio play error: ${err.message}`));
+            }
         });
+
+        // Auto-play audio when new word loads (with small delay to improve browser compatibility)
+        if (this.currentAudio) {
+            setTimeout(() => {
+                this.currentAudio.play().catch(err => {
+                    debugLogger?.log(1, `Auto-play audio error: ${err.message}`);
+                    // If auto-play fails, it's likely due to browser policy - user can click speaker
+                });
+            }, 100);
+        }
     }
     
     renderPictures() {
@@ -270,21 +291,41 @@ class MatchSoundModule extends LearningModule {
             
             const item = document.createElement('div');
             item.className = 'item loading'; // Start with loading state
-            
-            const img = document.createElement('img');
-            img.alt = 'Match picture';
-            
-            // Handle image load
-            img.onload = () => {
-                item.classList.remove('loading');
-            };
-            
-            img.onerror = () => {
-                item.classList.remove('loading');
-                item.classList.add('load-error');
-                debugLogger?.log(2, `Failed to load image: ${card.imagePath}`);
-            };
-            
+
+            let img;
+            if (card.isVideo) {
+                // Create video element for MP4/WebM files
+                img = document.createElement('video');
+                img.autoplay = true;
+                img.loop = true;
+                img.muted = true;
+                img.playsInline = true;
+
+                img.onloadeddata = () => {
+                    item.classList.remove('loading');
+                };
+
+                img.onerror = () => {
+                    item.classList.remove('loading');
+                    item.classList.add('load-error');
+                    debugLogger?.log(2, `Failed to load video: ${card.imagePath}`);
+                };
+            } else {
+                // Create img element for PNG/JPG/JPEG/WebP/GIF files
+                img = document.createElement('img');
+                img.alt = 'Match picture';
+
+                img.onload = () => {
+                    item.classList.remove('loading');
+                };
+
+                img.onerror = () => {
+                    item.classList.remove('loading');
+                    item.classList.add('load-error');
+                    debugLogger?.log(2, `Failed to load image: ${card.imagePath}`);
+                };
+            }
+
             // Set src after handlers
             img.src = card.imagePath;
             
@@ -351,10 +392,16 @@ class MatchSoundModule extends LearningModule {
                     }, 1000);
                 }
             } else {
+                // Incorrect match - replay audio after showing feedback
                 setTimeout(() => {
                     if (line) {
                         const svg = document.getElementById('linesSvg');
                         if (svg.contains(line)) svg.removeChild(line);
+                    }
+                    // Replay the audio to help user learn
+                    if (this.currentAudio) {
+                        this.currentAudio.currentTime = 0;
+                        this.currentAudio.play().catch(err => debugLogger?.log(1, `Replay audio error: ${err.message}`));
                     }
                 }, 1000);
             }

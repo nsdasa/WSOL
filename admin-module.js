@@ -727,52 +727,74 @@ class AdminModule extends LearningModule {
         return new Promise((resolve) => {
             const conflicts = conflictData.conflicts || [];
 
-            // Create modal HTML
+            // Create modal HTML with checkboxes for per-conflict selection
             let conflictsHtml = '';
             conflicts.forEach((conflict, index) => {
                 if (conflict.type === 'text_change_with_assets') {
                     conflictsHtml += `
                         <div class="conflict-item" style="border:1px solid var(--border-color);border-radius:8px;padding:16px;margin-bottom:16px;background:var(--bg-secondary);">
-                            <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">
-                                <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
-                                Card #${conflict.cardNum} (${conflict.language}) - Text Changed
-                            </div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-                                <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
-                                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">EXISTING (in manifest):</div>
-                                    <div style="font-weight:600;">${conflict.existing.word}</div>
-                                    <div style="font-size:13px;color:var(--text-secondary);">${conflict.existing.english}</div>
-                                    ${conflict.existing.hasAudio ? `<div style="margin-top:6px;font-size:12px;color:#10b981;"><i class="fas fa-microphone"></i> Has audio</div>` : ''}
-                                    ${conflict.existing.hasImage ? `<div style="font-size:12px;color:#3b82f6;"><i class="fas fa-image"></i> Has image</div>` : ''}
+                            <div style="display:flex;align-items:start;gap:12px;">
+                                <input type="checkbox"
+                                       class="conflict-checkbox"
+                                       data-index="${index}"
+                                       data-card-num="${conflict.cardNum}"
+                                       data-trigraph="${conflict.trigraph}"
+                                       style="margin-top:4px;width:18px;height:18px;cursor:pointer;"
+                                       title="Select to update this card from CSV">
+                                <div style="flex:1;">
+                                    <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">
+                                        <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
+                                        Card #${conflict.cardNum} (${conflict.language}) - Text Changed
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                                        <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
+                                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">EXISTING (in manifest):</div>
+                                            <div style="font-weight:600;">${conflict.existing.word}</div>
+                                            <div style="font-size:13px;color:var(--text-secondary);">${conflict.existing.english}</div>
+                                            ${conflict.existing.hasAudio ? `<div style="margin-top:6px;font-size:12px;color:#10b981;"><i class="fas fa-microphone"></i> Has audio</div>` : ''}
+                                            ${conflict.existing.hasImage ? `<div style="font-size:12px;color:#3b82f6;"><i class="fas fa-image"></i> Has image</div>` : ''}
+                                        </div>
+                                        <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
+                                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">CSV VERSION:</div>
+                                            <div style="font-weight:600;">${conflict.csv.word}</div>
+                                            <div style="font-size:13px;color:var(--text-secondary);">${conflict.csv.english}</div>
+                                        </div>
+                                    </div>
+                                    <div style="color:var(--text-secondary);font-size:12px;">
+                                        <strong>Warning:</strong> This card has ${conflict.existing.hasAudio ? 'audio' : ''}${conflict.existing.hasAudio && conflict.existing.hasImage ? ' and ' : ''}${conflict.existing.hasImage ? 'images' : ''}.
+                                        Updating text might make these assets incorrect.
+                                    </div>
                                 </div>
-                                <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
-                                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">CSV VERSION:</div>
-                                    <div style="font-weight:600;">${conflict.csv.word}</div>
-                                    <div style="font-size:13px;color:var(--text-secondary);">${conflict.csv.english}</div>
-                                </div>
-                            </div>
-                            <div style="color:var(--text-secondary);font-size:12px;">
-                                <strong>Warning:</strong> This card has ${conflict.existing.hasAudio ? 'audio' : ''}${conflict.existing.hasAudio && conflict.existing.hasImage ? ' and ' : ''}${conflict.existing.hasImage ? 'images' : ''}.
-                                Updating text might make these assets incorrect.
                             </div>
                         </div>
                     `;
                 } else if (conflict.type === 'new_audio_found') {
                     conflictsHtml += `
                         <div class="conflict-item" style="border:1px solid var(--border-color);border-radius:8px;padding:16px;margin-bottom:16px;background:var(--bg-secondary);">
-                            <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">
-                                <i class="fas fa-music" style="color:#8b5cf6;"></i>
-                                Card #${conflict.cardNum} (${conflict.language}) - New Audio File Found
-                            </div>
-                            <div style="margin-bottom:8px;"><strong>Word:</strong> ${conflict.word}</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                                <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
-                                    <div style="font-size:12px;color:var(--text-secondary);">CURRENT:</div>
-                                    <div style="font-size:13px;font-weight:600;">${conflict.existingAudio}</div>
-                                </div>
-                                <div style="padding:8px;background:#dbeafe;border-radius:4px;">
-                                    <div style="font-size:12px;color:#1e40af;">NEW FILE:</div>
-                                    <div style="font-size:13px;font-weight:600;color:#1e40af;">${conflict.newAudio}</div>
+                            <div style="display:flex;align-items:start;gap:12px;">
+                                <input type="checkbox"
+                                       class="conflict-checkbox"
+                                       data-index="${index}"
+                                       data-card-num="${conflict.cardNum}"
+                                       data-trigraph="${conflict.trigraph}"
+                                       style="margin-top:4px;width:18px;height:18px;cursor:pointer;"
+                                       title="Select to use new audio file">
+                                <div style="flex:1;">
+                                    <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">
+                                        <i class="fas fa-music" style="color:#8b5cf6;"></i>
+                                        Card #${conflict.cardNum} (${conflict.language}) - New Audio File Found
+                                    </div>
+                                    <div style="margin-bottom:8px;"><strong>Word:</strong> ${conflict.word}</div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                        <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
+                                            <div style="font-size:12px;color:var(--text-secondary);">CURRENT:</div>
+                                            <div style="font-size:13px;font-weight:600;">${conflict.existingAudio}</div>
+                                        </div>
+                                        <div style="padding:8px;background:#dbeafe;border-radius:4px;">
+                                            <div style="font-size:12px;color:#1e40af;">NEW FILE:</div>
+                                            <div style="font-size:13px;font-weight:600;color:#1e40af;">${conflict.newAudio}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -790,27 +812,76 @@ class AdminModule extends LearningModule {
                         <h2 style="margin:0;"><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Scan Conflicts Detected</h2>
                     </div>
                     <div class="modal-body" style="padding:24px;">
+                        <div style="margin-bottom:16px;padding:12px;background:var(--bg-secondary);border-radius:6px;display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" id="selectAllConflicts" style="width:18px;height:18px;cursor:pointer;">
+                            <label for="selectAllConflicts" style="cursor:pointer;margin:0;">
+                                <strong>Select All</strong> <span style="color:var(--text-secondary);font-size:13px;">(${conflicts.length} conflict${conflicts.length !== 1 ? 's' : ''})</span>
+                            </label>
+                        </div>
                         <p style="margin:0 0 20px 0;color:var(--text-secondary);">
-                            Found ${conflicts.length} potential conflict(s). The CSV data differs from your current manifest.
-                            Choose how to proceed:
+                            Check the conflicts you want to update from CSV. Assets (audio/images) are always preserved.
                         </p>
                         ${conflictsHtml}
                     </div>
-                    <div class="modal-footer" style="padding:20px 24px;border-top:1px solid var(--border-color);display:flex;gap:12px;justify-content:flex-end;">
-                        <button id="conflictCancelBtn" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancel Scan
-                        </button>
-                        <button id="conflictKeepManifestBtn" class="btn btn-secondary">
-                            <i class="fas fa-shield-alt"></i> Keep Manifest (Skip All)
-                        </button>
-                        <button id="conflictUseCsvBtn" class="btn btn-primary">
-                            <i class="fas fa-file-csv"></i> Use CSV (Overwrite All)
-                        </button>
+                    <div class="modal-footer" style="padding:20px 24px;border-top:1px solid var(--border-color);display:flex;gap:12px;justify-content:space-between;">
+                        <div>
+                            <button id="conflictCancelBtn" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel Scan
+                            </button>
+                        </div>
+                        <div style="display:flex;gap:12px;">
+                            <button id="conflictKeepManifestBtn" class="btn btn-secondary">
+                                <i class="fas fa-shield-alt"></i> Keep Manifest (Skip All)
+                            </button>
+                            <button id="conflictSelectedBtn" class="btn btn-warning" disabled>
+                                <i class="fas fa-check-square"></i> Update Selected (<span id="selectedCount">0</span>)
+                            </button>
+                            <button id="conflictUseCsvBtn" class="btn btn-primary">
+                                <i class="fas fa-file-csv"></i> Use CSV (Overwrite All)
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
 
             document.body.appendChild(modal);
+
+            // Checkbox handling
+            const checkboxes = modal.querySelectorAll('.conflict-checkbox');
+            const selectAllCheckbox = modal.querySelector('#selectAllConflicts');
+            const selectedCountSpan = modal.querySelector('#selectedCount');
+            const selectedBtn = modal.querySelector('#conflictSelectedBtn');
+
+            const updateSelectedCount = () => {
+                const checked = Array.from(checkboxes).filter(cb => cb.checked);
+                selectedCountSpan.textContent = checked.length;
+                selectedBtn.disabled = checked.length === 0;
+
+                // Update select all checkbox state
+                if (checked.length === 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (checked.length === checkboxes.length) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                } else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                }
+            };
+
+            // Individual checkbox changes
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateSelectedCount);
+            });
+
+            // Select all checkbox
+            selectAllCheckbox.addEventListener('change', (e) => {
+                checkboxes.forEach(cb => {
+                    cb.checked = e.target.checked;
+                });
+                updateSelectedCount();
+            });
 
             // Button handlers
             const closeModal = (proceed) => {
@@ -825,22 +896,53 @@ class AdminModule extends LearningModule {
 
             modal.querySelector('#conflictKeepManifestBtn').addEventListener('click', async () => {
                 closeModal(true);
-                toastManager.show('Using existing manifest data, skipping CSV text updates', 'info', 4000);
-                // TODO: Would need to add a skip mode to the scan
-                // For now, just cancel
-                toastManager.show('Feature in progress - scan cancelled for safety', 'warning');
-            });
-
-            modal.querySelector('#conflictUseCsvBtn').addEventListener('click', async () => {
-                closeModal(true);
-                toastManager.show('Proceeding with CSV updates (assets will be preserved)', 'success', 4000);
-                // Proceed with scan
+                toastManager.show('Keeping all existing manifest data, only adding new cards', 'info', 4000);
+                // Scan with mode=skip_existing
                 const scanBtn = document.getElementById('scanAssetsBtn');
                 if (scanBtn) {
                     scanBtn.disabled = true;
                     scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
                 }
-                await this.triggerAssetScan();
+                await this.triggerAssetScan('skip_existing');
+                if (scanBtn) {
+                    scanBtn.disabled = false;
+                    scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
+                }
+            });
+
+            modal.querySelector('#conflictSelectedBtn').addEventListener('click', async () => {
+                const checked = Array.from(checkboxes).filter(cb => cb.checked);
+                const selectedCards = checked.map(cb => ({
+                    trigraph: cb.dataset.trigraph,
+                    cardNum: parseInt(cb.dataset.cardNum)
+                }));
+
+                closeModal(true);
+                toastManager.show(`Updating ${selectedCards.length} selected card(s) from CSV`, 'success', 4000);
+
+                // Scan with mode=selective and pass selected cards
+                const scanBtn = document.getElementById('scanAssetsBtn');
+                if (scanBtn) {
+                    scanBtn.disabled = true;
+                    scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+                }
+                await this.triggerAssetScan('selective', selectedCards);
+                if (scanBtn) {
+                    scanBtn.disabled = false;
+                    scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
+                }
+            });
+
+            modal.querySelector('#conflictUseCsvBtn').addEventListener('click', async () => {
+                closeModal(true);
+                toastManager.show('Proceeding with CSV updates (assets will be preserved)', 'success', 4000);
+                // Scan with mode=update_all
+                const scanBtn = document.getElementById('scanAssetsBtn');
+                if (scanBtn) {
+                    scanBtn.disabled = true;
+                    scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+                }
+                await this.triggerAssetScan('update_all');
                 if (scanBtn) {
                     scanBtn.disabled = false;
                     scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
@@ -849,19 +951,31 @@ class AdminModule extends LearningModule {
         });
     }
 
-    async triggerAssetScan() {
+    async triggerAssetScan(mode = 'update_all', selectedCards = null) {
         try {
             // CACHE PREVENTION: Add timestamp and no-cache headers
             const timestamp = new Date().getTime();
-            const response = await fetch(`scan-assets.php?action=scan&_=${timestamp}`, {
-                method: 'GET',
+
+            let url = `scan-assets.php?action=scan&mode=${mode}&_=${timestamp}`;
+            let fetchOptions = {
                 cache: 'no-store',
                 headers: {
                     'Cache-Control': 'no-cache, no-store, must-revalidate',
                     'Pragma': 'no-cache',
                     'Expires': '0'
                 }
-            });
+            };
+
+            // For selective mode, send selected cards as POST data
+            if (mode === 'selective' && selectedCards) {
+                fetchOptions.method = 'POST';
+                fetchOptions.headers['Content-Type'] = 'application/json';
+                fetchOptions.body = JSON.stringify({ selectedCards });
+            } else {
+                fetchOptions.method = 'GET';
+            }
+
+            const response = await fetch(url, fetchOptions);
             
             const result = await response.json();
             

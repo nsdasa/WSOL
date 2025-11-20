@@ -1,9 +1,21 @@
+<?php
+// Prevent caching of the HTML page itself
+header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <!-- Bob and Mariel Ward School of Filipino Languages - Version 4.2 - Advanced Filter - November 2025 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Prevent browser caching of this page -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <title>Bob and Mariel Ward School of Filipino Languages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     

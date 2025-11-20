@@ -114,10 +114,10 @@ function handleMediaUpload() {
         if (!is_array($files['name'])) {
             if ($files['error'] === UPLOAD_ERR_OK) {
                 $ext = strtolower(pathinfo($files['name'], PATHINFO_EXTENSION));
-                if (in_array($ext, ['png','gif','mp3','m4a'])) {
+                if (in_array($ext, ['png','jpg','jpeg','webp','gif','mp4','webm','mp3','m4a'])) {
                     $target = $assetsDir . '/' . basename($files['name']);
                     if (move_uploaded_file($files['tmp_name'], $target)) {
-                        if (in_array($ext, ['png','gif'])) $stats['imagesUploaded']++;
+                        if (in_array($ext, ['png','jpg','jpeg','webp','gif','mp4','webm'])) $stats['imagesUploaded']++;
                         else $stats['audioUploaded']++;
                     }
                 }
@@ -294,6 +294,22 @@ function scanAssets() {
     global $assetsDir, $manifestPath;
 
     try {
+        // Get resolution mode and selected cards for conflict resolution
+        $mode = $_GET['mode'] ?? 'update_all';
+        $selectedCards = null;
+        $selectedIndex = [];
+
+        if ($mode === 'selective') {
+            $input = file_get_contents('php://input');
+            $data = json_decode($input, true);
+            $selectedCards = $data['selectedCards'] ?? [];
+
+            // Index selected cards for quick lookup
+            foreach ($selectedCards as $sc) {
+                $selectedIndex[$sc['trigraph']][$sc['cardNum']] = true;
+            }
+        }
+
         $languages = loadLanguageList($assetsDir . '/Language_List.csv');
     $langByTrigraph = [];
     foreach ($languages as $l) $langByTrigraph[$l['trigraph']] = $l['name'];
@@ -333,8 +349,8 @@ function scanAssets() {
     foreach ($allFiles as $f) {
         if ($f === '.' || $f === '..' || is_dir("$assetsDir/$f")) continue;
         $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-        if ($ext === 'png') $pngFiles[] = $f;
-        elseif ($ext === 'gif') $gifFiles[] = $f;
+        if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $pngFiles[] = $f;
+        elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $gifFiles[] = $f;
         elseif (in_array($ext, ['mp3','m4a'])) $audioFiles[] = $f;
     }
 
@@ -462,6 +478,29 @@ function scanAssets() {
 
             // Check if this card exists in the previous manifest (SMART MERGE)
             $existingCard = $existingCards[$trig][$cardNum] ?? null;
+
+            // MODE HANDLING: Determine whether to update this card
+            $shouldUpdateFromCSV = true;
+
+            if ($mode === 'skip_existing' && $existingCard) {
+                // Skip all existing cards, only add new ones
+                $shouldUpdateFromCSV = false;
+            } elseif ($mode === 'selective') {
+                // Only update selected cards
+                $shouldUpdateFromCSV = isset($selectedIndex[$trig][$cardNum]);
+            }
+            // For 'update_all' mode, $shouldUpdateFromCSV remains true
+
+            // If we're skipping this card and it exists, use existing data entirely
+            if (!$shouldUpdateFromCSV && $existingCard) {
+                $finalCards[$trig][] = $existingCard;
+                $langStats['totalCards']++;
+                if (!empty($existingCard['hasAudio'])) $langStats['cardsWithAudio']++;
+                if (!in_array($existingCard['lesson'], $langStats['lessons'])) {
+                    $langStats['lessons'][] = $existingCard['lesson'];
+                }
+                continue;
+            }
 
             // Build audio array matched to word variants (MULTI-VARIANT)
             $audioArray = [];

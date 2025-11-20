@@ -199,7 +199,7 @@ class VoiceRecorderApp {
     
     renderCards() {
         const tbody = document.getElementById('cardsTableBody');
-        
+
         if (this.filteredCards.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -210,11 +210,48 @@ class VoiceRecorderApp {
             `;
             return;
         }
-        
+
         tbody.innerHTML = this.filteredCards.map(card => {
             const cardId = card.cardNum || card.wordNum;
-            const hasAudio = !!card.audio;
-            
+
+            // Get word variants by splitting on "/"
+            const wordVariants = card.word ? card.word.split('/').map(w => w.trim()) : [''];
+
+            // Get audio paths (now an array for multi-variant support)
+            const audioPaths = Array.isArray(card.audio) ? card.audio : (card.audio ? [card.audio] : []);
+
+            // Generate audio badges for each variant
+            const audioBadgesHtml = wordVariants.map((variant, index) => {
+                const audioPath = audioPaths[index] || null;
+                const hasAudio = !!audioPath;
+
+                // Label: show filename if file exists, otherwise show word variant
+                let label = '';
+                if (hasAudio) {
+                    label = audioPath.split('/').pop();  // Show filename
+                } else {
+                    label = variant.toLowerCase();  // Show word variant
+                }
+
+                const badgeClass = hasAudio ? 'has-audio' : 'no-audio';
+                const icon = hasAudio ? 'fa-check' : 'fa-folder-open';
+                const title = hasAudio ? `Audio: ${label}` : `Click to record audio for "${variant}"`;
+
+                return `
+                    <span class="audio-badge ${badgeClass}"
+                          data-card-id="${cardId}"
+                          data-variant-index="${index}"
+                          data-variant="${variant}"
+                          onclick="app.openAudioModal(${cardId}, ${index}, '${variant.replace(/'/g, "\\'")}')"
+                          title="${title}">
+                        <i class="fas ${icon}"></i> ${label}
+                    </span>
+                `;
+            }).join('');
+
+            // Check if any variant has audio
+            const hasAnyAudio = audioPaths.some(path => !!path);
+
             return `
                 <tr>
                     <td>${card.lesson || '-'}</td>
@@ -222,15 +259,13 @@ class VoiceRecorderApp {
                     <td>${card.word || ''}</td>
                     <td>${card.english || ''}</td>
                     <td>
-                        <span class="audio-badge ${hasAudio ? 'has-audio' : 'no-audio'}" 
-                              data-card-id="${cardId}" onclick="app.openAudioModal(${cardId})">
-                            <i class="fas ${hasAudio ? 'fa-check' : 'fa-microphone'}"></i>
-                            ${hasAudio ? 'Audio' : 'Record'}
-                        </span>
+                        <div class="audio-badges-container">
+                            ${audioBadgesHtml}
+                        </div>
                     </td>
                     <td>
-                        <span class="status-badge ${hasAudio ? 'complete' : 'missing'}">
-                            ${hasAudio ? 'Complete' : 'Needs Audio'}
+                        <span class="status-badge ${hasAnyAudio ? 'complete' : 'missing'}">
+                            ${hasAnyAudio ? 'Complete' : 'Needs Audio'}
                         </span>
                     </td>
                 </tr>
@@ -246,25 +281,28 @@ class VoiceRecorderApp {
         document.getElementById('audioCount').textContent = `${withAudio} with audio`;
     }
     
-    openAudioModal(cardId) {
+    openAudioModal(cardId, variantIndex = 0, variant = null) {
         this.currentCardId = cardId;
-        
+        this.currentVariantIndex = variantIndex;
+        this.currentVariant = variant;
+
         // Reset modal state
         this.switchTab('browse');
         this.resetRecordingView();
-        
+
         // Update title
         const card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (card) {
+            const variantText = variant ? ` - "${variant}"` : '';
             document.getElementById('fileModalTitle').innerHTML = `
-                <i class="fas fa-file-audio"></i> 
-                Audio for: ${card.word} (${card.english})
+                <i class="fas fa-file-audio"></i>
+                Audio for: ${card.word}${variantText} (${card.english})
             `;
         }
-        
+
         // Show modal
         document.getElementById('fileModal').classList.remove('hidden');
-        
+
         // Load server files
         this.loadServerFiles();
     }
@@ -602,6 +640,7 @@ class VoiceRecorderApp {
 
         // Update time display during playback
         this.audioRecorder.playbackAudio.addEventListener('timeupdate', () => {
+            if (!this.audioRecorder || !this.audioRecorder.playbackAudio) return;
             document.getElementById('currentTime').textContent = this.formatTime(this.audioRecorder.playbackAudio.currentTime);
         });
 
@@ -612,7 +651,7 @@ class VoiceRecorderApp {
 
         // Animate playhead function
         const animatePlayhead = () => {
-            if (!this.audioRecorder.isPlaying) return;
+            if (!this.audioRecorder || !this.audioRecorder.isPlaying) return;
 
             const audio = this.audioRecorder.playbackAudio;
             const duration = this.audioRecorder.audioBuffer.duration;
@@ -641,6 +680,7 @@ class VoiceRecorderApp {
 
         // Play button - play between markers
         playBtn.onclick = () => {
+            if (!this.audioRecorder) return;
             const duration = this.audioRecorder.audioBuffer.duration;
             const startTime = this.audioRecorder.markerStart * duration;
 
@@ -656,6 +696,7 @@ class VoiceRecorderApp {
 
         // Pause button
         pauseBtn.onclick = () => {
+            if (!this.audioRecorder) return;
             this.audioRecorder.playbackAudio.pause();
             this.audioRecorder.isPlaying = false;
             if (this.audioRecorder.animationId) {
@@ -671,6 +712,7 @@ class VoiceRecorderApp {
 
         // Cut button
         cutBtn.onclick = async () => {
+            if (!this.audioRecorder) return;
             // Stop any playback first
             this.stopPlayback();
 
@@ -794,55 +836,75 @@ class VoiceRecorderApp {
     audioBufferToBlob(audioBuffer) {
         const numChannels = audioBuffer.numberOfChannels;
         const sampleRate = audioBuffer.sampleRate;
-        const buffer = audioBuffer.getChannelData(0);
-        const samples = buffer.length;
-        const dataSize = samples * 2;
+        const format = 1; // PCM
+        const bitDepth = 16;
+
+        const bytesPerSample = bitDepth / 8;
+        const blockAlign = numChannels * bytesPerSample;
+
+        const samples = audioBuffer.length;
+        const dataSize = samples * blockAlign;
         const bufferSize = 44 + dataSize;
-        
+
         const arrayBuffer = new ArrayBuffer(bufferSize);
         const view = new DataView(arrayBuffer);
-        
+
+        // WAV header
         const writeString = (offset, string) => {
             for (let i = 0; i < string.length; i++) {
                 view.setUint8(offset + i, string.charCodeAt(i));
             }
         };
-        
+
         writeString(0, 'RIFF');
         view.setUint32(4, bufferSize - 8, true);
         writeString(8, 'WAVE');
         writeString(12, 'fmt ');
         view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, 1, true);
+        view.setUint16(20, format, true);
+        view.setUint16(22, numChannels, true);
         view.setUint32(24, sampleRate, true);
-        view.setUint32(28, sampleRate * 2, true);
-        view.setUint16(32, 2, true);
-        view.setUint16(34, 16, true);
+        view.setUint32(28, sampleRate * blockAlign, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitDepth, true);
         writeString(36, 'data');
         view.setUint32(40, dataSize, true);
-        
+
+        // Write audio data for ALL channels
         let offset = 44;
-        for (let i = 0; i < samples; i++) {
-            const sample = Math.max(-1, Math.min(1, buffer[i]));
-            view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-            offset += 2;
+
+        // Get all channel data
+        const channels = [];
+        for (let channel = 0; channel < numChannels; channel++) {
+            channels.push(audioBuffer.getChannelData(channel));
         }
-        
+
+        // Interleave channels: L R L R L R ...
+        for (let i = 0; i < samples; i++) {
+            for (let channel = 0; channel < numChannels; channel++) {
+                const sample = Math.max(-1, Math.min(1, channels[channel][i]));
+                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                offset += 2;
+            }
+        }
+
         return new Blob([arrayBuffer], { type: 'audio/wav' });
     }
     
     saveRecording() {
         const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
         if (!card) return;
-        
-        const word = (card.word || 'word').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        // Use variant for filename if available
+        const wordForFilename = this.currentVariant
+            ? this.currentVariant.toLowerCase().replace(/[^a-z0-9]/g, '')
+            : (card.word || 'word').toLowerCase().replace(/[^a-z0-9]/g, '');
         const english = (card.english || 'english').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${word}.${english}.wav`;
-        
+        const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${wordForFilename}.${english}.wav`;
+
         this.pendingBlob = this.audioRecorder.audioBlob;
         this.pendingFile = null;
-        
+
         this.closeFileModal();
         this.showFilenameDialog(defaultFilename);
     }
@@ -905,9 +967,22 @@ class VoiceRecorderApp {
             if (result.success) {
                 const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
                 if (card) {
-                    card.audio = `assets/${filename}`;
+                    // Handle multi-variant audio (audio as array)
+                    // Ensure audio is array
+                    if (!Array.isArray(card.audio)) {
+                        card.audio = card.audio ? [card.audio] : [];
+                    }
+
+                    // Pad array with nulls if needed to reach variant index
+                    while (card.audio.length <= this.currentVariantIndex) {
+                        card.audio.push(null);
+                    }
+
+                    // Set audio at the correct variant index
+                    card.audio[this.currentVariantIndex] = result.path;
+                    card.hasAudio = true;
                 }
-                
+
                 this.filterCards();
                 this.showToast(`Audio saved: ${filename}`, 'success');
             } else {

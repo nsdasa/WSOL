@@ -36,14 +36,26 @@
 </IfModule>
 
 # =================================================================
+# PREVENT CACHING OF CSS AND JAVASCRIPT FILES
+# =================================================================
+# Force browsers to check version via query string parameters
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+    </FilesMatch>
+</IfModule>
+
+# =================================================================
 # ALLOW NORMAL CACHING FOR ACTUAL MEDIA ASSETS
 # =================================================================
 # We want images and audio to be cached normally for performance
 # Only prevent caching of the LISTS and MANAGEMENT endpoints
 
 <IfModule mod_headers.c>
-    # Allow caching of PNG, GIF, MP3 files (actual learning assets)
-    <FilesMatch "\.(png|gif|mp3|m4a|jpg|jpeg)$">
+    # Allow caching of image, video, and audio files (actual learning assets)
+    <FilesMatch "\.(png|jpg|jpeg|webp|gif|mp4|webm|mp3|m4a)$">
         # These can be cached for performance
         Header set Cache-Control "public, max-age=31536000"
     </FilesMatch>

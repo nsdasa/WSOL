@@ -1915,25 +1915,24 @@ class DeckBuilderModule extends LearningModule {
         const sampleRate = audioBuffer.sampleRate;
         const format = 1; // PCM
         const bitDepth = 16;
-        
+
         const bytesPerSample = bitDepth / 8;
         const blockAlign = numChannels * bytesPerSample;
-        
-        const buffer = audioBuffer.getChannelData(0);
-        const samples = buffer.length;
+
+        const samples = audioBuffer.length;
         const dataSize = samples * blockAlign;
         const bufferSize = 44 + dataSize;
-        
+
         const arrayBuffer = new ArrayBuffer(bufferSize);
         const view = new DataView(arrayBuffer);
-        
+
         // WAV header
         const writeString = (offset, string) => {
             for (let i = 0; i < string.length; i++) {
                 view.setUint8(offset + i, string.charCodeAt(i));
             }
         };
-        
+
         writeString(0, 'RIFF');
         view.setUint32(4, bufferSize - 8, true);
         writeString(8, 'WAVE');
@@ -1947,15 +1946,25 @@ class DeckBuilderModule extends LearningModule {
         view.setUint16(34, bitDepth, true);
         writeString(36, 'data');
         view.setUint32(40, dataSize, true);
-        
-        // Write audio data
+
+        // Write audio data for ALL channels
         let offset = 44;
-        for (let i = 0; i < samples; i++) {
-            const sample = Math.max(-1, Math.min(1, buffer[i]));
-            view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-            offset += 2;
+
+        // Get all channel data
+        const channels = [];
+        for (let channel = 0; channel < numChannels; channel++) {
+            channels.push(audioBuffer.getChannelData(channel));
         }
-        
+
+        // Interleave channels: L R L R L R ...
+        for (let i = 0; i < samples; i++) {
+            for (let channel = 0; channel < numChannels; channel++) {
+                const sample = Math.max(-1, Math.min(1, channels[channel][i]));
+                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                offset += 2;
+            }
+        }
+
         return new Blob([arrayBuffer], { type: 'audio/wav' });
     }
 
@@ -2668,28 +2677,48 @@ class DeckBuilderModule extends LearningModule {
             this.showFilenameDialog(defaultFilename, async (finalFilename) => {
                 toastManager.show(`Uploading ${finalFilename}...`, 'warning', 2000);
 
-                // In production, this would upload to server with the specified filename
-                // For now, we update the card path
-                if (fileType === 'png') {
-                    card.printImagePath = `assets/${finalFilename}`;
-                } else if (fileType === 'gif') {
-                    card.gifPath = `assets/${finalFilename}`;
-                    card.hasGif = true;
+                try {
+                    // Upload the file to the server
+                    const formData = new FormData();
+                    formData.append('media', file);
+                    formData.append('filename', finalFilename);
+
+                    const response = await fetch('upload-media.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Upload failed');
+                    }
+
+                    // Update card path with uploaded file
+                    if (fileType === 'png') {
+                        card.printImagePath = result.path;
+                    } else if (fileType === 'gif') {
+                        card.gifPath = result.path;
+                        card.hasGif = true;
+                    }
+
+                    this.editedCards.set(cardId, card);
+                    this.filterAndRenderCards();
+                    this.updateUnsavedIndicator();
+
+                    // Clean up preview URL
+                    URL.revokeObjectURL(previewUrl);
+
+                    // Close the file selection modal if it's open
+                    if (this.currentFileSelectionContext && this.currentFileSelectionContext.closeModal) {
+                        this.currentFileSelectionContext.closeModal();
+                    }
+
+                    toastManager.show(`✓ File uploaded as ${finalFilename}. Remember to save changes.`, 'success');
+                } catch (error) {
+                    toastManager.show(`Upload failed: ${error.message}`, 'error');
+                    console.error('Upload error:', error);
                 }
-
-                this.editedCards.set(cardId, card);
-                this.filterAndRenderCards();
-                this.updateUnsavedIndicator();
-
-                // Clean up preview URL
-                URL.revokeObjectURL(previewUrl);
-
-                // Close the file selection modal if it's open
-                if (this.currentFileSelectionContext && this.currentFileSelectionContext.closeModal) {
-                    this.currentFileSelectionContext.closeModal();
-                }
-
-                toastManager.show(`File will be saved as ${finalFilename}. Remember to save changes.`, 'success');
             }, previewUrl, fileType);
             return;
         }

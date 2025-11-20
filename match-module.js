@@ -216,12 +216,20 @@ class MatchExerciseModule extends LearningModule {
         const randomIdx = availableForPresentation[Math.floor(Math.random() * availableForPresentation.length)];
         this.currentTargetIdx = randomIdx;
         this.presentedPictureIndices.add(randomIdx); // Mark as presented
-        
+
         const targetCard = this.virtualCards[randomIdx];
-        
+
+        // Create either img or video element based on file type
+        let mediaHTML;
+        if (targetCard.isVideo) {
+            mediaHTML = `<video src="${targetCard.imagePath}" autoplay loop muted playsinline></video>`;
+        } else {
+            mediaHTML = `<img src="${targetCard.imagePath}" alt="Match this picture">`;
+        }
+
         pictureSection.innerHTML = `
             <div class="picture-only">
-                <img src="${targetCard.imagePath}" alt="Match this picture">
+                ${mediaHTML}
             </div>
         `;
     }
