@@ -1398,25 +1398,8 @@ class DeckBuilderModule extends LearningModule {
                     this.showAudioEditor(modal, cardId, audioLang, closeModal);
                 };
 
-                // Start countdown
-                await this.startCountdown(countdownDisplay, recordStatus);
-
-                // Start recording
-                this.audioRecorder.mediaRecorder.start(100);
-                this.audioRecorder.isRecording = true;
-
-                // Update UI
-                startRecordBtn.classList.add('hidden');
-                stopRecordBtn.classList.remove('hidden');
-                recordStatus.innerHTML = '<i class="fas fa-circle recording-pulse"></i><p>Recording...</p>';
-
-                // Start silence detection after 500ms grace period
-                // This gives the user time to start speaking after "Speak" appears
-                setTimeout(() => {
-                    if (this.audioRecorder && this.audioRecorder.isRecording) {
-                        this.startSilenceDetection(modal);
-                    }
-                }, 500);
+                // Start countdown and recording sequence
+                await this.startCountdownAndRecord(countdownDisplay, recordStatus, startRecordBtn, stopRecordBtn, modal);
 
             } catch (err) {
                 console.error('Error accessing microphone:', err);
@@ -1431,9 +1414,16 @@ class DeckBuilderModule extends LearningModule {
     }
 
     /**
-     * Start countdown before recording
+     * Start countdown and recording with precise timing
+     * Timeline:
+     *   0ms: "3"
+     *   1000ms: "2"
+     *   2000ms: "1"
+     *   2800ms: Start recording (still showing "1")
+     *   3000ms: Show "Recording..."
+     *   3700ms: Start silence detection
      */
-    startCountdown(countdownDisplay, recordStatus) {
+    startCountdownAndRecord(countdownDisplay, recordStatus, startRecordBtn, stopRecordBtn, modal) {
         return new Promise((resolve) => {
             countdownDisplay.classList.remove('hidden');
             recordStatus.classList.add('hidden');
@@ -1446,21 +1436,35 @@ class DeckBuilderModule extends LearningModule {
                 count--;
                 if (count > 0) {
                     countdownNumber.textContent = count;
+                    
+                    // At count === 1 (2000ms), schedule recording to start at 2800ms
+                    if (count === 1) {
+                        setTimeout(() => {
+                            // Start recording while still showing "1"
+                            if (this.audioRecorder && this.audioRecorder.mediaRecorder) {
+                                this.audioRecorder.mediaRecorder.start(100);
+                                this.audioRecorder.isRecording = true;
+                            }
+                        }, 800); // 800ms after showing "1" = 2800ms total
+                    }
                 } else if (count === 0) {
-                    // Show "Speak" and immediately start recording
-                    countdownNumber.textContent = 'Speak';
-                    countdownNumber.classList.add('speak');
+                    // 3000ms - Hide countdown, show Recording UI
                     clearInterval(interval);
                     
-                    // Start recording immediately when "Speak" appears
-                    resolve();
+                    countdownDisplay.classList.add('hidden');
+                    recordStatus.classList.remove('hidden');
+                    startRecordBtn.classList.add('hidden');
+                    stopRecordBtn.classList.remove('hidden');
+                    recordStatus.innerHTML = '<i class="fas fa-circle recording-pulse"></i><p>Recording...</p>';
                     
-                    // Hide countdown after 300ms (recording already started)
+                    // Start silence detection at 3700ms (700ms after showing "Recording")
                     setTimeout(() => {
-                        countdownDisplay.classList.add('hidden');
-                        recordStatus.classList.remove('hidden');
-                        countdownNumber.classList.remove('speak');
-                    }, 300);
+                        if (this.audioRecorder && this.audioRecorder.isRecording) {
+                            this.startSilenceDetection(modal);
+                        }
+                    }, 700);
+                    
+                    resolve();
                 }
             }, 1000);
         });
