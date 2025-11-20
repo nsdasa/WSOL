@@ -1108,14 +1108,6 @@ class AssetManager {
                     imagePath = card.printImagePath;
                 }
             }
-            
-            // Get image path (prefer GIF/video for display, PNG for print)
-            const imagePath = card.hasGif ?
-                (this.manifest.images?.[card.cardNum]?.gif || card.printImagePath) :
-                card.printImagePath;
-
-            // Check if the image is actually a video file
-            const isVideo = imagePath && /\.(mp4|webm)$/i.test(imagePath);
 
             // Handle audio as array (for multi-variant support)
             let audioPath = card.audio;
