@@ -1,0 +1,219 @@
+﻿Lesson,CardNum,Sinama,WordNote,Cebuano Word,WordNote,English,EnglishNote,Grammar,Category,SubCategory1,SubCategory2,ACTFLEst,Type
+1,1,Maingga,,Asa,,Where,,Interrogative,Function Word,Question Word,Question Word,Novice-Mid,N
+1,2,Ai,,Unsa,,What,,Interrogative,Function Word,Question Word,Question Word,Novice-Mid,N
+1,3,M’bal,,Oo,,Yes,,Particle,Function Word,Response,Response,Novice-Low,N
+1,4,Aho,,Dili,,No,,Adverb / Negator,Function Word,Negation,Negation,Novice-Low,N
+1,5,H’lling/yuk,,Istorya,,Tell,,Verb,You,Personal Action,Communication,Novice-High,N
+1,6,Buk,,Tan-aw,,Look,,Verb,You,Personal Action,Vision,Novice-High,N
+1,7,Pakale,,Paminaw,,Listen,,Verb,You,Personal Action,Hearing,Novice-High,N
+1,8,I’to’,,I-tudlo,,Point,,Verb,You,Personal Action,Gesture,Novice-High,N
+1,9,Bassa,,Basa,,Read,,Verb,You,Personal Action,Literacy,Novice-High,N
+1,10,Sulat,,Sulat,,Write,,Verb,You,Personal Action,Literacy,Novice-High,N
+1,11,Apandu’,,Nag-tudlo,,Teach,,Verb,World,Occupation Action,Teaching,Intermediate-Low,N
+1,12,Aku’,,Ako/ko,,I/me,,Pronoun,Function Word,Pronoun,Pronoun,Novice-Low,N
+1,13,Ka’a/ka,,Ikaw/ka,,You,,Pronoun,Function Word,Pronoun,Pronoun,Novice-Low,N
+1,14,Mailu,,Kini / ni,,This,,Demonstrative pronoun,Function Word,Demonstrative,Demonstrative,Novice-Mid,N
+1,15,Ilu,,Kana / na,,That,,Demonstrative pronoun,Function Word,Demonstrative,Demonstrative,Novice-Mid,N
+1,16,Bolpen,,Bolpen,,Pen,,Noun,World,School Supply,Writing Tool,Novice-Mid,N
+1,17,Pensil,,Lapis,,Pencil,,Noun,World,School Supply,Writing Tool,Novice-Mid,N
+1,18,Buk,,Libro,,Book,,Noun,World,School Supply,Reading Material,Novice-Mid,N
+1,19,Katas,,Papel,,Paper,,Noun,World,School Supply,Writing Material,Novice-Mid,N
+1,20,,,Ngalan,,Name,,Noun,You,Personal Identity,Personal Identity,Novice-Mid,S
+1,21,Mastal,,Mestro/a,,Teacher,,Noun,World,Occupation,Teaching,Novice-High,S
+1,22,Istudyante,,Estudyante,,Student,,Noun,World,Occupation,Learning,Novice-High,S
+1,23,Ahap l’law,,Maayong Adlaw,,Good Day,,Ftabanf,Function Word,Greeting,Greeting,Novice-Low,S
+2,24,Anabang ku,,Tabang,,Help,,Noun / Verb,You,Personal Action,Assistance,Novice-High,S
+2,25,bang,,Nga,,Linker,,Ligature / Linker,Function Word,Linker,Linker,Novice-High,N
+2,26,ka,,Ka,,Counter marker,,Particle,Function Word,Marker,Marker,Novice-Low,N
+2,27,mga,,Mga,,Plural marker,,Particle,Function Word,Plural,Plural,Novice-Mid,N
+2,28,na,,Ang,,The,,Case marker,Function Word,Case Marker,Case Marker,Novice-Mid,N
+2,29,maka,,Og,,And/a,,Conjunction / Case marker,Function Word,Case Marker,Case Marker,Novice-High,N
+2,30,ma,,Sa,,In/at/of,,Preposition / Case marker,Function Word,Preposition,Preposition,Novice-Mid,N
+2,31,si,,Si,,Name marker,,Case marker,Function Word,Case Marker,Case Marker,Novice-Mid,N
+2,32,Ningko’,,Lingkod,,Sit,,Verb,You,Personal Action,Posture,Novice-High,N
+2,33,Nanggi,,Tindog,,Stand,,Verb,You,Personal Action,Posture,Novice-High,N
+2,34,Ipatana,,I-butang,,Put,,Verb,You,Personal Action,Manipulation,Novice-High,N
+2,35,Nga’,,Kuha,,Get,,Verb,You,Personal Action,Manipulation,Novice-High,N
+2,36,Lamesahan,,Lamesa,,Table,,Noun,Home,Furniture,Furniture,Novice-Mid,N
+2,37,Paningko’an,,Lingkuranan,,Chair,,Noun,Home,Furniture,Furniture,Novice-High,N
+2,38,Ai-ai,,Mga butang,,Things,,Noun phrase,Function Word,Generic Noun,Generic Noun,Novice-Mid,N
+2,39,Ettom,,Itom,,Black,,Adjective,Function Word,Color,Color,Novice-Mid,N
+2,40,Pote’,,Puti,,White,,Adjective,Function Word,Color,Color,Novice-Mid,N
+2,41,Keyat,,Pula,,Red,,Adjective,Function Word,Color,Color,Novice-Mid,N
+2,42,Gaddung,,Green,,Green,,Adjective,Function Word,Color,Color,Novice-Mid,N
+2,43,Isa/dakayu,,Isa,,One,,Numeral,Function Word,Number,Number,Novice-Mid,N
+2,44,Duwa,,Duha,,Two,,Numeral,Function Word,Number,Number,Novice-Mid,N
+2,45,Tullu’,,Tulo,,Three,,Numeral,Function Word,Number,Number,Novice-Mid,N
+2,46,M’pat,,Upat,,Four,,Numeral,Function Word,Number,Number,Novice-Mid,N
+2,47,Lema,,Lima,,Five,,Numeral,Function Word,Number,Number,Novice-Mid,N
+3,48,Siya/iya,,Siya,,Him/her,,Pronoun,Function Word,Pronoun,Pronoun,Novice-Low,N
+3,49,Sigam,,Sila,,They/them,,Pronoun,Function Word,Pronoun,Pronoun,Novice-Mid,N
+3,50,Bag,,Bag,,Bag,,Noun,You,Personal Belonging,Personal Belonging,Novice-Mid,N
+3,51,Kahon,,Karton,,Box,,Noun,Home,Household Item,Container,Novice-Mid,N
+3,52,Luwas / lawang,,Gawas,,Out,,Adverb / Prepositional,You,Personal Location,Direction,Novice-Mid,N
+3,53,Reyom / pasud’,,Sulod,,In,,Adverb / Prepositional,You,Personal Location,Position,Novice-Mid,N
+3,54,Diyata / reyata,,Ibabaw,,On top,,Adverb / Prepositional,You,Personal Location,Position,Novice-Mid,N
+3,55,Deyu/reyu,,Ilalom,,Under,,Adverb / Prepositional,You,Personal Location,Position,Novice-Mid,N
+3,56,Pasunu’,,Kilid,,Next to,,Noun / Adverb,You,Personal Location,Position,Novice-Mid,N
+3,57,Min,,Gikan,,From,,Preposition,Function Word,Preposition,Preposition,Novice-High,N
+5,58,p’ddi’,,Sakit,,Pain/Hurt,,Noun / Adjective,You,Personal State,Health,Novice-High,N
+5,59,n’tan,,Hikap,,Touch,,Verb,You,Personal Action,Sensory,Novice-High,N
+5,60,lege’,,Higda,,Lie down,,Verb,You,Personal Action,Posture,Novice-High,N
+5,61,Aku’,,Ako,,My,,Pronoun,Function Word,Pronoun,Pronoun,Novice-Low,N
+5,61,ku,,Akong,,Mine,,Pronoun,Function Word,Possessive,Possessive,Novice-Mid,N
+5,62,Siya/iya,,Iya,,His/Hers,,Pronoun,Function Word,Pronoun,Pronoun,Novice-Mid,N
+5,62,na,,Iyang,,His/Her,,Pronoun,Function Word,Possessive,Possessive,Novice-Mid,N
+5,63,Sigam,,Ila,,Theirs,,Pronoun,Function Word,Pronoun,Pronoun,Novice-High,N
+5,63,ka’am,,Ilang,,Their,,Pronoun,Function Word,Possessive,Possessive,Novice-High,N
+5,64,nu,,Imo/Imong,,Your,,Pronoun,Function Word,Possessive,Possessive,Novice-Mid,N
+5,65,anak tangan,,Tudlo,,Finger,,Noun / Verb,You,Body Part,Body Part,Novice-High,N
+5,66,kuk,,Ulo,,Head,,Noun,You,Body Part,Body Part,Novice-High,N
+5,67,punggo baha,,Abaga,,Shoulders,,Noun,You,Body Part,Body Part,Novice-High,N
+5,68,tuot,,Tuhod,,Knee,,Noun,You,Body Part,Body Part,Novice-High,N
+5,69,tape,,Tiil,,Foot,,Noun,You,Body Part,Body Part,Novice-High,N
+5,70,gulamay tape,,Tudlo sa Tiil,,Toes,,Noun phrase,You,Body Part,Body Part,Intermediate-Low,N
+5,71,tangan,,Kamot,,Hands,,Noun,You,Body Part,Body Part,Novice-High,N
+5,72,aheya,,Dako,,Big,,Adjective,Function Word,Size,Size,Novice-Mid,N
+5,73,ariki,,Gamay,,Small,,Adjective,Function Word,Size,Size,Novice-Mid,N
+5,74,gibang,,Wala,,Left,,Adverb / Adjective,Function Word,Direction,Direction,Novice-Mid,N
+5,75,kowan,,Tuo,,Right,,Adverb,Function Word,Direction,Direction,Novice-High,N
+5,76,riyata/diyata,,Taas,,Up,,Adjective,Function Word,Size,Size,Novice-Mid,N
+5,77,reyu/deyu,,Ubos,,Below,,Adjective,Function Word,Size,Size,Novice-High,N
+6,78,pehe’,,Adto,,Go,,Verb,You,Personal Action,Movement,Novice-Mid,N
+6,79,tuli’,,Tulog,,Sleep,,Verb / Noun,You,Personal Action,Daily Activity,Novice-High,N
+6,80,luma,,Balay,,House,,Noun,Home,Building,Building,Novice-Mid,N
+6,81,bilik,,Kwarto,,Room,,Noun,Home,Room,Room,Novice-High,N
+6,82,sala,,Sala,,Living room,,Noun,Home,Room,Room,Novice-High,N
+6,83,paningko’an,,Bangko,,Chair,,Noun,Home,Furniture,Furniture,Novice-Mid,N
+6,84,palege’an,,Higdaanan,,Sleeping place,,Noun,Home,Furniture,Sleeping,Novice-High,N
+6,85,patuli’an,,Tuluganan,,Sleeping room,,Noun,Home,Room,Sleeping,Novice-High,N
+6,86,katle,,Katre,,Bed frame,,Noun,Home,Furniture,Sleeping,Novice-High,N
+6,87,d’nda,,Babaye,,Female,,Noun,World,Person,Gender,Novice-Mid,N
+6,88,l’lla,,Lalaki,,Male,,Noun,World,Person,Gender,Novice-Mid,N
+6,89,pasungi’an,,Cr,,Toilet room,,Noun,Home,Room,Facility,Novice-High,N
+6,90,minnilu,,Kato,,"That, far",,Demonstrative pronoun,Function Word,Demonstrative,Demonstrative,Novice-Mid,N
+7,91,lahi-lahi,,Dagan,,Run,,Verb,You,Personal Action,Movement,Novice-High,N
+7,92,hali,,Hunong,,Stop,,Verb,You,Personal Action,Movement,Novice-High,N
+7,93,Dahu’na,,Padulong,,Direction,,Verb phrase,You,Personal Action,Movement,Intermediate-Low,N
+7,94,l’ngngan,,Lakaw,,Walk,,Verb,You,Personal Action,Movement,Novice-High,N
+7,95,maitu/pi’ilu,,Diri/Dinhi,,Here,,Adverb,You,Personal Location,Proximity,Novice-Mid,N
+7,96,mahe,,Didto,,Over there,,Adverb,World,Location,Distance,Novice-Mid,N
+7,97,pi’ilu/mailu,,Diha/Dinha,,There,,Adverb,World,Location,Proximity,Novice-Mid,N
+7,98,lungsod,,Siyudad,,City,,Noun,World,Geography,Urban,Novice-High,N
+7,99,lungsod,,Lungsod,,Town,,Noun,World,Geography,Urban,Novice-High,N
+7,100,barangay,,Barangay,,Barangay,,Noun,World,Geography,Administrative,Novice-High,N
+7,101,iskol,,Eskwela-han,,School,,Noun,World,Location,Educational,Novice-High,N
+7,102,malket/tyanggi,,Merkado,,Market,,Noun,World,Location,Commercial,Novice-High,N
+7,103,pagdagangan,,Tinda-han,,Store,,Noun,World,Location,Commercial,Novice-High,N
+7,104,hospital,,Ospital,,Hospital,,Noun,World,Location,Medical,Novice-High,N
+7,105,munsipyo,,Munisipyo,,Govt HQ,,Noun,World,Location,Government,Novice-High,N
+7,106,langgal,,Simba-han,,Church,,Noun,World,Location,Religious,Novice-High,N
+7,107,banko,,Banko,,Bank,,Noun,World,Location,Financial,Novice-High,N
+7,108,sekot,,Duol,,Near,,Adjective / Locative adverb,Function Word,Proximity,Proximity,Novice-Mid,N
+7,109,lawak,,Layo,,Far,,Adjective / Locative adverb,Function Word,Proximity,Proximity,Novice-Mid,N
+7,110,atubang,,Atubangan,,Front of,,Noun / Locative,You,Personal Location,Position,Novice-Mid,N
+9,111,Sai,,Kinsa,,Who,,Interrogative pronoun,Function Word,Question Word,Question Word,Novice-Mid,N
+9,112,M’bal,,Dili,,Not,,Adverb / Negator,Function Word,Negation,Negation,Novice-Low,N
+9,113,K’ddom,,Piyong,,Close eyes,,Verb,You,Personal Action,Face Action,Novice-High,N
+9,114,Pak’llat/Bongat,,Bukha,,Open eyes / mouth,,Verb,You,Personal Action,Face Action,Novice-High,N
+9,115,Tambolna,,Sirado,,Close,,Adjective,Function Word,State,State,Novice-High,N
+9,116,Kiyum,,Ngisi,,Smile,,Verb / Noun,You,Personal Action,Facial Expression,Novice-High,N
+9,117,Mata,,Mata,,Eye,,Noun,You,Body Part,Face,Novice-High,N
+9,118,Kilay,,Kilay,,Eyebrow,,Noun,You,Body Part,Face,Intermediate-Low,N
+9,119,Ung,,Ilong,,Nose,,Noun,You,Body Part,Face,Novice-High,N
+9,120,Talinga,,Dalunggan,,Ear,,Noun,You,Body Part,Face,Novice-High,N
+9,121,Bowa’,,Baba,,Mouth,,Noun,You,Body Part,Face,Novice-High,N
+9,122,Empon,,Ngipon,,Teeth,,Noun,You,Body Part,Face,Novice-High,N
+9,123,Lendo,,Agtang,,Forehead,,Noun,You,Body Part,Face,Intermediate-Low,N
+9,124,Langal,,Suwang,,Chin,,Noun,You,Body Part,Face,Intermediate-Low,N
+9,125,Bayhu’,,Aping,,Cheeks,,Noun,You,Body Part,Face,Intermediate-Low,N
+9,126,Buon,,Buhok,,Hair,,Noun,You,Body Part,Head,Novice-High,N
+9,127,Ahap d’nda,,Gwapa,,Beautiful,,Adjective,You,Personal Appearance,Appearance,Novice-Mid,N
+9,128,Seme,,Pangit,,Ugly,,Adjective,You,Personal Appearance,Appearance,Novice-High,N
+9,129,Ma,,Sa,,To/from,,Preposition / Case marker,Function Word,Preposition,Preposition,Novice-High,N
+9,130,O,,O,,Or,,Conjunction,Function Word,Conjunction,Conjunction,Novice-High,N
+9,131,M’bal ba,,Diba,,Right,,Particle,Function Word,Tag Question,Tag Question,Novice-High,S
+9,132,Aho tauwa,,Mao jud,,Thats Right,,Expression / Particle phrase,Function Word,Confirmation,Confirmation,Novice-High,S
+9,133,Ahap l’lla,,Gwapo,,Handsome,,Adjective,You,Personal Appearance,Appearance,Novice-Mid,S
+10,134,Kami,,Kami,,"We, exclusive",,Pronoun,Function Word,Pronoun,Pronoun,Novice-Mid,N
+10,134,Kami,,Mi,,"We, exclusive",,Pronoun,Function Word,Pronoun,Pronoun,Novice-Mid,N
+10,135,Kam/ka’am/bi,,Kamo,,You all,,Pronoun,Function Word,Pronoun,Pronoun,Novice-Mid,N
+10,135,Kam/ka’am/bi,,Mo,,You all,,Pronoun,Function Word,Pronoun,Pronoun,Novice-Mid,N
+10,136,Kitam,,Kita,,"We, inclusive",,Pronoun,Function Word,Pronoun,Pronoun,Novice-Mid,N
+10,136,Kitam,,Ta,,"We, inclusive",,Pronoun,Function Word,Pronoun,Pronoun,Novice-Mid,N
+10,137,N’na,,Inahan,,Mother,,Noun,Home,Family Member,Parent,Novice-Mid,N
+10,138,M’ma,,Amahan,,Father,,Noun,Home,Family Member,Parent,Novice-Mid,N
+10,139,Danakan,,Igsoon,,Sibling,,Noun,Home,Family Member,Sibling,Novice-High,N
+10,140,Kaukaki,,Ig-agaw,,Cousin,,Noun,Home,Family Member,Extended,Novice-High,N
+10,141,Makannak,,Anak,,Son/daugher,,Noun,Home,Family Member,Offspring,Novice-High,N
+10,142,M’bo l’lla,,Lolo,,Grandfather,,Noun,Home,Family Member,Grandparent,Novice-Mid,N
+10,143,M’bo d’nda,,Lola,,Grandmother,,Noun,Home,Family Member,Grandparent,Novice-Mid,N
+10,144,A-a,,Tawo,,People,,Noun,World,Person,General,Novice-Mid,N
+11,145,Sakay,,Sakay,,Ride / embark,,Verb,You,Personal Action,Movement,Novice-High,N
+11,146,Busay,,Biyahe,,Travel,,Noun / Verb,World,Activity,Transportation,Novice-High,N
+11,147,Reyo,,Naog,,Debark,,Verb,You,Personal Action,Movement,Novice-High,N
+11,148,Lan,,Dalan,,Road / path,,Noun,World,Location,Infrastructure,Novice-Mid,N
+11,149,Awto,,Sakyanan,,Car,,Noun,World,Transportation,Vehicle,Novice-High,N
+11,150,Dyip,,Jeep / jeepney,,Jeep,,Noun,World,Transportation,Vehicle,Novice-High,N
+11,151,Sikad,,Sikad,,Rickshaw,,Verb / Noun,World,Transportation,Vehicle,Novice-High,N
+11,152,Bilding,,Bilding,,Building,,Noun,World,Location,Structure,Novice-High,N
+11,153,lang,,Lang,,Just,,Particle,Function Word,Limiter,Limiter,Novice-High,N
+11,154,T’ngnga,,Tunga,,Center,,Noun / Adverb,You,Personal Location,Position,Novice-Mid,N
+11,155,Bukut,,Likod,,Behind,,Noun / Adverb,You,Personal Location,Position,Novice-Mid,N
+13,156,Itung,,Ihap,,Count,,Verb,You,Personal Action,Calculation,Novice-High,N
+13,157,N’da,,Kita,,See/seen,,Verb,You,Personal Action,Vision,Novice-High,N
+13,158,Bau,,Simhot,,Smell,,Verb,You,Personal Action,Sensory,Novice-High,N
+13,159,Bahingaw,,Dungog,,Hear,,Verb,You,Personal Action,Hearing,Novice-High,N
+13,160,Yuk,,Sulti,,Say/speak,,Verb,You,Personal Action,Communication,Novice-High,N
+13,161,Bi,,Inyo,,"Yours, second-person plural",,Pronoun,Function Word,Pronoun,Pronoun,Novice-High,N
+13,161,Bi,,Inyong,,"Your, second-person plural",,Pronoun,Function Word,Possessive,Possessive,Novice-High,N
+13,162,Taha,,Taas,,Long,,Adjective,Function Word,Size,Size,Novice-Mid,N
+13,163,Pandak/pu’u t,,Mubo,,Short,,Adjective,Function Word,Size,Size,Novice-Mid,N
+13,164,Tobtob,,Taman,,Until,,Preposition / Particle,Function Word,Boundary,Boundary,Novice-High,N
+13,165,N’nom,,Unom,,Six,,Numeral,Function Word,Number,Number,Novice-Mid,N
+13,166,Pitu’,,Pito,,Seven,,Numeral,Function Word,Number,Number,Novice-Mid,N
+13,167,Walu,,Walo,,Eight,,Numeral,Function Word,Number,Number,Novice-Mid,N
+13,168,Siyam,,Siyam,,Nine,,Numeral,Function Word,Number,Number,Novice-Mid,N
+13,169,Sangpu,,Pulo,,Ten,,Numeral,Function Word,Number,Number,Novice-Mid,N
+14,170,Timtim,,Tilaw,,Taste,,Verb,You,Personal Action,Sensory,Novice-High,N
+14,171,M’ngan,,Kaon,,Eat,,Verb,You,Personal Action,Daily Activity,Novice-High,N
+14,172,Inom,,Inom,,Drink,,Verb,You,Personal Action,Daily Activity,Novice-High,N
+14,173,Na/ina’an,,Na,,Already,,Particle,Function Word,Aspect,Aspect,Novice-High,N
+14,174,Pagkakan’an,,Kan-anan,,Eating place/dining area,,Noun,World,Location,Food Service,Novice-High,N
+14,175,Kusina,,Kusina,,Kitchen,,Noun,Home,Room,Cooking,Novice-High,N
+14,176,Pagkakan,,Pagkaon,,Food,,Noun,Home,Household Item,Meal,Novice-Mid,N
+14,177,Lai,,Plato,,Plate,,Noun,Home,Household Item,Tableware,Novice-High,N
+14,178,Suru,,Kutsara,,Spoon,,Noun,Home,Household Item,Tableware,Novice-High,N
+14,179,Tinerol,,Tinidor,,Fork,,Noun,Home,Household Item,Tableware,Novice-High,N
+14,180,Sawan,,Baso,,Glass,,Noun,Home,Household Item,Tableware,Novice-High,N
+14,181,Bohe,,Tubig,,Water,,Noun,Home,Household Item,Beverage,Novice-Mid,N
+14,182,Lanab,,Lami,,Delicious,,Adjective,You,Personal Perception,Taste,Novice-Mid,N
+14,183,Ariki,,Gamay,,Few,,Adjective,Function Word,Size,Size,Novice-Mid,N
+14,184,Ahiya,,Daghan,,Many,,Adjective,Function Word,Quantity,Quantity,Novice-Mid,N
+14,185,Pasal,,Kay,,Is,,Conjunction,Function Word,Equational Linker,Equational Linker,Novice-High,N
+14,186,aniya,,Naa/naay,,There is/has/have,,Existential verb,Function Word,Existence,Existence,Novice-Mid,N
+15,187,Bayad/gadji,,Bayad,,Pay,,Verb / Noun,You,Personal Action,Transaction,Novice-High,N
+15,188,B’lli/m’lli,,Palit,,Buy,,Verb,You,Personal Action,Transaction,Novice-High,N
+15,189,Tebag,,Buok,,Piece,,Numeral classifier / Noun,Function Word,Classifier,Classifier,Novice-High,N
+15,190,Bayad,,Bayad,,Payment,,Verb / Noun,You,Personal Action,Transaction,Novice-High,N
+15,191,Bungang-kahoy,,Prutas,,Fruits,,Noun,Home,Household Item,Food,Novice-Mid,N
+15,192,Legotoman,,Utan,,Vegetables,,Noun,Home,Household Item,Food,Novice-Mid,N
+15,193,Bawe,,Karne,,Meat,,Noun,Home,Household Item,Food,Novice-Mid,N
+15,194,Manuk,,Manok,,Chicken,,Noun,Home,Household Item,Food,Novice-Mid,N
+15,195,Dagangan,,Mga baligya,,Goods for sale,,Noun phrase,World,Commercial Item,Commercial Item,Novice-High,N
+15,196,Buwas,,Bugas,,Rice,,Noun,Home,Household Item,Staple Food,Novice-Mid,N
+15,197,Sin,,Kwarta,,Money,,Noun,Function Word,Currency,Currency,Novice-Mid,N
+15,198,Mahal,,Mahal,,Expensive,,Adjective,Function Word,Value,Value,Novice-Mid,N
+15,199,Luhay,,Barato,,Cheap,,Adjective,Function Word,Value,Value,Novice-Mid,N
+10,200,Ai a-a,,Ayo,,Anyone there,,Interjection,You,Personal Interaction,Greeting,Novice-High,S
+10,201,Pi’itu riyom,,Dayon,,Come in,,Interjection / Adverb,You,Personal Interaction,Invitation,Novice-High,S
+15,202,Ukab,,Abri,,Open,,Verb,You,Personal Action,Command,Novice-High,N
+15,203,Dangay/pila,,Pila,,How many,,Interrogative,Function Word,Question Word,Question Word,Novice-Mid,S
+15,204,pa’in,,Palihog,,Please,,Particle / Polite marker,You,Personal Interaction,Politeness,Novice-Mid,S
+15,205,sukay,,Plite,,Fare,,Noun / Exclamation,You,Personal Action,Transportation,Novice-High,S
+14,206,Alanab,,lami-a oy,,Yummy,,Exclamatory phrase / Interjection,You,Personal Perception,Taste Reaction,Novice-High,S
+7,207,lagid,,Hapit,,Stop by,,Verb / Adverb,You,Personal Interaction,Visit,Novice-High,S
+5,208,aroy/aruhoy,,Agay ,,Ouch,,Interjection,You,Personal Emotion,Exclamation,Novice-High,S
+10,185,Pasal,,kay,,Is,,Conjunction,Function Word,Equational Linker,Personal Name Marker,Novice-High,S
+10,186,aniya,,naa,,There is/has/have,,Existential verb,Function Word,Existence,,Novice-Mid,S
+10,209,si,,ni,,Name Marker,,Particle / Linker,Function Word,Case Marker,,Novice-Mid,S
