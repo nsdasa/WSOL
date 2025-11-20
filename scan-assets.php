@@ -436,6 +436,7 @@ function scanAssets() {
         foreach ($cardsMaster as $c) {
             if (!isset($c['word'][$trig])) continue;
 
+            // Build audio array matched to word variants
             $cardNum = $c['cardNum'];
 
             // Check if this card exists in the previous manifest (SMART MERGE)
@@ -461,6 +462,7 @@ function scanAssets() {
                 }
             }
 
+            $hasAudio = !empty(array_filter($audioArray));
             // Smart merge: Preserve existing audio if present (manual recordings are kept!)
             if ($existingCard && !empty($existingCard['audio'])) {
                 $audioArray = $existingCard['audio'];
@@ -499,6 +501,8 @@ function scanAssets() {
                 'subCategory2' => $c['subCategory2'],
                 'actflEst' => $c['actflEst'],
                 'type' => $c['type'],
+                'acceptableAnswers' => [$c['word'][$trig]],
+                'englishAcceptable' => [$c['english'][$trig] ?? ''],
                 'acceptableAnswers' => $wordVariants,
                 'englishAcceptable' => $englishVariants,
                 'cebuanoAcceptable' => $cebuanoVariants,
