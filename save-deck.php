@@ -1,7 +1,7 @@
 <?php
 /**
- * Save Deck Changes - Persists deck builder changes to CSV files
- * Receives updated card data and writes back to language-specific CSV files
+ * Save Deck Changes - Directly updates manifest.json
+ * Preserves all asset links and only updates card data
  */
 
 header('Content-Type: application/json');
@@ -27,12 +27,11 @@ try {
     }
 
     // Validate required fields
-    if (!isset($data['trigraph']) || !isset($data['languageName']) || !isset($data['cards'])) {
-        throw new Exception('Missing required fields: trigraph, languageName, or cards');
+    if (!isset($data['trigraph']) || !isset($data['cards'])) {
+        throw new Exception('Missing required fields: trigraph or cards');
     }
 
     $trigraph = $data['trigraph'];
-    $languageName = $data['languageName'];
     $cards = $data['cards'];
 
     // Validate trigraph
@@ -41,42 +40,75 @@ try {
         throw new Exception('Invalid trigraph: ' . $trigraph);
     }
 
-    // Define CSV path
+    // Define paths
     $assetsDir = __DIR__ . '/assets';
-    $csvPath = $assetsDir . '/Word_List_' . $languageName . '.csv';
+    $manifestPath = $assetsDir . '/manifest.json';
 
     // Check if assets directory exists
     if (!is_dir($assetsDir)) {
         throw new Exception('Assets directory not found');
     }
 
-    // Check if directory is writable
-    if (!is_writable($assetsDir)) {
-        throw new Exception('Assets directory is not writable');
+    // Load existing manifest
+    if (!file_exists($manifestPath)) {
+        // Create new v4.0 manifest if doesn't exist
+        $manifest = [
+            'version' => '4.0',
+            'lastUpdated' => date('c'),
+            'languages' => [
+                ['id' => 1, 'name' => 'Cebuano', 'trigraph' => 'ceb'],
+                ['id' => 2, 'name' => 'English', 'trigraph' => 'eng'],
+                ['id' => 3, 'name' => 'Maranao', 'trigraph' => 'mrw'],
+                ['id' => 4, 'name' => 'Sinama', 'trigraph' => 'sin']
+            ],
+            'images' => new stdClass(),
+            'cards' => new stdClass(),
+            'stats' => [
+                'totalCards' => 0,
+                'cardsWithAudio' => 0,
+                'totalImages' => 0
+            ]
+        ];
+    } else {
+        $manifestJson = file_get_contents($manifestPath);
+        $manifest = json_decode($manifestJson, true);
+
+        if (!$manifest) {
+            throw new Exception('Failed to parse existing manifest.json');
+        }
     }
 
-    // Generate CSV content
-    $csv = generateCSVContent($cards);
+    // Update the specific language's cards
+    $manifest['cards'][$trigraph] = $cards;
 
-    // Write to file
-    $result = file_put_contents($csvPath, $csv);
+    // Update timestamp
+    $manifest['lastUpdated'] = date('c');
+
+    // Recalculate stats
+    $manifest['stats'] = calculateStats($manifest);
+
+    // Write back to manifest.json
+    $result = file_put_contents(
+        $manifestPath,
+        json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+    );
 
     if ($result === false) {
-        throw new Exception('Failed to write CSV file');
+        throw new Exception('Failed to write manifest.json');
     }
 
     // Set proper permissions
-    chmod($csvPath, 0644);
+    chmod($manifestPath, 0644);
 
     // Clear file cache
-    clearstatcache(true, $csvPath);
+    clearstatcache(true, $manifestPath);
 
     echo json_encode([
         'success' => true,
-        'message' => 'Changes saved successfully',
-        'file' => $csvPath,
+        'message' => 'Changes saved directly to manifest.json',
         'cardCount' => count($cards),
-        'bytes' => $result
+        'bytes' => $result,
+        'info' => 'Changes are immediately active. No rescan needed unless you added new asset files.'
     ]);
 
 } catch (Exception $e) {
@@ -90,52 +122,45 @@ try {
 }
 
 /**
- * Generate CSV content from card array
+ * Calculate manifest statistics
  */
-function generateCSVContent($cards) {
-    $headers = [
-        'Lesson', 'CardNum', 'Word', 'WordNote', 'English', 'EnglishNote',
-        'Grammar', 'Category', 'SubCategory1', 'SubCategory2', 'ACTFLEst', 'Type'
+function calculateStats($manifest) {
+    $stats = [
+        'totalCards' => 0,
+        'cardsWithAudio' => 0,
+        'totalImages' => 0,
+        'languageStats' => []
     ];
 
-    $csv = implode(',', $headers) . "\n";
+    if (isset($manifest['cards']) && is_array($manifest['cards'])) {
+        foreach ($manifest['cards'] as $trigraph => $cards) {
+            $langStats = [
+                'totalCards' => count($cards),
+                'cardsWithAudio' => 0,
+                'lessons' => []
+            ];
 
-    foreach ($cards as $card) {
-        $row = [
-            isset($card['lesson']) ? $card['lesson'] : '',
-            isset($card['cardNum']) ? $card['cardNum'] : (isset($card['wordNum']) ? $card['wordNum'] : ''),
-            escapeCSV(isset($card['word']) ? $card['word'] : ''),
-            escapeCSV(isset($card['wordNote']) ? $card['wordNote'] : ''),
-            escapeCSV(isset($card['english']) ? $card['english'] : ''),
-            escapeCSV(isset($card['englishNote']) ? $card['englishNote'] : ''),
-            escapeCSV(isset($card['grammar']) ? $card['grammar'] : ''),
-            escapeCSV(isset($card['category']) ? $card['category'] : ''),
-            escapeCSV(isset($card['subCategory1']) ? $card['subCategory1'] : ''),
-            escapeCSV(isset($card['subCategory2']) ? $card['subCategory2'] : ''),
-            escapeCSV(isset($card['actflEst']) ? $card['actflEst'] : ''),
-            isset($card['type']) ? $card['type'] : 'N'
-        ];
-        $csv .= implode(',', $row) . "\n";
+            foreach ($cards as $card) {
+                if (!empty($card['hasAudio'])) {
+                    $langStats['cardsWithAudio']++;
+                    $stats['cardsWithAudio']++;
+                }
+
+                if (isset($card['lesson']) && !in_array($card['lesson'], $langStats['lessons'])) {
+                    $langStats['lessons'][] = $card['lesson'];
+                }
+            }
+
+            sort($langStats['lessons']);
+            $stats['languageStats'][$trigraph] = $langStats;
+            $stats['totalCards'] += $langStats['totalCards'];
+        }
     }
 
-    return $csv;
-}
-
-/**
- * Escape CSV field value
- */
-function escapeCSV($value) {
-    if ($value === null || $value === '') {
-        return '';
+    if (isset($manifest['images'])) {
+        $stats['totalImages'] = is_array($manifest['images']) ? count($manifest['images']) : count((array)$manifest['images']);
     }
 
-    $value = strval($value);
-
-    // If contains comma, quote, or newline, wrap in quotes and escape internal quotes
-    if (strpos($value, ',') !== false || strpos($value, '"') !== false || strpos($value, "\n") !== false) {
-        $value = '"' . str_replace('"', '""', $value) . '"';
-    }
-
-    return $value;
+    return $stats;
 }
 ?>

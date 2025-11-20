@@ -150,6 +150,26 @@ function scanAssets() {
     $langByTrigraph = [];
     foreach ($languages as $l) $langByTrigraph[$l['trigraph']] = $l['name'];
 
+    // Load existing manifest for smart merging
+    $existingManifest = null;
+    $existingCards = [];
+    if (file_exists($manifestPath)) {
+        $manifestJson = file_get_contents($manifestPath);
+        $existingManifest = json_decode($manifestJson, true);
+
+        // Index existing cards by cardNum and trigraph for quick lookup
+        if ($existingManifest && isset($existingManifest['cards'])) {
+            foreach ($existingManifest['cards'] as $trig => $cards) {
+                foreach ($cards as $card) {
+                    $cardNum = $card['cardNum'] ?? ($card['wordNum'] ?? null);
+                    if ($cardNum) {
+                        $existingCards[$trig][$cardNum] = $card;
+                    }
+                }
+            }
+        }
+    }
+
     // Temporary storage
     $cardsMaster = [];       // cardNum ? base data
     $images = [];            // cardNum ? png/gif paths
@@ -254,8 +274,36 @@ function scanAssets() {
         foreach ($cardsMaster as $c) {
             if (!isset($c['word'][$trig])) continue;
 
-            $audioPath = $c['audio'][$trig] ?? null;
-            $hasAudio = !empty($audioPath);
+            $cardNum = $c['cardNum'];
+
+            // Check if this card exists in the previous manifest
+            $existingCard = $existingCards[$trig][$cardNum] ?? null;
+
+            // Smart merge: Use CSV data for text, preserve existing audio/image links
+            $audioPath = null;
+            $hasAudio = false;
+            $printImagePath = null;
+            $hasGif = false;
+
+            if ($existingCard) {
+                // Preserve existing audio link (manual recordings are kept!)
+                $audioPath = $existingCard['audio'] ?? null;
+                $hasAudio = !empty($existingCard['hasAudio']);
+                $printImagePath = $existingCard['printImagePath'] ?? null;
+                $hasGif = !empty($existingCard['hasGif']);
+            }
+
+            // Override with newly found files from this scan (only if not already linked)
+            if (!$audioPath && isset($c['audio'][$trig])) {
+                $audioPath = $c['audio'][$trig];
+                $hasAudio = true;
+            }
+            if (!$printImagePath && isset($c['printImagePath'])) {
+                $printImagePath = $c['printImagePath'];
+            }
+            if (!$hasGif && isset($c['hasGif']) && $c['hasGif']) {
+                $hasGif = true;
+            }
 
             $finalCards[$trig][] = [
                 'lesson' => $c['lesson'],
@@ -272,8 +320,8 @@ function scanAssets() {
                 'englishAcceptable' => [$c['english'][$trig] ?? ''],
                 'audio' => $audioPath,
                 'hasAudio' => $hasAudio,
-                'printImagePath' => $c['printImagePath'],
-                'hasGif' => $c['hasGif']
+                'printImagePath' => $printImagePath,
+                'hasGif' => $hasGif
             ];
 
             $langStats['totalCards']++;

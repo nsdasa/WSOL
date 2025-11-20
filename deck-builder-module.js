@@ -2800,8 +2800,8 @@ class DeckBuilderModule extends LearningModule {
             this.updateStats();
             this.updateUnsavedIndicator();
 
-            toastManager.show(`Changes saved! ${result.cardCount} cards written to CSV file. You can now rescan assets to update the manifest.`, 'success', 5000);
-            debugLogger?.log(2, `Deck Builder: Saved ${this.allCards.length} cards for ${this.currentLanguageName}`);
+            toastManager.show(`✓ Saved! ${result.cardCount} cards written to manifest.json. Changes are live immediately - no rescan needed!`, 'success', 6000);
+            debugLogger?.log(2, `Deck Builder: Saved ${this.allCards.length} cards for ${this.currentLanguageName} directly to manifest`);
         } catch (err) {
             console.error('Save error:', err);
             toastManager.show('Error saving changes: ' + err.message, 'error', 5000);
