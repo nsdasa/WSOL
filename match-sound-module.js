@@ -233,12 +233,18 @@ class MatchSoundModule extends LearningModule {
                 <div class="dot"></div>
             </div>
         `;
-        
+
         const speaker = audioSection.querySelector('.audio-speaker-big');
         speaker.addEventListener('click', () => {
             const audio = new Audio(targetCard.audioPath);
             audio.play().catch(err => debugLogger?.log(1, `Audio play error: ${err.message}`));
         });
+
+        // Auto-play audio when new word loads
+        if (targetCard.audioPath) {
+            const audio = new Audio(targetCard.audioPath);
+            audio.play().catch(err => debugLogger?.log(1, `Auto-play audio error: ${err.message}`));
+        }
     }
     
     renderPictures() {
