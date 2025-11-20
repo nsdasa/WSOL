@@ -196,10 +196,7 @@ class UnsaNiQuizModule extends LearningModule {
         document.getElementById('correctWordDisplay').classList.remove('show');
         document.getElementById('correctWordDisplay').textContent = '';
 
-        // Auto-play audio if available (sequential for multi-variant cards)
-        if (card.audioPath && card.audioPath.length > 0) {
-            this.playAudioSequentially(card.audioPath);
-        }
+        // Note: Audio is NOT auto-played in quiz mode to avoid giving away the answer
     }
     
     submitAnswer() {
