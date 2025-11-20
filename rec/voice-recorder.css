@@ -542,11 +542,6 @@
     animation: countdownPop 1s ease;
 }
 
-.countdown-number.speak {
-    color: #22c55e;
-    font-size: 48px;
-}
-
 @keyframes countdownPop {
     0% { transform: scale(0.5); opacity: 0; }
     50% { transform: scale(1.2); }
@@ -632,6 +627,24 @@
 
 .marker-end::after {
     background: #ef4444;
+}
+
+/* Playhead - moving indicator during playback */
+.playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.9);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 15;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+.playhead.active {
+    opacity: 1;
 }
 
 .editor-time {

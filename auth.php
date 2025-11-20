@@ -34,15 +34,17 @@ switch ($action) {
 
 function handleLogin() {
     $password = $_POST['password'] ?? '';
-    
+
     // Check which role the password matches
     $role = null;
     if ($password === ADMIN_PASSWORD) {
         $role = 'admin';
+    } elseif ($password === DECK_MANAGER_PASSWORD) {
+        $role = 'deck-manager';
     } elseif ($password === VOICE_RECORDER_PASSWORD) {
         $role = 'voice-recorder';
     }
-    
+
     if ($role) {
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['user_role'] = $role;
