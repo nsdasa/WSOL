@@ -147,14 +147,13 @@ class FlashcardsModule extends LearningModule {
             
             front.appendChild(img);
             
-            if (card.hasAudio) {
+            if (card.hasAudio && card.audioPath && card.audioPath.length > 0) {
                 const speaker = document.createElement('div');
                 speaker.className = 'speaker-icon';
                 speaker.innerHTML = '<i class="fas fa-volume-up"></i>';
                 speaker.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const audio = new Audio(card.audioPath);
-                    audio.play().catch(err => debugLogger.log(1, `Audio play error: ${err.message}`));
+                    this.playAudioSequentially(card.audioPath);
                 });
                 front.appendChild(speaker);
             }
@@ -222,14 +221,13 @@ class FlashcardsModule extends LearningModule {
             
             back.innerHTML = backHTML;
             
-            if (card.hasAudio) {
+            if (card.hasAudio && card.audioPath && card.audioPath.length > 0) {
                 const speakerBack = document.createElement('div');
                 speakerBack.className = 'speaker-icon';
                 speakerBack.innerHTML = '<i class="fas fa-volume-up"></i>';
                 speakerBack.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const audio = new Audio(card.audioPath);
-                    audio.play().catch(err => debugLogger.log(1, `Audio play error: ${err.message}`));
+                    this.playAudioSequentially(card.audioPath);
                 });
                 back.appendChild(speakerBack);
             }
@@ -311,5 +309,39 @@ class FlashcardsModule extends LearningModule {
             this.currentIndex = Math.max(0, this.cards.length - this.cardsPerPage);
         }
         this.renderPage();
+    }
+
+    // Play audio files sequentially (for multi-variant cards)
+    playAudioSequentially(audioPaths) {
+        if (!audioPaths || audioPaths.length === 0) return;
+
+        let currentIndex = 0;
+
+        const playNext = () => {
+            if (currentIndex >= audioPaths.length) {
+                return;  // Done
+            }
+
+            const audio = new Audio(audioPaths[currentIndex]);
+
+            audio.onended = () => {
+                currentIndex++;
+                playNext();  // Play next in chain
+            };
+
+            audio.onerror = () => {
+                debugLogger?.log(1, `Audio play error: ${audioPaths[currentIndex]}`);
+                currentIndex++;
+                playNext();  // Skip to next on error
+            };
+
+            audio.play().catch(err => {
+                debugLogger?.log(1, `Audio play error: ${err.message}`);
+                currentIndex++;
+                playNext();
+            });
+        };
+
+        playNext();
     }
 }

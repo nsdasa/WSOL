@@ -22,7 +22,7 @@ class DeckBuilderModule extends LearningModule {
         this.nextNewCardId = 10000; // Temporary IDs for new cards
         
         // Role-based access
-        this.userRole = null; // 'admin', 'deck-manager', or 'voice-recorder'
+        this.userRole = null; // 'admin' or 'voice-recorder'
         this.isAdmin = false;
         
         // Sorting state
@@ -48,13 +48,10 @@ class DeckBuilderModule extends LearningModule {
     async render() {
         // Check user role
         this.userRole = window.authManager?.role || 'admin';
-        // Deck managers have same access as admins in deck builder
-        this.isAdmin = (this.userRole === 'admin' || this.userRole === 'deck-manager');
-
+        this.isAdmin = this.userRole === 'admin';
+        
         const adminOnlyClass = this.isAdmin ? '' : 'hidden';
-        const roleIndicator = this.userRole === 'deck-manager' ? '<span class="role-badge deck-manager"><i class="fas fa-edit"></i> Deck Manager</span>' :
-                             this.isAdmin ? '' :
-                             '<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Voice Recorder Mode</span>';
+        const roleIndicator = this.isAdmin ? '' : '<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Voice Recorder Mode</span>';
         
         this.container.innerHTML = `
             <div class="card module-deck-builder">
@@ -1005,10 +1002,14 @@ class DeckBuilderModule extends LearningModule {
         badge.className = `file-badge ${type} ${hasFile ? 'has-file' : 'no-file'} ${this.isAdmin ? 'upload-trigger' : 'disabled-badge'}`;
         badge.dataset.cardId = cardId;
         badge.dataset.fileType = type;
-        badge.innerHTML = hasFile 
-            ? `<i class="fas fa-check"></i> ${type.toUpperCase()}`
-            : `<i class="fas fa-folder-open"></i> ${type.toUpperCase()}`;
-        badge.title = this.isAdmin 
+
+        // Show filename if file exists, otherwise show type
+        const label = hasFile && filename ? filename : type.toUpperCase();
+
+        badge.innerHTML = hasFile
+            ? `<i class="fas fa-check"></i> ${label}`
+            : `<i class="fas fa-folder-open"></i> ${label}`;
+        badge.title = this.isAdmin
             ? (filename || `Click to select or upload ${type.toUpperCase()} file`)
             : `${type.toUpperCase()} - Admin only`;
 
@@ -1024,36 +1025,56 @@ class DeckBuilderModule extends LearningModule {
     }
 
     /**
-     * Create single audio badge for v4.0 (audio is string, not object)
+     * Create audio badges for v4.0 - one badge per word variant
+     * UPDATED: Supports multi-variant audio (e.g., "Ako/ko" needs 2 badges)
      */
     createAudioBadge(card) {
         const container = document.createElement('div');
         container.className = 'audio-badges-container';
         const cardId = card.cardNum || card.wordNum;
 
-        // v4.0: audio is a string path, not an object
-        const hasAudio = !!card.audio;
-        const badge = document.createElement('span');
-        badge.className = `file-badge audio ${hasAudio ? 'has-file' : 'no-file'} upload-trigger`;
-        badge.dataset.cardId = cardId;
-        badge.dataset.fileType = 'audio';
-        badge.dataset.audioLang = this.currentTrigraph;
-        
-        const label = this.currentTrigraph.toUpperCase();
-        badge.innerHTML = hasAudio 
-            ? `<i class="fas fa-check"></i> ${label}`
-            : `<i class="fas fa-folder-open"></i> ${label}`;
-        
-        const audioFilename = hasAudio && typeof card.audio === 'string' 
-            ? card.audio.split('/').pop() 
-            : '';
-        badge.title = audioFilename || `Click to select or upload ${label} audio`;
+        // Get word variants by splitting on "/"
+        const wordVariants = card.word ? card.word.split('/').map(w => w.trim()) : [''];
 
-        badge.addEventListener('click', () => {
-            this.showFileSelectionModal(cardId, 'audio', this.currentTrigraph);
+        // Get audio paths (now an array)
+        const audioPaths = Array.isArray(card.audio) ? card.audio : (card.audio ? [card.audio] : []);
+
+        // Create one badge per variant
+        wordVariants.forEach((variant, index) => {
+            const audioPath = audioPaths[index] || null;
+            const hasAudio = !!audioPath;
+
+            const badge = document.createElement('span');
+            badge.className = `file-badge audio ${hasAudio ? 'has-file' : 'no-file'} upload-trigger`;
+            badge.dataset.cardId = cardId;
+            badge.dataset.fileType = 'audio';
+            badge.dataset.audioLang = this.currentTrigraph;
+            badge.dataset.variantIndex = index;
+            badge.dataset.variant = variant;
+
+            // Label: show filename if file exists, otherwise show word variant
+            let label = '';
+            if (hasAudio) {
+                label = audioPath.split('/').pop();  // Show filename
+            } else {
+                label = variant.toLowerCase();  // Show word variant
+            }
+
+            badge.innerHTML = hasAudio
+                ? `<i class="fas fa-check"></i> ${label}`
+                : `<i class="fas fa-folder-open"></i> ${label}`;
+
+            badge.title = hasAudio
+                ? `Audio: ${label}`
+                : `Click to upload audio for "${variant}"`;
+
+            badge.addEventListener('click', () => {
+                this.showFileSelectionModal(cardId, 'audio', this.currentTrigraph, index, variant);
+            });
+
+            container.appendChild(badge);
         });
 
-        container.appendChild(badge);
         return container;
     }
 
@@ -1103,7 +1124,7 @@ class DeckBuilderModule extends LearningModule {
         this.updateUnsavedIndicator();
     }
 
-    showFileSelectionModal(cardId, fileType, audioLang = null) {
+    showFileSelectionModal(cardId, fileType, audioLang = null, variantIndex = 0, variant = '') {
         // Find card and get current file
         let card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (!card) {
@@ -1112,17 +1133,22 @@ class DeckBuilderModule extends LearningModule {
 
         if (!card) return;
 
+        // Store variant info for later use
+        this.currentVariantIndex = variantIndex;
+        this.currentVariant = variant;
+
         // Determine current file path
         let currentFilePath = null;
         let currentFileName = 'No file selected';
-        
+
         if (fileType === 'png') {
             currentFilePath = card.printImagePath;
         } else if (fileType === 'gif') {
             currentFilePath = card.gifPath || (card.hasGif ? card.imagePath : null);
         } else if (fileType === 'audio') {
-            // v4.0: audio is string
-            currentFilePath = card.audio;
+            // v4.0: audio is array now, get specific variant's audio
+            const audioPaths = Array.isArray(card.audio) ? card.audio : (card.audio ? [card.audio] : []);
+            currentFilePath = audioPaths[variantIndex] || null;
         }
 
         if (currentFilePath) {
@@ -1401,8 +1427,25 @@ class DeckBuilderModule extends LearningModule {
                     this.showAudioEditor(modal, cardId, audioLang, closeModal);
                 };
 
-                // Start countdown and recording sequence
-                await this.startCountdownAndRecord(countdownDisplay, recordStatus, startRecordBtn, stopRecordBtn, modal);
+                // Start countdown
+                await this.startCountdown(countdownDisplay, recordStatus);
+
+                // Start recording
+                this.audioRecorder.mediaRecorder.start(100);
+                this.audioRecorder.isRecording = true;
+
+                // Update UI
+                startRecordBtn.classList.add('hidden');
+                stopRecordBtn.classList.remove('hidden');
+                recordStatus.innerHTML = '<i class="fas fa-circle recording-pulse"></i><p>Recording...</p>';
+
+                // Start silence detection after 500ms grace period
+                // This gives the user time to start speaking after "Speak" appears
+                setTimeout(() => {
+                    if (this.audioRecorder && this.audioRecorder.isRecording) {
+                        this.startSilenceDetection(modal);
+                    }
+                }, 500);
 
             } catch (err) {
                 console.error('Error accessing microphone:', err);
@@ -1417,16 +1460,9 @@ class DeckBuilderModule extends LearningModule {
     }
 
     /**
-     * Start countdown and recording with precise timing
-     * Timeline:
-     *   0ms: "3"
-     *   1000ms: "2"
-     *   2000ms: "1"
-     *   2800ms: Start recording (still showing "1")
-     *   3000ms: Show "Recording..."
-     *   3700ms: Start silence detection
+     * Start countdown before recording
      */
-    startCountdownAndRecord(countdownDisplay, recordStatus, startRecordBtn, stopRecordBtn, modal) {
+    startCountdown(countdownDisplay, recordStatus) {
         return new Promise((resolve) => {
             countdownDisplay.classList.remove('hidden');
             recordStatus.classList.add('hidden');
@@ -1439,35 +1475,21 @@ class DeckBuilderModule extends LearningModule {
                 count--;
                 if (count > 0) {
                     countdownNumber.textContent = count;
-                    
-                    // At count === 1 (2000ms), schedule recording to start at 2800ms
-                    if (count === 1) {
-                        setTimeout(() => {
-                            // Start recording while still showing "1"
-                            if (this.audioRecorder && this.audioRecorder.mediaRecorder) {
-                                this.audioRecorder.mediaRecorder.start(100);
-                                this.audioRecorder.isRecording = true;
-                            }
-                        }, 800); // 800ms after showing "1" = 2800ms total
-                    }
                 } else if (count === 0) {
-                    // 3000ms - Hide countdown, show Recording UI
+                    // Show "Speak" and immediately start recording
+                    countdownNumber.textContent = 'Speak';
+                    countdownNumber.classList.add('speak');
                     clearInterval(interval);
                     
-                    countdownDisplay.classList.add('hidden');
-                    recordStatus.classList.remove('hidden');
-                    startRecordBtn.classList.add('hidden');
-                    stopRecordBtn.classList.remove('hidden');
-                    recordStatus.innerHTML = '<i class="fas fa-circle recording-pulse"></i><p>Recording...</p>';
-                    
-                    // Start silence detection at 3700ms (700ms after showing "Recording")
-                    setTimeout(() => {
-                        if (this.audioRecorder && this.audioRecorder.isRecording) {
-                            this.startSilenceDetection(modal);
-                        }
-                    }, 700);
-                    
+                    // Start recording immediately when "Speak" appears
                     resolve();
+                    
+                    // Hide countdown after 300ms (recording already started)
+                    setTimeout(() => {
+                        countdownDisplay.classList.add('hidden');
+                        recordStatus.classList.remove('hidden');
+                        countdownNumber.classList.remove('speak');
+                    }, 300);
                 }
             }, 1000);
         });
@@ -1987,9 +2009,23 @@ class DeckBuilderModule extends LearningModule {
                 const result = await response.json();
 
                 if (result.success) {
-                    // Update card with audio path
-                    card.audio = `assets/${finalFilename}`;
-                    card.hasAudio = true;
+                    // Update card with audio path (multi-variant support)
+                    // Ensure audio is array
+                    if (!Array.isArray(card.audio)) {
+                        card.audio = card.audio ? [card.audio] : [];
+                    }
+
+                    // Get variant index from stored context
+                    const variantIndex = this.currentVariantIndex || 0;
+
+                    // Pad array with nulls if needed
+                    while (card.audio.length <= variantIndex) {
+                        card.audio.push(null);
+                    }
+
+                    // Set audio at variant index
+                    card.audio[variantIndex] = `assets/${finalFilename}`;
+                    card.hasAudio = card.audio.some(p => p !== null && p !== undefined && p !== '');
 
                     // Mark as edited
                     this.editedCards.set(cardId, card);
@@ -2512,15 +2548,29 @@ class DeckBuilderModule extends LearningModule {
             card.gifPath = file.path;
             card.hasGif = true;
         } else if (fileType === 'audio') {
-            // v4.0: audio is string
-            card.audio = file.path;
-            card.hasAudio = true;
+            // v4.0: audio is now array (multi-variant support)
+            // Ensure audio is array
+            if (!Array.isArray(card.audio)) {
+                card.audio = card.audio ? [card.audio] : [];
+            }
+
+            // Get variant index from stored context
+            const variantIndex = this.currentVariantIndex || 0;
+
+            // Pad array with nulls if needed
+            while (card.audio.length <= variantIndex) {
+                card.audio.push(null);
+            }
+
+            // Set audio at variant index
+            card.audio[variantIndex] = file.path;
+            card.hasAudio = card.audio.some(p => p !== null && p !== undefined && p !== '');
         }
-        
+
         // Mark as edited
         const cardId = card.cardNum || card.wordNum;
         this.editedCards.set(cardId, card);
-        
+
         // Re-render
         this.filterAndRenderCards();
         this.updateUnsavedIndicator();
