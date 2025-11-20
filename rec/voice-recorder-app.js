@@ -640,6 +640,7 @@ class VoiceRecorderApp {
 
         // Update time display during playback
         this.audioRecorder.playbackAudio.addEventListener('timeupdate', () => {
+            if (!this.audioRecorder || !this.audioRecorder.playbackAudio) return;
             document.getElementById('currentTime').textContent = this.formatTime(this.audioRecorder.playbackAudio.currentTime);
         });
 
@@ -650,7 +651,7 @@ class VoiceRecorderApp {
 
         // Animate playhead function
         const animatePlayhead = () => {
-            if (!this.audioRecorder.isPlaying) return;
+            if (!this.audioRecorder || !this.audioRecorder.isPlaying) return;
 
             const audio = this.audioRecorder.playbackAudio;
             const duration = this.audioRecorder.audioBuffer.duration;
@@ -679,6 +680,7 @@ class VoiceRecorderApp {
 
         // Play button - play between markers
         playBtn.onclick = () => {
+            if (!this.audioRecorder) return;
             const duration = this.audioRecorder.audioBuffer.duration;
             const startTime = this.audioRecorder.markerStart * duration;
 
@@ -694,6 +696,7 @@ class VoiceRecorderApp {
 
         // Pause button
         pauseBtn.onclick = () => {
+            if (!this.audioRecorder) return;
             this.audioRecorder.playbackAudio.pause();
             this.audioRecorder.isPlaying = false;
             if (this.audioRecorder.animationId) {
@@ -709,6 +712,7 @@ class VoiceRecorderApp {
 
         // Cut button
         cutBtn.onclick = async () => {
+            if (!this.audioRecorder) return;
             // Stop any playback first
             this.stopPlayback();
 
