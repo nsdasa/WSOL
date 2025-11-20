@@ -155,6 +155,12 @@ function cacheBust($file) {
                 <span id="cardCount">0 cards</span>
                 <span id="audioCount" class="audio-stat">0 with audio</span>
             </div>
+
+            <div class="action-buttons">
+                <button id="saveChangesBtn" class="btn btn-primary" disabled>
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
         </div>
 
         <!-- Cards Table -->

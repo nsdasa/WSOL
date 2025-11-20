@@ -16,7 +16,8 @@ class VoiceRecorderApp {
         this.serverFiles = [];
         this.currentCardId = null;
         this.audioRecorder = null;
-        
+        this.editedCards = new Map(); // Track edited cards for saving
+
         this.init();
     }
     
@@ -44,7 +45,10 @@ class VoiceRecorderApp {
         
         // Search
         document.getElementById('searchCards').addEventListener('input', () => this.filterCards());
-        
+
+        // Save changes
+        document.getElementById('saveChangesBtn').addEventListener('click', () => this.saveChanges());
+
         // Modal close
         document.getElementById('closeFileModal').addEventListener('click', () => this.closeFileModal());
         
@@ -368,8 +372,24 @@ class VoiceRecorderApp {
     selectServerFile(filename, filepath) {
         const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
         if (!card) return;
-        
-        card.audio = filepath;
+
+        // Handle multi-variant audio (audio as array)
+        if (!Array.isArray(card.audio)) {
+            card.audio = card.audio ? [card.audio] : [];
+        }
+
+        // Pad array with nulls if needed to reach variant index
+        while (card.audio.length <= this.currentVariantIndex) {
+            card.audio.push(null);
+        }
+
+        // Set audio at the correct variant index
+        card.audio[this.currentVariantIndex] = filepath;
+        card.hasAudio = true;
+
+        // Mark card as edited for saving to manifest
+        this.markCardAsEdited(card);
+
         this.closeFileModal();
         this.filterCards();
         this.showToast(`Audio linked: ${filename}`, 'success');
@@ -987,6 +1007,9 @@ class VoiceRecorderApp {
                     // Set audio at the correct variant index
                     card.audio[this.currentVariantIndex] = result.path;
                     card.hasAudio = true;
+
+                    // Mark card as edited for saving to manifest
+                    this.markCardAsEdited(card);
                 }
 
                 this.filterCards();
@@ -1029,10 +1052,77 @@ class VoiceRecorderApp {
         toast.className = `toast ${type}`;
         toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i> ${message}`;
         container.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.remove();
         }, 3000);
+    }
+
+    markCardAsEdited(card) {
+        const cardId = card.cardNum || card.wordNum;
+        this.editedCards.set(cardId, card);
+        this.updateSaveButton();
+    }
+
+    updateSaveButton() {
+        const saveBtn = document.getElementById('saveChangesBtn');
+        if (this.editedCards.size > 0) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = ` Save Changes (${this.editedCards.size})`;
+            saveBtn.innerHTML = `<i class="fas fa-save"></i> Save Changes (${this.editedCards.size})`;
+        } else {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<i class="fas fa-save"></i> Save Changes`;
+        }
+    }
+
+    async saveChanges() {
+        if (this.editedCards.size === 0) {
+            this.showToast('No changes to save', 'warning');
+            return;
+        }
+
+        if (!confirm(`Save ${this.editedCards.size} edited cards to manifest?`)) {
+            return;
+        }
+
+        try {
+            // Apply edits to allCards array
+            this.editedCards.forEach((editedCard, cardId) => {
+                const index = this.allCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
+                if (index !== -1) {
+                    this.allCards[index] = editedCard;
+                }
+            });
+
+            // Save to server using save-deck.php
+            this.showToast('Saving changes to manifest...', 'info');
+
+            const response = await fetch('../save-deck.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    trigraph: this.currentLanguage,
+                    languageName: this.languageNames[this.currentLanguage],
+                    cards: this.allCards
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showToast(`✓ ${result.message} (${result.cardCount} cards)`, 'success');
+                this.editedCards.clear();
+                this.updateSaveButton();
+            } else {
+                throw new Error(result.error || 'Save failed');
+            }
+        } catch (err) {
+            console.error('Save error:', err);
+            this.showToast(`Save failed: ${err.message}`, 'error');
+        }
     }
 }
 
