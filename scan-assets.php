@@ -253,6 +253,14 @@ function scanAssets() {
 
             $hasAudio = !empty(array_filter($audioArray));
 
+            // Split words by "/" to create acceptableAnswers arrays
+            $wordVariants = array_map('trim', explode('/', $c['word'][$trig]));
+            $englishVariants = array_map('trim', explode('/', $c['english'][$trig] ?? ''));
+            $cebuanoVariants = [];
+            if (!empty($c['cebuano'][$trig])) {
+                $cebuanoVariants = array_map('trim', explode('/', $c['cebuano'][$trig]));
+            }
+
             $finalCards[$trig][] = [
                 'lesson' => $c['lesson'],
                 'cardNum' => $c['cardNum'],
@@ -268,8 +276,9 @@ function scanAssets() {
                 'subCategory2' => $c['subCategory2'],
                 'actflEst' => $c['actflEst'],
                 'type' => $c['type'],
-                'acceptableAnswers' => [$c['word'][$trig]],
-                'englishAcceptable' => [$c['english'][$trig] ?? ''],
+                'acceptableAnswers' => $wordVariants,
+                'englishAcceptable' => $englishVariants,
+                'cebuanoAcceptable' => $cebuanoVariants,
                 'audio' => $audioArray,
                 'hasAudio' => $hasAudio,
                 'printImagePath' => $c['printImagePath'],
