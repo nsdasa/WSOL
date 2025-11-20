@@ -2065,11 +2065,21 @@ class DeckBuilderModule extends LearningModule {
         // Determine if we should show a preview
         let previewHtml = '';
         if (previewUrl && (fileType === 'png' || fileType === 'gif')) {
-            previewHtml = `
-                <div class="filename-preview">
-                    <img src="${previewUrl}" alt="Preview">
-                </div>
-            `;
+            // Check if it's a video file
+            const isVideo = /\.(mp4|webm)$/i.test(previewUrl);
+            if (isVideo) {
+                previewHtml = `
+                    <div class="filename-preview">
+                        <video src="${previewUrl}" autoplay loop muted playsinline style="max-width: 100%; max-height: 200px;"></video>
+                    </div>
+                `;
+            } else {
+                previewHtml = `
+                    <div class="filename-preview">
+                        <img src="${previewUrl}" alt="Preview">
+                    </div>
+                `;
+            }
         }
         
         dialog.innerHTML = `
@@ -2184,11 +2194,21 @@ class DeckBuilderModule extends LearningModule {
         }
 
         if (fileType === 'png' || fileType === 'gif') {
-            return `
-                <div class="current-image-preview">
-                    <img src="${filePath}" alt="Current file" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px;">
-                </div>
-            `;
+            // Check if it's a video file
+            const isVideo = /\.(mp4|webm)$/i.test(filePath);
+            if (isVideo) {
+                return `
+                    <div class="current-image-preview">
+                        <video src="${filePath}" autoplay loop muted playsinline style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px;"></video>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="current-image-preview">
+                        <img src="${filePath}" alt="Current file" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px;">
+                    </div>
+                `;
+            }
         } else if (fileType === 'audio') {
             return `
                 <div class="current-audio-preview">
@@ -2342,11 +2362,11 @@ class DeckBuilderModule extends LearningModule {
         let isValid = false;
         
         if (fileType === 'png') {
-            expectedPattern = `${cardNum}.*.*.png`;
-            isValid = startsWithNum && parseInt(startsWithNum[1]) === cardNum && ext === 'png';
+            expectedPattern = `${cardNum}.*.*.png (or .jpg, .jpeg, .webp)`;
+            isValid = startsWithNum && parseInt(startsWithNum[1]) === cardNum && ['png', 'jpg', 'jpeg', 'webp'].includes(ext);
         } else if (fileType === 'gif') {
-            expectedPattern = `${cardNum}.*.*.gif`;
-            isValid = startsWithNum && parseInt(startsWithNum[1]) === cardNum && ext === 'gif';
+            expectedPattern = `${cardNum}.*.*.gif (or .mp4, .webm)`;
+            isValid = startsWithNum && parseInt(startsWithNum[1]) === cardNum && ['gif', 'mp4', 'webm'].includes(ext);
         } else if (fileType === 'audio') {
             expectedPattern = `${cardNum}.${audioLang}.*.mp3 or .m4a`;
             const audioMatch = filename.match(/^(\d+)\.([a-z]{3})\./);
@@ -2363,19 +2383,22 @@ class DeckBuilderModule extends LearningModule {
         };
     }
 
-    generateSuggestedFilename(card, fileType, audioLang = null) {
+    generateSuggestedFilename(card, fileType, audioLang = null, actualExtension = null) {
         const cardId = card.cardNum || card.wordNum;
         const word = this.getCardWord(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'word';
         const english = this.getCardEnglish(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'english';
-        
+
         if (fileType === 'png') {
-            return `${cardId}.${word}.${english}.png`;
+            const ext = actualExtension || 'png';
+            return `${cardId}.${word}.${english}.${ext}`;
         } else if (fileType === 'gif') {
-            return `${cardId}.${word}.${english}.gif`;
+            const ext = actualExtension || 'gif';
+            return `${cardId}.${word}.${english}.${ext}`;
         } else if (fileType === 'audio' && audioLang) {
-            return `${cardId}.${audioLang}.${word}.${english}.mp3`;
+            const ext = actualExtension || 'mp3';
+            return `${cardId}.${audioLang}.${word}.${english}.${ext}`;
         }
-        
+
         return null;
     }
 
@@ -2390,7 +2413,9 @@ class DeckBuilderModule extends LearningModule {
         }
         
         // File has incorrect name - show warning
-        const suggestedName = this.generateSuggestedFilename(card, fileType, audioLang);
+        // Extract the actual extension from the file to preserve it in the suggested name
+        const actualExt = file.name.split('.').pop().toLowerCase();
+        const suggestedName = this.generateSuggestedFilename(card, fileType, audioLang, actualExt);
         
         const modal = document.createElement('div');
         modal.className = 'modal rename-warning-modal';
@@ -2611,9 +2636,9 @@ class DeckBuilderModule extends LearningModule {
             input.type = 'file';
             
             if (fileType === 'png') {
-                input.accept = 'image/png';
+                input.accept = 'image/png,image/jpeg,image/webp';
             } else if (fileType === 'gif') {
-                input.accept = 'image/gif';
+                input.accept = 'image/gif,video/mp4,video/webm';
             } else if (fileType === 'audio') {
                 input.accept = 'audio/mp3,audio/mpeg,audio/m4a';
             }
@@ -2641,8 +2666,9 @@ class DeckBuilderModule extends LearningModule {
             // Generate default filename
             const word = this.getCardWord(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'word';
             const english = this.getCardEnglish(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'english';
-            const ext = fileType;
-            const defaultFilename = `${cardId}.${word}.${english}.${ext}`;
+            // Get the actual file extension from the uploaded file
+            const actualExt = file.name.split('.').pop().toLowerCase();
+            const defaultFilename = `${cardId}.${word}.${english}.${actualExt}`;
 
             // Create preview URL for the uploaded file
             const previewUrl = URL.createObjectURL(file);
