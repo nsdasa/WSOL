@@ -376,65 +376,80 @@ class VoiceRecorderApp {
             
             this.audioRecorder.mediaRecorder.onstop = async () => {
                 stream.getTracks().forEach(track => track.stop());
-                
+
                 this.audioRecorder.audioBlob = new Blob(this.audioRecorder.audioChunks, { type: 'audio/webm' });
                 const arrayBuffer = await this.audioRecorder.audioBlob.arrayBuffer();
                 this.audioRecorder.audioBuffer = await this.audioRecorder.audioContext.decodeAudioData(arrayBuffer);
-                
+
                 this.showAudioEditor();
             };
-            
-            // Countdown
-            await this.startCountdown();
-            
-            // Start recording
-            this.audioRecorder.mediaRecorder.start(100);
-            this.audioRecorder.isRecording = true;
-            
-            document.getElementById('startRecordBtn').classList.add('hidden');
-            document.getElementById('stopRecordBtn').classList.remove('hidden');
-            document.getElementById('recordStatus').innerHTML = '<i class="fas fa-circle recording-pulse"></i><p>Recording...</p>';
-            
-            // Silence detection after 500ms
-            setTimeout(() => {
-                if (this.audioRecorder && this.audioRecorder.isRecording) {
-                    this.startSilenceDetection();
-                }
-            }, 500);
-            
+
+            // Start countdown and recording sequence
+            await this.startCountdownAndRecord();
+
         } catch (err) {
             console.error('Microphone error:', err);
             this.showToast('Error accessing microphone', 'error');
         }
     }
     
-    startCountdown() {
+    /**
+     * Start countdown and recording with precise timing
+     * Timeline:
+     *   0ms: "3"
+     *   1000ms: "2"
+     *   2000ms: "1"
+     *   2800ms: Start recording (still showing "1")
+     *   3000ms: Show "Recording..."
+     *   3700ms: Start silence detection
+     */
+    startCountdownAndRecord() {
         return new Promise((resolve) => {
             const countdownDisplay = document.getElementById('countdownDisplay');
             const recordStatus = document.getElementById('recordStatus');
+            const startRecordBtn = document.getElementById('startRecordBtn');
+            const stopRecordBtn = document.getElementById('stopRecordBtn');
             const countdownNumber = countdownDisplay.querySelector('.countdown-number');
-            
+
             countdownDisplay.classList.remove('hidden');
             recordStatus.classList.add('hidden');
-            
+
             let count = 3;
             countdownNumber.textContent = count;
-            countdownNumber.classList.remove('speak');
-            
+
             const interval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     countdownNumber.textContent = count;
+
+                    // At count === 1 (2000ms), schedule recording to start at 2800ms
+                    if (count === 1) {
+                        setTimeout(() => {
+                            // Start recording while still showing "1"
+                            if (this.audioRecorder && this.audioRecorder.mediaRecorder) {
+                                this.audioRecorder.mediaRecorder.start(100);
+                                this.audioRecorder.isRecording = true;
+                            }
+                        }, 800); // 800ms after showing "1" = 2800ms total
+                    }
                 } else if (count === 0) {
-                    countdownNumber.textContent = 'Speak';
-                    countdownNumber.classList.add('speak');
+                    // 3000ms - Hide countdown, show Recording UI
                     clearInterval(interval);
-                    resolve();
-                    
+
+                    countdownDisplay.classList.add('hidden');
+                    recordStatus.classList.remove('hidden');
+                    startRecordBtn.classList.add('hidden');
+                    stopRecordBtn.classList.remove('hidden');
+                    recordStatus.innerHTML = '<i class="fas fa-circle recording-pulse"></i><p>Recording...</p>';
+
+                    // Start silence detection at 3700ms (700ms after showing "Recording")
                     setTimeout(() => {
-                        countdownDisplay.classList.add('hidden');
-                        recordStatus.classList.remove('hidden');
-                    }, 300);
+                        if (this.audioRecorder && this.audioRecorder.isRecording) {
+                            this.startSilenceDetection();
+                        }
+                    }, 700);
+
+                    resolve();
                 }
             }, 1000);
         });
