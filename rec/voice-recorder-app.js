@@ -128,34 +128,46 @@ class VoiceRecorderApp {
                 </td>
             </tr>
         `;
-        
+
         try {
-            const response = await fetch(`../manifest.${this.currentLanguage}.json?_=${Date.now()}`);
+            // Load the main manifest file from assets directory
+            const response = await fetch(`../assets/manifest.json?_=${Date.now()}`);
             if (!response.ok) throw new Error('Failed to load manifest');
-            
+
             const manifest = await response.json();
-            this.allCards = manifest.cards || [];
-            
-            // Merge image data if available
-            if (manifest.images) {
-                this.allCards.forEach(card => {
-                    const cardNum = card.cardNum || card.wordNum;
-                    const imageData = manifest.images[cardNum];
-                    if (imageData) {
-                        card.printImagePath = imageData.printImagePath;
-                        card.gifPath = imageData.gifPath;
-                        card.hasGif = imageData.hasGif;
-                    }
-                });
+
+            // Check if this is v4.0 manifest structure
+            const isV4 = manifest.version === '4.0' ||
+                        (manifest.cards && typeof manifest.cards === 'object' && !Array.isArray(manifest.cards));
+
+            if (isV4) {
+                // v4.0 structure: manifest.cards is an object with language keys
+                this.allCards = manifest.cards[this.currentLanguage] || [];
+
+                // Merge image data if available
+                if (manifest.images) {
+                    this.allCards.forEach(card => {
+                        const cardNum = card.cardNum || card.wordNum;
+                        const imageData = manifest.images[cardNum];
+                        if (imageData) {
+                            card.printImagePath = imageData.printImagePath;
+                            card.gifPath = imageData.gifPath;
+                            card.hasGif = imageData.hasGif;
+                        }
+                    });
+                }
+            } else {
+                // v3.x fallback: manifest.cards is a flat array
+                this.allCards = manifest.cards || [];
             }
-            
+
             this.filterCards();
         } catch (err) {
             console.error('Error loading cards:', err);
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="loading-cell">
-                        <i class="fas fa-exclamation-triangle"></i> Error loading cards
+                        <i class="fas fa-exclamation-triangle"></i> Error loading cards. Please ensure manifest.json exists in the assets folder.
                     </td>
                 </tr>
             `;
