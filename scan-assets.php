@@ -163,6 +163,10 @@ function scanAssets() {
             }
             $cardsMaster[$num]['word'][$trig] = $card['word'];
             $cardsMaster[$num]['english'][$trig] = $card['english'];
+            $cardsMaster[$num]['cebuano'][$trig] = $card['cebuano'] ?? '';
+            $cardsMaster[$num]['wordNote'][$trig] = $card['wordNote'] ?? '';
+            $cardsMaster[$num]['cebuanoNote'][$trig] = $card['cebuanoNote'] ?? '';
+            $cardsMaster[$num]['englishNote'][$trig] = $card['englishNote'] ?? '';
         }
     }
 
@@ -253,7 +257,11 @@ function scanAssets() {
                 'lesson' => $c['lesson'],
                 'cardNum' => $c['cardNum'],
                 'word' => $c['word'][$trig],
+                'wordNote' => $c['wordNote'][$trig] ?? '',
                 'english' => $c['english'][$trig] ?? '',
+                'englishNote' => $c['englishNote'][$trig] ?? '',
+                'cebuano' => $c['cebuano'][$trig] ?? '',
+                'cebuanoNote' => $c['cebuanoNote'][$trig] ?? '',
                 'grammar' => $c['grammar'],
                 'category' => $c['category'],
                 'subCategory1' => $c['subCategory1'],
@@ -344,23 +352,57 @@ function loadLanguageWordList($path) {
 
     $headers = fgetcsv($file); // read header
 
+    // Detect format by checking if "Cebuano Word" column exists
+    // Cebuano CSV: Word, WordNote, English, EnglishNote (columns 2-5)
+    // Other languages: Word, WordNote, Cebuano Word, CebuanoNote, English, EnglishNote (columns 2-7)
+    $hasCebuanoColumn = false;
+    foreach ($headers as $header) {
+        if (stripos($header, 'Cebuano') !== false && stripos($header, 'Word') !== false) {
+            $hasCebuanoColumn = true;
+            break;
+        }
+    }
+
     while (($row = fgetcsv($file)) !== false) {
         if (count($row) < 6) continue;
 
-        $cards[] = [
-            'lesson' => (int)$row[0],
-            'cardNum' => (int)$row[1],
-            'word' => trim($row[2]),
-            'wordNote' => $row[3] ?? '',
-            'english' => trim($row[4]),
-            'englishNote' => $row[5] ?? '',
-            'grammar' => $row[6] ?? '',
-            'category' => $row[7] ?? '',
-            'subCategory1' => $row[8] ?? '',
-            'subCategory2' => $row[9] ?? '',
-            'actflEst' => $row[10] ?? '',
-            'type' => $row[11] ?? 'N'
-        ];
+        if ($hasCebuanoColumn) {
+            // Non-Cebuano format: includes Cebuano translation
+            $cards[] = [
+                'lesson' => (int)$row[0],
+                'cardNum' => (int)$row[1],
+                'word' => trim($row[2]),
+                'wordNote' => $row[3] ?? '',
+                'cebuano' => trim($row[4]),        // Cebuano translation
+                'cebuanoNote' => $row[5] ?? '',
+                'english' => trim($row[6]),        // English translation
+                'englishNote' => $row[7] ?? '',
+                'grammar' => $row[8] ?? '',
+                'category' => $row[9] ?? '',
+                'subCategory1' => $row[10] ?? '',
+                'subCategory2' => $row[11] ?? '',
+                'actflEst' => $row[12] ?? '',
+                'type' => $row[13] ?? 'N'
+            ];
+        } else {
+            // Cebuano format: word IS Cebuano, only English translation
+            $cards[] = [
+                'lesson' => (int)$row[0],
+                'cardNum' => (int)$row[1],
+                'word' => trim($row[2]),
+                'wordNote' => $row[3] ?? '',
+                'cebuano' => trim($row[2]),        // Word itself is Cebuano
+                'cebuanoNote' => $row[3] ?? '',
+                'english' => trim($row[4]),
+                'englishNote' => $row[5] ?? '',
+                'grammar' => $row[6] ?? '',
+                'category' => $row[7] ?? '',
+                'subCategory1' => $row[8] ?? '',
+                'subCategory2' => $row[9] ?? '',
+                'actflEst' => $row[10] ?? '',
+                'type' => $row[11] ?? 'N'
+            ];
+        }
     }
     fclose($file);
     return $cards;
@@ -530,9 +572,17 @@ function generateHtmlReport($manifest, $cardsMaster, $languages) {
             $filesHtml .= '<span class="file-badge gif">GIF: ' . htmlspecialchars($card['gifFile']) . '</span> ';
         }
         if ($hasAudio) {
-            foreach ($card['audioFiles'] as $trig => $audioFile) {
+            foreach ($card['audioFiles'] as $trig => $audioFiles) {
                 $trigUpper = strtoupper($trig);
-                $filesHtml .= '<span class="file-badge audio">' . $trigUpper . ': ' . htmlspecialchars($audioFile) . '</span> ';
+                if (is_array($audioFiles)) {
+                    foreach ($audioFiles as $audioFile) {
+                        if ($audioFile) {
+                            $filesHtml .= '<span class="file-badge audio">' . $trigUpper . ': ' . htmlspecialchars($audioFile) . '</span> ';
+                        }
+                    }
+                } else if ($audioFiles) {
+                    $filesHtml .= '<span class="file-badge audio">' . $trigUpper . ': ' . htmlspecialchars($audioFiles) . '</span> ';
+                }
             }
         }
         if (empty($filesHtml)) {
