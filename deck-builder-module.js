@@ -2642,28 +2642,48 @@ class DeckBuilderModule extends LearningModule {
             this.showFilenameDialog(defaultFilename, async (finalFilename) => {
                 toastManager.show(`Uploading ${finalFilename}...`, 'warning', 2000);
 
-                // In production, this would upload to server with the specified filename
-                // For now, we update the card path
-                if (fileType === 'png') {
-                    card.printImagePath = `assets/${finalFilename}`;
-                } else if (fileType === 'gif') {
-                    card.gifPath = `assets/${finalFilename}`;
-                    card.hasGif = true;
+                try {
+                    // Upload the file to the server
+                    const formData = new FormData();
+                    formData.append('media', file);
+                    formData.append('filename', finalFilename);
+
+                    const response = await fetch('upload-media.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Upload failed');
+                    }
+
+                    // Update card path with uploaded file
+                    if (fileType === 'png') {
+                        card.printImagePath = result.path;
+                    } else if (fileType === 'gif') {
+                        card.gifPath = result.path;
+                        card.hasGif = true;
+                    }
+
+                    this.editedCards.set(cardId, card);
+                    this.filterAndRenderCards();
+                    this.updateUnsavedIndicator();
+
+                    // Clean up preview URL
+                    URL.revokeObjectURL(previewUrl);
+
+                    // Close the file selection modal if it's open
+                    if (this.currentFileSelectionContext && this.currentFileSelectionContext.closeModal) {
+                        this.currentFileSelectionContext.closeModal();
+                    }
+
+                    toastManager.show(`✓ File uploaded as ${finalFilename}. Remember to save changes.`, 'success');
+                } catch (error) {
+                    toastManager.show(`Upload failed: ${error.message}`, 'error');
+                    console.error('Upload error:', error);
                 }
-
-                this.editedCards.set(cardId, card);
-                this.filterAndRenderCards();
-                this.updateUnsavedIndicator();
-
-                // Clean up preview URL
-                URL.revokeObjectURL(previewUrl);
-
-                // Close the file selection modal if it's open
-                if (this.currentFileSelectionContext && this.currentFileSelectionContext.closeModal) {
-                    this.currentFileSelectionContext.closeModal();
-                }
-
-                toastManager.show(`File will be saved as ${finalFilename}. Remember to save changes.`, 'success');
             }, previewUrl, fileType);
             return;
         }
