@@ -43,8 +43,8 @@ try {
         $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
 
         $fileType = null;
-        if ($ext === 'png') $fileType = 'png';
-        elseif ($ext === 'gif') $fileType = 'gif';
+        if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $fileType = 'png';
+        elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $fileType = 'gif';
         elseif (in_array($ext, ['mp3', 'm4a', 'wav', 'ogg'])) $fileType = 'audio'; // ? FIXED
         elseif ($ext === 'csv') $fileType = 'csv';
         elseif ($ext === 'json') $fileType = 'json';
