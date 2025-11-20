@@ -905,6 +905,8 @@ class VoiceRecorderApp {
         this.pendingBlob = this.audioRecorder.audioBlob;
         this.pendingFile = null;
 
+        console.log('saveRecording - blob:', this.pendingBlob, 'size:', this.pendingBlob?.size, 'type:', this.pendingBlob?.type);
+
         this.closeFileModal();
         this.showFilenameDialog(defaultFilename);
     }
@@ -957,13 +959,17 @@ class VoiceRecorderApp {
             
             formData.append('filename', filename);
             
+            console.log('Uploading audio:', filename, 'Blob size:', this.pendingBlob?.size || this.pendingFile?.size);
+
             const response = await fetch('../upload-audio.php', {
                 method: 'POST',
                 body: formData
             });
-            
+
+            console.log('Upload response status:', response.status);
             const result = await response.json();
-            
+            console.log('Upload result:', result);
+
             if (result.success) {
                 const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
                 if (card) {
