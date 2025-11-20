@@ -8,7 +8,7 @@ class AuthManager {
         this.authenticated = false;
         this.checkingAuth = false;
         this.timeoutMinutes = 30;
-        this.role = null; // 'admin' or 'voice-recorder'
+        this.role = null; // 'admin', 'deck-manager', or 'voice-recorder'
     }
     
     async init() {
@@ -17,15 +17,15 @@ class AuthManager {
         const loginSubmitBtn = document.getElementById('loginSubmitBtn');
         const loginCancelBtn = document.getElementById('loginCancelBtn');
         const adminPassword = document.getElementById('adminPassword');
-        
+
         if (loginSubmitBtn) {
             loginSubmitBtn.addEventListener('click', () => this.handleLogin());
         }
-        
+
         if (loginCancelBtn) {
             loginCancelBtn.addEventListener('click', () => this.cancelLogin());
         }
-        
+
         if (adminPassword) {
             adminPassword.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -33,13 +33,14 @@ class AuthManager {
                 }
             });
         }
-        
+
         // Check if already authenticated
         await this.checkSession();
-        
+
         // Add logout button to header if authenticated
         if (this.authenticated) {
             this.addLogoutButton();
+            this.updateUIForRole();
         }
     }
     
@@ -68,15 +69,21 @@ class AuthManager {
     requireAuth(moduleName) {
         // Only require auth for admin and deck-builder modules
         const protectedModules = ['admin', 'deck-builder'];
-        
+
         if (!protectedModules.includes(moduleName)) {
             return Promise.resolve(true);
         }
-        
+
         return new Promise(async (resolve, reject) => {
             const isAuth = await this.checkSession();
-            
+
             if (isAuth) {
+                // Check if deck-manager is trying to access admin module
+                if (moduleName === 'admin' && this.role === 'deck-manager') {
+                    toastManager?.show('Access denied: Deck Managers cannot access the Admin module', 'error');
+                    reject('Access denied to admin module');
+                    return;
+                }
                 resolve(true);
             } else {
                 this.showLoginModal(moduleName, resolve, reject);
@@ -141,13 +148,18 @@ class AuthManager {
                 
                 // Add logout button
                 this.addLogoutButton();
-                
+
+                // Update UI based on role
+                this.updateUIForRole();
+
                 // Resolve promise
                 if (this.loginResolve) {
                     this.loginResolve(true);
                 }
-                
-                const roleDisplay = this.role === 'admin' ? 'Admin' : 'Voice Recorder';
+
+                const roleDisplay = this.role === 'admin' ? 'Admin' :
+                                   this.role === 'deck-manager' ? 'Deck Manager' :
+                                   'Voice Recorder';
                 toastManager?.show(`Login successful! Role: ${roleDisplay}`, 'success');
                 debugLogger?.log(2, `Authenticated as ${this.role}`);
             } else {
@@ -184,10 +196,16 @@ class AuthManager {
             this.authenticated = false;
             this.role = null;
             this.removeLogoutButton();
-            
+
+            // Show admin tab again for next login
+            const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
+            if (adminTab) {
+                adminTab.style.display = '';
+            }
+
             toastManager?.show('Logged out successfully', 'success');
-            debugLogger?.log(2, 'Admin logged out');
-            
+            debugLogger?.log(2, 'User logged out');
+
             // Navigate to flashcards if on protected module
             const currentModule = window.location.hash.slice(1) || 'flashcards';
             if (['admin', 'deck-builder'].includes(currentModule)) {
@@ -257,24 +275,49 @@ class AuthManager {
     isAdmin() {
         return this.authenticated && this.role === 'admin';
     }
-    
+
+    /**
+     * Check if current user is deck manager
+     */
+    isDeckManager() {
+        return this.authenticated && this.role === 'deck-manager';
+    }
+
     /**
      * Check if current user is voice recorder
      */
     isVoiceRecorder() {
         return this.authenticated && this.role === 'voice-recorder';
     }
-    
+
     /**
      * Check if user has permission for a specific action
      * Voice Recorder can only: filter, view, record/upload audio
+     * Deck Manager has full deck builder access
      * Admin can do everything
      */
     hasPermission(action) {
         if (!this.authenticated) return false;
         if (this.role === 'admin') return true;
-        
-        // Voice Recorder permissions
+
+        // Deck Manager has full deck builder permissions
+        if (this.role === 'deck-manager') {
+            const deckManagerAllowed = [
+                'view',
+                'filter',
+                'audio-upload',
+                'audio-record',
+                'audio-select',
+                'edit',
+                'create',
+                'delete',
+                'save',
+                'export'
+            ];
+            return deckManagerAllowed.includes(action);
+        }
+
+        // Voice Recorder permissions (limited)
         const voiceRecorderAllowed = [
             'view',
             'filter',
@@ -282,7 +325,27 @@ class AuthManager {
             'audio-record',
             'audio-select'
         ];
-        
+
         return voiceRecorderAllowed.includes(action);
+    }
+
+    /**
+     * Update UI elements based on user role
+     * Hides admin tab for deck-manager role
+     */
+    updateUIForRole() {
+        if (this.role === 'deck-manager') {
+            // Hide the Admin tab for deck managers
+            const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
+            if (adminTab) {
+                adminTab.style.display = 'none';
+            }
+        } else if (this.role === 'admin') {
+            // Show the Admin tab for admins (in case it was hidden)
+            const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
+            if (adminTab) {
+                adminTab.style.display = '';
+            }
+        }
     }
 }

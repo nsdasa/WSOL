@@ -128,34 +128,46 @@ class VoiceRecorderApp {
                 </td>
             </tr>
         `;
-        
+
         try {
-            const response = await fetch(`../manifest.${this.currentLanguage}.json?_=${Date.now()}`);
+            // Load the main manifest file from assets directory
+            const response = await fetch(`../assets/manifest.json?_=${Date.now()}`);
             if (!response.ok) throw new Error('Failed to load manifest');
-            
+
             const manifest = await response.json();
-            this.allCards = manifest.cards || [];
-            
-            // Merge image data if available
-            if (manifest.images) {
-                this.allCards.forEach(card => {
-                    const cardNum = card.cardNum || card.wordNum;
-                    const imageData = manifest.images[cardNum];
-                    if (imageData) {
-                        card.printImagePath = imageData.printImagePath;
-                        card.gifPath = imageData.gifPath;
-                        card.hasGif = imageData.hasGif;
-                    }
-                });
+
+            // Check if this is v4.0 manifest structure
+            const isV4 = manifest.version === '4.0' ||
+                        (manifest.cards && typeof manifest.cards === 'object' && !Array.isArray(manifest.cards));
+
+            if (isV4) {
+                // v4.0 structure: manifest.cards is an object with language keys
+                this.allCards = manifest.cards[this.currentLanguage] || [];
+
+                // Merge image data if available
+                if (manifest.images) {
+                    this.allCards.forEach(card => {
+                        const cardNum = card.cardNum || card.wordNum;
+                        const imageData = manifest.images[cardNum];
+                        if (imageData) {
+                            card.printImagePath = imageData.printImagePath;
+                            card.gifPath = imageData.gifPath;
+                            card.hasGif = imageData.hasGif;
+                        }
+                    });
+                }
+            } else {
+                // v3.x fallback: manifest.cards is a flat array
+                this.allCards = manifest.cards || [];
             }
-            
+
             this.filterCards();
         } catch (err) {
             console.error('Error loading cards:', err);
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="loading-cell">
-                        <i class="fas fa-exclamation-triangle"></i> Error loading cards
+                        <i class="fas fa-exclamation-triangle"></i> Error loading cards. Please ensure manifest.json exists in the assets folder.
                     </td>
                 </tr>
             `;
@@ -355,7 +367,9 @@ class VoiceRecorderApp {
                 isRecording: false,
                 markerStart: 0,
                 markerEnd: 1,
-                playbackAudio: null
+                playbackAudio: null,
+                isPlaying: false,
+                animationId: null
             };
             
             const source = this.audioRecorder.audioContext.createMediaStreamSource(stream);
@@ -374,65 +388,80 @@ class VoiceRecorderApp {
             
             this.audioRecorder.mediaRecorder.onstop = async () => {
                 stream.getTracks().forEach(track => track.stop());
-                
+
                 this.audioRecorder.audioBlob = new Blob(this.audioRecorder.audioChunks, { type: 'audio/webm' });
                 const arrayBuffer = await this.audioRecorder.audioBlob.arrayBuffer();
                 this.audioRecorder.audioBuffer = await this.audioRecorder.audioContext.decodeAudioData(arrayBuffer);
-                
+
                 this.showAudioEditor();
             };
-            
-            // Countdown
-            await this.startCountdown();
-            
-            // Start recording
-            this.audioRecorder.mediaRecorder.start(100);
-            this.audioRecorder.isRecording = true;
-            
-            document.getElementById('startRecordBtn').classList.add('hidden');
-            document.getElementById('stopRecordBtn').classList.remove('hidden');
-            document.getElementById('recordStatus').innerHTML = '<i class="fas fa-circle recording-pulse"></i><p>Recording...</p>';
-            
-            // Silence detection after 500ms
-            setTimeout(() => {
-                if (this.audioRecorder && this.audioRecorder.isRecording) {
-                    this.startSilenceDetection();
-                }
-            }, 500);
-            
+
+            // Start countdown and recording sequence
+            await this.startCountdownAndRecord();
+
         } catch (err) {
             console.error('Microphone error:', err);
             this.showToast('Error accessing microphone', 'error');
         }
     }
     
-    startCountdown() {
+    /**
+     * Start countdown and recording with precise timing
+     * Timeline:
+     *   0ms: "3"
+     *   1000ms: "2"
+     *   2000ms: "1"
+     *   2800ms: Start recording (still showing "1")
+     *   3000ms: Show "Recording..."
+     *   3700ms: Start silence detection
+     */
+    startCountdownAndRecord() {
         return new Promise((resolve) => {
             const countdownDisplay = document.getElementById('countdownDisplay');
             const recordStatus = document.getElementById('recordStatus');
+            const startRecordBtn = document.getElementById('startRecordBtn');
+            const stopRecordBtn = document.getElementById('stopRecordBtn');
             const countdownNumber = countdownDisplay.querySelector('.countdown-number');
-            
+
             countdownDisplay.classList.remove('hidden');
             recordStatus.classList.add('hidden');
-            
+
             let count = 3;
             countdownNumber.textContent = count;
-            countdownNumber.classList.remove('speak');
-            
+
             const interval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     countdownNumber.textContent = count;
+
+                    // At count === 1 (2000ms), schedule recording to start at 2800ms
+                    if (count === 1) {
+                        setTimeout(() => {
+                            // Start recording while still showing "1"
+                            if (this.audioRecorder && this.audioRecorder.mediaRecorder) {
+                                this.audioRecorder.mediaRecorder.start(100);
+                                this.audioRecorder.isRecording = true;
+                            }
+                        }, 800); // 800ms after showing "1" = 2800ms total
+                    }
                 } else if (count === 0) {
-                    countdownNumber.textContent = 'Speak';
-                    countdownNumber.classList.add('speak');
+                    // 3000ms - Hide countdown, show Recording UI
                     clearInterval(interval);
-                    resolve();
-                    
+
+                    countdownDisplay.classList.add('hidden');
+                    recordStatus.classList.remove('hidden');
+                    startRecordBtn.classList.add('hidden');
+                    stopRecordBtn.classList.remove('hidden');
+                    recordStatus.innerHTML = '<i class="fas fa-circle recording-pulse"></i><p>Recording...</p>';
+
+                    // Start silence detection at 3700ms (700ms after showing "Recording")
                     setTimeout(() => {
-                        countdownDisplay.classList.add('hidden');
-                        recordStatus.classList.remove('hidden');
-                    }, 300);
+                        if (this.audioRecorder && this.audioRecorder.isRecording) {
+                            this.startSilenceDetection();
+                        }
+                    }, 700);
+
+                    resolve();
                 }
             }, 1000);
         });
@@ -555,56 +584,156 @@ class VoiceRecorderApp {
     }
     
     setupEditorControls() {
+        const playBtn = document.getElementById('editorPlayBtn');
+        const pauseBtn = document.getElementById('editorPauseBtn');
+        const stopBtn = document.getElementById('editorStopBtn');
+        const cutBtn = document.getElementById('editorCutBtn');
+        const saveBtn = document.getElementById('editorSaveBtn');
+        const rerecordBtn = document.getElementById('editorRerecordBtn');
+        const playheadEl = document.getElementById('playhead');
+
+        // Create audio element for playback
         const audioUrl = URL.createObjectURL(this.audioRecorder.audioBlob);
         this.audioRecorder.playbackAudio = new Audio(audioUrl);
-        
+
+        // Track animation state
+        this.audioRecorder.isPlaying = false;
+        this.audioRecorder.animationId = null;
+
+        // Update time display during playback
         this.audioRecorder.playbackAudio.addEventListener('timeupdate', () => {
-            document.getElementById('currentTime').textContent = 
-                this.formatTime(this.audioRecorder.playbackAudio.currentTime);
+            document.getElementById('currentTime').textContent = this.formatTime(this.audioRecorder.playbackAudio.currentTime);
         });
-        
-        document.getElementById('editorPlayBtn').onclick = () => {
-            const startTime = this.audioRecorder.markerStart * this.audioRecorder.audioBuffer.duration;
+
+        // Handle audio ending naturally
+        this.audioRecorder.playbackAudio.addEventListener('ended', () => {
+            this.stopPlayback();
+        });
+
+        // Animate playhead function
+        const animatePlayhead = () => {
+            if (!this.audioRecorder.isPlaying) return;
+
+            const audio = this.audioRecorder.playbackAudio;
+            const duration = this.audioRecorder.audioBuffer.duration;
+            const currentTime = audio.currentTime;
+
+            // Calculate boundaries
+            const startTime = this.audioRecorder.markerStart * duration;
+            const endTime = this.audioRecorder.markerEnd * duration;
+
+            // Check if we've reached the end marker
+            if (currentTime >= endTime) {
+                this.stopPlayback();
+                return;
+            }
+
+            // Calculate playhead position as percentage
+            // Map current time to position between markers
+            const progress = (currentTime - startTime) / (endTime - startTime);
+            const playheadPosition = this.audioRecorder.markerStart + (progress * (this.audioRecorder.markerEnd - this.audioRecorder.markerStart));
+
+            playheadEl.style.left = `${playheadPosition * 100}%`;
+
+            // Continue animation
+            this.audioRecorder.animationId = requestAnimationFrame(animatePlayhead);
+        };
+
+        // Play button - play between markers
+        playBtn.onclick = () => {
+            const duration = this.audioRecorder.audioBuffer.duration;
+            const startTime = this.audioRecorder.markerStart * duration;
+
             this.audioRecorder.playbackAudio.currentTime = startTime;
             this.audioRecorder.playbackAudio.play();
+
+            // Show and start playhead animation
+            this.audioRecorder.isPlaying = true;
+            playheadEl.classList.add('active');
+            playheadEl.style.left = `${this.audioRecorder.markerStart * 100}%`;
+            this.audioRecorder.animationId = requestAnimationFrame(animatePlayhead);
         };
-        
-        document.getElementById('editorPauseBtn').onclick = () => {
+
+        // Pause button
+        pauseBtn.onclick = () => {
             this.audioRecorder.playbackAudio.pause();
+            this.audioRecorder.isPlaying = false;
+            if (this.audioRecorder.animationId) {
+                cancelAnimationFrame(this.audioRecorder.animationId);
+            }
+            // Keep playhead visible but stopped
         };
-        
-        document.getElementById('editorStopBtn').onclick = () => {
-            this.audioRecorder.playbackAudio.pause();
-            this.audioRecorder.playbackAudio.currentTime = 0;
-            document.getElementById('currentTime').textContent = '0:00';
+
+        // Stop button
+        stopBtn.onclick = () => {
+            this.stopPlayback();
         };
-        
-        document.getElementById('editorCutBtn').onclick = async () => {
+
+        // Cut button
+        cutBtn.onclick = async () => {
+            // Stop any playback first
+            this.stopPlayback();
+
             await this.cutAudio();
             this.drawWaveform();
+
+            // Update audio for playback
             const newUrl = URL.createObjectURL(this.audioRecorder.audioBlob);
             this.audioRecorder.playbackAudio.src = newUrl;
-            document.getElementById('totalTime').textContent = 
-                this.formatTime(this.audioRecorder.audioBuffer.duration);
-            this.showToast('Audio trimmed', 'success');
+            document.getElementById('totalTime').textContent = this.formatTime(this.audioRecorder.audioBuffer.duration);
+
+            this.showToast('Audio trimmed to markers', 'success');
         };
-        
-        document.getElementById('editorSaveBtn').onclick = () => {
+
+        // Save button
+        saveBtn.onclick = () => {
+            // Stop playback before saving
+            this.stopPlayback();
             this.saveRecording();
         };
-        
-        document.getElementById('editorRerecordBtn').onclick = () => {
+
+        // Re-record button
+        rerecordBtn.onclick = () => {
+            // Stop playback and reset
+            this.stopPlayback();
             this.resetRecordingView();
-            if (this.audioRecorder.playbackAudio) {
-                this.audioRecorder.playbackAudio.pause();
-            }
         };
-        
+
         // Make markers draggable
         this.makeMarkerDraggable('markerStart', 'start');
         this.makeMarkerDraggable('markerEnd', 'end');
     }
-    
+
+    stopPlayback() {
+        if (!this.audioRecorder) return;
+
+        const playheadEl = document.getElementById('playhead');
+
+        // Stop audio
+        if (this.audioRecorder.playbackAudio) {
+            this.audioRecorder.playbackAudio.pause();
+            this.audioRecorder.playbackAudio.currentTime = 0;
+        }
+
+        // Stop animation
+        this.audioRecorder.isPlaying = false;
+        if (this.audioRecorder.animationId) {
+            cancelAnimationFrame(this.audioRecorder.animationId);
+            this.audioRecorder.animationId = null;
+        }
+
+        // Hide playhead
+        if (playheadEl) {
+            playheadEl.classList.remove('active');
+        }
+
+        // Reset time display
+        const currentTimeEl = document.getElementById('currentTime');
+        if (currentTimeEl) {
+            currentTimeEl.textContent = '0:00';
+        }
+    }
+
     makeMarkerDraggable(markerId, type) {
         const marker = document.getElementById(markerId);
         const canvas = document.getElementById('waveformCanvas');

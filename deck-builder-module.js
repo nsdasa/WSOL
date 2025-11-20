@@ -2799,41 +2799,67 @@ class DeckBuilderModule extends LearningModule {
             return;
         }
 
-        // Apply edits
-        this.editedCards.forEach((editedCard, cardId) => {
-            const index = this.allCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
-            if (index !== -1) {
-                this.allCards[index] = editedCard;
-            } else {
-                this.allCards.push(editedCard);
-            }
-        });
+        try {
+            // Apply edits
+            this.editedCards.forEach((editedCard, cardId) => {
+                const index = this.allCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
+                if (index !== -1) {
+                    this.allCards[index] = editedCard;
+                } else {
+                    this.allCards.push(editedCard);
+                }
+            });
 
-        // Apply deletions
-        this.deletedCards.forEach(cardId => {
-            const index = this.allCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
-            if (index !== -1) {
-                this.allCards.splice(index, 1);
-            }
-        });
+            // Apply deletions
+            this.deletedCards.forEach(cardId => {
+                const index = this.allCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
+                if (index !== -1) {
+                    this.allCards.splice(index, 1);
+                }
+            });
 
-        // Update manifest structure
-        if (this.assets.manifest && this.assets.manifest.cards) {
-            this.assets.manifest.cards[this.currentTrigraph] = this.allCards;
+            // Save to server
+            toastManager.show('Saving changes to CSV file...', 'info');
+
+            const response = await fetch('save-deck.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    trigraph: this.currentTrigraph,
+                    languageName: this.currentLanguageName,
+                    cards: this.allCards
+                })
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || 'Save failed');
+            }
+
+            // Update manifest structure
+            if (this.assets.manifest && this.assets.manifest.cards) {
+                this.assets.manifest.cards[this.currentTrigraph] = this.allCards;
+            }
+
+            // Clear tracking
+            this.editedCards.clear();
+            this.deletedCards.clear();
+            this.newCards = [];
+
+            // Re-render
+            this.filterAndRenderCards();
+            this.updateStats();
+            this.updateUnsavedIndicator();
+
+            toastManager.show(`✓ Saved! ${result.cardCount} cards written to manifest.json. Changes are live immediately - no rescan needed!`, 'success', 6000);
+            debugLogger?.log(2, `Deck Builder: Saved ${this.allCards.length} cards for ${this.currentLanguageName} directly to manifest`);
+        } catch (err) {
+            console.error('Save error:', err);
+            toastManager.show('Error saving changes: ' + err.message, 'error', 5000);
         }
-
-        // Clear tracking
-        this.editedCards.clear();
-        this.deletedCards.clear();
-        this.newCards = [];
-
-        // Re-render
-        this.filterAndRenderCards();
-        this.updateStats();
-        this.updateUnsavedIndicator();
-
-        toastManager.show('Changes saved successfully!', 'success', 3000);
-        debugLogger?.log(2, `Deck Builder: Saved ${this.allCards.length} cards for ${this.currentLanguageName}`);
     }
 
     /**

@@ -671,17 +671,181 @@ class AdminModule extends LearningModule {
     setupAssetScanner() {
         const scanBtn = document.getElementById('scanAssetsBtn');
         if (!scanBtn) return;
-        
+
         scanBtn.addEventListener('click', async () => {
             scanBtn.disabled = true;
-            scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
-            
+            scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking for conflicts...';
+
             try {
-                await this.triggerAssetScan();
-            } finally {
+                // First, check for conflicts
+                const conflicts = await this.detectScanConflicts();
+
+                scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
+                scanBtn.disabled = false;
+
+                if (conflicts && conflicts.hasConflicts) {
+                    // Show conflict resolution modal
+                    await this.showConflictResolutionModal(conflicts);
+                } else {
+                    // No conflicts, proceed with scan
+                    scanBtn.disabled = true;
+                    scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+                    await this.triggerAssetScan();
+                    scanBtn.disabled = false;
+                    scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
+                }
+            } catch (err) {
+                toastManager.show(`Error: ${err.message}`, 'error');
                 scanBtn.disabled = false;
                 scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
             }
+        });
+    }
+
+    async detectScanConflicts() {
+        const timestamp = new Date().getTime();
+        const response = await fetch(`scan-assets.php?action=detectConflicts&_=${timestamp}`, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Conflict detection failed');
+        }
+
+        return result;
+    }
+
+    async showConflictResolutionModal(conflictData) {
+        return new Promise((resolve) => {
+            const conflicts = conflictData.conflicts || [];
+
+            // Create modal HTML
+            let conflictsHtml = '';
+            conflicts.forEach((conflict, index) => {
+                if (conflict.type === 'text_change_with_assets') {
+                    conflictsHtml += `
+                        <div class="conflict-item" style="border:1px solid var(--border-color);border-radius:8px;padding:16px;margin-bottom:16px;background:var(--bg-secondary);">
+                            <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">
+                                <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
+                                Card #${conflict.cardNum} (${conflict.language}) - Text Changed
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                                <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
+                                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">EXISTING (in manifest):</div>
+                                    <div style="font-weight:600;">${conflict.existing.word}</div>
+                                    <div style="font-size:13px;color:var(--text-secondary);">${conflict.existing.english}</div>
+                                    ${conflict.existing.hasAudio ? `<div style="margin-top:6px;font-size:12px;color:#10b981;"><i class="fas fa-microphone"></i> Has audio</div>` : ''}
+                                    ${conflict.existing.hasImage ? `<div style="font-size:12px;color:#3b82f6;"><i class="fas fa-image"></i> Has image</div>` : ''}
+                                </div>
+                                <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
+                                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">CSV VERSION:</div>
+                                    <div style="font-weight:600;">${conflict.csv.word}</div>
+                                    <div style="font-size:13px;color:var(--text-secondary);">${conflict.csv.english}</div>
+                                </div>
+                            </div>
+                            <div style="color:var(--text-secondary);font-size:12px;">
+                                <strong>Warning:</strong> This card has ${conflict.existing.hasAudio ? 'audio' : ''}${conflict.existing.hasAudio && conflict.existing.hasImage ? ' and ' : ''}${conflict.existing.hasImage ? 'images' : ''}.
+                                Updating text might make these assets incorrect.
+                            </div>
+                        </div>
+                    `;
+                } else if (conflict.type === 'new_audio_found') {
+                    conflictsHtml += `
+                        <div class="conflict-item" style="border:1px solid var(--border-color);border-radius:8px;padding:16px;margin-bottom:16px;background:var(--bg-secondary);">
+                            <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">
+                                <i class="fas fa-music" style="color:#8b5cf6;"></i>
+                                Card #${conflict.cardNum} (${conflict.language}) - New Audio File Found
+                            </div>
+                            <div style="margin-bottom:8px;"><strong>Word:</strong> ${conflict.word}</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div style="padding:8px;background:var(--bg-primary);border-radius:4px;">
+                                    <div style="font-size:12px;color:var(--text-secondary);">CURRENT:</div>
+                                    <div style="font-size:13px;font-weight:600;">${conflict.existingAudio}</div>
+                                </div>
+                                <div style="padding:8px;background:#dbeafe;border-radius:4px;">
+                                    <div style="font-size:12px;color:#1e40af;">NEW FILE:</div>
+                                    <div style="font-size:13px;font-weight:600;color:#1e40af;">${conflict.newAudio}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width:800px;width:90%;max-height:90vh;overflow-y:auto;background:var(--bg-primary);border-radius:12px;padding:0;">
+                    <div class="modal-header" style="padding:24px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;">
+                        <h2 style="margin:0;"><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Scan Conflicts Detected</h2>
+                    </div>
+                    <div class="modal-body" style="padding:24px;">
+                        <p style="margin:0 0 20px 0;color:var(--text-secondary);">
+                            Found ${conflicts.length} potential conflict(s). The CSV data differs from your current manifest.
+                            Choose how to proceed:
+                        </p>
+                        ${conflictsHtml}
+                    </div>
+                    <div class="modal-footer" style="padding:20px 24px;border-top:1px solid var(--border-color);display:flex;gap:12px;justify-content:flex-end;">
+                        <button id="conflictCancelBtn" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel Scan
+                        </button>
+                        <button id="conflictKeepManifestBtn" class="btn btn-secondary">
+                            <i class="fas fa-shield-alt"></i> Keep Manifest (Skip All)
+                        </button>
+                        <button id="conflictUseCsvBtn" class="btn btn-primary">
+                            <i class="fas fa-file-csv"></i> Use CSV (Overwrite All)
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Button handlers
+            const closeModal = (proceed) => {
+                document.body.removeChild(modal);
+                resolve(proceed);
+            };
+
+            modal.querySelector('#conflictCancelBtn').addEventListener('click', () => {
+                closeModal(false);
+                toastManager.show('Scan cancelled', 'info');
+            });
+
+            modal.querySelector('#conflictKeepManifestBtn').addEventListener('click', async () => {
+                closeModal(true);
+                toastManager.show('Using existing manifest data, skipping CSV text updates', 'info', 4000);
+                // TODO: Would need to add a skip mode to the scan
+                // For now, just cancel
+                toastManager.show('Feature in progress - scan cancelled for safety', 'warning');
+            });
+
+            modal.querySelector('#conflictUseCsvBtn').addEventListener('click', async () => {
+                closeModal(true);
+                toastManager.show('Proceeding with CSV updates (assets will be preserved)', 'success', 4000);
+                // Proceed with scan
+                const scanBtn = document.getElementById('scanAssetsBtn');
+                if (scanBtn) {
+                    scanBtn.disabled = true;
+                    scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+                }
+                await this.triggerAssetScan();
+                if (scanBtn) {
+                    scanBtn.disabled = false;
+                    scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
+                }
+            });
         });
     }
 

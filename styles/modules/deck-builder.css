@@ -1486,11 +1486,6 @@
     animation: countdownPop 1s ease;
 }
 
-.countdown-number.speak {
-    color: #22c55e;
-    font-size: 48px;
-}
-
 @keyframes countdownPop {
     0% { transform: scale(0.5); opacity: 0; }
     50% { transform: scale(1.2); }
@@ -1649,10 +1644,6 @@
     
     .countdown-number {
         font-size: 56px;
-    }
-    
-    .countdown-number.speak {
-        font-size: 36px;
     }
     
     .btn-record,
@@ -1822,6 +1813,11 @@
 
 .role-badge.voice-recorder {
     background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+}
+
+.role-badge.deck-manager {
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
 }
 
