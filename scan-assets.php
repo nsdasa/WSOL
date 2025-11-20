@@ -375,24 +375,45 @@ function scanAssets() {
         }
     }
 
-    // Link PNGs
+    // Link image files (PNG, JPG, JPEG, WebP)
     foreach ($pngFiles as $f) {
         $num = extractWordNum($f);
         if ($num && isset($cardsMaster[$num])) {
             $path = "assets/$f";
-            $cardsMaster[$num]['printImagePath'] = $path;
-            $cardsMaster[$num]['pngFile'] = $f;
-            $images[(string)$num]['png'] = $path;
+            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+
+            // Store the first image file as the default printImagePath
+            if (!isset($cardsMaster[$num]['printImagePath'])) {
+                $cardsMaster[$num]['printImagePath'] = $path;
+                $cardsMaster[$num]['pngFile'] = $f;
+            }
+
+            // Store all image formats in the images array
+            if (!isset($images[(string)$num])) {
+                $images[(string)$num] = [];
+            }
+            $images[(string)$num][$ext] = $path;
         }
     }
 
-    // Link GIFs
+    // Link animation/video files (GIF, MP4, WebM)
     foreach ($gifFiles as $f) {
         $num = extractWordNum($f);
         if ($num && isset($cardsMaster[$num])) {
-            $cardsMaster[$num]['hasGif'] = true;
-            $cardsMaster[$num]['gifFile'] = $f;
-            $images[(string)$num]['gif'] = "assets/$f";
+            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+            $path = "assets/$f";
+
+            // Set hasGif flag if any animation file exists
+            if (!$cardsMaster[$num]['hasGif']) {
+                $cardsMaster[$num]['hasGif'] = true;
+                $cardsMaster[$num]['gifFile'] = $f;
+            }
+
+            // Store all animation formats in the images array
+            if (!isset($images[(string)$num])) {
+                $images[(string)$num] = [];
+            }
+            $images[(string)$num][$ext] = $path;
         }
     }
 
