@@ -4,27 +4,45 @@ class FlashcardsModule extends LearningModule {
         this.cards = [];
         this.currentIndex = 0;
         this.cardsPerPage = deviceDetector ? deviceDetector.getCardsPerPage() : 4;
+        this.translationMode = 'english'; // 'english' or 'cebuano'
     }
     
     async render() {
         const langName = this.assets.currentLanguage?.name || 'Language';
-        const lessonDisplay = (filterManager && filterManager.isActive()) 
-            ? 'Special' 
+        const lessonDisplay = (filterManager && filterManager.isActive())
+            ? 'Special'
             : (this.assets.currentLesson || 'Lesson');
-        
+
         const vpEnabled = voicePracticeManager ? voicePracticeManager.isEnabled() : false;
-        
+        const isCebuano = langName.toLowerCase() === 'cebuano';
+
         this.container.innerHTML = `
             <div class="container module-flashcards">
                 <h1>Flashcards (${langName}: ${lessonDisplay})</h1>
-                
+
                 <div class="vp-toggle-container">
                     <label>
                         <input type="checkbox" id="vpToggle" ${vpEnabled ? 'checked' : ''}>
                         <i class="fas fa-microphone"></i> Enable Voice Practice
                     </label>
                 </div>
-                
+
+                ${!isCebuano ? `
+                <div class="translation-toggle-container">
+                    <label>Translation on card back:</label>
+                    <div class="translation-options">
+                        <label>
+                            <input type="radio" name="translationMode" value="english" ${this.translationMode === 'english' ? 'checked' : ''}>
+                            English
+                        </label>
+                        <label>
+                            <input type="radio" name="translationMode" value="cebuano" ${this.translationMode === 'cebuano' ? 'checked' : ''}>
+                            Cebuano
+                        </label>
+                    </div>
+                </div>
+                ` : ''}
+
                 <div class="controls">
                     <button id="prevBtn" class="btn btn-secondary"><i class="fas fa-chevron-left"></i> Previous</button>
                     <button id="restartBtn" class="btn btn-primary"><i class="fas fa-redo"></i> Restart</button>
@@ -63,7 +81,7 @@ class FlashcardsModule extends LearningModule {
         document.getElementById('prevBtn').addEventListener('click', () => this.previousPage());
         document.getElementById('nextBtn').addEventListener('click', () => this.nextPage());
         document.getElementById('restartBtn').addEventListener('click', () => this.restart());
-        
+
         const vpToggle = document.getElementById('vpToggle');
         if (vpToggle) {
             vpToggle.addEventListener('change', (e) => {
@@ -73,6 +91,15 @@ class FlashcardsModule extends LearningModule {
                 }
             });
         }
+
+        // Add translation mode toggle listeners
+        const translationRadios = document.querySelectorAll('input[name="translationMode"]');
+        translationRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.translationMode = e.target.value;
+                this.renderPage();
+            });
+        });
         
         await this.renderPage();
         
@@ -195,15 +222,30 @@ class FlashcardsModule extends LearningModule {
             const primaryNote = card.wordNote || '';
             const englishWord = card.english;
             const englishNote = card.englishNote || '';
-            
+            const cebuanoWord = card.cebuano || '';
+            const cebuanoNote = card.cebuanoNote || '';
+
             if (!primaryWord) {
                 debugLogger?.log(1, `ERROR: No word found for card ${card.cardNum}`);
                 continue;
             }
-            
+
             const primaryFontSize = getDynamicFontSize(primaryWord);
-            const englishFontSize = getSecondaryFontSize(englishWord);
-            
+
+            // Determine which translation to show based on translationMode
+            let secondaryWord, secondaryNote, secondaryLabel;
+            if (this.translationMode === 'cebuano' && cebuanoWord) {
+                secondaryWord = cebuanoWord;
+                secondaryNote = cebuanoNote;
+                secondaryLabel = 'Cebuano:';
+            } else {
+                secondaryWord = englishWord;
+                secondaryNote = englishNote;
+                secondaryLabel = 'English:';
+            }
+
+            const secondaryFontSize = getSecondaryFontSize(secondaryWord);
+
             let backHTML = `
                 <div class="card-back-content">
                     <div class="primary-word-box">
@@ -212,9 +254,9 @@ class FlashcardsModule extends LearningModule {
                         ${primaryNote ? `<div class="primary-note">${primaryNote}</div>` : ''}
                     </div>
                     <div class="secondary-language">
-                        <div class="secondary-lang-label">English:</div>
-                        <div class="secondary-word" style="font-size: ${englishFontSize}px;">${englishWord}</div>
-                        ${englishNote ? `<div class="secondary-note">${englishNote}</div>` : ''}
+                        <div class="secondary-lang-label">${secondaryLabel}</div>
+                        <div class="secondary-word" style="font-size: ${secondaryFontSize}px;">${secondaryWord}</div>
+                        ${secondaryNote ? `<div class="secondary-note">${secondaryNote}</div>` : ''}
                     </div>
                 </div>
             `;
