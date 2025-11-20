@@ -989,13 +989,25 @@ class DeckBuilderModule extends LearningModule {
 
         let hasFile = false;
         let filename = '';
+        let availableFormats = [];
 
         if (type === 'png') {
             hasFile = !!card.printImagePath;
             filename = card.printImagePath ? card.printImagePath.split('/').pop() : '';
+            // Check all available image formats in manifest
+            const imageData = this.assetManager?.manifest?.images?.[cardId] || {};
+            if (imageData.png) availableFormats.push('PNG');
+            if (imageData.jpg) availableFormats.push('JPG');
+            if (imageData.jpeg) availableFormats.push('JPEG');
+            if (imageData.webp) availableFormats.push('WebP');
         } else if (type === 'gif') {
             hasFile = card.hasGif || !!card.gifPath;
             filename = card.gifPath ? card.gifPath.split('/').pop() : '';
+            // Check all available video/animation formats in manifest
+            const imageData = this.assetManager?.manifest?.images?.[cardId] || {};
+            if (imageData.gif) availableFormats.push('GIF');
+            if (imageData.mp4) availableFormats.push('MP4');
+            if (imageData.webm) availableFormats.push('WebM');
         }
 
         const badge = document.createElement('span');
@@ -1003,12 +1015,26 @@ class DeckBuilderModule extends LearningModule {
         badge.dataset.cardId = cardId;
         badge.dataset.fileType = type;
 
-        // Show filename if file exists, otherwise show type
-        const label = hasFile && filename ? filename : type.toUpperCase();
+        // Build label: show base filename and format badges
+        let labelHTML = '';
+        if (hasFile && filename) {
+            // Extract base filename without extension
+            const baseFilename = filename.replace(/\.(png|jpg|jpeg|webp|gif|mp4|webm)$/i, '');
 
-        badge.innerHTML = hasFile
-            ? `<i class="fas fa-check"></i> ${label}`
-            : `<i class="fas fa-folder-open"></i> ${label}`;
+            // Show formats as small badges if multiple formats exist
+            if (availableFormats.length > 1) {
+                const formatBadges = availableFormats.map(fmt =>
+                    `<span class="format-icon" title="${fmt}">${fmt}</span>`
+                ).join('');
+                labelHTML = `<i class="fas fa-check"></i> ${baseFilename} ${formatBadges}`;
+            } else {
+                labelHTML = `<i class="fas fa-check"></i> ${filename}`;
+            }
+        } else {
+            labelHTML = `<i class="fas fa-folder-open"></i> ${type.toUpperCase()}`;
+        }
+
+        badge.innerHTML = labelHTML;
         badge.title = this.isAdmin
             ? (filename || `Click to select or upload ${type.toUpperCase()} file`)
             : `${type.toUpperCase()} - Admin only`;

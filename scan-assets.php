@@ -771,6 +771,7 @@ function generateHtmlReport($manifest, $cardsMaster, $languages) {
         .file-badge.png { background: #1abc9c; }
         .file-badge.gif { background: #e67e22; }
         .file-badge.audio { background: #9b59b6; }
+        .format-tag { display: inline-block; padding: 2px 4px; margin-left: 2px; background: rgba(255, 255, 255, 0.3); border-radius: 2px; font-size: 9px; font-weight: 700; letter-spacing: 0.3px; }
         .lesson-badge { background: #3498db; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; }
         .type-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; }
         .type-badge.new { background: #27ae60; color: white; }
@@ -873,13 +874,52 @@ function generateHtmlReport($manifest, $cardsMaster, $languages) {
             $statusText = 'Partial';
         }
         
-        // Build files found HTML
+        // Build files found HTML with format icons
         $filesHtml = '';
+
+        // Show image files (PNG, JPG, JPEG, WebP) with format icons
         if ($hasPng) {
-            $filesHtml .= '<span class="file-badge png">PNG: ' . htmlspecialchars($card['pngFile']) . '</span> ';
+            $baseFilename = preg_replace('/\.(png|jpg|jpeg|webp)$/i', '', $card['pngFile']);
+            $imageFormats = [];
+
+            // Check all available image formats from the images array
+            if (isset($images[(string)$num])) {
+                if (isset($images[(string)$num]['png'])) $imageFormats[] = 'PNG';
+                if (isset($images[(string)$num]['jpg'])) $imageFormats[] = 'JPG';
+                if (isset($images[(string)$num]['jpeg'])) $imageFormats[] = 'JPEG';
+                if (isset($images[(string)$num]['webp'])) $imageFormats[] = 'WebP';
+            }
+
+            if (count($imageFormats) > 1) {
+                $formatIcons = implode(' ', array_map(function($fmt) {
+                    return '<span class="format-tag">' . $fmt . '</span>';
+                }, $imageFormats));
+                $filesHtml .= '<span class="file-badge png">IMG: ' . htmlspecialchars($baseFilename) . ' ' . $formatIcons . '</span> ';
+            } else {
+                $filesHtml .= '<span class="file-badge png">PNG: ' . htmlspecialchars($card['pngFile']) . '</span> ';
+            }
         }
+
+        // Show video/animation files (GIF, MP4, WebM) with format icons
         if ($hasGif) {
-            $filesHtml .= '<span class="file-badge gif">GIF: ' . htmlspecialchars($card['gifFile']) . '</span> ';
+            $baseFilename = preg_replace('/\.(gif|mp4|webm)$/i', '', $card['gifFile']);
+            $videoFormats = [];
+
+            // Check all available video formats from the images array
+            if (isset($images[(string)$num])) {
+                if (isset($images[(string)$num]['gif'])) $videoFormats[] = 'GIF';
+                if (isset($images[(string)$num]['mp4'])) $videoFormats[] = 'MP4';
+                if (isset($images[(string)$num]['webm'])) $videoFormats[] = 'WebM';
+            }
+
+            if (count($videoFormats) > 1) {
+                $formatIcons = implode(' ', array_map(function($fmt) {
+                    return '<span class="format-tag">' . $fmt . '</span>';
+                }, $videoFormats));
+                $filesHtml .= '<span class="file-badge gif">VID: ' . htmlspecialchars($baseFilename) . ' ' . $formatIcons . '</span> ';
+            } else {
+                $filesHtml .= '<span class="file-badge gif">GIF: ' . htmlspecialchars($card['gifFile']) . '</span> ';
+            }
         }
         if ($hasAudio) {
             foreach ($card['audioFiles'] as $trig => $audioFiles) {
