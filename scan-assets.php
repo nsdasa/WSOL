@@ -294,6 +294,22 @@ function scanAssets() {
     global $assetsDir, $manifestPath;
 
     try {
+        // Get resolution mode and selected cards for conflict resolution
+        $mode = $_GET['mode'] ?? 'update_all';
+        $selectedCards = null;
+        $selectedIndex = [];
+
+        if ($mode === 'selective') {
+            $input = file_get_contents('php://input');
+            $data = json_decode($input, true);
+            $selectedCards = $data['selectedCards'] ?? [];
+
+            // Index selected cards for quick lookup
+            foreach ($selectedCards as $sc) {
+                $selectedIndex[$sc['trigraph']][$sc['cardNum']] = true;
+            }
+        }
+
         $languages = loadLanguageList($assetsDir . '/Language_List.csv');
     $langByTrigraph = [];
     foreach ($languages as $l) $langByTrigraph[$l['trigraph']] = $l['name'];
@@ -440,6 +456,29 @@ function scanAssets() {
 
             // Check if this card exists in the previous manifest (SMART MERGE)
             $existingCard = $existingCards[$trig][$cardNum] ?? null;
+
+            // MODE HANDLING: Determine whether to update this card
+            $shouldUpdateFromCSV = true;
+
+            if ($mode === 'skip_existing' && $existingCard) {
+                // Skip all existing cards, only add new ones
+                $shouldUpdateFromCSV = false;
+            } elseif ($mode === 'selective') {
+                // Only update selected cards
+                $shouldUpdateFromCSV = isset($selectedIndex[$trig][$cardNum]);
+            }
+            // For 'update_all' mode, $shouldUpdateFromCSV remains true
+
+            // If we're skipping this card and it exists, use existing data entirely
+            if (!$shouldUpdateFromCSV && $existingCard) {
+                $finalCards[$trig][] = $existingCard;
+                $langStats['totalCards']++;
+                if (!empty($existingCard['hasAudio'])) $langStats['cardsWithAudio']++;
+                if (!in_array($existingCard['lesson'], $langStats['lessons'])) {
+                    $langStats['lessons'][] = $existingCard['lesson'];
+                }
+                continue;
+            }
 
             // Build audio array matched to word variants (MULTI-VARIANT)
             $audioArray = [];
