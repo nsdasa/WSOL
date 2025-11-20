@@ -199,7 +199,7 @@ class VoiceRecorderApp {
     
     renderCards() {
         const tbody = document.getElementById('cardsTableBody');
-        
+
         if (this.filteredCards.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -210,11 +210,48 @@ class VoiceRecorderApp {
             `;
             return;
         }
-        
+
         tbody.innerHTML = this.filteredCards.map(card => {
             const cardId = card.cardNum || card.wordNum;
-            const hasAudio = !!card.audio;
-            
+
+            // Get word variants by splitting on "/"
+            const wordVariants = card.word ? card.word.split('/').map(w => w.trim()) : [''];
+
+            // Get audio paths (now an array for multi-variant support)
+            const audioPaths = Array.isArray(card.audio) ? card.audio : (card.audio ? [card.audio] : []);
+
+            // Generate audio badges for each variant
+            const audioBadgesHtml = wordVariants.map((variant, index) => {
+                const audioPath = audioPaths[index] || null;
+                const hasAudio = !!audioPath;
+
+                // Label: show filename if file exists, otherwise show word variant
+                let label = '';
+                if (hasAudio) {
+                    label = audioPath.split('/').pop();  // Show filename
+                } else {
+                    label = variant.toLowerCase();  // Show word variant
+                }
+
+                const badgeClass = hasAudio ? 'has-audio' : 'no-audio';
+                const icon = hasAudio ? 'fa-check' : 'fa-folder-open';
+                const title = hasAudio ? `Audio: ${label}` : `Click to record audio for "${variant}"`;
+
+                return `
+                    <span class="audio-badge ${badgeClass}"
+                          data-card-id="${cardId}"
+                          data-variant-index="${index}"
+                          data-variant="${variant}"
+                          onclick="app.openAudioModal(${cardId}, ${index}, '${variant.replace(/'/g, "\\'")}')"
+                          title="${title}">
+                        <i class="fas ${icon}"></i> ${label}
+                    </span>
+                `;
+            }).join('');
+
+            // Check if any variant has audio
+            const hasAnyAudio = audioPaths.some(path => !!path);
+
             return `
                 <tr>
                     <td>${card.lesson || '-'}</td>
@@ -222,15 +259,13 @@ class VoiceRecorderApp {
                     <td>${card.word || ''}</td>
                     <td>${card.english || ''}</td>
                     <td>
-                        <span class="audio-badge ${hasAudio ? 'has-audio' : 'no-audio'}" 
-                              data-card-id="${cardId}" onclick="app.openAudioModal(${cardId})">
-                            <i class="fas ${hasAudio ? 'fa-check' : 'fa-microphone'}"></i>
-                            ${hasAudio ? 'Audio' : 'Record'}
-                        </span>
+                        <div class="audio-badges-container">
+                            ${audioBadgesHtml}
+                        </div>
                     </td>
                     <td>
-                        <span class="status-badge ${hasAudio ? 'complete' : 'missing'}">
-                            ${hasAudio ? 'Complete' : 'Needs Audio'}
+                        <span class="status-badge ${hasAnyAudio ? 'complete' : 'missing'}">
+                            ${hasAnyAudio ? 'Complete' : 'Needs Audio'}
                         </span>
                     </td>
                 </tr>
@@ -246,25 +281,28 @@ class VoiceRecorderApp {
         document.getElementById('audioCount').textContent = `${withAudio} with audio`;
     }
     
-    openAudioModal(cardId) {
+    openAudioModal(cardId, variantIndex = 0, variant = null) {
         this.currentCardId = cardId;
-        
+        this.currentVariantIndex = variantIndex;
+        this.currentVariant = variant;
+
         // Reset modal state
         this.switchTab('browse');
         this.resetRecordingView();
-        
+
         // Update title
         const card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (card) {
+            const variantText = variant ? ` - "${variant}"` : '';
             document.getElementById('fileModalTitle').innerHTML = `
-                <i class="fas fa-file-audio"></i> 
-                Audio for: ${card.word} (${card.english})
+                <i class="fas fa-file-audio"></i>
+                Audio for: ${card.word}${variantText} (${card.english})
             `;
         }
-        
+
         // Show modal
         document.getElementById('fileModal').classList.remove('hidden');
-        
+
         // Load server files
         this.loadServerFiles();
     }
@@ -852,14 +890,17 @@ class VoiceRecorderApp {
     saveRecording() {
         const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
         if (!card) return;
-        
-        const word = (card.word || 'word').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        // Use variant for filename if available
+        const wordForFilename = this.currentVariant
+            ? this.currentVariant.toLowerCase().replace(/[^a-z0-9]/g, '')
+            : (card.word || 'word').toLowerCase().replace(/[^a-z0-9]/g, '');
         const english = (card.english || 'english').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${word}.${english}.wav`;
-        
+        const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${wordForFilename}.${english}.wav`;
+
         this.pendingBlob = this.audioRecorder.audioBlob;
         this.pendingFile = null;
-        
+
         this.closeFileModal();
         this.showFilenameDialog(defaultFilename);
     }
@@ -922,9 +963,22 @@ class VoiceRecorderApp {
             if (result.success) {
                 const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
                 if (card) {
-                    card.audio = `assets/${filename}`;
+                    // Handle multi-variant audio (audio as array)
+                    // Ensure audio is array
+                    if (!Array.isArray(card.audio)) {
+                        card.audio = card.audio ? [card.audio] : [];
+                    }
+
+                    // Pad array with nulls if needed to reach variant index
+                    while (card.audio.length <= this.currentVariantIndex) {
+                        card.audio.push(null);
+                    }
+
+                    // Set audio at the correct variant index
+                    card.audio[this.currentVariantIndex] = result.path;
+                    card.hasAudio = true;
                 }
-                
+
                 this.filterCards();
                 this.showToast(`Audio saved: ${filename}`, 'success');
             } else {
