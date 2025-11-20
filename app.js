@@ -988,11 +988,14 @@ class AssetManager {
                 englishAcceptable = card.english ? card.english.split('/').map(w => w.trim()).filter(w => w) : [];
             }
             
-            // Get image path (prefer GIF for display, PNG for print)
-            const imagePath = card.hasGif ? 
-                (this.manifest.images?.[card.cardNum]?.gif || card.printImagePath) : 
+            // Get image path (prefer GIF/video for display, PNG for print)
+            const imagePath = card.hasGif ?
+                (this.manifest.images?.[card.cardNum]?.gif || card.printImagePath) :
                 card.printImagePath;
-            
+
+            // Check if the image is actually a video file
+            const isVideo = imagePath && /\.(mp4|webm)$/i.test(imagePath);
+
             // Handle audio as array (for multi-variant support)
             let audioPath = card.audio;
             if (audioPath && !Array.isArray(audioPath)) {
@@ -1040,6 +1043,7 @@ class AssetManager {
                 cebuanoAcceptable,
                 audioPath: audioPath,  // Always an array
                 imagePath: imagePath,
+                isVideo: isVideo,  // True if imagePath is a video file (mp4/webm)
                 // Keep word/english/cebuano as primary display
                 word: card.word,
                 english: card.english,

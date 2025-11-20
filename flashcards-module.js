@@ -139,37 +139,57 @@ class FlashcardsModule extends LearningModule {
             front.className = 'card-face card-front';
             front.style.opacity = '1';
             front.style.display = 'flex';
-            
-            const img = document.createElement('img');
-            img.src = card.imagePath;
-            img.alt = `${card.word} - ${card.english}`;
-            img.onerror = () => {
-                img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
-            };
-            
+
+            let img;
+            if (card.isVideo) {
+                // Create video element for MP4/WebM files
+                img = document.createElement('video');
+                img.src = card.imagePath;
+                img.autoplay = true;
+                img.loop = true;
+                img.muted = true;
+                img.playsInline = true;
+            } else {
+                // Create img element for PNG/JPG/JPEG/WebP/GIF files
+                img = document.createElement('img');
+                img.src = card.imagePath;
+                img.alt = `${card.word} - ${card.english}`;
+                img.onerror = () => {
+                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+                };
+            }
+
             await new Promise((resolve) => {
                 const timeout = setTimeout(() => {
-                    debugLogger?.log(2, `Image load timeout for: ${card.imagePath}`);
+                    debugLogger?.log(2, `Media load timeout for: ${card.imagePath}`);
                     cardContainer.style.height = '300px';
                     cardEl.style.height = '300px';
                     resolve();
                 }, 5000);
-                
-                img.onload = () => {
+
+                const onSuccess = () => {
                     clearTimeout(timeout);
                     const maxHeight = 300;
                     cardContainer.style.height = `${maxHeight}px`;
                     cardEl.style.height = `${maxHeight}px`;
                     resolve();
                 };
-                
-                img.onerror = () => {
+
+                const onError = () => {
                     clearTimeout(timeout);
-                    debugLogger?.log(2, `Image load error for: ${card.imagePath}`);
+                    debugLogger?.log(2, `Media load error for: ${card.imagePath}`);
                     cardContainer.style.height = '300px';
                     cardEl.style.height = '300px';
                     resolve();
                 };
+
+                if (card.isVideo) {
+                    img.onloadeddata = onSuccess;
+                    img.onerror = onError;
+                } else {
+                    img.onload = onSuccess;
+                    img.onerror = onError;
+                }
             });
             
             front.appendChild(img);

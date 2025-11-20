@@ -114,10 +114,10 @@ function handleMediaUpload() {
         if (!is_array($files['name'])) {
             if ($files['error'] === UPLOAD_ERR_OK) {
                 $ext = strtolower(pathinfo($files['name'], PATHINFO_EXTENSION));
-                if (in_array($ext, ['png','jpg','jpeg','webp','gif','mp3','m4a'])) {
+                if (in_array($ext, ['png','jpg','jpeg','webp','gif','mp4','webm','mp3','m4a'])) {
                     $target = $assetsDir . '/' . basename($files['name']);
                     if (move_uploaded_file($files['tmp_name'], $target)) {
-                        if (in_array($ext, ['png','jpg','jpeg','webp','gif'])) $stats['imagesUploaded']++;
+                        if (in_array($ext, ['png','jpg','jpeg','webp','gif','mp4','webm'])) $stats['imagesUploaded']++;
                         else $stats['audioUploaded']++;
                     }
                 }
@@ -350,7 +350,7 @@ function scanAssets() {
         if ($f === '.' || $f === '..' || is_dir("$assetsDir/$f")) continue;
         $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
         if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $pngFiles[] = $f;
-        elseif ($ext === 'gif') $gifFiles[] = $f;
+        elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $gifFiles[] = $f;
         elseif (in_array($ext, ['mp3','m4a'])) $audioFiles[] = $f;
     }
 
