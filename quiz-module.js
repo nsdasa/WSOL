@@ -195,6 +195,11 @@ class UnsaNiQuizModule extends LearningModule {
         document.getElementById('feedbackMark').textContent = '';
         document.getElementById('correctWordDisplay').classList.remove('show');
         document.getElementById('correctWordDisplay').textContent = '';
+
+        // Auto-play audio if available (sequential for multi-variant cards)
+        if (card.audioPath && card.audioPath.length > 0) {
+            this.playAudioSequentially(card.audioPath);
+        }
     }
     
     submitAnswer() {
@@ -284,5 +289,39 @@ class UnsaNiQuizModule extends LearningModule {
     showCongratulations() {
         document.getElementById('quizContainer').style.display = 'none';
         document.getElementById('congratulations').style.display = 'block';
+    }
+
+    // Play audio files sequentially (for multi-variant cards)
+    playAudioSequentially(audioPaths) {
+        if (!audioPaths || audioPaths.length === 0) return;
+
+        let currentIndex = 0;
+
+        const playNext = () => {
+            if (currentIndex >= audioPaths.length) {
+                return;  // Done
+            }
+
+            const audio = new Audio(audioPaths[currentIndex]);
+
+            audio.onended = () => {
+                currentIndex++;
+                playNext();  // Play next in chain
+            };
+
+            audio.onerror = () => {
+                debugLogger?.log(1, `Audio play error: ${audioPaths[currentIndex]}`);
+                currentIndex++;
+                playNext();  // Skip to next on error
+            };
+
+            audio.play().catch(err => {
+                debugLogger?.log(1, `Audio play error: ${err.message}`);
+                currentIndex++;
+                playNext();
+            });
+        };
+
+        playNext();
     }
 }
