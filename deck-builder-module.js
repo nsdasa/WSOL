@@ -2782,7 +2782,7 @@ class DeckBuilderModule extends LearningModule {
             const result = await response.json();
 
             if (!result.success) {
-                throw new Exception(result.error || 'Save failed');
+                throw new Error(result.error || 'Save failed');
             }
 
             // Update manifest structure
