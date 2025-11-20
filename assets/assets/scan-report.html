@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Asset Scan Report - 2025-11-17 23:48:21</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .summary { background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+        .stat-box { background: white; padding: 15px; border-radius: 5px; text-align: center; border-left: 4px solid #3498db; }
+        .stat-box .number { font-size: 32px; font-weight: bold; color: #2c3e50; }
+        .stat-box .label { color: #7f8c8d; font-size: 14px; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #34495e; color: white; padding: 12px; text-align: left; font-weight: 600; position: sticky; top: 0; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #f8f9fa; }
+        .status { padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600; }
+        .status-complete-animated { background: #27ae60; color: white; }
+        .status-complete-static { background: #2ecc71; color: white; }
+        .status-gif-only { background: #f39c12; color: white; }
+        .status-image-only { background: #e67e22; color: white; }
+        .status-audio-only { background: #9b59b6; color: white; }
+        .status-partial { background: #e74c3c; color: white; }
+        .status-missing { background: #95a5a6; color: white; }
+        .file-badge { display: inline-block; padding: 3px 6px; margin: 2px; background: #3498db; color: white; border-radius: 3px; font-size: 11px; }
+        .file-badge.png { background: #1abc9c; }
+        .file-badge.gif { background: #e67e22; }
+        .file-badge.audio { background: #9b59b6; }
+        .lesson-badge { background: #3498db; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; }
+        .type-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; }
+        .type-badge.new { background: #27ae60; color: white; }
+        .type-badge.review { background: #f39c12; color: white; }
+        .word { font-weight: 600; color: #2c3e50; }
+        .legend { margin: 20px 0; padding: 15px; background: #ecf0f1; border-radius: 5px; }
+        .legend-item { display: inline-block; margin-right: 20px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>?? Asset Scan Report</h1>
+        <p><strong>Generated:</strong> 2025-11-17 23:48:21</p>
+        
+        <div class="summary">
+            <h2>Summary Statistics</h2>
+            <div class="summary-grid">
+                <div class="stat-box">
+                    <div class="number">208</div>
+                    <div class="label">Words in CSV</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">208</div>
+                    <div class="label">Cards Created</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">207</div>
+                    <div class="label">PNG Files</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">0</div>
+                    <div class="label">GIF Files</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">58</div>
+                    <div class="label">Audio Files</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <strong>Status Legend:</strong><br>
+            <div class="legend-item"><span class="status status-complete-animated">Complete (Animated)</span> - Has PNG, GIF, and Audio</div>
+            <div class="legend-item"><span class="status status-complete-static">Complete (Static)</span> - Has PNG and Audio</div>
+            <div class="legend-item"><span class="status status-gif-only">GIF Only</span> - Has GIF but no PNG (not printable)</div>
+            <div class="legend-item"><span class="status status-image-only">Image Only</span> - Has image but no audio</div>
+            <div class="legend-item"><span class="status status-audio-only">Audio Only</span> - Has audio but no image</div>
+            <div class="legend-item"><span class="status status-partial">Partial</span> - Has card but incomplete</div>
+            <div class="legend-item"><span class="status status-missing">Missing</span> - No assets found</div>
+            <br>
+            <div class="legend-item"><span class="type-badge new">N</span> - New Word</div>
+            <div class="legend-item"><span class="type-badge review">R</span> - Review Word</div>
+        </div>
+        
+        <h2>Detailed Card Matching</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Lesson</th>
+                    <th>Type</th>
+                    <th>Card#</th>
+                    <th>Word</th>
+                    <th>English</th>
+                    <th>Files Found</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>0</strong></td>
+            <td><span class="word">ni</span></td>
+            <td>Name Marker</td>
+            <td><span style="color: #95a5a6;">No files found</span></td>
+            <td><span class="status status-missing">Missing</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>1</strong></td>
+            <td><span class="word">Asa</span></td>
+            <td>Where</td>
+            <td><span class="file-badge png">PNG: 1.Asa.Where.png</span> <span class="file-badge audio">CEB: 1.ceb.asa.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>2</strong></td>
+            <td><span class="word">Unsa</span></td>
+            <td>What</td>
+            <td><span class="file-badge png">PNG: 2.Unsa.What.png</span> <span class="file-badge audio">CEB: 2.ceb.unsa.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>3</strong></td>
+            <td><span class="word">Oo</span></td>
+            <td>Yes</td>
+            <td><span class="file-badge png">PNG: 3.Oo.Yes.png</span> <span class="file-badge audio">CEB: 3.ceb.oo.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>4</strong></td>
+            <td><span class="word">Dili</span></td>
+            <td>No</td>
+            <td><span class="file-badge png">PNG: 4.Dili.No.png</span> <span class="file-badge audio">CEB: 4.ceb.dili.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>5</strong></td>
+            <td><span class="word">Istorya</span></td>
+            <td>Tell</td>
+            <td><span class="file-badge png">PNG: 5.Istorya.Tell.png</span> <span class="file-badge audio">CEB: 5.ceb.istorya.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>6</strong></td>
+            <td><span class="word">Tan-aw</span></td>
+            <td>Look</td>
+            <td><span class="file-badge png">PNG: 6.Tanawa.Look.png</span> <span class="file-badge audio">CEB: 6.ceb.tan-aw.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>7</strong></td>
+            <td><span class="word">Paminaw</span></td>
+            <td>Listen</td>
+            <td><span class="file-badge png">PNG: 7.Paminaw.Listen.png</span> <span class="file-badge audio">CEB: 7.ceb.paminaw.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>8</strong></td>
+            <td><span class="word">I-tudlo</span></td>
+            <td>Point</td>
+            <td><span class="file-badge png">PNG: 8.Itudlo.Point.png</span> <span class="file-badge audio">CEB: 8.ceb.itudlo.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>9</strong></td>
+            <td><span class="word">Basa</span></td>
+            <td>Read</td>
+            <td><span class="file-badge png">PNG: 9.Basa.Read.png</span> <span class="file-badge audio">CEB: 9.ceb.basa.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>10</strong></td>
+            <td><span class="word">Sulat</span></td>
+            <td>Write</td>
+            <td><span class="file-badge png">PNG: 10.Sulat.Write.png</span> <span class="file-badge audio">CEB: 10.ceb.sulat.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>11</strong></td>
+            <td><span class="word">Nag-tudlo</span></td>
+            <td>Teach</td>
+            <td><span class="file-badge png">PNG: 11.Nagtudlo.Teach.png</span> <span class="file-badge audio">CEB: 11.ceb.nagtudlo.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>12</strong></td>
+            <td><span class="word">Ako/ko</span></td>
+            <td>I/me</td>
+            <td><span class="file-badge png">PNG: 12.Ako.Me.png</span> <span class="file-badge audio">CEB: 12.ceb.ako-ko.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>13</strong></td>
+            <td><span class="word">Ikaw/ka</span></td>
+            <td>You</td>
+            <td><span class="file-badge png">PNG: 13.Ikaw.You.png</span> <span class="file-badge audio">CEB: 13.ceb.ikaw-ka.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>14</strong></td>
+            <td><span class="word">Kini / ni</span></td>
+            <td>This</td>
+            <td><span class="file-badge png">PNG: 14.Kini.This.png</span> <span class="file-badge audio">CEB: 14.ceb.kini-ni.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>15</strong></td>
+            <td><span class="word">Kana / na</span></td>
+            <td>That</td>
+            <td><span class="file-badge png">PNG: 15.Kana.That.png</span> <span class="file-badge audio">CEB: 15.ceb.kana-na.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>16</strong></td>
+            <td><span class="word">Bolpen</span></td>
+            <td>Pen</td>
+            <td><span class="file-badge png">PNG: 16.Bolpen.Pen.png</span> <span class="file-badge audio">CEB: 16.ceb.bolpen.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>17</strong></td>
+            <td><span class="word">Lapis</span></td>
+            <td>Pencil</td>
+            <td><span class="file-badge png">PNG: 17.Lapis.Pencil.png</span> <span class="file-badge audio">CEB: 17.ceb.lapis.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>18</strong></td>
+            <td><span class="word">Libro</span></td>
+            <td>Book</td>
+            <td><span class="file-badge png">PNG: 18.Libro.Book.png</span> <span class="file-badge audio">CEB: 18.ceb.libro.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>19</strong></td>
+            <td><span class="word">Papel</span></td>
+            <td>Paper</td>
+            <td><span class="file-badge png">PNG: 19.Papel.Paper.png</span> <span class="file-badge audio">CEB: 19.ceb.papel.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>20</strong></td>
+            <td><span class="word">Ngalan</span></td>
+            <td>Name</td>
+            <td><span class="file-badge png">PNG: 20.Ngalan.Name.png</span> <span class="file-badge audio">CEB: 20.ceb.ngalan.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>21</strong></td>
+            <td><span class="word">Mestro/a</span></td>
+            <td>Teacher</td>
+            <td><span class="file-badge png">PNG: 21.Mestro.Teacher.png</span> <span class="file-badge audio">CEB: 21.ceb.maestro-a.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>22</strong></td>
+            <td><span class="word">Estudyante</span></td>
+            <td>Student</td>
+            <td><span class="file-badge png">PNG: 22.Estudyante.Student.png</span> <span class="file-badge audio">CEB: 22.ceb.estudyante.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">1</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>23</strong></td>
+            <td><span class="word">Maayong Adlaw</span></td>
+            <td>Good Day</td>
+            <td><span class="file-badge png">PNG: 23.Maayong Adlaw.Good Day.png</span> <span class="file-badge audio">CEB: 23.ceb.maayong adlaw.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>24</strong></td>
+            <td><span class="word">Tabang</span></td>
+            <td>Help</td>
+            <td><span class="file-badge png">PNG: 24.Tabang.Help.png</span> <span class="file-badge audio">CEB: 24.ceb.tabang.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>25</strong></td>
+            <td><span class="word">Nga</span></td>
+            <td>Linker</td>
+            <td><span class="file-badge png">PNG: 25.Nga.Linker.png</span> <span class="file-badge audio">CEB: 25.ceb.nga.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>26</strong></td>
+            <td><span class="word">Ka</span></td>
+            <td>Counter marker</td>
+            <td><span class="file-badge png">PNG: 26.Ka.Counter marker.png</span> <span class="file-badge audio">CEB: 26.ceb.ka.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>27</strong></td>
+            <td><span class="word">Mga</span></td>
+            <td>Plural marker</td>
+            <td><span class="file-badge png">PNG: 27.Mga.Plural marker.png</span> <span class="file-badge audio">CEB: 27.ceb.mga.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>28</strong></td>
+            <td><span class="word">Ang</span></td>
+            <td>The</td>
+            <td><span class="file-badge png">PNG: 28.Ang.The.png</span> <span class="file-badge audio">CEB: 28.ceb.ang.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>29</strong></td>
+            <td><span class="word">Og</span></td>
+            <td>And/a</td>
+            <td><span class="file-badge png">PNG: 29.Og.And.png</span> <span class="file-badge audio">CEB: 29.ceb.og.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>30</strong></td>
+            <td><span class="word">Sa</span></td>
+            <td>In/at/of</td>
+            <td><span class="file-badge png">PNG: 30.Sa.In.png</span> <span class="file-badge audio">CEB: 30.ceb.sa.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>31</strong></td>
+            <td><span class="word">Si</span></td>
+            <td>Name marker</td>
+            <td><span class="file-badge png">PNG: 31.Si.Name marker.png</span> <span class="file-badge audio">CEB: 31.ceb.si.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>32</strong></td>
+            <td><span class="word">Lingkod</span></td>
+            <td>Sit</td>
+            <td><span class="file-badge png">PNG: 32.Lingkod.Sit.png</span> <span class="file-badge audio">CEB: 32.ceb.lingkod.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>33</strong></td>
+            <td><span class="word">Tindog</span></td>
+            <td>Stand</td>
+            <td><span class="file-badge png">PNG: 33.Tindog.Stand.png</span> <span class="file-badge audio">CEB: 33.ceb.tindog.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>34</strong></td>
+            <td><span class="word">I-butang</span></td>
+            <td>Put</td>
+            <td><span class="file-badge png">PNG: 34.Ibutang.Put.png</span> <span class="file-badge audio">CEB: 34.ceb.ibutang.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>35</strong></td>
+            <td><span class="word">Kuha</span></td>
+            <td>Get</td>
+            <td><span class="file-badge png">PNG: 35.Kuha.Get.png</span> <span class="file-badge audio">CEB: 35.ceb.kuha.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>36</strong></td>
+            <td><span class="word">Lamesa</span></td>
+            <td>Table</td>
+            <td><span class="file-badge png">PNG: 36.Lamesa.Table.png</span> <span class="file-badge audio">CEB: 36.ceb.lamisa.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>37</strong></td>
+            <td><span class="word">Lingkuranan</span></td>
+            <td>Chair</td>
+            <td><span class="file-badge png">PNG: 37.Lingkuranan.Chair.png</span> <span class="file-badge audio">CEB: 37.ceb.lingkuranan.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>38</strong></td>
+            <td><span class="word">Mga butang</span></td>
+            <td>Things</td>
+            <td><span class="file-badge png">PNG: 38.Mga butang.Things.png</span> <span class="file-badge audio">CEB: 38.ceb.mga butang.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>39</strong></td>
+            <td><span class="word">Itom</span></td>
+            <td>Black</td>
+            <td><span class="file-badge png">PNG: 39.Itom.Black.png</span> <span class="file-badge audio">CEB: 39.ceb.itom.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>40</strong></td>
+            <td><span class="word">Puti</span></td>
+            <td>White</td>
+            <td><span class="file-badge png">PNG: 40.Puti.White.png</span> <span class="file-badge audio">CEB: 40.ceb.puti.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>41</strong></td>
+            <td><span class="word">Pula</span></td>
+            <td>Red</td>
+            <td><span class="file-badge png">PNG: 41.Pula.Red.png</span> <span class="file-badge audio">CEB: 41.ceb.pula.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>42</strong></td>
+            <td><span class="word">Green</span></td>
+            <td>Green</td>
+            <td><span class="file-badge png">PNG: 42.Green.Green.png</span> <span class="file-badge audio">CEB: 42.ceb.green.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>43</strong></td>
+            <td><span class="word">Isa</span></td>
+            <td>One</td>
+            <td><span class="file-badge png">PNG: 43.Isa.One.png</span> <span class="file-badge audio">CEB: 43.ceb.isa.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>44</strong></td>
+            <td><span class="word">Duha</span></td>
+            <td>Two</td>
+            <td><span class="file-badge png">PNG: 44.Duha.Two.png</span> <span class="file-badge audio">CEB: 44.ceb.duha.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>45</strong></td>
+            <td><span class="word">Tulo</span></td>
+            <td>Three</td>
+            <td><span class="file-badge png">PNG: 45.Tulo.Three.png</span> <span class="file-badge audio">CEB: 45.ceb.tulo.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>46</strong></td>
+            <td><span class="word">Upat</span></td>
+            <td>Four</td>
+            <td><span class="file-badge png">PNG: 46.Upat.Four.png</span> <span class="file-badge audio">CEB: 46.ceb.upat.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">2</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>47</strong></td>
+            <td><span class="word">Lima</span></td>
+            <td>Five</td>
+            <td><span class="file-badge png">PNG: 47.Lima.Five.png</span> <span class="file-badge audio">CEB: 47.ceb.lima.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>48</strong></td>
+            <td><span class="word">Siya</span></td>
+            <td>Him/her</td>
+            <td><span class="file-badge png">PNG: 48.Siya.Him_her.png</span> <span class="file-badge audio">CEB: 48.ceb.siya.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>49</strong></td>
+            <td><span class="word">Sila</span></td>
+            <td>They/them</td>
+            <td><span class="file-badge png">PNG: 49.Sila.They_them.png</span> <span class="file-badge audio">CEB: 49.ceb.sila.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>50</strong></td>
+            <td><span class="word">Bag</span></td>
+            <td>Bag</td>
+            <td><span class="file-badge png">PNG: 50.Bag.Bag.png</span> <span class="file-badge audio">CEB: 50.ceb.bag.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>51</strong></td>
+            <td><span class="word">Karton</span></td>
+            <td>Box</td>
+            <td><span class="file-badge png">PNG: 51.Karton.Box.png</span> <span class="file-badge audio">CEB: 51.ceb.karton.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>52</strong></td>
+            <td><span class="word">Gawas</span></td>
+            <td>Out</td>
+            <td><span class="file-badge png">PNG: 52.Gawas.Out.png</span> <span class="file-badge audio">CEB: 52.ceb.gawas.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>53</strong></td>
+            <td><span class="word">Sulod</span></td>
+            <td>In</td>
+            <td><span class="file-badge png">PNG: 53.Sulod.In.png</span> <span class="file-badge audio">CEB: 53.ceb.sulod.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>54</strong></td>
+            <td><span class="word">Ibabaw</span></td>
+            <td>On top</td>
+            <td><span class="file-badge png">PNG: 54.Ibabaw.On top.png</span> <span class="file-badge audio">CEB: 54.ceb.ibabaw.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>55</strong></td>
+            <td><span class="word">Ilalom</span></td>
+            <td>Under</td>
+            <td><span class="file-badge png">PNG: 55.Ilalom.Under.png</span> <span class="file-badge audio">CEB: 55.ceb.ilalom.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>56</strong></td>
+            <td><span class="word">Kilid</span></td>
+            <td>Next to</td>
+            <td><span class="file-badge png">PNG: 56.Kilid.Next to.png</span> <span class="file-badge audio">CEB: 56.ceb.kilid.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">3</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>57</strong></td>
+            <td><span class="word">Gikan</span></td>
+            <td>From</td>
+            <td><span class="file-badge png">PNG: 57.Gikan.From.png</span> <span class="file-badge audio">CEB: 57.ceb.gikan.m4a</span> </td>
+            <td><span class="status status-complete-static">Complete Static</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>58</strong></td>
+            <td><span class="word">Sakit</span></td>
+            <td>Pain/Hurt</td>
+            <td><span class="file-badge png">PNG: 58.Sakit.Pain.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>59</strong></td>
+            <td><span class="word">Hikap</span></td>
+            <td>Touch</td>
+            <td><span class="file-badge png">PNG: 59.Hikap.Touch.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>60</strong></td>
+            <td><span class="word">Higda</span></td>
+            <td>Lie down</td>
+            <td><span class="file-badge png">PNG: 60.Higda.Lie down.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>61</strong></td>
+            <td><span class="word">Akong</span></td>
+            <td>Mine</td>
+            <td><span class="file-badge png">PNG: 61.Ako.My.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>62</strong></td>
+            <td><span class="word">Iyang</span></td>
+            <td>His/Her</td>
+            <td><span class="file-badge png">PNG: 62.Iya.HisHers.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>63</strong></td>
+            <td><span class="word">Ilang</span></td>
+            <td>Their</td>
+            <td><span class="file-badge png">PNG: 63.Ilang.Their.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>64</strong></td>
+            <td><span class="word">Imo/Imong</span></td>
+            <td>Your</td>
+            <td><span class="file-badge png">PNG: 64.Imo.Your.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>65</strong></td>
+            <td><span class="word">Tudlo</span></td>
+            <td>Finger</td>
+            <td><span class="file-badge png">PNG: 65.Tudlo.Finger.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>66</strong></td>
+            <td><span class="word">Ulo</span></td>
+            <td>Head</td>
+            <td><span class="file-badge png">PNG: 66.Ulo.Head.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>67</strong></td>
+            <td><span class="word">Abaga</span></td>
+            <td>Shoulders</td>
+            <td><span class="file-badge png">PNG: 67.Abaga.Shoulders.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>68</strong></td>
+            <td><span class="word">Tuhod</span></td>
+            <td>Knee</td>
+            <td><span class="file-badge png">PNG: 68.Tuhod.Knee.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>69</strong></td>
+            <td><span class="word">Tiil</span></td>
+            <td>Foot</td>
+            <td><span class="file-badge png">PNG: 69.Tiil.Foot.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>70</strong></td>
+            <td><span class="word">Tudlo sa Tiil</span></td>
+            <td>Toes</td>
+            <td><span class="file-badge png">PNG: 70.Tudlo sa Tiil.Toes.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>71</strong></td>
+            <td><span class="word">Kamot</span></td>
+            <td>Hands</td>
+            <td><span class="file-badge png">PNG: 71.Kamot.Hands.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>72</strong></td>
+            <td><span class="word">Dako</span></td>
+            <td>Big</td>
+            <td><span class="file-badge png">PNG: 72.Dako.Big.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>73</strong></td>
+            <td><span class="word">Gamay</span></td>
+            <td>Small</td>
+            <td><span class="file-badge png">PNG: 73.Gamay.Small.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>74</strong></td>
+            <td><span class="word">Wala</span></td>
+            <td>Left</td>
+            <td><span class="file-badge png">PNG: 74.Wala.Left.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>75</strong></td>
+            <td><span class="word">Tuo</span></td>
+            <td>Right</td>
+            <td><span class="file-badge png">PNG: 75.Tuo.Right.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>76</strong></td>
+            <td><span class="word">Taas</span></td>
+            <td>Up</td>
+            <td><span class="file-badge png">PNG: 76.Taas.Up.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">5</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>77</strong></td>
+            <td><span class="word">Ubos</span></td>
+            <td>Below</td>
+            <td><span class="file-badge png">PNG: 77.Ubos.Below.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>78</strong></td>
+            <td><span class="word">Adto</span></td>
+            <td>Go</td>
+            <td><span class="file-badge png">PNG: 78.Adto.Go.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>79</strong></td>
+            <td><span class="word">Tulog</span></td>
+            <td>Sleep</td>
+            <td><span class="file-badge png">PNG: 79.Tulog.Sleep.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>80</strong></td>
+            <td><span class="word">Balay</span></td>
+            <td>House</td>
+            <td><span class="file-badge png">PNG: 80.Balay.House.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>81</strong></td>
+            <td><span class="word">Kwarto</span></td>
+            <td>Room</td>
+            <td><span class="file-badge png">PNG: 81.Kwarto.Room.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>82</strong></td>
+            <td><span class="word">Sala</span></td>
+            <td>Living room</td>
+            <td><span class="file-badge png">PNG: 82.Sala.Living room.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>83</strong></td>
+            <td><span class="word">Bangko</span></td>
+            <td>Chair</td>
+            <td><span class="file-badge png">PNG: 83.Bangko.Chair.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>84</strong></td>
+            <td><span class="word">Higdaanan</span></td>
+            <td>Sleeping place</td>
+            <td><span class="file-badge png">PNG: 84.Higdaanan.Sleeping place.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>85</strong></td>
+            <td><span class="word">Tuluganan</span></td>
+            <td>Sleeping room</td>
+            <td><span class="file-badge png">PNG: 85.Tuluganan.Sleeping room.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>86</strong></td>
+            <td><span class="word">Katre</span></td>
+            <td>Bed frame</td>
+            <td><span class="file-badge png">PNG: 86.Katre.Bed frame.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>87</strong></td>
+            <td><span class="word">Babaye</span></td>
+            <td>Female</td>
+            <td><span class="file-badge png">PNG: 87.Babaye.Female.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>88</strong></td>
+            <td><span class="word">Lalaki</span></td>
+            <td>Male</td>
+            <td><span class="file-badge png">PNG: 88.Lalaki.Male.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>89</strong></td>
+            <td><span class="word">Cr</span></td>
+            <td>Toilet room</td>
+            <td><span class="file-badge png">PNG: 89.Cr.Toilet room.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">6</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>90</strong></td>
+            <td><span class="word">Kato</span></td>
+            <td>That, far</td>
+            <td><span class="file-badge png">PNG: 90.Kato.That, far.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>91</strong></td>
+            <td><span class="word">Dagan</span></td>
+            <td>Run</td>
+            <td><span class="file-badge png">PNG: 91.Dagan.Run.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>92</strong></td>
+            <td><span class="word">Hunong</span></td>
+            <td>Stop</td>
+            <td><span class="file-badge png">PNG: 92.Hunong.Stop.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>93</strong></td>
+            <td><span class="word">Padulong</span></td>
+            <td>Direction</td>
+            <td><span class="file-badge png">PNG: 93.Padulong.Direction.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>94</strong></td>
+            <td><span class="word">Lakaw</span></td>
+            <td>Walk</td>
+            <td><span class="file-badge png">PNG: 94.Lakaw.Walk.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>95</strong></td>
+            <td><span class="word">Diri/Dinhi</span></td>
+            <td>Here</td>
+            <td><span class="file-badge png">PNG: 95.Diri.Here.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>96</strong></td>
+            <td><span class="word">Didto</span></td>
+            <td>Over there</td>
+            <td><span class="file-badge png">PNG: 96.Didto.Over there.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>97</strong></td>
+            <td><span class="word">Diha/Dinha</span></td>
+            <td>There</td>
+            <td><span class="file-badge png">PNG: 97.Diha.There.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>98</strong></td>
+            <td><span class="word">Siyudad</span></td>
+            <td>City</td>
+            <td><span class="file-badge png">PNG: 98.Siyudad.City.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>99</strong></td>
+            <td><span class="word">Lungsod</span></td>
+            <td>Town</td>
+            <td><span class="file-badge png">PNG: 99.Lungsod.Town.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>100</strong></td>
+            <td><span class="word">Barangay</span></td>
+            <td>Barangay</td>
+            <td><span class="file-badge png">PNG: 100.Barangay.Barangay.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>101</strong></td>
+            <td><span class="word">Eskwela-han</span></td>
+            <td>School</td>
+            <td><span class="file-badge png">PNG: 101.Eskwelahan.School.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>102</strong></td>
+            <td><span class="word">Merkado</span></td>
+            <td>Market</td>
+            <td><span class="file-badge png">PNG: 102.Merkado.Market.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>103</strong></td>
+            <td><span class="word">Tinda-han</span></td>
+            <td>Store</td>
+            <td><span class="file-badge png">PNG: 103.Tindahan.Store.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>104</strong></td>
+            <td><span class="word">Ospital</span></td>
+            <td>Hospital</td>
+            <td><span class="file-badge png">PNG: 104.Ospital.Hospital.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>105</strong></td>
+            <td><span class="word">Munisipyo</span></td>
+            <td>Govt HQ</td>
+            <td><span class="file-badge png">PNG: 105.Munisipyo.Govt HQ.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>106</strong></td>
+            <td><span class="word">Simba-han</span></td>
+            <td>Church</td>
+            <td><span class="file-badge png">PNG: 106.Simbahan.Church.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>107</strong></td>
+            <td><span class="word">Banko</span></td>
+            <td>Bank</td>
+            <td><span class="file-badge png">PNG: 107.Banko.Bank.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>108</strong></td>
+            <td><span class="word">Duol</span></td>
+            <td>Near</td>
+            <td><span class="file-badge png">PNG: 108.Duol.Near.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>109</strong></td>
+            <td><span class="word">Layo</span></td>
+            <td>Far</td>
+            <td><span class="file-badge png">PNG: 109.Layo.Far.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>110</strong></td>
+            <td><span class="word">Atubangan</span></td>
+            <td>Front of</td>
+            <td><span class="file-badge png">PNG: 110.Atubangan.Front of.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>111</strong></td>
+            <td><span class="word">Kinsa</span></td>
+            <td>Who</td>
+            <td><span class="file-badge png">PNG: 111.Kinsa.Who.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>112</strong></td>
+            <td><span class="word">Dili</span></td>
+            <td>Not</td>
+            <td><span class="file-badge png">PNG: 112.Dili.Not.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>113</strong></td>
+            <td><span class="word">Piyong</span></td>
+            <td>Close eyes</td>
+            <td><span class="file-badge png">PNG: 113.Piyong.Close eyes.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>114</strong></td>
+            <td><span class="word">Bukha</span></td>
+            <td>Open eyes / mouth</td>
+            <td><span class="file-badge png">PNG: 114.Bukha.Open eyes.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>115</strong></td>
+            <td><span class="word">Sirado</span></td>
+            <td>Close</td>
+            <td><span class="file-badge png">PNG: 115.Sirado.Close.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>116</strong></td>
+            <td><span class="word">Ngisi</span></td>
+            <td>Smile</td>
+            <td><span class="file-badge png">PNG: 116.Ngisi.Smile.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>117</strong></td>
+            <td><span class="word">Mata</span></td>
+            <td>Eye</td>
+            <td><span class="file-badge png">PNG: 117.Mata.Eye.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>118</strong></td>
+            <td><span class="word">Kilay</span></td>
+            <td>Eyebrow</td>
+            <td><span class="file-badge png">PNG: 118.Kilay.Eyebrow.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>119</strong></td>
+            <td><span class="word">Ilong</span></td>
+            <td>Nose</td>
+            <td><span class="file-badge png">PNG: 119.Ilong.Nose.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>120</strong></td>
+            <td><span class="word">Dalunggan</span></td>
+            <td>Ear</td>
+            <td><span class="file-badge png">PNG: 120.Dalunggan.Ear.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>121</strong></td>
+            <td><span class="word">Baba</span></td>
+            <td>Mouth</td>
+            <td><span class="file-badge png">PNG: 121.Baba.Mouth.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>122</strong></td>
+            <td><span class="word">Ngipon</span></td>
+            <td>Teeth</td>
+            <td><span class="file-badge png">PNG: 122.Ngipon.Teeth.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>123</strong></td>
+            <td><span class="word">Agtang</span></td>
+            <td>Forehead</td>
+            <td><span class="file-badge png">PNG: 123.Agtang.Forehead.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>124</strong></td>
+            <td><span class="word">Suwang</span></td>
+            <td>Chin</td>
+            <td><span class="file-badge png">PNG: 124.Suwang.Chin.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>125</strong></td>
+            <td><span class="word">Aping</span></td>
+            <td>Cheeks</td>
+            <td><span class="file-badge png">PNG: 125.Aping.Cheeks.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>126</strong></td>
+            <td><span class="word">Buhok</span></td>
+            <td>Hair</td>
+            <td><span class="file-badge png">PNG: 126.Buhok.Hair.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>127</strong></td>
+            <td><span class="word">Gwapa</span></td>
+            <td>Beautiful</td>
+            <td><span class="file-badge png">PNG: 127.Gwapa.Beautiful.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>128</strong></td>
+            <td><span class="word">Pangit</span></td>
+            <td>Ugly</td>
+            <td><span class="file-badge png">PNG: 128.Pangit.Ugly.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>129</strong></td>
+            <td><span class="word">Sa</span></td>
+            <td>To/from</td>
+            <td><span class="file-badge png">PNG: 129.Sa.To.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>130</strong></td>
+            <td><span class="word">O</span></td>
+            <td>Or</td>
+            <td><span class="file-badge png">PNG: 130.O.Or.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>131</strong></td>
+            <td><span class="word">Diba</span></td>
+            <td>Right</td>
+            <td><span class="file-badge png">PNG: 131.Diba.Right.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>132</strong></td>
+            <td><span class="word">Mao jud</span></td>
+            <td>Thats Right</td>
+            <td><span class="file-badge png">PNG: 132.Mao jud.Thats Right.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">9</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>133</strong></td>
+            <td><span class="word">Gwapo</span></td>
+            <td>Handsome</td>
+            <td><span class="file-badge png">PNG: 133.Gwapo.Handsome.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>134</strong></td>
+            <td><span class="word">Mi</span></td>
+            <td>We, exclusive</td>
+            <td><span class="file-badge png">PNG: 134.Kami.We.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>135</strong></td>
+            <td><span class="word">Mo</span></td>
+            <td>You all</td>
+            <td><span class="file-badge png">PNG: 135.Kamo.You all.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>136</strong></td>
+            <td><span class="word">Ta</span></td>
+            <td>We, inclusive</td>
+            <td><span class="file-badge png">PNG: 136.Kita.We.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>137</strong></td>
+            <td><span class="word">Inahan</span></td>
+            <td>Mother</td>
+            <td><span class="file-badge png">PNG: 137.Inahan.Mother.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>138</strong></td>
+            <td><span class="word">Amahan</span></td>
+            <td>Father</td>
+            <td><span class="file-badge png">PNG: 138.Amahan.Father.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>139</strong></td>
+            <td><span class="word">Igsoon</span></td>
+            <td>Sibling</td>
+            <td><span class="file-badge png">PNG: 139.Igsoon.Sibling.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>140</strong></td>
+            <td><span class="word">Ig-agaw</span></td>
+            <td>Cousin</td>
+            <td><span class="file-badge png">PNG: 140.Ig-agaw.Cousin.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>141</strong></td>
+            <td><span class="word">Anak</span></td>
+            <td>Son/daugher</td>
+            <td><span class="file-badge png">PNG: 141.Anak.SonDaughter.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>142</strong></td>
+            <td><span class="word">Lolo</span></td>
+            <td>Grandfather</td>
+            <td><span class="file-badge png">PNG: 142.Lolo.Grandfather.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>143</strong></td>
+            <td><span class="word">Lola</span></td>
+            <td>Grandmother</td>
+            <td><span class="file-badge png">PNG: 143.Lola.Grandmother.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>144</strong></td>
+            <td><span class="word">Tawo</span></td>
+            <td>People</td>
+            <td><span class="file-badge png">PNG: 144.Tawo.People.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>145</strong></td>
+            <td><span class="word">Sakay</span></td>
+            <td>Ride / embark</td>
+            <td><span class="file-badge png">PNG: 145.Sakay.Ride.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>146</strong></td>
+            <td><span class="word">Biyahe</span></td>
+            <td>Travel</td>
+            <td><span class="file-badge png">PNG: 146.Biyahe.Travel.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>147</strong></td>
+            <td><span class="word">Naog</span></td>
+            <td>Debark</td>
+            <td><span class="file-badge png">PNG: 147.Naog.Debark.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>148</strong></td>
+            <td><span class="word">Dalan</span></td>
+            <td>Road / path</td>
+            <td><span class="file-badge png">PNG: 148.Dalan.Road.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>149</strong></td>
+            <td><span class="word">Sakyanan</span></td>
+            <td>Car</td>
+            <td><span class="file-badge png">PNG: 149.Sakyanan.Car.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>150</strong></td>
+            <td><span class="word">Jeep / jeepney</span></td>
+            <td>Jeep</td>
+            <td><span class="file-badge png">PNG: 150.Jeepney.Jeep.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>151</strong></td>
+            <td><span class="word">Sikad</span></td>
+            <td>Rickshaw</td>
+            <td><span class="file-badge png">PNG: 151.Sikad.Rickshaw.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>152</strong></td>
+            <td><span class="word">Bilding</span></td>
+            <td>Building</td>
+            <td><span class="file-badge png">PNG: 152.Bilding.Building.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>153</strong></td>
+            <td><span class="word">Lang</span></td>
+            <td>Just</td>
+            <td><span class="file-badge png">PNG: 153.Lang.Just.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>154</strong></td>
+            <td><span class="word">Tunga</span></td>
+            <td>Center</td>
+            <td><span class="file-badge png">PNG: 154.Tunga.Center.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">11</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>155</strong></td>
+            <td><span class="word">Likod</span></td>
+            <td>Behind</td>
+            <td><span class="file-badge png">PNG: 155.Likod.Behind.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>156</strong></td>
+            <td><span class="word">Ihap</span></td>
+            <td>Count</td>
+            <td><span class="file-badge png">PNG: 156.Ihap.Count.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>157</strong></td>
+            <td><span class="word">Kita</span></td>
+            <td>See/seen</td>
+            <td><span class="file-badge png">PNG: 157.Kita.See.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>158</strong></td>
+            <td><span class="word">Simhot</span></td>
+            <td>Smell</td>
+            <td><span class="file-badge png">PNG: 158.Simhot.Smell.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>159</strong></td>
+            <td><span class="word">Dungog</span></td>
+            <td>Hear</td>
+            <td><span class="file-badge png">PNG: 159.Dungog.Hear.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>160</strong></td>
+            <td><span class="word">Sulti</span></td>
+            <td>Say/speak</td>
+            <td><span class="file-badge png">PNG: 160.Sulti.Say_speak.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>161</strong></td>
+            <td><span class="word">Inyong</span></td>
+            <td>Your, second-person plural</td>
+            <td><span class="file-badge png">PNG: 161.Inyo.Yours.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>162</strong></td>
+            <td><span class="word">Taas</span></td>
+            <td>Long</td>
+            <td><span class="file-badge png">PNG: 162.Taas.Long.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>163</strong></td>
+            <td><span class="word">Mubo</span></td>
+            <td>Short</td>
+            <td><span class="file-badge png">PNG: 163.Mubo.Short.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>164</strong></td>
+            <td><span class="word">Taman</span></td>
+            <td>Until</td>
+            <td><span class="file-badge png">PNG: 164.Taman.Until.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>165</strong></td>
+            <td><span class="word">Unom</span></td>
+            <td>Six</td>
+            <td><span class="file-badge png">PNG: 165.Unom.Six.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>166</strong></td>
+            <td><span class="word">Pito</span></td>
+            <td>Seven</td>
+            <td><span class="file-badge png">PNG: 166.Pito.Seven.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>167</strong></td>
+            <td><span class="word">Walo</span></td>
+            <td>Eight</td>
+            <td><span class="file-badge png">PNG: 167.Walo.Eight.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>168</strong></td>
+            <td><span class="word">Siyam</span></td>
+            <td>Nine</td>
+            <td><span class="file-badge png">PNG: 168.Siyam.Nine.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">13</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>169</strong></td>
+            <td><span class="word">Pulo</span></td>
+            <td>Ten</td>
+            <td><span class="file-badge png">PNG: 169.Pulo.Ten.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>170</strong></td>
+            <td><span class="word">Tilaw</span></td>
+            <td>Taste</td>
+            <td><span class="file-badge png">PNG: 170.Tilaw.Taste.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>171</strong></td>
+            <td><span class="word">Kaon</span></td>
+            <td>Eat</td>
+            <td><span class="file-badge png">PNG: 171.Kaon.Eat.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>172</strong></td>
+            <td><span class="word">Inom</span></td>
+            <td>Drink</td>
+            <td><span class="file-badge png">PNG: 172.Inom.Drink.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>173</strong></td>
+            <td><span class="word">Na</span></td>
+            <td>Already</td>
+            <td><span class="file-badge png">PNG: 173.Na.Already.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>174</strong></td>
+            <td><span class="word">Kan-anan</span></td>
+            <td>Eating place/dining area</td>
+            <td><span class="file-badge png">PNG: 174.Kan-anan.Eating place.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>175</strong></td>
+            <td><span class="word">Kusina</span></td>
+            <td>Kitchen</td>
+            <td><span class="file-badge png">PNG: 175.Kusina.Kitchen.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>176</strong></td>
+            <td><span class="word">Pagkaon</span></td>
+            <td>Food</td>
+            <td><span class="file-badge png">PNG: 176.Pagkaon.Food.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>177</strong></td>
+            <td><span class="word">Plato</span></td>
+            <td>Plate</td>
+            <td><span class="file-badge png">PNG: 177.Plato.Plate.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>178</strong></td>
+            <td><span class="word">Kutsara</span></td>
+            <td>Spoon</td>
+            <td><span class="file-badge png">PNG: 178.Kutsara.Spoon.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>179</strong></td>
+            <td><span class="word">Tinidor</span></td>
+            <td>Fork</td>
+            <td><span class="file-badge png">PNG: 179.Tinidor.Fork.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>180</strong></td>
+            <td><span class="word">Baso</span></td>
+            <td>Glass</td>
+            <td><span class="file-badge png">PNG: 180.Baso.Glass.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>181</strong></td>
+            <td><span class="word">Tubig</span></td>
+            <td>Water</td>
+            <td><span class="file-badge png">PNG: 181.Tubig.Water.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>182</strong></td>
+            <td><span class="word">Lami</span></td>
+            <td>Delicious</td>
+            <td><span class="file-badge png">PNG: 182.Lami.Delicious.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>183</strong></td>
+            <td><span class="word">Gamay</span></td>
+            <td>Few</td>
+            <td><span class="file-badge png">PNG: 183.Gamay.Few.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>184</strong></td>
+            <td><span class="word">Daghan</span></td>
+            <td>Many</td>
+            <td><span class="file-badge png">PNG: 184.Daghan.Many.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>185</strong></td>
+            <td><span class="word">kay</span></td>
+            <td>Is</td>
+            <td><span class="file-badge png">PNG: 185.Kay.Is.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>186</strong></td>
+            <td><span class="word">naa</span></td>
+            <td>There is/has/have</td>
+            <td><span class="file-badge png">PNG: 186.Naa.There is.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>187</strong></td>
+            <td><span class="word">Bayad</span></td>
+            <td>Pay</td>
+            <td><span class="file-badge png">PNG: 187.Bayad.Pay.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>188</strong></td>
+            <td><span class="word">Palit</span></td>
+            <td>Buy</td>
+            <td><span class="file-badge png">PNG: 188.Palit.Buy.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>189</strong></td>
+            <td><span class="word">Buok</span></td>
+            <td>Piece</td>
+            <td><span class="file-badge png">PNG: 189.Buok.Piece.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>190</strong></td>
+            <td><span class="word">Bayad</span></td>
+            <td>Payment</td>
+            <td><span class="file-badge png">PNG: 190.Bayad.Payment.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>191</strong></td>
+            <td><span class="word">Prutas</span></td>
+            <td>Fruits</td>
+            <td><span class="file-badge png">PNG: 191.Prutas.Fruits.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>192</strong></td>
+            <td><span class="word">Utan</span></td>
+            <td>Vegetables</td>
+            <td><span class="file-badge png">PNG: 192.Utan.Vegetables.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>193</strong></td>
+            <td><span class="word">Karne</span></td>
+            <td>Meat</td>
+            <td><span class="file-badge png">PNG: 193.Karne.Meat.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>194</strong></td>
+            <td><span class="word">Manok</span></td>
+            <td>Chicken</td>
+            <td><span class="file-badge png">PNG: 194.Manok.Chicken.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>195</strong></td>
+            <td><span class="word">Mga baligya</span></td>
+            <td>Goods for sale</td>
+            <td><span class="file-badge png">PNG: 195.Mga baligya.Goods for sale.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>196</strong></td>
+            <td><span class="word">Bugas</span></td>
+            <td>Rice</td>
+            <td><span class="file-badge png">PNG: 196.Bugas.Rice.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>197</strong></td>
+            <td><span class="word">Kwarta</span></td>
+            <td>Money</td>
+            <td><span class="file-badge png">PNG: 197.Kwarta.Money.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>198</strong></td>
+            <td><span class="word">Mahal</span></td>
+            <td>Expensive</td>
+            <td><span class="file-badge png">PNG: 198.Mahal.Expensive.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>199</strong></td>
+            <td><span class="word">Barato</span></td>
+            <td>Cheap</td>
+            <td><span class="file-badge png">PNG: 199.Barato.Cheap.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>200</strong></td>
+            <td><span class="word">Ayo</span></td>
+            <td>Anyone there</td>
+            <td><span class="file-badge png">PNG: 200.Ayo.Anyone there.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">10</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>201</strong></td>
+            <td><span class="word">Dayon</span></td>
+            <td>Come in</td>
+            <td><span class="file-badge png">PNG: 201.Dayon.Come in.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>202</strong></td>
+            <td><span class="word">Abri</span></td>
+            <td>Open</td>
+            <td><span class="file-badge png">PNG: 202.Abri.Open.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>203</strong></td>
+            <td><span class="word">Pila</span></td>
+            <td>How many</td>
+            <td><span class="file-badge png">PNG: 203.Pila.How many.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>204</strong></td>
+            <td><span class="word">Palihog</span></td>
+            <td>Please</td>
+            <td><span class="file-badge png">PNG: 204.Palihog.Please.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">15</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>205</strong></td>
+            <td><span class="word">Plite</span></td>
+            <td>Fare</td>
+            <td><span class="file-badge png">PNG: 205.Plite.Fare.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">14</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>206</strong></td>
+            <td><span class="word">lami-a oy</span></td>
+            <td>Yummy</td>
+            <td><span class="file-badge png">PNG: 206.lamia oy.Yummy.png</span> </td>
+            <td><span class="status status-image-only">Image Only</span></td>
+        </tr><tr>
+            <td><span class="lesson-badge">7</span></td>
+            <td><span class="type-badge new">N</span></td>
+            <td><strong>207</strong></td>
+            <td><span class="word">Hapit</span></td>
+            <td>Stop by</td>
+            <td><span style="color: #95a5a6;">No files found</span></td>
+            <td><span class="status status-missing">Missing</span></td>
+        </tr></tbody>
+        </table>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ecf0f1; text-align: center; color: #7f8c8d;">
+            <p>Bob and Mariel Ward School of Filipino Languages - Asset Scan Report v4.0</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,5272 @@
+{
+    "version": "4.0",
+    "lastUpdated": "2025-11-17T23:48:21-08:00",
+    "languages": [
+        {
+            "id": 1,
+            "name": "Cebuano",
+            "trigraph": "ceb"
+        },
+        {
+            "id": 2,
+            "name": "English",
+            "trigraph": "eng"
+        },
+        {
+            "id": 3,
+            "name": "Maranao",
+            "trigraph": "mrw"
+        },
+        {
+            "id": 4,
+            "name": "Sinama",
+            "trigraph": "sin"
+        }
+    ],
+    "images": {
+        "1": {
+            "png": "assets/1.Asa.Where.png"
+        },
+        "10": {
+            "png": "assets/10.Sulat.Write.png"
+        },
+        "100": {
+            "png": "assets/100.Barangay.Barangay.png"
+        },
+        "101": {
+            "png": "assets/101.Eskwelahan.School.png"
+        },
+        "102": {
+            "png": "assets/102.Merkado.Market.png"
+        },
+        "103": {
+            "png": "assets/103.Tindahan.Store.png"
+        },
+        "104": {
+            "png": "assets/104.Ospital.Hospital.png"
+        },
+        "105": {
+            "png": "assets/105.Munisipyo.Govt HQ.png"
+        },
+        "106": {
+            "png": "assets/106.Simbahan.Church.png"
+        },
+        "107": {
+            "png": "assets/107.Banko.Bank.png"
+        },
+        "108": {
+            "png": "assets/108.Duol.Near.png"
+        },
+        "109": {
+            "png": "assets/109.Layo.Far.png"
+        },
+        "11": {
+            "png": "assets/11.Nagtudlo.Teach.png"
+        },
+        "110": {
+            "png": "assets/110.Atubangan.Front of.png"
+        },
+        "111": {
+            "png": "assets/111.Kinsa.Who.png"
+        },
+        "112": {
+            "png": "assets/112.Dili.Not.png"
+        },
+        "113": {
+            "png": "assets/113.Piyong.Close eyes.png"
+        },
+        "114": {
+            "png": "assets/114.Bukha.Open eyes.png"
+        },
+        "115": {
+            "png": "assets/115.Sirado.Close.png"
+        },
+        "116": {
+            "png": "assets/116.Ngisi.Smile.png"
+        },
+        "117": {
+            "png": "assets/117.Mata.Eye.png"
+        },
+        "118": {
+            "png": "assets/118.Kilay.Eyebrow.png"
+        },
+        "119": {
+            "png": "assets/119.Ilong.Nose.png"
+        },
+        "12": {
+            "png": "assets/12.Ako.Me.png"
+        },
+        "120": {
+            "png": "assets/120.Dalunggan.Ear.png"
+        },
+        "121": {
+            "png": "assets/121.Baba.Mouth.png"
+        },
+        "122": {
+            "png": "assets/122.Ngipon.Teeth.png"
+        },
+        "123": {
+            "png": "assets/123.Agtang.Forehead.png"
+        },
+        "124": {
+            "png": "assets/124.Suwang.Chin.png"
+        },
+        "125": {
+            "png": "assets/125.Aping.Cheeks.png"
+        },
+        "126": {
+            "png": "assets/126.Buhok.Hair.png"
+        },
+        "127": {
+            "png": "assets/127.Gwapa.Beautiful.png"
+        },
+        "128": {
+            "png": "assets/128.Pangit.Ugly.png"
+        },
+        "129": {
+            "png": "assets/129.Sa.To.png"
+        },
+        "13": {
+            "png": "assets/13.Ikaw.You.png"
+        },
+        "130": {
+            "png": "assets/130.O.Or.png"
+        },
+        "131": {
+            "png": "assets/131.Diba.Right.png"
+        },
+        "132": {
+            "png": "assets/132.Mao jud.Thats Right.png"
+        },
+        "133": {
+            "png": "assets/133.Gwapo.Handsome.png"
+        },
+        "134": {
+            "png": "assets/134.Kami.We.png"
+        },
+        "135": {
+            "png": "assets/135.Kamo.You all.png"
+        },
+        "136": {
+            "png": "assets/136.Kita.We.png"
+        },
+        "137": {
+            "png": "assets/137.Inahan.Mother.png"
+        },
+        "138": {
+            "png": "assets/138.Amahan.Father.png"
+        },
+        "139": {
+            "png": "assets/139.Igsoon.Sibling.png"
+        },
+        "14": {
+            "png": "assets/14.Kini.This.png"
+        },
+        "140": {
+            "png": "assets/140.Ig-agaw.Cousin.png"
+        },
+        "141": {
+            "png": "assets/141.Anak.SonDaughter.png"
+        },
+        "142": {
+            "png": "assets/142.Lolo.Grandfather.png"
+        },
+        "143": {
+            "png": "assets/143.Lola.Grandmother.png"
+        },
+        "144": {
+            "png": "assets/144.Tawo.People.png"
+        },
+        "145": {
+            "png": "assets/145.Sakay.Ride.png"
+        },
+        "146": {
+            "png": "assets/146.Biyahe.Travel.png"
+        },
+        "147": {
+            "png": "assets/147.Naog.Debark.png"
+        },
+        "148": {
+            "png": "assets/148.Dalan.Road.png"
+        },
+        "149": {
+            "png": "assets/149.Sakyanan.Car.png"
+        },
+        "15": {
+            "png": "assets/15.Kana.That.png"
+        },
+        "150": {
+            "png": "assets/150.Jeepney.Jeep.png"
+        },
+        "151": {
+            "png": "assets/151.Sikad.Rickshaw.png"
+        },
+        "152": {
+            "png": "assets/152.Bilding.Building.png"
+        },
+        "153": {
+            "png": "assets/153.Lang.Just.png"
+        },
+        "154": {
+            "png": "assets/154.Tunga.Center.png"
+        },
+        "155": {
+            "png": "assets/155.Likod.Behind.png"
+        },
+        "156": {
+            "png": "assets/156.Ihap.Count.png"
+        },
+        "157": {
+            "png": "assets/157.Kita.See.png"
+        },
+        "158": {
+            "png": "assets/158.Simhot.Smell.png"
+        },
+        "159": {
+            "png": "assets/159.Dungog.Hear.png"
+        },
+        "16": {
+            "png": "assets/16.Bolpen.Pen.png"
+        },
+        "160": {
+            "png": "assets/160.Sulti.Say_speak.png"
+        },
+        "161": {
+            "png": "assets/161.Inyo.Yours.png"
+        },
+        "162": {
+            "png": "assets/162.Taas.Long.png"
+        },
+        "163": {
+            "png": "assets/163.Mubo.Short.png"
+        },
+        "164": {
+            "png": "assets/164.Taman.Until.png"
+        },
+        "165": {
+            "png": "assets/165.Unom.Six.png"
+        },
+        "166": {
+            "png": "assets/166.Pito.Seven.png"
+        },
+        "167": {
+            "png": "assets/167.Walo.Eight.png"
+        },
+        "168": {
+            "png": "assets/168.Siyam.Nine.png"
+        },
+        "169": {
+            "png": "assets/169.Pulo.Ten.png"
+        },
+        "17": {
+            "png": "assets/17.Lapis.Pencil.png"
+        },
+        "170": {
+            "png": "assets/170.Tilaw.Taste.png"
+        },
+        "171": {
+            "png": "assets/171.Kaon.Eat.png"
+        },
+        "172": {
+            "png": "assets/172.Inom.Drink.png"
+        },
+        "173": {
+            "png": "assets/173.Na.Already.png"
+        },
+        "174": {
+            "png": "assets/174.Kan-anan.Eating place.png"
+        },
+        "175": {
+            "png": "assets/175.Kusina.Kitchen.png"
+        },
+        "176": {
+            "png": "assets/176.Pagkaon.Food.png"
+        },
+        "177": {
+            "png": "assets/177.Plato.Plate.png"
+        },
+        "178": {
+            "png": "assets/178.Kutsara.Spoon.png"
+        },
+        "179": {
+            "png": "assets/179.Tinidor.Fork.png"
+        },
+        "18": {
+            "png": "assets/18.Libro.Book.png"
+        },
+        "180": {
+            "png": "assets/180.Baso.Glass.png"
+        },
+        "181": {
+            "png": "assets/181.Tubig.Water.png"
+        },
+        "182": {
+            "png": "assets/182.Lami.Delicious.png"
+        },
+        "183": {
+            "png": "assets/183.Gamay.Few.png"
+        },
+        "184": {
+            "png": "assets/184.Daghan.Many.png"
+        },
+        "185": {
+            "png": "assets/185.Kay.Is.png"
+        },
+        "186": {
+            "png": "assets/186.Naa.There is.png"
+        },
+        "187": {
+            "png": "assets/187.Bayad.Pay.png"
+        },
+        "188": {
+            "png": "assets/188.Palit.Buy.png"
+        },
+        "189": {
+            "png": "assets/189.Buok.Piece.png"
+        },
+        "19": {
+            "png": "assets/19.Papel.Paper.png"
+        },
+        "190": {
+            "png": "assets/190.Bayad.Payment.png"
+        },
+        "191": {
+            "png": "assets/191.Prutas.Fruits.png"
+        },
+        "192": {
+            "png": "assets/192.Utan.Vegetables.png"
+        },
+        "193": {
+            "png": "assets/193.Karne.Meat.png"
+        },
+        "194": {
+            "png": "assets/194.Manok.Chicken.png"
+        },
+        "195": {
+            "png": "assets/195.Mga baligya.Goods for sale.png"
+        },
+        "196": {
+            "png": "assets/196.Bugas.Rice.png"
+        },
+        "197": {
+            "png": "assets/197.Kwarta.Money.png"
+        },
+        "198": {
+            "png": "assets/198.Mahal.Expensive.png"
+        },
+        "199": {
+            "png": "assets/199.Barato.Cheap.png"
+        },
+        "2": {
+            "png": "assets/2.Unsa.What.png"
+        },
+        "20": {
+            "png": "assets/20.Ngalan.Name.png"
+        },
+        "200": {
+            "png": "assets/200.Ayo.Anyone there.png"
+        },
+        "201": {
+            "png": "assets/201.Dayon.Come in.png"
+        },
+        "202": {
+            "png": "assets/202.Abri.Open.png"
+        },
+        "203": {
+            "png": "assets/203.Pila.How many.png"
+        },
+        "204": {
+            "png": "assets/204.Palihog.Please.png"
+        },
+        "205": {
+            "png": "assets/205.Plite.Fare.png"
+        },
+        "206": {
+            "png": "assets/206.lamia oy.Yummy.png"
+        },
+        "21": {
+            "png": "assets/21.Mestro.Teacher.png"
+        },
+        "22": {
+            "png": "assets/22.Estudyante.Student.png"
+        },
+        "23": {
+            "png": "assets/23.Maayong Adlaw.Good Day.png"
+        },
+        "24": {
+            "png": "assets/24.Tabang.Help.png"
+        },
+        "25": {
+            "png": "assets/25.Nga.Linker.png"
+        },
+        "26": {
+            "png": "assets/26.Ka.Counter marker.png"
+        },
+        "27": {
+            "png": "assets/27.Mga.Plural marker.png"
+        },
+        "28": {
+            "png": "assets/28.Ang.The.png"
+        },
+        "29": {
+            "png": "assets/29.Og.And.png"
+        },
+        "3": {
+            "png": "assets/3.Oo.Yes.png"
+        },
+        "30": {
+            "png": "assets/30.Sa.In.png"
+        },
+        "31": {
+            "png": "assets/31.Si.Name marker.png"
+        },
+        "32": {
+            "png": "assets/32.Lingkod.Sit.png"
+        },
+        "33": {
+            "png": "assets/33.Tindog.Stand.png"
+        },
+        "34": {
+            "png": "assets/34.Ibutang.Put.png"
+        },
+        "35": {
+            "png": "assets/35.Kuha.Get.png"
+        },
+        "36": {
+            "png": "assets/36.Lamesa.Table.png"
+        },
+        "37": {
+            "png": "assets/37.Lingkuranan.Chair.png"
+        },
+        "38": {
+            "png": "assets/38.Mga butang.Things.png"
+        },
+        "39": {
+            "png": "assets/39.Itom.Black.png"
+        },
+        "4": {
+            "png": "assets/4.Dili.No.png"
+        },
+        "40": {
+            "png": "assets/40.Puti.White.png"
+        },
+        "41": {
+            "png": "assets/41.Pula.Red.png"
+        },
+        "42": {
+            "png": "assets/42.Green.Green.png"
+        },
+        "43": {
+            "png": "assets/43.Isa.One.png"
+        },
+        "44": {
+            "png": "assets/44.Duha.Two.png"
+        },
+        "45": {
+            "png": "assets/45.Tulo.Three.png"
+        },
+        "46": {
+            "png": "assets/46.Upat.Four.png"
+        },
+        "47": {
+            "png": "assets/47.Lima.Five.png"
+        },
+        "48": {
+            "png": "assets/48.Siya.Him_her.png"
+        },
+        "49": {
+            "png": "assets/49.Sila.They_them.png"
+        },
+        "5": {
+            "png": "assets/5.Istorya.Tell.png"
+        },
+        "50": {
+            "png": "assets/50.Bag.Bag.png"
+        },
+        "51": {
+            "png": "assets/51.Karton.Box.png"
+        },
+        "52": {
+            "png": "assets/52.Gawas.Out.png"
+        },
+        "53": {
+            "png": "assets/53.Sulod.In.png"
+        },
+        "54": {
+            "png": "assets/54.Ibabaw.On top.png"
+        },
+        "55": {
+            "png": "assets/55.Ilalom.Under.png"
+        },
+        "56": {
+            "png": "assets/56.Kilid.Next to.png"
+        },
+        "57": {
+            "png": "assets/57.Gikan.From.png"
+        },
+        "58": {
+            "png": "assets/58.Sakit.Pain.png"
+        },
+        "59": {
+            "png": "assets/59.Hikap.Touch.png"
+        },
+        "6": {
+            "png": "assets/6.Tanawa.Look.png"
+        },
+        "60": {
+            "png": "assets/60.Higda.Lie down.png"
+        },
+        "61": {
+            "png": "assets/61.Ako.My.png"
+        },
+        "62": {
+            "png": "assets/62.Iya.HisHers.png"
+        },
+        "63": {
+            "png": "assets/63.Ilang.Their.png"
+        },
+        "64": {
+            "png": "assets/64.Imo.Your.png"
+        },
+        "65": {
+            "png": "assets/65.Tudlo.Finger.png"
+        },
+        "66": {
+            "png": "assets/66.Ulo.Head.png"
+        },
+        "67": {
+            "png": "assets/67.Abaga.Shoulders.png"
+        },
+        "68": {
+            "png": "assets/68.Tuhod.Knee.png"
+        },
+        "69": {
+            "png": "assets/69.Tiil.Foot.png"
+        },
+        "7": {
+            "png": "assets/7.Paminaw.Listen.png"
+        },
+        "70": {
+            "png": "assets/70.Tudlo sa Tiil.Toes.png"
+        },
+        "71": {
+            "png": "assets/71.Kamot.Hands.png"
+        },
+        "72": {
+            "png": "assets/72.Dako.Big.png"
+        },
+        "73": {
+            "png": "assets/73.Gamay.Small.png"
+        },
+        "74": {
+            "png": "assets/74.Wala.Left.png"
+        },
+        "75": {
+            "png": "assets/75.Tuo.Right.png"
+        },
+        "76": {
+            "png": "assets/76.Taas.Up.png"
+        },
+        "77": {
+            "png": "assets/77.Ubos.Below.png"
+        },
+        "78": {
+            "png": "assets/78.Adto.Go.png"
+        },
+        "79": {
+            "png": "assets/79.Tulog.Sleep.png"
+        },
+        "8": {
+            "png": "assets/8.Itudlo.Point.png"
+        },
+        "80": {
+            "png": "assets/80.Balay.House.png"
+        },
+        "81": {
+            "png": "assets/81.Kwarto.Room.png"
+        },
+        "82": {
+            "png": "assets/82.Sala.Living room.png"
+        },
+        "83": {
+            "png": "assets/83.Bangko.Chair.png"
+        },
+        "84": {
+            "png": "assets/84.Higdaanan.Sleeping place.png"
+        },
+        "85": {
+            "png": "assets/85.Tuluganan.Sleeping room.png"
+        },
+        "86": {
+            "png": "assets/86.Katre.Bed frame.png"
+        },
+        "87": {
+            "png": "assets/87.Babaye.Female.png"
+        },
+        "88": {
+            "png": "assets/88.Lalaki.Male.png"
+        },
+        "89": {
+            "png": "assets/89.Cr.Toilet room.png"
+        },
+        "9": {
+            "png": "assets/9.Basa.Read.png"
+        },
+        "90": {
+            "png": "assets/90.Kato.That, far.png"
+        },
+        "91": {
+            "png": "assets/91.Dagan.Run.png"
+        },
+        "92": {
+            "png": "assets/92.Hunong.Stop.png"
+        },
+        "93": {
+            "png": "assets/93.Padulong.Direction.png"
+        },
+        "94": {
+            "png": "assets/94.Lakaw.Walk.png"
+        },
+        "95": {
+            "png": "assets/95.Diri.Here.png"
+        },
+        "96": {
+            "png": "assets/96.Didto.Over there.png"
+        },
+        "97": {
+            "png": "assets/97.Diha.There.png"
+        },
+        "98": {
+            "png": "assets/98.Siyudad.City.png"
+        },
+        "99": {
+            "png": "assets/99.Lungsod.Town.png"
+        }
+    },
+    "cards": {
+        "ceb": [
+            {
+                "lesson": 1,
+                "cardNum": 1,
+                "word": "Asa",
+                "english": "Where",
+                "grammar": "Interrogative",
+                "category": "Function Word",
+                "subCategory1": "Question Word",
+                "subCategory2": "Question Word",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Asa"
+                ],
+                "englishAcceptable": [
+                    "Where"
+                ],
+                "audio": "assets/1.ceb.asa.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/1.Asa.Where.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 2,
+                "word": "Unsa",
+                "english": "What",
+                "grammar": "Interrogative",
+                "category": "Function Word",
+                "subCategory1": "Question Word",
+                "subCategory2": "Question Word",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Unsa"
+                ],
+                "englishAcceptable": [
+                    "What"
+                ],
+                "audio": "assets/2.ceb.unsa.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/2.Unsa.What.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 3,
+                "word": "Oo",
+                "english": "Yes",
+                "grammar": "Particle",
+                "category": "Function Word",
+                "subCategory1": "Response",
+                "subCategory2": "Response",
+                "actflEst": "Novice-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Oo"
+                ],
+                "englishAcceptable": [
+                    "Yes"
+                ],
+                "audio": "assets/3.ceb.oo.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/3.Oo.Yes.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 4,
+                "word": "Dili",
+                "english": "No",
+                "grammar": "Adverb / Negator",
+                "category": "Function Word",
+                "subCategory1": "Negation",
+                "subCategory2": "Negation",
+                "actflEst": "Novice-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Dili"
+                ],
+                "englishAcceptable": [
+                    "No"
+                ],
+                "audio": "assets/4.ceb.dili.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/4.Dili.No.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 5,
+                "word": "Istorya",
+                "english": "Tell",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Communication",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Istorya"
+                ],
+                "englishAcceptable": [
+                    "Tell"
+                ],
+                "audio": "assets/5.ceb.istorya.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/5.Istorya.Tell.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 6,
+                "word": "Tan-aw",
+                "english": "Look",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Vision",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tan-aw"
+                ],
+                "englishAcceptable": [
+                    "Look"
+                ],
+                "audio": "assets/6.ceb.tan-aw.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/6.Tanawa.Look.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 7,
+                "word": "Paminaw",
+                "english": "Listen",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Hearing",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Paminaw"
+                ],
+                "englishAcceptable": [
+                    "Listen"
+                ],
+                "audio": "assets/7.ceb.paminaw.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/7.Paminaw.Listen.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 8,
+                "word": "I-tudlo",
+                "english": "Point",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Gesture",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "I-tudlo"
+                ],
+                "englishAcceptable": [
+                    "Point"
+                ],
+                "audio": "assets/8.ceb.itudlo.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/8.Itudlo.Point.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 9,
+                "word": "Basa",
+                "english": "Read",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Literacy",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Basa"
+                ],
+                "englishAcceptable": [
+                    "Read"
+                ],
+                "audio": "assets/9.ceb.basa.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/9.Basa.Read.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 10,
+                "word": "Sulat",
+                "english": "Write",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Literacy",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sulat"
+                ],
+                "englishAcceptable": [
+                    "Write"
+                ],
+                "audio": "assets/10.ceb.sulat.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/10.Sulat.Write.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 11,
+                "word": "Nag-tudlo",
+                "english": "Teach",
+                "grammar": "Verb",
+                "category": "World",
+                "subCategory1": "Occupation Action",
+                "subCategory2": "Teaching",
+                "actflEst": "Intermediate-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Nag-tudlo"
+                ],
+                "englishAcceptable": [
+                    "Teach"
+                ],
+                "audio": "assets/11.ceb.nagtudlo.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/11.Nagtudlo.Teach.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 12,
+                "word": "Ako/ko",
+                "english": "I/me",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ako/ko"
+                ],
+                "englishAcceptable": [
+                    "I/me"
+                ],
+                "audio": "assets/12.ceb.ako-ko.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/12.Ako.Me.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 13,
+                "word": "Ikaw/ka",
+                "english": "You",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ikaw/ka"
+                ],
+                "englishAcceptable": [
+                    "You"
+                ],
+                "audio": "assets/13.ceb.ikaw-ka.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/13.Ikaw.You.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 14,
+                "word": "Kini / ni",
+                "english": "This",
+                "grammar": "Demonstrative pronoun",
+                "category": "Function Word",
+                "subCategory1": "Demonstrative",
+                "subCategory2": "Demonstrative",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kini / ni"
+                ],
+                "englishAcceptable": [
+                    "This"
+                ],
+                "audio": "assets/14.ceb.kini-ni.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/14.Kini.This.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 15,
+                "word": "Kana / na",
+                "english": "That",
+                "grammar": "Demonstrative pronoun",
+                "category": "Function Word",
+                "subCategory1": "Demonstrative",
+                "subCategory2": "Demonstrative",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kana / na"
+                ],
+                "englishAcceptable": [
+                    "That"
+                ],
+                "audio": "assets/15.ceb.kana-na.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/15.Kana.That.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 16,
+                "word": "Bolpen",
+                "english": "Pen",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "School Supply",
+                "subCategory2": "Writing Tool",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Bolpen"
+                ],
+                "englishAcceptable": [
+                    "Pen"
+                ],
+                "audio": "assets/16.ceb.bolpen.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/16.Bolpen.Pen.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 17,
+                "word": "Lapis",
+                "english": "Pencil",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "School Supply",
+                "subCategory2": "Writing Tool",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lapis"
+                ],
+                "englishAcceptable": [
+                    "Pencil"
+                ],
+                "audio": "assets/17.ceb.lapis.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/17.Lapis.Pencil.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 18,
+                "word": "Libro",
+                "english": "Book",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "School Supply",
+                "subCategory2": "Reading Material",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Libro"
+                ],
+                "englishAcceptable": [
+                    "Book"
+                ],
+                "audio": "assets/18.ceb.libro.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/18.Libro.Book.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 19,
+                "word": "Papel",
+                "english": "Paper",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "School Supply",
+                "subCategory2": "Writing Material",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Papel"
+                ],
+                "englishAcceptable": [
+                    "Paper"
+                ],
+                "audio": "assets/19.ceb.papel.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/19.Papel.Paper.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 20,
+                "word": "Ngalan",
+                "english": "Name",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Personal Identity",
+                "subCategory2": "Personal Identity",
+                "actflEst": "Novice-Mid",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Ngalan"
+                ],
+                "englishAcceptable": [
+                    "Name"
+                ],
+                "audio": "assets/20.ceb.ngalan.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/20.Ngalan.Name.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 21,
+                "word": "Mestro/a",
+                "english": "Teacher",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Occupation",
+                "subCategory2": "Teaching",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Mestro/a"
+                ],
+                "englishAcceptable": [
+                    "Teacher"
+                ],
+                "audio": "assets/21.ceb.maestro-a.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/21.Mestro.Teacher.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 22,
+                "word": "Estudyante",
+                "english": "Student",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Occupation",
+                "subCategory2": "Learning",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Estudyante"
+                ],
+                "englishAcceptable": [
+                    "Student"
+                ],
+                "audio": "assets/22.ceb.estudyante.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/22.Estudyante.Student.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 1,
+                "cardNum": 23,
+                "word": "Maayong Adlaw",
+                "english": "Good Day",
+                "grammar": "Ftabanf",
+                "category": "Function Word",
+                "subCategory1": "Greeting",
+                "subCategory2": "Greeting",
+                "actflEst": "Novice-Low",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Maayong Adlaw"
+                ],
+                "englishAcceptable": [
+                    "Good Day"
+                ],
+                "audio": "assets/23.ceb.maayong adlaw.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/23.Maayong Adlaw.Good Day.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 24,
+                "word": "Tabang",
+                "english": "Help",
+                "grammar": "Noun / Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Assistance",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Tabang"
+                ],
+                "englishAcceptable": [
+                    "Help"
+                ],
+                "audio": "assets/24.ceb.tabang.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/24.Tabang.Help.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 25,
+                "word": "Nga",
+                "english": "Linker",
+                "grammar": "Ligature / Linker",
+                "category": "Function Word",
+                "subCategory1": "Linker",
+                "subCategory2": "Linker",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Nga"
+                ],
+                "englishAcceptable": [
+                    "Linker"
+                ],
+                "audio": "assets/25.ceb.nga.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/25.Nga.Linker.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 26,
+                "word": "Ka",
+                "english": "Counter marker",
+                "grammar": "Particle",
+                "category": "Function Word",
+                "subCategory1": "Marker",
+                "subCategory2": "Marker",
+                "actflEst": "Novice-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ka"
+                ],
+                "englishAcceptable": [
+                    "Counter marker"
+                ],
+                "audio": "assets/26.ceb.ka.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/26.Ka.Counter marker.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 27,
+                "word": "Mga",
+                "english": "Plural marker",
+                "grammar": "Particle",
+                "category": "Function Word",
+                "subCategory1": "Plural",
+                "subCategory2": "Plural",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Mga"
+                ],
+                "englishAcceptable": [
+                    "Plural marker"
+                ],
+                "audio": "assets/27.ceb.mga.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/27.Mga.Plural marker.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 28,
+                "word": "Ang",
+                "english": "The",
+                "grammar": "Case marker",
+                "category": "Function Word",
+                "subCategory1": "Case Marker",
+                "subCategory2": "Case Marker",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ang"
+                ],
+                "englishAcceptable": [
+                    "The"
+                ],
+                "audio": "assets/28.ceb.ang.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/28.Ang.The.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 29,
+                "word": "Og",
+                "english": "And/a",
+                "grammar": "Conjunction / Case marker",
+                "category": "Function Word",
+                "subCategory1": "Case Marker",
+                "subCategory2": "Case Marker",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Og"
+                ],
+                "englishAcceptable": [
+                    "And/a"
+                ],
+                "audio": "assets/29.ceb.og.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/29.Og.And.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 30,
+                "word": "Sa",
+                "english": "In/at/of",
+                "grammar": "Preposition / Case marker",
+                "category": "Function Word",
+                "subCategory1": "Preposition",
+                "subCategory2": "Preposition",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sa"
+                ],
+                "englishAcceptable": [
+                    "In/at/of"
+                ],
+                "audio": "assets/30.ceb.sa.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/30.Sa.In.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 31,
+                "word": "Si",
+                "english": "Name marker",
+                "grammar": "Case marker",
+                "category": "Function Word",
+                "subCategory1": "Case Marker",
+                "subCategory2": "Case Marker",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Si"
+                ],
+                "englishAcceptable": [
+                    "Name marker"
+                ],
+                "audio": "assets/31.ceb.si.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/31.Si.Name marker.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 32,
+                "word": "Lingkod",
+                "english": "Sit",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Posture",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lingkod"
+                ],
+                "englishAcceptable": [
+                    "Sit"
+                ],
+                "audio": "assets/32.ceb.lingkod.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/32.Lingkod.Sit.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 33,
+                "word": "Tindog",
+                "english": "Stand",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Posture",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tindog"
+                ],
+                "englishAcceptable": [
+                    "Stand"
+                ],
+                "audio": "assets/33.ceb.tindog.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/33.Tindog.Stand.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 34,
+                "word": "I-butang",
+                "english": "Put",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Manipulation",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "I-butang"
+                ],
+                "englishAcceptable": [
+                    "Put"
+                ],
+                "audio": "assets/34.ceb.ibutang.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/34.Ibutang.Put.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 35,
+                "word": "Kuha",
+                "english": "Get",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Manipulation",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kuha"
+                ],
+                "englishAcceptable": [
+                    "Get"
+                ],
+                "audio": "assets/35.ceb.kuha.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/35.Kuha.Get.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 36,
+                "word": "Lamesa",
+                "english": "Table",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Furniture",
+                "subCategory2": "Furniture",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lamesa"
+                ],
+                "englishAcceptable": [
+                    "Table"
+                ],
+                "audio": "assets/36.ceb.lamisa.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/36.Lamesa.Table.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 37,
+                "word": "Lingkuranan",
+                "english": "Chair",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Furniture",
+                "subCategory2": "Furniture",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lingkuranan"
+                ],
+                "englishAcceptable": [
+                    "Chair"
+                ],
+                "audio": "assets/37.ceb.lingkuranan.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/37.Lingkuranan.Chair.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 38,
+                "word": "Mga butang",
+                "english": "Things",
+                "grammar": "Noun phrase",
+                "category": "Function Word",
+                "subCategory1": "Generic Noun",
+                "subCategory2": "Generic Noun",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Mga butang"
+                ],
+                "englishAcceptable": [
+                    "Things"
+                ],
+                "audio": "assets/38.ceb.mga butang.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/38.Mga butang.Things.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 39,
+                "word": "Itom",
+                "english": "Black",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Color",
+                "subCategory2": "Color",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Itom"
+                ],
+                "englishAcceptable": [
+                    "Black"
+                ],
+                "audio": "assets/39.ceb.itom.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/39.Itom.Black.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 40,
+                "word": "Puti",
+                "english": "White",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Color",
+                "subCategory2": "Color",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Puti"
+                ],
+                "englishAcceptable": [
+                    "White"
+                ],
+                "audio": "assets/40.ceb.puti.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/40.Puti.White.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 41,
+                "word": "Pula",
+                "english": "Red",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Color",
+                "subCategory2": "Color",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Pula"
+                ],
+                "englishAcceptable": [
+                    "Red"
+                ],
+                "audio": "assets/41.ceb.pula.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/41.Pula.Red.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 42,
+                "word": "Green",
+                "english": "Green",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Color",
+                "subCategory2": "Color",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Green"
+                ],
+                "englishAcceptable": [
+                    "Green"
+                ],
+                "audio": "assets/42.ceb.green.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/42.Green.Green.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 43,
+                "word": "Isa",
+                "english": "One",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Isa"
+                ],
+                "englishAcceptable": [
+                    "One"
+                ],
+                "audio": "assets/43.ceb.isa.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/43.Isa.One.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 44,
+                "word": "Duha",
+                "english": "Two",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Duha"
+                ],
+                "englishAcceptable": [
+                    "Two"
+                ],
+                "audio": "assets/44.ceb.duha.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/44.Duha.Two.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 45,
+                "word": "Tulo",
+                "english": "Three",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tulo"
+                ],
+                "englishAcceptable": [
+                    "Three"
+                ],
+                "audio": "assets/45.ceb.tulo.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/45.Tulo.Three.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 46,
+                "word": "Upat",
+                "english": "Four",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Upat"
+                ],
+                "englishAcceptable": [
+                    "Four"
+                ],
+                "audio": "assets/46.ceb.upat.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/46.Upat.Four.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 2,
+                "cardNum": 47,
+                "word": "Lima",
+                "english": "Five",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lima"
+                ],
+                "englishAcceptable": [
+                    "Five"
+                ],
+                "audio": "assets/47.ceb.lima.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/47.Lima.Five.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 48,
+                "word": "Siya",
+                "english": "Him/her",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Siya"
+                ],
+                "englishAcceptable": [
+                    "Him/her"
+                ],
+                "audio": "assets/48.ceb.siya.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/48.Siya.Him_her.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 49,
+                "word": "Sila",
+                "english": "They/them",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sila"
+                ],
+                "englishAcceptable": [
+                    "They/them"
+                ],
+                "audio": "assets/49.ceb.sila.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/49.Sila.They_them.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 50,
+                "word": "Bag",
+                "english": "Bag",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Personal Belonging",
+                "subCategory2": "Personal Belonging",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Bag"
+                ],
+                "englishAcceptable": [
+                    "Bag"
+                ],
+                "audio": "assets/50.ceb.bag.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/50.Bag.Bag.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 51,
+                "word": "Karton",
+                "english": "Box",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Container",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Karton"
+                ],
+                "englishAcceptable": [
+                    "Box"
+                ],
+                "audio": "assets/51.ceb.karton.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/51.Karton.Box.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 52,
+                "word": "Gawas",
+                "english": "Out",
+                "grammar": "Adverb / Prepositional",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Direction",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Gawas"
+                ],
+                "englishAcceptable": [
+                    "Out"
+                ],
+                "audio": "assets/52.ceb.gawas.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/52.Gawas.Out.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 53,
+                "word": "Sulod",
+                "english": "In",
+                "grammar": "Adverb / Prepositional",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Position",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sulod"
+                ],
+                "englishAcceptable": [
+                    "In"
+                ],
+                "audio": "assets/53.ceb.sulod.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/53.Sulod.In.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 54,
+                "word": "Ibabaw",
+                "english": "On top",
+                "grammar": "Adverb / Prepositional",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Position",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ibabaw"
+                ],
+                "englishAcceptable": [
+                    "On top"
+                ],
+                "audio": "assets/54.ceb.ibabaw.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/54.Ibabaw.On top.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 55,
+                "word": "Ilalom",
+                "english": "Under",
+                "grammar": "Adverb / Prepositional",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Position",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ilalom"
+                ],
+                "englishAcceptable": [
+                    "Under"
+                ],
+                "audio": "assets/55.ceb.ilalom.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/55.Ilalom.Under.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 56,
+                "word": "Kilid",
+                "english": "Next to",
+                "grammar": "Noun / Adverb",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Position",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kilid"
+                ],
+                "englishAcceptable": [
+                    "Next to"
+                ],
+                "audio": "assets/56.ceb.kilid.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/56.Kilid.Next to.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 3,
+                "cardNum": 57,
+                "word": "Gikan",
+                "english": "From",
+                "grammar": "Preposition",
+                "category": "Function Word",
+                "subCategory1": "Preposition",
+                "subCategory2": "Preposition",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Gikan"
+                ],
+                "englishAcceptable": [
+                    "From"
+                ],
+                "audio": "assets/57.ceb.gikan.m4a",
+                "hasAudio": true,
+                "printImagePath": "assets/57.Gikan.From.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 58,
+                "word": "Sakit",
+                "english": "Pain/Hurt",
+                "grammar": "Noun / Adjective",
+                "category": "You",
+                "subCategory1": "Personal State",
+                "subCategory2": "Health",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sakit"
+                ],
+                "englishAcceptable": [
+                    "Pain/Hurt"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/58.Sakit.Pain.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 59,
+                "word": "Hikap",
+                "english": "Touch",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Sensory",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Hikap"
+                ],
+                "englishAcceptable": [
+                    "Touch"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/59.Hikap.Touch.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 60,
+                "word": "Higda",
+                "english": "Lie down",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Posture",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Higda"
+                ],
+                "englishAcceptable": [
+                    "Lie down"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/60.Higda.Lie down.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 61,
+                "word": "Akong",
+                "english": "Mine",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Akong"
+                ],
+                "englishAcceptable": [
+                    "Mine"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/61.Ako.My.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 62,
+                "word": "Iyang",
+                "english": "His/Her",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Iyang"
+                ],
+                "englishAcceptable": [
+                    "His/Her"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/62.Iya.HisHers.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 63,
+                "word": "Ilang",
+                "english": "Their",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ilang"
+                ],
+                "englishAcceptable": [
+                    "Their"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/63.Ilang.Their.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 64,
+                "word": "Imo/Imong",
+                "english": "Your",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Possessive",
+                "subCategory2": "Possessive",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Imo/Imong"
+                ],
+                "englishAcceptable": [
+                    "Your"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/64.Imo.Your.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 65,
+                "word": "Tudlo",
+                "english": "Finger",
+                "grammar": "Noun / Verb",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Body Part",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tudlo"
+                ],
+                "englishAcceptable": [
+                    "Finger"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/65.Tudlo.Finger.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 66,
+                "word": "Ulo",
+                "english": "Head",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Body Part",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ulo"
+                ],
+                "englishAcceptable": [
+                    "Head"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/66.Ulo.Head.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 67,
+                "word": "Abaga",
+                "english": "Shoulders",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Body Part",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Abaga"
+                ],
+                "englishAcceptable": [
+                    "Shoulders"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/67.Abaga.Shoulders.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 68,
+                "word": "Tuhod",
+                "english": "Knee",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Body Part",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tuhod"
+                ],
+                "englishAcceptable": [
+                    "Knee"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/68.Tuhod.Knee.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 69,
+                "word": "Tiil",
+                "english": "Foot",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Body Part",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tiil"
+                ],
+                "englishAcceptable": [
+                    "Foot"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/69.Tiil.Foot.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 70,
+                "word": "Tudlo sa Tiil",
+                "english": "Toes",
+                "grammar": "Noun phrase",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Body Part",
+                "actflEst": "Intermediate-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tudlo sa Tiil"
+                ],
+                "englishAcceptable": [
+                    "Toes"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/70.Tudlo sa Tiil.Toes.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 71,
+                "word": "Kamot",
+                "english": "Hands",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Body Part",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kamot"
+                ],
+                "englishAcceptable": [
+                    "Hands"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/71.Kamot.Hands.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 72,
+                "word": "Dako",
+                "english": "Big",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Size",
+                "subCategory2": "Size",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Dako"
+                ],
+                "englishAcceptable": [
+                    "Big"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/72.Dako.Big.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 73,
+                "word": "Gamay",
+                "english": "Small",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Size",
+                "subCategory2": "Size",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Gamay"
+                ],
+                "englishAcceptable": [
+                    "Small"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/73.Gamay.Small.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 74,
+                "word": "Wala",
+                "english": "Left",
+                "grammar": "Adverb / Adjective",
+                "category": "Function Word",
+                "subCategory1": "Direction",
+                "subCategory2": "Direction",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Wala"
+                ],
+                "englishAcceptable": [
+                    "Left"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/74.Wala.Left.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 75,
+                "word": "Tuo",
+                "english": "Right",
+                "grammar": "Adverb",
+                "category": "Function Word",
+                "subCategory1": "Direction",
+                "subCategory2": "Direction",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tuo"
+                ],
+                "englishAcceptable": [
+                    "Right"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/75.Tuo.Right.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 76,
+                "word": "Taas",
+                "english": "Up",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Size",
+                "subCategory2": "Size",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Taas"
+                ],
+                "englishAcceptable": [
+                    "Up"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/76.Taas.Up.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 77,
+                "word": "Ubos",
+                "english": "Below",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Size",
+                "subCategory2": "Size",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ubos"
+                ],
+                "englishAcceptable": [
+                    "Below"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/77.Ubos.Below.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 78,
+                "word": "Adto",
+                "english": "Go",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Movement",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Adto"
+                ],
+                "englishAcceptable": [
+                    "Go"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/78.Adto.Go.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 79,
+                "word": "Tulog",
+                "english": "Sleep",
+                "grammar": "Verb / Noun",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Daily Activity",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tulog"
+                ],
+                "englishAcceptable": [
+                    "Sleep"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/79.Tulog.Sleep.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 80,
+                "word": "Balay",
+                "english": "House",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Building",
+                "subCategory2": "Building",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Balay"
+                ],
+                "englishAcceptable": [
+                    "House"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/80.Balay.House.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 81,
+                "word": "Kwarto",
+                "english": "Room",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Room",
+                "subCategory2": "Room",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kwarto"
+                ],
+                "englishAcceptable": [
+                    "Room"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/81.Kwarto.Room.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 82,
+                "word": "Sala",
+                "english": "Living room",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Room",
+                "subCategory2": "Room",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sala"
+                ],
+                "englishAcceptable": [
+                    "Living room"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/82.Sala.Living room.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 83,
+                "word": "Bangko",
+                "english": "Chair",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Furniture",
+                "subCategory2": "Furniture",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Bangko"
+                ],
+                "englishAcceptable": [
+                    "Chair"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/83.Bangko.Chair.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 84,
+                "word": "Higdaanan",
+                "english": "Sleeping place",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Furniture",
+                "subCategory2": "Sleeping",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Higdaanan"
+                ],
+                "englishAcceptable": [
+                    "Sleeping place"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/84.Higdaanan.Sleeping place.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 85,
+                "word": "Tuluganan",
+                "english": "Sleeping room",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Room",
+                "subCategory2": "Sleeping",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tuluganan"
+                ],
+                "englishAcceptable": [
+                    "Sleeping room"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/85.Tuluganan.Sleeping room.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 86,
+                "word": "Katre",
+                "english": "Bed frame",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Furniture",
+                "subCategory2": "Sleeping",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Katre"
+                ],
+                "englishAcceptable": [
+                    "Bed frame"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/86.Katre.Bed frame.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 87,
+                "word": "Babaye",
+                "english": "Female",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Person",
+                "subCategory2": "Gender",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Babaye"
+                ],
+                "englishAcceptable": [
+                    "Female"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/87.Babaye.Female.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 88,
+                "word": "Lalaki",
+                "english": "Male",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Person",
+                "subCategory2": "Gender",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lalaki"
+                ],
+                "englishAcceptable": [
+                    "Male"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/88.Lalaki.Male.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 89,
+                "word": "Cr",
+                "english": "Toilet room",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Room",
+                "subCategory2": "Facility",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Cr"
+                ],
+                "englishAcceptable": [
+                    "Toilet room"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/89.Cr.Toilet room.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 6,
+                "cardNum": 90,
+                "word": "Kato",
+                "english": "That, far",
+                "grammar": "Demonstrative pronoun",
+                "category": "Function Word",
+                "subCategory1": "Demonstrative",
+                "subCategory2": "Demonstrative",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kato"
+                ],
+                "englishAcceptable": [
+                    "That, far"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/90.Kato.That, far.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 91,
+                "word": "Dagan",
+                "english": "Run",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Movement",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Dagan"
+                ],
+                "englishAcceptable": [
+                    "Run"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/91.Dagan.Run.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 92,
+                "word": "Hunong",
+                "english": "Stop",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Movement",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Hunong"
+                ],
+                "englishAcceptable": [
+                    "Stop"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/92.Hunong.Stop.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 93,
+                "word": "Padulong",
+                "english": "Direction",
+                "grammar": "Verb phrase",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Movement",
+                "actflEst": "Intermediate-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Padulong"
+                ],
+                "englishAcceptable": [
+                    "Direction"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/93.Padulong.Direction.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 94,
+                "word": "Lakaw",
+                "english": "Walk",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Movement",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lakaw"
+                ],
+                "englishAcceptable": [
+                    "Walk"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/94.Lakaw.Walk.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 95,
+                "word": "Diri/Dinhi",
+                "english": "Here",
+                "grammar": "Adverb",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Proximity",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Diri/Dinhi"
+                ],
+                "englishAcceptable": [
+                    "Here"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/95.Diri.Here.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 96,
+                "word": "Didto",
+                "english": "Over there",
+                "grammar": "Adverb",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Distance",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Didto"
+                ],
+                "englishAcceptable": [
+                    "Over there"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/96.Didto.Over there.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 97,
+                "word": "Diha/Dinha",
+                "english": "There",
+                "grammar": "Adverb",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Proximity",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Diha/Dinha"
+                ],
+                "englishAcceptable": [
+                    "There"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/97.Diha.There.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 98,
+                "word": "Siyudad",
+                "english": "City",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Geography",
+                "subCategory2": "Urban",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Siyudad"
+                ],
+                "englishAcceptable": [
+                    "City"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/98.Siyudad.City.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 99,
+                "word": "Lungsod",
+                "english": "Town",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Geography",
+                "subCategory2": "Urban",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lungsod"
+                ],
+                "englishAcceptable": [
+                    "Town"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/99.Lungsod.Town.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 100,
+                "word": "Barangay",
+                "english": "Barangay",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Geography",
+                "subCategory2": "Administrative",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Barangay"
+                ],
+                "englishAcceptable": [
+                    "Barangay"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/100.Barangay.Barangay.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 101,
+                "word": "Eskwela-han",
+                "english": "School",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Educational",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Eskwela-han"
+                ],
+                "englishAcceptable": [
+                    "School"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/101.Eskwelahan.School.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 102,
+                "word": "Merkado",
+                "english": "Market",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Commercial",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Merkado"
+                ],
+                "englishAcceptable": [
+                    "Market"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/102.Merkado.Market.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 103,
+                "word": "Tinda-han",
+                "english": "Store",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Commercial",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tinda-han"
+                ],
+                "englishAcceptable": [
+                    "Store"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/103.Tindahan.Store.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 104,
+                "word": "Ospital",
+                "english": "Hospital",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Medical",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ospital"
+                ],
+                "englishAcceptable": [
+                    "Hospital"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/104.Ospital.Hospital.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 105,
+                "word": "Munisipyo",
+                "english": "Govt HQ",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Government",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Munisipyo"
+                ],
+                "englishAcceptable": [
+                    "Govt HQ"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/105.Munisipyo.Govt HQ.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 106,
+                "word": "Simba-han",
+                "english": "Church",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Religious",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Simba-han"
+                ],
+                "englishAcceptable": [
+                    "Church"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/106.Simbahan.Church.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 107,
+                "word": "Banko",
+                "english": "Bank",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Financial",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Banko"
+                ],
+                "englishAcceptable": [
+                    "Bank"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/107.Banko.Bank.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 108,
+                "word": "Duol",
+                "english": "Near",
+                "grammar": "Adjective / Locative adverb",
+                "category": "Function Word",
+                "subCategory1": "Proximity",
+                "subCategory2": "Proximity",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Duol"
+                ],
+                "englishAcceptable": [
+                    "Near"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/108.Duol.Near.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 109,
+                "word": "Layo",
+                "english": "Far",
+                "grammar": "Adjective / Locative adverb",
+                "category": "Function Word",
+                "subCategory1": "Proximity",
+                "subCategory2": "Proximity",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Layo"
+                ],
+                "englishAcceptable": [
+                    "Far"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/109.Layo.Far.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 110,
+                "word": "Atubangan",
+                "english": "Front of",
+                "grammar": "Noun / Locative",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Position",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Atubangan"
+                ],
+                "englishAcceptable": [
+                    "Front of"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/110.Atubangan.Front of.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 111,
+                "word": "Kinsa",
+                "english": "Who",
+                "grammar": "Interrogative pronoun",
+                "category": "Function Word",
+                "subCategory1": "Question Word",
+                "subCategory2": "Question Word",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kinsa"
+                ],
+                "englishAcceptable": [
+                    "Who"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/111.Kinsa.Who.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 112,
+                "word": "Dili",
+                "english": "Not",
+                "grammar": "Adverb / Negator",
+                "category": "Function Word",
+                "subCategory1": "Negation",
+                "subCategory2": "Negation",
+                "actflEst": "Novice-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Dili"
+                ],
+                "englishAcceptable": [
+                    "Not"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/112.Dili.Not.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 113,
+                "word": "Piyong",
+                "english": "Close eyes",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Face Action",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Piyong"
+                ],
+                "englishAcceptable": [
+                    "Close eyes"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/113.Piyong.Close eyes.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 114,
+                "word": "Bukha",
+                "english": "Open eyes / mouth",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Face Action",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Bukha"
+                ],
+                "englishAcceptable": [
+                    "Open eyes / mouth"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/114.Bukha.Open eyes.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 115,
+                "word": "Sirado",
+                "english": "Close",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "State",
+                "subCategory2": "State",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sirado"
+                ],
+                "englishAcceptable": [
+                    "Close"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/115.Sirado.Close.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 116,
+                "word": "Ngisi",
+                "english": "Smile",
+                "grammar": "Verb / Noun",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Facial Expression",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ngisi"
+                ],
+                "englishAcceptable": [
+                    "Smile"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/116.Ngisi.Smile.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 117,
+                "word": "Mata",
+                "english": "Eye",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Mata"
+                ],
+                "englishAcceptable": [
+                    "Eye"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/117.Mata.Eye.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 118,
+                "word": "Kilay",
+                "english": "Eyebrow",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Intermediate-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kilay"
+                ],
+                "englishAcceptable": [
+                    "Eyebrow"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/118.Kilay.Eyebrow.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 119,
+                "word": "Ilong",
+                "english": "Nose",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ilong"
+                ],
+                "englishAcceptable": [
+                    "Nose"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/119.Ilong.Nose.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 120,
+                "word": "Dalunggan",
+                "english": "Ear",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Dalunggan"
+                ],
+                "englishAcceptable": [
+                    "Ear"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/120.Dalunggan.Ear.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 121,
+                "word": "Baba",
+                "english": "Mouth",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Baba"
+                ],
+                "englishAcceptable": [
+                    "Mouth"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/121.Baba.Mouth.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 122,
+                "word": "Ngipon",
+                "english": "Teeth",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ngipon"
+                ],
+                "englishAcceptable": [
+                    "Teeth"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/122.Ngipon.Teeth.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 123,
+                "word": "Agtang",
+                "english": "Forehead",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Intermediate-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Agtang"
+                ],
+                "englishAcceptable": [
+                    "Forehead"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/123.Agtang.Forehead.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 124,
+                "word": "Suwang",
+                "english": "Chin",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Intermediate-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Suwang"
+                ],
+                "englishAcceptable": [
+                    "Chin"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/124.Suwang.Chin.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 125,
+                "word": "Aping",
+                "english": "Cheeks",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Face",
+                "actflEst": "Intermediate-Low",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Aping"
+                ],
+                "englishAcceptable": [
+                    "Cheeks"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/125.Aping.Cheeks.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 126,
+                "word": "Buhok",
+                "english": "Hair",
+                "grammar": "Noun",
+                "category": "You",
+                "subCategory1": "Body Part",
+                "subCategory2": "Head",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Buhok"
+                ],
+                "englishAcceptable": [
+                    "Hair"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/126.Buhok.Hair.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 127,
+                "word": "Gwapa",
+                "english": "Beautiful",
+                "grammar": "Adjective",
+                "category": "You",
+                "subCategory1": "Personal Appearance",
+                "subCategory2": "Appearance",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Gwapa"
+                ],
+                "englishAcceptable": [
+                    "Beautiful"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/127.Gwapa.Beautiful.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 128,
+                "word": "Pangit",
+                "english": "Ugly",
+                "grammar": "Adjective",
+                "category": "You",
+                "subCategory1": "Personal Appearance",
+                "subCategory2": "Appearance",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Pangit"
+                ],
+                "englishAcceptable": [
+                    "Ugly"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/128.Pangit.Ugly.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 129,
+                "word": "Sa",
+                "english": "To/from",
+                "grammar": "Preposition / Case marker",
+                "category": "Function Word",
+                "subCategory1": "Preposition",
+                "subCategory2": "Preposition",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sa"
+                ],
+                "englishAcceptable": [
+                    "To/from"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/129.Sa.To.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 130,
+                "word": "O",
+                "english": "Or",
+                "grammar": "Conjunction",
+                "category": "Function Word",
+                "subCategory1": "Conjunction",
+                "subCategory2": "Conjunction",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "O"
+                ],
+                "englishAcceptable": [
+                    "Or"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/130.O.Or.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 131,
+                "word": "Diba",
+                "english": "Right",
+                "grammar": "Particle",
+                "category": "Function Word",
+                "subCategory1": "Tag Question",
+                "subCategory2": "Tag Question",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Diba"
+                ],
+                "englishAcceptable": [
+                    "Right"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/131.Diba.Right.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 132,
+                "word": "Mao jud",
+                "english": "Thats Right",
+                "grammar": "Expression / Particle phrase",
+                "category": "Function Word",
+                "subCategory1": "Confirmation",
+                "subCategory2": "Confirmation",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Mao jud"
+                ],
+                "englishAcceptable": [
+                    "Thats Right"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/132.Mao jud.Thats Right.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 9,
+                "cardNum": 133,
+                "word": "Gwapo",
+                "english": "Handsome",
+                "grammar": "Adjective",
+                "category": "You",
+                "subCategory1": "Personal Appearance",
+                "subCategory2": "Appearance",
+                "actflEst": "Novice-Mid",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Gwapo"
+                ],
+                "englishAcceptable": [
+                    "Handsome"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/133.Gwapo.Handsome.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 134,
+                "word": "Mi",
+                "english": "We, exclusive",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Mi"
+                ],
+                "englishAcceptable": [
+                    "We, exclusive"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/134.Kami.We.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 135,
+                "word": "Mo",
+                "english": "You all",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Mo"
+                ],
+                "englishAcceptable": [
+                    "You all"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/135.Kamo.You all.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 136,
+                "word": "Ta",
+                "english": "We, inclusive",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ta"
+                ],
+                "englishAcceptable": [
+                    "We, inclusive"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/136.Kita.We.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 137,
+                "word": "Inahan",
+                "english": "Mother",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Family Member",
+                "subCategory2": "Parent",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Inahan"
+                ],
+                "englishAcceptable": [
+                    "Mother"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/137.Inahan.Mother.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 138,
+                "word": "Amahan",
+                "english": "Father",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Family Member",
+                "subCategory2": "Parent",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Amahan"
+                ],
+                "englishAcceptable": [
+                    "Father"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/138.Amahan.Father.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 139,
+                "word": "Igsoon",
+                "english": "Sibling",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Family Member",
+                "subCategory2": "Sibling",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Igsoon"
+                ],
+                "englishAcceptable": [
+                    "Sibling"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/139.Igsoon.Sibling.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 140,
+                "word": "Ig-agaw",
+                "english": "Cousin",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Family Member",
+                "subCategory2": "Extended",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ig-agaw"
+                ],
+                "englishAcceptable": [
+                    "Cousin"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/140.Ig-agaw.Cousin.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 141,
+                "word": "Anak",
+                "english": "Son/daugher",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Family Member",
+                "subCategory2": "Offspring",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Anak"
+                ],
+                "englishAcceptable": [
+                    "Son/daugher"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/141.Anak.SonDaughter.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 142,
+                "word": "Lolo",
+                "english": "Grandfather",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Family Member",
+                "subCategory2": "Grandparent",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lolo"
+                ],
+                "englishAcceptable": [
+                    "Grandfather"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/142.Lolo.Grandfather.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 143,
+                "word": "Lola",
+                "english": "Grandmother",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Family Member",
+                "subCategory2": "Grandparent",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lola"
+                ],
+                "englishAcceptable": [
+                    "Grandmother"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/143.Lola.Grandmother.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 144,
+                "word": "Tawo",
+                "english": "People",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Person",
+                "subCategory2": "General",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tawo"
+                ],
+                "englishAcceptable": [
+                    "People"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/144.Tawo.People.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 145,
+                "word": "Sakay",
+                "english": "Ride / embark",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Movement",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sakay"
+                ],
+                "englishAcceptable": [
+                    "Ride / embark"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/145.Sakay.Ride.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 146,
+                "word": "Biyahe",
+                "english": "Travel",
+                "grammar": "Noun / Verb",
+                "category": "World",
+                "subCategory1": "Activity",
+                "subCategory2": "Transportation",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Biyahe"
+                ],
+                "englishAcceptable": [
+                    "Travel"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/146.Biyahe.Travel.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 147,
+                "word": "Naog",
+                "english": "Debark",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Movement",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Naog"
+                ],
+                "englishAcceptable": [
+                    "Debark"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/147.Naog.Debark.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 148,
+                "word": "Dalan",
+                "english": "Road / path",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Infrastructure",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Dalan"
+                ],
+                "englishAcceptable": [
+                    "Road / path"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/148.Dalan.Road.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 149,
+                "word": "Sakyanan",
+                "english": "Car",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Transportation",
+                "subCategory2": "Vehicle",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sakyanan"
+                ],
+                "englishAcceptable": [
+                    "Car"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/149.Sakyanan.Car.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 150,
+                "word": "Jeep / jeepney",
+                "english": "Jeep",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Transportation",
+                "subCategory2": "Vehicle",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Jeep / jeepney"
+                ],
+                "englishAcceptable": [
+                    "Jeep"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/150.Jeepney.Jeep.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 151,
+                "word": "Sikad",
+                "english": "Rickshaw",
+                "grammar": "Verb / Noun",
+                "category": "World",
+                "subCategory1": "Transportation",
+                "subCategory2": "Vehicle",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sikad"
+                ],
+                "englishAcceptable": [
+                    "Rickshaw"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/151.Sikad.Rickshaw.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 152,
+                "word": "Bilding",
+                "english": "Building",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Structure",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Bilding"
+                ],
+                "englishAcceptable": [
+                    "Building"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/152.Bilding.Building.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 153,
+                "word": "Lang",
+                "english": "Just",
+                "grammar": "Particle",
+                "category": "Function Word",
+                "subCategory1": "Limiter",
+                "subCategory2": "Limiter",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lang"
+                ],
+                "englishAcceptable": [
+                    "Just"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/153.Lang.Just.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 154,
+                "word": "Tunga",
+                "english": "Center",
+                "grammar": "Noun / Adverb",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Position",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tunga"
+                ],
+                "englishAcceptable": [
+                    "Center"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/154.Tunga.Center.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 11,
+                "cardNum": 155,
+                "word": "Likod",
+                "english": "Behind",
+                "grammar": "Noun / Adverb",
+                "category": "You",
+                "subCategory1": "Personal Location",
+                "subCategory2": "Position",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Likod"
+                ],
+                "englishAcceptable": [
+                    "Behind"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/155.Likod.Behind.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 156,
+                "word": "Ihap",
+                "english": "Count",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Calculation",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Ihap"
+                ],
+                "englishAcceptable": [
+                    "Count"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/156.Ihap.Count.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 157,
+                "word": "Kita",
+                "english": "See/seen",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Vision",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kita"
+                ],
+                "englishAcceptable": [
+                    "See/seen"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/157.Kita.See.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 158,
+                "word": "Simhot",
+                "english": "Smell",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Sensory",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Simhot"
+                ],
+                "englishAcceptable": [
+                    "Smell"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/158.Simhot.Smell.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 159,
+                "word": "Dungog",
+                "english": "Hear",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Hearing",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Dungog"
+                ],
+                "englishAcceptable": [
+                    "Hear"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/159.Dungog.Hear.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 160,
+                "word": "Sulti",
+                "english": "Say/speak",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Communication",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Sulti"
+                ],
+                "englishAcceptable": [
+                    "Say/speak"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/160.Sulti.Say_speak.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 161,
+                "word": "Inyong",
+                "english": "Your, second-person plural",
+                "grammar": "Pronoun",
+                "category": "Function Word",
+                "subCategory1": "Pronoun",
+                "subCategory2": "Pronoun",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Inyong"
+                ],
+                "englishAcceptable": [
+                    "Your, second-person plural"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/161.Inyo.Yours.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 162,
+                "word": "Taas",
+                "english": "Long",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Size",
+                "subCategory2": "Size",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Taas"
+                ],
+                "englishAcceptable": [
+                    "Long"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/162.Taas.Long.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 163,
+                "word": "Mubo",
+                "english": "Short",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Size",
+                "subCategory2": "Size",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Mubo"
+                ],
+                "englishAcceptable": [
+                    "Short"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/163.Mubo.Short.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 164,
+                "word": "Taman",
+                "english": "Until",
+                "grammar": "Preposition / Particle",
+                "category": "Function Word",
+                "subCategory1": "Boundary",
+                "subCategory2": "Boundary",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Taman"
+                ],
+                "englishAcceptable": [
+                    "Until"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/164.Taman.Until.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 165,
+                "word": "Unom",
+                "english": "Six",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Unom"
+                ],
+                "englishAcceptable": [
+                    "Six"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/165.Unom.Six.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 166,
+                "word": "Pito",
+                "english": "Seven",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Pito"
+                ],
+                "englishAcceptable": [
+                    "Seven"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/166.Pito.Seven.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 167,
+                "word": "Walo",
+                "english": "Eight",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Walo"
+                ],
+                "englishAcceptable": [
+                    "Eight"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/167.Walo.Eight.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 168,
+                "word": "Siyam",
+                "english": "Nine",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Siyam"
+                ],
+                "englishAcceptable": [
+                    "Nine"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/168.Siyam.Nine.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 13,
+                "cardNum": 169,
+                "word": "Pulo",
+                "english": "Ten",
+                "grammar": "Numeral",
+                "category": "Function Word",
+                "subCategory1": "Number",
+                "subCategory2": "Number",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Pulo"
+                ],
+                "englishAcceptable": [
+                    "Ten"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/169.Pulo.Ten.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 170,
+                "word": "Tilaw",
+                "english": "Taste",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Sensory",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tilaw"
+                ],
+                "englishAcceptable": [
+                    "Taste"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/170.Tilaw.Taste.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 171,
+                "word": "Kaon",
+                "english": "Eat",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Daily Activity",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kaon"
+                ],
+                "englishAcceptable": [
+                    "Eat"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/171.Kaon.Eat.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 172,
+                "word": "Inom",
+                "english": "Drink",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Daily Activity",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Inom"
+                ],
+                "englishAcceptable": [
+                    "Drink"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/172.Inom.Drink.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 173,
+                "word": "Na",
+                "english": "Already",
+                "grammar": "Particle",
+                "category": "Function Word",
+                "subCategory1": "Aspect",
+                "subCategory2": "Aspect",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Na"
+                ],
+                "englishAcceptable": [
+                    "Already"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/173.Na.Already.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 174,
+                "word": "Kan-anan",
+                "english": "Eating place/dining area",
+                "grammar": "Noun",
+                "category": "World",
+                "subCategory1": "Location",
+                "subCategory2": "Food Service",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kan-anan"
+                ],
+                "englishAcceptable": [
+                    "Eating place/dining area"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/174.Kan-anan.Eating place.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 175,
+                "word": "Kusina",
+                "english": "Kitchen",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Room",
+                "subCategory2": "Cooking",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kusina"
+                ],
+                "englishAcceptable": [
+                    "Kitchen"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/175.Kusina.Kitchen.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 176,
+                "word": "Pagkaon",
+                "english": "Food",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Meal",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Pagkaon"
+                ],
+                "englishAcceptable": [
+                    "Food"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/176.Pagkaon.Food.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 177,
+                "word": "Plato",
+                "english": "Plate",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Tableware",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Plato"
+                ],
+                "englishAcceptable": [
+                    "Plate"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/177.Plato.Plate.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 178,
+                "word": "Kutsara",
+                "english": "Spoon",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Tableware",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kutsara"
+                ],
+                "englishAcceptable": [
+                    "Spoon"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/178.Kutsara.Spoon.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 179,
+                "word": "Tinidor",
+                "english": "Fork",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Tableware",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tinidor"
+                ],
+                "englishAcceptable": [
+                    "Fork"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/179.Tinidor.Fork.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 180,
+                "word": "Baso",
+                "english": "Glass",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Tableware",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Baso"
+                ],
+                "englishAcceptable": [
+                    "Glass"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/180.Baso.Glass.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 181,
+                "word": "Tubig",
+                "english": "Water",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Beverage",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Tubig"
+                ],
+                "englishAcceptable": [
+                    "Water"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/181.Tubig.Water.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 182,
+                "word": "Lami",
+                "english": "Delicious",
+                "grammar": "Adjective",
+                "category": "You",
+                "subCategory1": "Personal Perception",
+                "subCategory2": "Taste",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Lami"
+                ],
+                "englishAcceptable": [
+                    "Delicious"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/182.Lami.Delicious.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 183,
+                "word": "Gamay",
+                "english": "Few",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Size",
+                "subCategory2": "Size",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Gamay"
+                ],
+                "englishAcceptable": [
+                    "Few"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/183.Gamay.Few.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 184,
+                "word": "Daghan",
+                "english": "Many",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Quantity",
+                "subCategory2": "Quantity",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Daghan"
+                ],
+                "englishAcceptable": [
+                    "Many"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/184.Daghan.Many.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 185,
+                "word": "kay",
+                "english": "Is",
+                "grammar": "Conjunction",
+                "category": "Function Word",
+                "subCategory1": "Equational Linker",
+                "subCategory2": "Equational Linker",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "kay"
+                ],
+                "englishAcceptable": [
+                    "Is"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/185.Kay.Is.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 186,
+                "word": "naa",
+                "english": "There is/has/have",
+                "grammar": "Existential verb",
+                "category": "Function Word",
+                "subCategory1": "Existence",
+                "subCategory2": "Existence",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "naa"
+                ],
+                "englishAcceptable": [
+                    "There is/has/have"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/186.Naa.There is.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 187,
+                "word": "Bayad",
+                "english": "Pay",
+                "grammar": "Verb / Noun",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Transaction",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Bayad"
+                ],
+                "englishAcceptable": [
+                    "Pay"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/187.Bayad.Pay.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 188,
+                "word": "Palit",
+                "english": "Buy",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Transaction",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Palit"
+                ],
+                "englishAcceptable": [
+                    "Buy"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/188.Palit.Buy.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 189,
+                "word": "Buok",
+                "english": "Piece",
+                "grammar": "Numeral classifier / Noun",
+                "category": "Function Word",
+                "subCategory1": "Classifier",
+                "subCategory2": "Classifier",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Buok"
+                ],
+                "englishAcceptable": [
+                    "Piece"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/189.Buok.Piece.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 190,
+                "word": "Bayad",
+                "english": "Payment",
+                "grammar": "Verb / Noun",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Transaction",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Bayad"
+                ],
+                "englishAcceptable": [
+                    "Payment"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/190.Bayad.Payment.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 191,
+                "word": "Prutas",
+                "english": "Fruits",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Food",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Prutas"
+                ],
+                "englishAcceptable": [
+                    "Fruits"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/191.Prutas.Fruits.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 192,
+                "word": "Utan",
+                "english": "Vegetables",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Food",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Utan"
+                ],
+                "englishAcceptable": [
+                    "Vegetables"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/192.Utan.Vegetables.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 193,
+                "word": "Karne",
+                "english": "Meat",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Food",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Karne"
+                ],
+                "englishAcceptable": [
+                    "Meat"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/193.Karne.Meat.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 194,
+                "word": "Manok",
+                "english": "Chicken",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Food",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Manok"
+                ],
+                "englishAcceptable": [
+                    "Chicken"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/194.Manok.Chicken.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 195,
+                "word": "Mga baligya",
+                "english": "Goods for sale",
+                "grammar": "Noun phrase",
+                "category": "World",
+                "subCategory1": "Commercial Item",
+                "subCategory2": "Commercial Item",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Mga baligya"
+                ],
+                "englishAcceptable": [
+                    "Goods for sale"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/195.Mga baligya.Goods for sale.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 196,
+                "word": "Bugas",
+                "english": "Rice",
+                "grammar": "Noun",
+                "category": "Home",
+                "subCategory1": "Household Item",
+                "subCategory2": "Staple Food",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Bugas"
+                ],
+                "englishAcceptable": [
+                    "Rice"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/196.Bugas.Rice.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 197,
+                "word": "Kwarta",
+                "english": "Money",
+                "grammar": "Noun",
+                "category": "Function Word",
+                "subCategory1": "Currency",
+                "subCategory2": "Currency",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Kwarta"
+                ],
+                "englishAcceptable": [
+                    "Money"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/197.Kwarta.Money.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 198,
+                "word": "Mahal",
+                "english": "Expensive",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Value",
+                "subCategory2": "Value",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Mahal"
+                ],
+                "englishAcceptable": [
+                    "Expensive"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/198.Mahal.Expensive.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 199,
+                "word": "Barato",
+                "english": "Cheap",
+                "grammar": "Adjective",
+                "category": "Function Word",
+                "subCategory1": "Value",
+                "subCategory2": "Value",
+                "actflEst": "Novice-Mid",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Barato"
+                ],
+                "englishAcceptable": [
+                    "Cheap"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/199.Barato.Cheap.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 200,
+                "word": "Ayo",
+                "english": "Anyone there",
+                "grammar": "Interjection",
+                "category": "You",
+                "subCategory1": "Personal Interaction",
+                "subCategory2": "Greeting",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Ayo"
+                ],
+                "englishAcceptable": [
+                    "Anyone there"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/200.Ayo.Anyone there.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 10,
+                "cardNum": 201,
+                "word": "Dayon",
+                "english": "Come in",
+                "grammar": "Interjection / Adverb",
+                "category": "You",
+                "subCategory1": "Personal Interaction",
+                "subCategory2": "Invitation",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Dayon"
+                ],
+                "englishAcceptable": [
+                    "Come in"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/201.Dayon.Come in.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 202,
+                "word": "Abri",
+                "english": "Open",
+                "grammar": "Verb",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Command",
+                "actflEst": "Novice-High",
+                "type": "N",
+                "acceptableAnswers": [
+                    "Abri"
+                ],
+                "englishAcceptable": [
+                    "Open"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/202.Abri.Open.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 203,
+                "word": "Pila",
+                "english": "How many",
+                "grammar": "Interrogative",
+                "category": "Function Word",
+                "subCategory1": "Question Word",
+                "subCategory2": "Question Word",
+                "actflEst": "Novice-Mid",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Pila"
+                ],
+                "englishAcceptable": [
+                    "How many"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/203.Pila.How many.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 204,
+                "word": "Palihog",
+                "english": "Please",
+                "grammar": "Particle / Polite marker",
+                "category": "You",
+                "subCategory1": "Personal Interaction",
+                "subCategory2": "Politeness",
+                "actflEst": "Novice-Mid",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Palihog"
+                ],
+                "englishAcceptable": [
+                    "Please"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/204.Palihog.Please.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 15,
+                "cardNum": 205,
+                "word": "Plite",
+                "english": "Fare",
+                "grammar": "Noun / Exclamation",
+                "category": "You",
+                "subCategory1": "Personal Action",
+                "subCategory2": "Transportation",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Plite"
+                ],
+                "englishAcceptable": [
+                    "Fare"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/205.Plite.Fare.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 14,
+                "cardNum": 206,
+                "word": "lami-a oy",
+                "english": "Yummy",
+                "grammar": "Exclamatory phrase / Interjection",
+                "category": "You",
+                "subCategory1": "Personal Perception",
+                "subCategory2": "Taste Reaction",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "lami-a oy"
+                ],
+                "englishAcceptable": [
+                    "Yummy"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": "assets/206.lamia oy.Yummy.png",
+                "hasGif": false
+            },
+            {
+                "lesson": 7,
+                "cardNum": 207,
+                "word": "Hapit",
+                "english": "Stop by",
+                "grammar": "Verb / Adverb",
+                "category": "You",
+                "subCategory1": "Personal Interaction",
+                "subCategory2": "Visit",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "Hapit"
+                ],
+                "englishAcceptable": [
+                    "Stop by"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": null,
+                "hasGif": false
+            },
+            {
+                "lesson": 5,
+                "cardNum": 0,
+                "word": "ni",
+                "english": "Name Marker",
+                "grammar": "Interjection",
+                "category": "You",
+                "subCategory1": "Personal Emotion",
+                "subCategory2": "Exclamation",
+                "actflEst": "Novice-High",
+                "type": "S",
+                "acceptableAnswers": [
+                    "ni"
+                ],
+                "englishAcceptable": [
+                    "Name Marker"
+                ],
+                "audio": null,
+                "hasAudio": false,
+                "printImagePath": null,
+                "hasGif": false
+            }
+        ],
+        "eng": [],
+        "mrw": [],
+        "sin": []
+    },
+    "stats": {
+        "totalPng": 207,
+        "totalGif": 0,
+        "totalAudio": 58,
+        "totalCards": 208,
+        "cardsWithAudio": 57,
+        "totalImages": 206,
+        "languageStats": {
+            "ceb": {
+                "totalCards": 208,
+                "cardsWithAudio": 57,
+                "lessons": [
+                    1,
+                    2,
+                    3,
+                    5,
+                    6,
+                    7,
+                    9,
+                    10,
+                    11,
+                    13,
+                    14,
+                    15
+                ]
+            },
+            "eng": {
+                "totalCards": 0,
+                "cardsWithAudio": 0,
+                "lessons": []
+            },
+            "mrw": {
+                "totalCards": 0,
+                "cardsWithAudio": 0,
+                "lessons": []
+            },
+            "sin": {
+                "totalCards": 0,
+                "cardsWithAudio": 0,
+                "lessons": []
+            }
+        }
+    }
+}
