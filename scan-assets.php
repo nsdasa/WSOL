@@ -3,31 +3,67 @@
 // Generates complete manifest.json + detailed scan-report.html with full formatting
 // Includes proper audio linking and comprehensive per-card breakdown
 
-header('Content-Type: application/json');
-header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
-header('Pragma: no-cache');
-header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display in HTML
+ini_set('log_errors', 1);
 
-if (function_exists('opcache_invalidate')) opcache_invalidate(__FILE__, true);
-if (function_exists('opcache_reset')) opcache_reset();
-clearstatcache(true);
+// Wrap everything in try-catch
+try {
+    header('Content-Type: application/json');
+    header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
-$assetsDir = __DIR__ . '/assets';
-$manifestPath = $assetsDir . '/manifest.json';
+    if (function_exists('opcache_invalidate')) opcache_invalidate(__FILE__, true);
+    if (function_exists('opcache_reset')) opcache_reset();
+    clearstatcache(true);
 
-$action = $_GET['action'] ?? 'scan';
+    $assetsDir = __DIR__ . '/assets';
+    $manifestPath = $assetsDir . '/manifest.json';
 
-switch ($action) {
-    case 'upload':
-        handleCSVUpload();
-        break;
-    case 'uploadMedia':
-        handleMediaUpload();
-        break;
-    case 'scan':
-    default:
-        scanAssets();
-        break;
+    // Check if assets directory exists
+    if (!is_dir($assetsDir)) {
+        throw new Exception('Assets directory not found: ' . $assetsDir);
+    }
+
+    // Check if assets directory is writable
+    if (!is_writable($assetsDir)) {
+        throw new Exception('Assets directory is not writable: ' . $assetsDir);
+    }
+
+    $action = $_GET['action'] ?? 'scan';
+
+    switch ($action) {
+        case 'upload':
+            handleCSVUpload();
+            break;
+        case 'uploadMedia':
+            handleMediaUpload();
+            break;
+        case 'scan':
+        default:
+            scanAssets();
+            break;
+    }
+} catch (Exception $e) {
+    // Return error as JSON
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+    exit;
+} catch (Error $e) {
+    // Catch PHP 7+ errors
+    echo json_encode([
+        'success' => false,
+        'error' => 'PHP Error: ' . $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+    exit;
 }
 
 // ------------------------------------------------
@@ -109,7 +145,8 @@ function handleMediaUpload() {
 function scanAssets() {
     global $assetsDir, $manifestPath;
 
-    $languages = loadLanguageList($assetsDir . '/Language_List.csv');
+    try {
+        $languages = loadLanguageList($assetsDir . '/Language_List.csv');
     $langByTrigraph = [];
     foreach ($languages as $l) $langByTrigraph[$l['trigraph']] = $l['name'];
 
@@ -304,12 +341,21 @@ function scanAssets() {
     $reportPath = $assetsDir . '/scan-report.html';
     file_put_contents($reportPath, generateHtmlReport($manifest, $cardsMaster, $languages));
 
-    echo json_encode([
-        'success' => true,
-        'message' => 'Scan completed successfully',
-        'stats' => $stats,
-        'reportUrl' => 'assets/scan-report.html?' . time()
-    ]);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Scan completed successfully',
+            'stats' => $stats,
+            'reportUrl' => 'assets/scan-report.html?' . time()
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Scan error: ' . $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
 }
 
 // ------------------------------------------------
