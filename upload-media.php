@@ -1,7 +1,7 @@
 <?php
 /**
  * Media Upload Handler for Deck Builder
- * Receives PNG/GIF images and saves to assets folder
+ * Receives images (PNG/GIF/JPEG/WebP) and videos (MP4/WebM) and saves to assets folder
  */
 
 header('Content-Type: application/json');
@@ -45,7 +45,7 @@ $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
 
 // Ensure it has a valid extension
 $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-$allowedExtensions = ['png', 'gif', 'jpg', 'jpeg'];
+$allowedExtensions = ['png', 'gif', 'jpg', 'jpeg', 'webp', 'mp4', 'webm'];
 
 if (!in_array($ext, $allowedExtensions)) {
     http_response_code(400);
@@ -53,12 +53,32 @@ if (!in_array($ext, $allowedExtensions)) {
     exit;
 }
 
-// Verify it's actually an image
-$imageInfo = getimagesize($_FILES['media']['tmp_name']);
-if ($imageInfo === false) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'File is not a valid image']);
-    exit;
+// Verify file type (image or video)
+$isVideo = in_array($ext, ['mp4', 'webm']);
+$fileType = null;
+
+if ($isVideo) {
+    // For videos, check MIME type
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $_FILES['media']['tmp_name']);
+    finfo_close($finfo);
+
+    $allowedVideoMimes = ['video/mp4', 'video/webm'];
+    if (!in_array($mimeType, $allowedVideoMimes)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'File is not a valid video']);
+        exit;
+    }
+    $fileType = $mimeType;
+} else {
+    // For images, verify it's actually an image
+    $imageInfo = getimagesize($_FILES['media']['tmp_name']);
+    if ($imageInfo === false) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'File is not a valid image']);
+        exit;
+    }
+    $fileType = $imageInfo['mime'];
 }
 
 // Define upload directory
@@ -86,7 +106,7 @@ if (move_uploaded_file($_FILES['media']['tmp_name'], $targetPath)) {
         'filename' => $filename,
         'path' => 'assets/' . $filename,
         'size' => filesize($targetPath),
-        'type' => $imageInfo['mime']
+        'type' => $fileType
     ]);
 } else {
     http_response_code(500);
