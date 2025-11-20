@@ -18,18 +18,24 @@ class MatchSoundModule extends LearningModule {
     
     // Expand physical cards into virtual cards (one per acceptable answer)
     // UPDATED for v4.0: Uses card.cardNum and card.word instead of card.wordNum and card.cebuano
+    // UPDATED for multi-variant audio: Assigns individual audio to each variant
     expandToVirtualCards(cards) {
         const virtualCards = [];
         cards.forEach((card, physicalIndex) => {
             // v4.0: Use card.acceptableAnswers (populated by enrichCard), fallback to card.word
             const acceptableAnswers = card.acceptableAnswers || [card.word];
-            acceptableAnswers.forEach(targetWord => {
+            const audioPaths = card.audioPath || [];  // Array of audio paths
+
+            acceptableAnswers.forEach((targetWord, variantIndex) => {
+                // Match audio to variant by index
+                const individualAudioPath = audioPaths[variantIndex] || null;
+
                 virtualCards.push({
                     cardId: card.cardNum,           // v4.0: Use cardNum instead of wordNum
                     targetWord: targetWord,         // The specific word to test
                     physicalIndex: physicalIndex,   // Index in allCards array
                     imagePath: card.imagePath,
-                    audioPath: card.audioPath,
+                    audioPath: individualAudioPath, // Individual audio for this variant
                     allWords: acceptableAnswers,    // For exclusion logic
                     originalCard: card              // Full card reference
                 });

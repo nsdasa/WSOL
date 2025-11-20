@@ -993,12 +993,22 @@ class AssetManager {
                 (this.manifest.images?.[card.cardNum]?.gif || card.printImagePath) : 
                 card.printImagePath;
             
+            // Handle audio as array (for multi-variant support)
+            let audioPath = card.audio;
+            if (audioPath && !Array.isArray(audioPath)) {
+                audioPath = [audioPath];  // Convert single value to array
+            } else if (!audioPath) {
+                audioPath = [];
+            }
+            // Filter out null values
+            audioPath = audioPath.filter(p => p !== null && p !== undefined && p !== '');
+
             return {
                 ...card,
                 // Normalized properties for module compatibility
                 acceptableAnswers,
                 englishAcceptable,
-                audioPath: card.audio || null,
+                audioPath: audioPath,  // Always an array
                 imagePath: imagePath,
                 // Keep word/english as primary display
                 word: card.word,
@@ -1051,15 +1061,24 @@ class AssetManager {
                 acceptableAnswers = [card.cebuano || ''];
             }
             
-            // Get audio path for current language
-            const audioPath = card.audio && card.audio[learningLangKey] ? 
-                card.audio[learningLangKey] : null;
-            
+            // Get audio path for current language (handle as array)
+            let audioData = card.audio && card.audio[learningLangKey] ?
+                card.audio[learningLangKey] : (card.audioPath || null);
+
+            let audioPath = [];
+            if (audioData) {
+                if (Array.isArray(audioData)) {
+                    audioPath = audioData.filter(p => p !== null && p !== undefined && p !== '');
+                } else {
+                    audioPath = [audioData];
+                }
+            }
+
             return {
                 ...card,
                 allTranslations,
                 acceptableAnswers,
-                audioPath: audioPath || card.audioPath,
+                audioPath: audioPath,  // Always an array
                 imagePath: card.imagePath || card.printImagePath,
                 // Add v4-style properties for compatibility
                 word: primaryTranslation?.word || card.cebuano || '',

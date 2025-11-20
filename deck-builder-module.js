@@ -1002,10 +1002,14 @@ class DeckBuilderModule extends LearningModule {
         badge.className = `file-badge ${type} ${hasFile ? 'has-file' : 'no-file'} ${this.isAdmin ? 'upload-trigger' : 'disabled-badge'}`;
         badge.dataset.cardId = cardId;
         badge.dataset.fileType = type;
-        badge.innerHTML = hasFile 
-            ? `<i class="fas fa-check"></i> ${type.toUpperCase()}`
-            : `<i class="fas fa-folder-open"></i> ${type.toUpperCase()}`;
-        badge.title = this.isAdmin 
+
+        // Show filename if file exists, otherwise show type
+        const label = hasFile && filename ? filename : type.toUpperCase();
+
+        badge.innerHTML = hasFile
+            ? `<i class="fas fa-check"></i> ${label}`
+            : `<i class="fas fa-folder-open"></i> ${label}`;
+        badge.title = this.isAdmin
             ? (filename || `Click to select or upload ${type.toUpperCase()} file`)
             : `${type.toUpperCase()} - Admin only`;
 
@@ -1021,36 +1025,56 @@ class DeckBuilderModule extends LearningModule {
     }
 
     /**
-     * Create single audio badge for v4.0 (audio is string, not object)
+     * Create audio badges for v4.0 - one badge per word variant
+     * UPDATED: Supports multi-variant audio (e.g., "Ako/ko" needs 2 badges)
      */
     createAudioBadge(card) {
         const container = document.createElement('div');
         container.className = 'audio-badges-container';
         const cardId = card.cardNum || card.wordNum;
 
-        // v4.0: audio is a string path, not an object
-        const hasAudio = !!card.audio;
-        const badge = document.createElement('span');
-        badge.className = `file-badge audio ${hasAudio ? 'has-file' : 'no-file'} upload-trigger`;
-        badge.dataset.cardId = cardId;
-        badge.dataset.fileType = 'audio';
-        badge.dataset.audioLang = this.currentTrigraph;
-        
-        const label = this.currentTrigraph.toUpperCase();
-        badge.innerHTML = hasAudio 
-            ? `<i class="fas fa-check"></i> ${label}`
-            : `<i class="fas fa-folder-open"></i> ${label}`;
-        
-        const audioFilename = hasAudio && typeof card.audio === 'string' 
-            ? card.audio.split('/').pop() 
-            : '';
-        badge.title = audioFilename || `Click to select or upload ${label} audio`;
+        // Get word variants by splitting on "/"
+        const wordVariants = card.word ? card.word.split('/').map(w => w.trim()) : [''];
 
-        badge.addEventListener('click', () => {
-            this.showFileSelectionModal(cardId, 'audio', this.currentTrigraph);
+        // Get audio paths (now an array)
+        const audioPaths = Array.isArray(card.audio) ? card.audio : (card.audio ? [card.audio] : []);
+
+        // Create one badge per variant
+        wordVariants.forEach((variant, index) => {
+            const audioPath = audioPaths[index] || null;
+            const hasAudio = !!audioPath;
+
+            const badge = document.createElement('span');
+            badge.className = `file-badge audio ${hasAudio ? 'has-file' : 'no-file'} upload-trigger`;
+            badge.dataset.cardId = cardId;
+            badge.dataset.fileType = 'audio';
+            badge.dataset.audioLang = this.currentTrigraph;
+            badge.dataset.variantIndex = index;
+            badge.dataset.variant = variant;
+
+            // Label: show filename if file exists, otherwise show word variant
+            let label = '';
+            if (hasAudio) {
+                label = audioPath.split('/').pop();  // Show filename
+            } else {
+                label = variant.toLowerCase();  // Show word variant
+            }
+
+            badge.innerHTML = hasAudio
+                ? `<i class="fas fa-check"></i> ${label}`
+                : `<i class="fas fa-folder-open"></i> ${label}`;
+
+            badge.title = hasAudio
+                ? `Audio: ${label}`
+                : `Click to upload audio for "${variant}"`;
+
+            badge.addEventListener('click', () => {
+                this.showFileSelectionModal(cardId, 'audio', this.currentTrigraph, index, variant);
+            });
+
+            container.appendChild(badge);
         });
 
-        container.appendChild(badge);
         return container;
     }
 
@@ -1100,7 +1124,7 @@ class DeckBuilderModule extends LearningModule {
         this.updateUnsavedIndicator();
     }
 
-    showFileSelectionModal(cardId, fileType, audioLang = null) {
+    showFileSelectionModal(cardId, fileType, audioLang = null, variantIndex = 0, variant = '') {
         // Find card and get current file
         let card = this.allCards.find(c => (c.cardNum || c.wordNum) === cardId);
         if (!card) {
@@ -1109,17 +1133,22 @@ class DeckBuilderModule extends LearningModule {
 
         if (!card) return;
 
+        // Store variant info for later use
+        this.currentVariantIndex = variantIndex;
+        this.currentVariant = variant;
+
         // Determine current file path
         let currentFilePath = null;
         let currentFileName = 'No file selected';
-        
+
         if (fileType === 'png') {
             currentFilePath = card.printImagePath;
         } else if (fileType === 'gif') {
             currentFilePath = card.gifPath || (card.hasGif ? card.imagePath : null);
         } else if (fileType === 'audio') {
-            // v4.0: audio is string
-            currentFilePath = card.audio;
+            // v4.0: audio is array now, get specific variant's audio
+            const audioPaths = Array.isArray(card.audio) ? card.audio : (card.audio ? [card.audio] : []);
+            currentFilePath = audioPaths[variantIndex] || null;
         }
 
         if (currentFilePath) {
@@ -1980,9 +2009,23 @@ class DeckBuilderModule extends LearningModule {
                 const result = await response.json();
 
                 if (result.success) {
-                    // Update card with audio path
-                    card.audio = `assets/${finalFilename}`;
-                    card.hasAudio = true;
+                    // Update card with audio path (multi-variant support)
+                    // Ensure audio is array
+                    if (!Array.isArray(card.audio)) {
+                        card.audio = card.audio ? [card.audio] : [];
+                    }
+
+                    // Get variant index from stored context
+                    const variantIndex = this.currentVariantIndex || 0;
+
+                    // Pad array with nulls if needed
+                    while (card.audio.length <= variantIndex) {
+                        card.audio.push(null);
+                    }
+
+                    // Set audio at variant index
+                    card.audio[variantIndex] = `assets/${finalFilename}`;
+                    card.hasAudio = card.audio.some(p => p !== null && p !== undefined && p !== '');
 
                     // Mark as edited
                     this.editedCards.set(cardId, card);
@@ -2505,15 +2548,29 @@ class DeckBuilderModule extends LearningModule {
             card.gifPath = file.path;
             card.hasGif = true;
         } else if (fileType === 'audio') {
-            // v4.0: audio is string
-            card.audio = file.path;
-            card.hasAudio = true;
+            // v4.0: audio is now array (multi-variant support)
+            // Ensure audio is array
+            if (!Array.isArray(card.audio)) {
+                card.audio = card.audio ? [card.audio] : [];
+            }
+
+            // Get variant index from stored context
+            const variantIndex = this.currentVariantIndex || 0;
+
+            // Pad array with nulls if needed
+            while (card.audio.length <= variantIndex) {
+                card.audio.push(null);
+            }
+
+            // Set audio at variant index
+            card.audio[variantIndex] = file.path;
+            card.hasAudio = card.audio.some(p => p !== null && p !== undefined && p !== '');
         }
-        
+
         // Mark as edited
         const cardId = card.cardNum || card.wordNum;
         this.editedCards.set(cardId, card);
-        
+
         // Re-render
         this.filterAndRenderCards();
         this.updateUnsavedIndicator();

@@ -189,11 +189,21 @@ function scanAssets() {
 
     // Link Audio
     foreach ($audioFiles as $f) {
-        list($num, $trig) = extractAudioInfo($f);
+        list($num, $trig, $wordVariant) = extractAudioInfo($f);
         if ($num && $trig && isset($cardsMaster[$num])) {
             $path = "assets/$f";
-            $cardsMaster[$num]['audio'][$trig] = $path;
-            $cardsMaster[$num]['audioFiles'][$trig] = $f;
+
+            // Initialize audio arrays if not set
+            if (!isset($cardsMaster[$num]['audio'][$trig])) {
+                $cardsMaster[$num]['audio'][$trig] = [];
+            }
+            if (!isset($cardsMaster[$num]['audioFiles'][$trig])) {
+                $cardsMaster[$num]['audioFiles'][$trig] = [];
+            }
+
+            // Store audio with word variant as key for proper ordering
+            $cardsMaster[$num]['audio'][$trig][$wordVariant] = $path;
+            $cardsMaster[$num]['audioFiles'][$trig][$wordVariant] = $f;
         }
     }
 
@@ -217,8 +227,27 @@ function scanAssets() {
         foreach ($cardsMaster as $c) {
             if (!isset($c['word'][$trig])) continue;
 
-            $audioPath = $c['audio'][$trig] ?? null;
-            $hasAudio = !empty($audioPath);
+            // Build audio array matched to word variants
+            $audioArray = [];
+            $audioData = $c['audio'][$trig] ?? [];
+
+            if (!empty($audioData) && is_array($audioData)) {
+                // Split word by "/" to get variants
+                $wordVariants = array_map('trim', explode('/', $c['word'][$trig]));
+
+                // Match audio files to variants by word variant key
+                foreach ($wordVariants as $variant) {
+                    $variantLower = strtolower($variant);
+                    if (isset($audioData[$variantLower])) {
+                        $audioArray[] = $audioData[$variantLower];
+                    } else {
+                        // No audio file for this variant
+                        $audioArray[] = null;
+                    }
+                }
+            }
+
+            $hasAudio = !empty(array_filter($audioArray));
 
             $finalCards[$trig][] = [
                 'lesson' => $c['lesson'],
@@ -233,7 +262,7 @@ function scanAssets() {
                 'type' => $c['type'],
                 'acceptableAnswers' => [$c['word'][$trig]],
                 'englishAcceptable' => [$c['english'][$trig] ?? ''],
-                'audio' => $audioPath,
+                'audio' => $audioArray,
                 'hasAudio' => $hasAudio,
                 'printImagePath' => $c['printImagePath'],
                 'hasGif' => $c['hasGif']
@@ -343,10 +372,12 @@ function extractWordNum($filename) {
 }
 
 function extractAudioInfo($filename) {
-    if (preg_match('/^(\d+)\.([a-z]{3})\./', $filename, $m)) {
-        return [(int)$m[1], $m[2]];
+    // Pattern: {num}.{trigraph}.{wordVariant}.{ext}
+    // Example: 12.ceb.ako.m4a or 12.ceb.ako-ko.m4a (backward compatible)
+    if (preg_match('/^(\d+)\.([a-z]{3})\.([^.]+)\./', $filename, $m)) {
+        return [(int)$m[1], $m[2], $m[3]];  // [cardNum, trigraph, wordVariant]
     }
-    return [null, null];
+    return [null, null, null];
 }
 
 // ------------------------------------------------
