@@ -306,6 +306,14 @@ function cacheBust($file) {
                     <label class="form-label">Filename</label>
                     <input type="text" id="filenameInput" class="form-input">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Audio Format</label>
+                    <select id="audioFormatSelect" class="form-input">
+                        <option value="opus">Opus (Recommended - Smallest, Best Quality)</option>
+                        <option value="m4a">M4A (Good Compatibility)</option>
+                        <option value="wav">WAV (Uncompressed, Large)</option>
+                    </select>
+                </div>
                 <p class="filename-hint">
                     <i class="fas fa-info-circle"></i> File will be saved to assets folder
                 </p>

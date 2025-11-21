@@ -964,6 +964,8 @@ class VoiceRecorderApp {
             ? this.currentVariant.toLowerCase().replace(/[^a-z0-9]/g, '')
             : (card.word || 'word').toLowerCase().replace(/[^a-z0-9]/g, '');
         const english = (card.english || 'english').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        // Default to Opus format
         const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${wordForFilename}.${english}.opus`;
 
         this.pendingBlob = this.audioRecorder.audioBlob;
@@ -974,7 +976,64 @@ class VoiceRecorderApp {
         this.closeFileModal();
         this.showFilenameDialog(defaultFilename);
     }
-    
+
+    async encodeAudioBuffer(audioBuffer, format) {
+        // Map format to MIME type
+        const mimeTypes = {
+            'opus': 'audio/webm;codecs=opus',
+            'm4a': 'audio/mp4',
+            'wav': 'audio/wav'
+        };
+
+        const mimeType = mimeTypes[format] || mimeTypes.opus;
+
+        // For WAV, use the existing WAV encoder
+        if (format === 'wav') {
+            return this.audioBufferToBlob(audioBuffer);
+        }
+
+        // For Opus and M4A, use MediaRecorder
+        return new Promise((resolve, reject) => {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+
+            const destination = audioContext.createMediaStreamDestination();
+            source.connect(destination);
+
+            const chunks = [];
+            const mediaRecorder = new MediaRecorder(destination.stream, {
+                mimeType: mimeType,
+                audioBitsPerSecond: 128000
+            });
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    chunks.push(e.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                audioContext.close();
+                resolve(blob);
+            };
+
+            mediaRecorder.onerror = (error) => {
+                audioContext.close();
+                reject(error);
+            };
+
+            mediaRecorder.start();
+            source.start(0);
+
+            // Stop recording when audio finishes
+            source.onended = () => {
+                mediaRecorder.stop();
+            };
+        });
+    }
+
     resetRecordingView() {
         document.getElementById('recordView').classList.remove('hidden');
         document.getElementById('editorView').classList.add('hidden');
@@ -986,9 +1045,19 @@ class VoiceRecorderApp {
     
     showFilenameDialog(defaultFilename) {
         const input = document.getElementById('filenameInput');
+        const formatSelect = document.getElementById('audioFormatSelect');
+
         input.value = defaultFilename;
+        formatSelect.value = 'opus'; // Default to Opus
+
         document.getElementById('filenameDialog').classList.remove('hidden');
-        
+
+        // Update filename extension when format changes
+        formatSelect.onchange = () => {
+            const baseName = input.value.replace(/\.(opus|m4a|wav)$/i, '');
+            input.value = `${baseName}.${formatSelect.value}`;
+        };
+
         input.focus();
         const dotIndex = defaultFilename.lastIndexOf('.');
         if (dotIndex > 0) {
@@ -1009,15 +1078,25 @@ class VoiceRecorderApp {
             return;
         }
 
+        const selectedFormat = document.getElementById('audioFormatSelect').value;
+
         // Save blob/file to local variables BEFORE closing dialog
-        const blobToUpload = this.pendingBlob;
+        let blobToUpload = this.pendingBlob;
         const fileToUpload = this.pendingFile;
 
         // Close dialog and clear pending
         this.closeFilenameDialog();
-        this.showToast('Uploading...', 'warning');
+        this.showToast('Encoding audio...', 'warning');
 
         try {
+            // If we have audio blob and need to convert format
+            if (blobToUpload && this.audioRecorder && this.audioRecorder.audioBuffer) {
+                // Re-encode to selected format
+                blobToUpload = await this.encodeAudioBuffer(this.audioRecorder.audioBuffer, selectedFormat);
+            }
+
+            this.showToast('Uploading...', 'warning');
+
             const formData = new FormData();
 
             if (blobToUpload) {
@@ -1028,7 +1107,7 @@ class VoiceRecorderApp {
 
             formData.append('filename', filename);
 
-            console.log('Uploading audio:', filename, 'Blob size:', blobToUpload?.size || fileToUpload?.size);
+            console.log('Uploading audio:', filename, 'Format:', selectedFormat, 'Blob size:', blobToUpload?.size || fileToUpload?.size);
 
             const response = await fetch('../upload-audio.php', {
                 method: 'POST',
