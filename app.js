@@ -1088,7 +1088,10 @@ class AssetManager {
 
             const availableFormats = this.manifest.images?.[card.cardNum] || {};
 
-            if (card.hasGif) {
+            // Check if animated formats exist in the available formats (not just hasGif flag)
+            const hasAnimatedFormats = availableFormats.gif || availableFormats.mp4 || availableFormats.webm;
+
+            if (card.hasGif || hasAnimatedFormats) {
                 // Prefer animated/video formats
                 const videoFormat = browserCapabilityDetector?.getPreferredVideoFormat(availableFormats);
                 if (videoFormat) {
