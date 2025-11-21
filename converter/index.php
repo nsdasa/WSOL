@@ -97,9 +97,21 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fi
             $outputPath = $UPLOAD_DIR . uniqid() . '_output.' . $outputFormat;
             
             try {
+<<<<<<< Updated upstream
                 if ($ext === 'png') {
                     // PNG to WebP using GD
                     $result = convertPngToWebp($inputPath, $outputPath, $_POST);
+=======
+                // Check if it's an audio file
+                $audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+                
+                if ($ext === 'png') {
+                    // PNG to WebP using GD
+                    $result = convertPngToWebp($inputPath, $outputPath, $_POST);
+                } elseif (in_array($ext, $audioExts)) {
+                    // Audio conversion
+                    $result = convertAudio($inputPath, $outputPath, $_POST);
+>>>>>>> Stashed changes
                 } elseif ($ext === 'gif' || $ext === 'mp4' || $ext === 'webm') {
                     // Use FFmpeg for video conversion
                     $result = convertWithFFmpeg($inputPath, $outputPath, $ext, $maxSize, $outputFormat, $crf, $fps);
@@ -166,6 +178,95 @@ function convertPngToWebp($inputPath, $outputPath, $options) {
     ];
 }
 
+<<<<<<< Updated upstream
+=======
+function convertAudio($inputPath, $outputPath, $options) {
+    $ffmpegPath = trim(shell_exec('which ffmpeg'));
+    if (empty($ffmpegPath)) {
+        $ffmpegPath = 'ffmpeg';
+    }
+    
+    $outputFormat = $options['outputFormat'] ?? 'opus';
+    $bitrate = intval($options['bitrate'] ?? 48);
+    $channels = intval($options['channels'] ?? 1);
+    $sampleRate = intval($options['sampleRate'] ?? 48000);
+    
+    // Opus only supports: 8000, 12000, 16000, 24000, 48000
+    if ($outputFormat === 'opus') {
+        $validOpusRates = [8000, 12000, 16000, 24000, 48000];
+        if (!in_array($sampleRate, $validOpusRates)) {
+            $sampleRate = 48000; // Default to 48kHz for Opus
+        }
+    }
+    
+    // Update output path with correct extension
+    $outputPath = preg_replace('/\.[^.]+$/', '.' . $outputFormat, $outputPath);
+    
+    // Build FFmpeg command
+    $args = [
+        escapeshellarg($ffmpegPath),
+        '-i', escapeshellarg($inputPath)
+    ];
+    
+    // Audio codec based on format
+    if ($outputFormat === 'opus') {
+        $args[] = '-c:a';
+        $args[] = 'libopus';
+        $args[] = '-b:a';
+        $args[] = $bitrate . 'k';
+        $args[] = '-vbr';
+        $args[] = 'on';
+    } elseif ($outputFormat === 'm4a') {
+        $args[] = '-c:a';
+        $args[] = 'aac';
+        $args[] = '-b:a';
+        $args[] = $bitrate . 'k';
+    } elseif ($outputFormat === 'mp3') {
+        $args[] = '-c:a';
+        $args[] = 'libmp3lame';
+        $args[] = '-b:a';
+        $args[] = $bitrate . 'k';
+    }
+    
+    // Set channels (mono/stereo)
+    $args[] = '-ac';
+    $args[] = $channels;
+    
+    // Set sample rate
+    $args[] = '-ar';
+    $args[] = $sampleRate;
+    
+    // Remove video streams
+    $args[] = '-vn';
+    
+    // Output file
+    $args[] = '-y'; // Overwrite
+    $args[] = escapeshellarg($outputPath);
+    
+    $command = implode(' ', $args) . ' 2>&1';
+    
+    // Log the command for debugging
+    error_log("FFmpeg audio command: " . $command);
+    
+    exec($command, $output, $returnCode);
+    
+    if ($returnCode !== 0 || !file_exists($outputPath)) {
+        $errorMsg = 'FFmpeg exit code: ' . $returnCode . "\n" . 
+                    'Command: ' . $command . "\n" . 
+                    'Output: ' . implode("\n", $output);
+        error_log("Audio conversion error: " . $errorMsg);
+        throw new Exception($errorMsg);
+    }
+    
+    return [
+        'success' => true,
+        'outputPath' => $outputPath,
+        'originalSize' => filesize($inputPath),
+        'newSize' => filesize($outputPath)
+    ];
+}
+
+>>>>>>> Stashed changes
 function convertWithFFmpeg($inputPath, $outputPath, $inputExt, $maxSize, $outputFormat, $crf, $fps) {
     $ffmpegPath = trim(shell_exec('which ffmpeg'));
     if (empty($ffmpegPath)) {
@@ -649,6 +750,19 @@ if (!$authenticated) {
             color: #6b7280;
         }
 
+<<<<<<< Updated upstream
+=======
+        .error-details {
+            font-size: 10px;
+            color: #991b1b;
+            margin-top: 4px;
+            max-height: 100px;
+            overflow: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+
+>>>>>>> Stashed changes
         .info-box {
             background: #dbeafe;
             border: 1px solid #3b82f6;
@@ -678,7 +792,11 @@ if (!$authenticated) {
     <div class="header">
         <a href="?logout" class="logout-btn">Logout</a>
         <h1>Media Converter</h1>
+<<<<<<< Updated upstream
         <p class="subtitle">PNG to WebP | GIF/MP4 to WebM/MP4</p>
+=======
+        <p class="subtitle">PNG to WebP | GIF/MP4 to WebM/MP4 | Audio to Opus/M4A</p>
+>>>>>>> Stashed changes
         <p class="school">Bob and Mariel Ward School of Filipino Languages</p>
     </div>
 
@@ -693,6 +811,10 @@ if (!$authenticated) {
             <button class="tab active" data-tab="png">PNG to WebP</button>
             <button class="tab" data-tab="gif">GIF to Video</button>
             <button class="tab" data-tab="mp4">MP4 Compress</button>
+<<<<<<< Updated upstream
+=======
+            <button class="tab" data-tab="audio">Audio Compress</button>
+>>>>>>> Stashed changes
         </div>
 
         <div class="tab-content active" id="tab-png">
@@ -773,16 +895,66 @@ if (!$authenticated) {
                 </div>
             </div>
         </div>
+<<<<<<< Updated upstream
+=======
+
+        <div class="tab-content" id="tab-audio">
+            <div class="options">
+                <div class="option">
+                    <label>Output Format</label>
+                    <select id="audioOutputFormat">
+                        <option value="opus">Opus (smallest, best for speech)</option>
+                        <option value="m4a">M4A/AAC (universal compatibility)</option>
+                        <option value="mp3">MP3 (legacy support)</option>
+                    </select>
+                </div>
+                <div class="option">
+                    <label>Bitrate</label>
+                    <select id="audioBitrate">
+                        <option value="32">32 kbps (speech - smallest)</option>
+                        <option value="48" selected>48 kbps (speech - high quality)</option>
+                        <option value="64">64 kbps (music/mixed)</option>
+                        <option value="96">96 kbps (music - high quality)</option>
+                    </select>
+                </div>
+                <div class="option">
+                    <label>Channels</label>
+                    <select id="audioChannels">
+                        <option value="1" selected>Mono (speech)</option>
+                        <option value="2">Stereo (music)</option>
+                    </select>
+                    <p class="help-text">Mono is perfect for voice/pronunciation</p>
+                </div>
+                <div class="option">
+                    <label>Sample Rate</label>
+                    <select id="audioSampleRate">
+                        <option value="16000">16 kHz (voice - smallest)</option>
+                        <option value="24000">24 kHz (voice - good)</option>
+                        <option value="48000" selected>48 kHz (standard)</option>
+                    </select>
+                    <p class="help-text">Opus requires 8k, 12k, 16k, 24k, or 48k</p>
+                </div>
+            </div>
+        </div>
+>>>>>>> Stashed changes
     </div>
 
     <div class="panel">
         <h2>Upload Files</h2>
         <div class="upload-area" id="uploadArea">
+<<<<<<< Updated upstream
             <input type="file" id="fileInput" multiple accept=".png,.gif,.mp4,.webm" style="display: none;">
             <div class="upload-icon" style="font-size: 48px; font-weight: bold;">^</div>
             <p class="upload-text">
                 <strong>Click to browse</strong> or drag and drop<br>
                 PNG, GIF, MP4, WebM files
+=======
+            <input type="file" id="fileInput" multiple accept=".png,.gif,.mp4,.webm,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma" style="display: none;">
+            <div class="upload-icon" style="font-size: 48px; font-weight: bold;">^</div>
+            <p class="upload-text">
+                <strong>Click to browse</strong> or drag and drop<br>
+                PNG, GIF, MP4, WebM, MP3, WAV, M4A files
+>>>>>>> Stashed changes
             </p>
         </div>
     </div>
@@ -883,14 +1055,22 @@ if (!$authenticated) {
         clearBtn.addEventListener('click', clearAll);
 
         function handleFiles(e) {
+<<<<<<< Updated upstream
             const validExts = ['png', 'gif', 'mp4', 'webm'];
+=======
+            const validExts = ['png', 'gif', 'mp4', 'webm', 'mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+>>>>>>> Stashed changes
             const newFiles = Array.from(e.target.files).filter(file => {
                 const ext = file.name.toLowerCase().split('.').pop();
                 return validExts.includes(ext);
             });
 
             if (newFiles.length === 0) {
+<<<<<<< Updated upstream
                 alert('Please select PNG, GIF, MP4, or WebM files.');
+=======
+                alert('Please select valid media files.');
+>>>>>>> Stashed changes
                 return;
             }
 
@@ -911,7 +1091,22 @@ if (!$authenticated) {
 
             fileList.innerHTML = files.map((file, index) => {
                 const ext = file.name.toLowerCase().split('.').pop();
+<<<<<<< Updated upstream
                 const icons = { png: '[IMG]', gif: '[VID]', mp4: '[VID]', webm: '[VID]' };
+=======
+                const audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+                const icons = { 
+                    png: '[IMG]', 
+                    gif: '[VID]', 
+                    mp4: '[VID]', 
+                    webm: '[VID]'
+                };
+                
+                // Set icon for audio files
+                if (audioExts.includes(ext)) {
+                    icons[ext] = '[AUD]';
+                }
+>>>>>>> Stashed changes
                 
                 return `
                     <div class="file-item">
@@ -966,6 +1161,23 @@ if (!$authenticated) {
                     console.error(`Error converting ${file.name}:`, error);
                     statusEl.textContent = 'Error';
                     statusEl.className = 'file-status status-error';
+<<<<<<< Updated upstream
+=======
+                    
+                    const fileItem = statusEl.closest('.file-item');
+                    let errorDiv = fileItem.querySelector('.error-details');
+                    if (!errorDiv) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-details';
+                        errorDiv.style.whiteSpace = 'pre-wrap';
+                        errorDiv.style.maxHeight = '150px';
+                        errorDiv.style.overflow = 'auto';
+                        fileItem.querySelector('.file-info').appendChild(errorDiv);
+                    }
+                    const errorText = error.message || error.toString();
+                    errorDiv.textContent = errorText;
+                    console.log('Full error:', errorText);
+>>>>>>> Stashed changes
                 }
 
                 const progress = Math.round(((i + 1) / files.length) * 100);
@@ -980,6 +1192,10 @@ if (!$authenticated) {
 
         async function convertFile(file) {
             const ext = file.name.toLowerCase().split('.').pop();
+<<<<<<< Updated upstream
+=======
+            const audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+>>>>>>> Stashed changes
             const formData = new FormData();
             formData.append('file', file);
 
@@ -988,6 +1204,14 @@ if (!$authenticated) {
                 formData.append('resolution', document.getElementById('pngResolution').value);
                 formData.append('quality', document.getElementById('pngQuality').value);
                 formData.append('outputFormat', 'webp');
+<<<<<<< Updated upstream
+=======
+            } else if (audioExts.includes(ext)) {
+                formData.append('outputFormat', document.getElementById('audioOutputFormat').value);
+                formData.append('bitrate', document.getElementById('audioBitrate').value);
+                formData.append('channels', document.getElementById('audioChannels').value);
+                formData.append('sampleRate', document.getElementById('audioSampleRate').value);
+>>>>>>> Stashed changes
             } else if (ext === 'gif') {
                 formData.append('maxSize', document.getElementById('gifMaxSize').value);
                 formData.append('outputFormat', document.getElementById('gifOutputFormat').value);
@@ -1005,7 +1229,17 @@ if (!$authenticated) {
                 body: formData
             });
 
+<<<<<<< Updated upstream
             return await response.json();
+=======
+            const result = await response.json();
+            
+            if (!result.success && result.error) {
+                throw new Error(result.error);
+            }
+            
+            return result;
+>>>>>>> Stashed changes
         }
 
         function showResults() {
