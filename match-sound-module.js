@@ -68,6 +68,7 @@ class MatchSoundModule extends LearningModule {
                     </div>
                     <button id="startBtn">Start</button>
                     <button id="restartMatchSoundBtn" class="btn-secondary"><i class="fas fa-redo"></i> Restart</button>
+                    <button id="showTourBtn" class="btn btn-secondary" title="Show guided tour"><i class="fas fa-question-circle"></i> Show Tour</button>
                 </div>
                 <div class="progress-section">
                     <div class="progress-label">Progress: <span id="progressText">0/0</span></div>
@@ -142,14 +143,29 @@ class MatchSoundModule extends LearningModule {
         document.getElementById('startBtn').addEventListener('click', () => this.startExercise());
         document.getElementById('retryBtn').addEventListener('click', () => this.startExercise());
         document.getElementById('restartMatchSoundBtn').addEventListener('click', () => this.startExercise());
+
+        // Show Tour button
+        const showTourBtn = document.getElementById('showTourBtn');
+        if (showTourBtn) {
+            showTourBtn.addEventListener('click', () => {
+                if (typeof showTour !== 'undefined') {
+                    showTour('match-sound');
+                }
+            });
+        }
         
         // Show instructions
         if (instructionManager) {
             instructionManager.show(
                 'match-sound',
-                'Listen and Match Instructions',
+                'Audio Match Instructions',
                 'Click the Speaker Icon to hear the word, then click the matching picture. You can click the speaker multiple times to listen again. In Review Mode, you need to get each word correct multiple times (default: 3).'
             );
+        }
+
+        // Initialize tour for first-time users
+        if (typeof initTour !== 'undefined') {
+            initTour('match-sound');
         }
     }
     

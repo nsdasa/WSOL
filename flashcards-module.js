@@ -47,6 +47,7 @@ class FlashcardsModule extends LearningModule {
                     <button id="prevBtn" class="btn btn-secondary"><i class="fas fa-chevron-left"></i> Previous</button>
                     <button id="restartBtn" class="btn btn-primary"><i class="fas fa-redo"></i> Restart</button>
                     <button id="nextBtn" class="btn btn-secondary">Next <i class="fas fa-chevron-right"></i></button>
+                    <button id="showTourBtn" class="btn btn-secondary" title="Show guided tour"><i class="fas fa-question-circle"></i> Show Tour</button>
                 </div>
                 <div id="cardsGrid" class="cards-grid"></div>
             </div>
@@ -82,6 +83,16 @@ class FlashcardsModule extends LearningModule {
         document.getElementById('nextBtn').addEventListener('click', () => this.nextPage());
         document.getElementById('restartBtn').addEventListener('click', () => this.restart());
 
+        // Show Tour button
+        const showTourBtn = document.getElementById('showTourBtn');
+        if (showTourBtn) {
+            showTourBtn.addEventListener('click', () => {
+                if (typeof showTour !== 'undefined') {
+                    showTour('flashcards');
+                }
+            });
+        }
+
         const vpToggle = document.getElementById('vpToggle');
         if (vpToggle) {
             vpToggle.addEventListener('change', (e) => {
@@ -102,14 +113,19 @@ class FlashcardsModule extends LearningModule {
         });
         
         await this.renderPage();
-        
+
         if (instructionManager) {
             instructionManager.show(
                 'flashcards',
                 'Flashcards Instructions',
-                'Click on the Speaker icon to hear the word. Click on the picture to see the word.' + 
+                'Click on the Speaker icon to hear the word. Click on the picture to see the word.' +
                 (voicePracticeManager?.isEnabled() ? ' Click the Mic icon to practice pronunciation.' : '')
             );
+        }
+
+        // Initialize tour for first-time users
+        if (typeof initTour !== 'undefined') {
+            initTour('flashcards');
         }
     }
     
