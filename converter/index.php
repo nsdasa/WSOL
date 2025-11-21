@@ -98,10 +98,13 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fi
             
             try {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 if ($ext === 'png') {
                     // PNG to WebP using GD
                     $result = convertPngToWebp($inputPath, $outputPath, $_POST);
 =======
+=======
+>>>>>>> Stashed changes
                 // Check if it's an audio file
                 $audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
                 
@@ -111,6 +114,9 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fi
                 } elseif (in_array($ext, $audioExts)) {
                     // Audio conversion
                     $result = convertAudio($inputPath, $outputPath, $_POST);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                 } elseif ($ext === 'gif' || $ext === 'mp4' || $ext === 'webm') {
                     // Use FFmpeg for video conversion
@@ -179,7 +185,10 @@ function convertPngToWebp($inputPath, $outputPath, $options) {
 }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 function convertAudio($inputPath, $outputPath, $options) {
     $ffmpegPath = trim(shell_exec('which ffmpeg'));
     if (empty($ffmpegPath)) {
@@ -266,6 +275,9 @@ function convertAudio($inputPath, $outputPath, $options) {
     ];
 }
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 function convertWithFFmpeg($inputPath, $outputPath, $inputExt, $maxSize, $outputFormat, $crf, $fps) {
     $ffmpegPath = trim(shell_exec('which ffmpeg'));
@@ -751,7 +763,10 @@ if (!$authenticated) {
         }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
         .error-details {
             font-size: 10px;
             color: #991b1b;
@@ -762,6 +777,9 @@ if (!$authenticated) {
             font-family: monospace;
         }
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         .info-box {
             background: #dbeafe;
@@ -793,7 +811,11 @@ if (!$authenticated) {
         <a href="?logout" class="logout-btn">Logout</a>
         <h1>Media Converter</h1>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <p class="subtitle">PNG to WebP | GIF/MP4 to WebM/MP4</p>
+=======
+        <p class="subtitle">PNG to WebP | GIF/MP4 to WebM/MP4 | Audio to Opus/M4A</p>
+>>>>>>> Stashed changes
 =======
         <p class="subtitle">PNG to WebP | GIF/MP4 to WebM/MP4 | Audio to Opus/M4A</p>
 >>>>>>> Stashed changes
@@ -812,6 +834,10 @@ if (!$authenticated) {
             <button class="tab" data-tab="gif">GIF to Video</button>
             <button class="tab" data-tab="mp4">MP4 Compress</button>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+            <button class="tab" data-tab="audio">Audio Compress</button>
+>>>>>>> Stashed changes
 =======
             <button class="tab" data-tab="audio">Audio Compress</button>
 >>>>>>> Stashed changes
@@ -896,7 +922,10 @@ if (!$authenticated) {
             </div>
         </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 
         <div class="tab-content" id="tab-audio">
             <div class="options">
@@ -936,6 +965,9 @@ if (!$authenticated) {
                 </div>
             </div>
         </div>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     </div>
 
@@ -943,17 +975,23 @@ if (!$authenticated) {
         <h2>Upload Files</h2>
         <div class="upload-area" id="uploadArea">
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <input type="file" id="fileInput" multiple accept=".png,.gif,.mp4,.webm" style="display: none;">
             <div class="upload-icon" style="font-size: 48px; font-weight: bold;">^</div>
             <p class="upload-text">
                 <strong>Click to browse</strong> or drag and drop<br>
                 PNG, GIF, MP4, WebM files
 =======
+=======
+>>>>>>> Stashed changes
             <input type="file" id="fileInput" multiple accept=".png,.gif,.mp4,.webm,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma" style="display: none;">
             <div class="upload-icon" style="font-size: 48px; font-weight: bold;">^</div>
             <p class="upload-text">
                 <strong>Click to browse</strong> or drag and drop<br>
                 PNG, GIF, MP4, WebM, MP3, WAV, M4A files
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             </p>
         </div>
@@ -1056,7 +1094,11 @@ if (!$authenticated) {
 
         function handleFiles(e) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             const validExts = ['png', 'gif', 'mp4', 'webm'];
+=======
+            const validExts = ['png', 'gif', 'mp4', 'webm', 'mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+>>>>>>> Stashed changes
 =======
             const validExts = ['png', 'gif', 'mp4', 'webm', 'mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
 >>>>>>> Stashed changes
@@ -1067,7 +1109,11 @@ if (!$authenticated) {
 
             if (newFiles.length === 0) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 alert('Please select PNG, GIF, MP4, or WebM files.');
+=======
+                alert('Please select valid media files.');
+>>>>>>> Stashed changes
 =======
                 alert('Please select valid media files.');
 >>>>>>> Stashed changes
@@ -1092,8 +1138,11 @@ if (!$authenticated) {
             fileList.innerHTML = files.map((file, index) => {
                 const ext = file.name.toLowerCase().split('.').pop();
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 const icons = { png: '[IMG]', gif: '[VID]', mp4: '[VID]', webm: '[VID]' };
 =======
+=======
+>>>>>>> Stashed changes
                 const audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
                 const icons = { 
                     png: '[IMG]', 
@@ -1106,6 +1155,9 @@ if (!$authenticated) {
                 if (audioExts.includes(ext)) {
                     icons[ext] = '[AUD]';
                 }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                 
                 return `
@@ -1162,7 +1214,10 @@ if (!$authenticated) {
                     statusEl.textContent = 'Error';
                     statusEl.className = 'file-status status-error';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
                     
                     const fileItem = statusEl.closest('.file-item');
                     let errorDiv = fileItem.querySelector('.error-details');
@@ -1177,6 +1232,9 @@ if (!$authenticated) {
                     const errorText = error.message || error.toString();
                     errorDiv.textContent = errorText;
                     console.log('Full error:', errorText);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                 }
 
@@ -1193,6 +1251,10 @@ if (!$authenticated) {
         async function convertFile(file) {
             const ext = file.name.toLowerCase().split('.').pop();
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+            const audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+>>>>>>> Stashed changes
 =======
             const audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
 >>>>>>> Stashed changes
@@ -1205,12 +1267,18 @@ if (!$authenticated) {
                 formData.append('quality', document.getElementById('pngQuality').value);
                 formData.append('outputFormat', 'webp');
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
             } else if (audioExts.includes(ext)) {
                 formData.append('outputFormat', document.getElementById('audioOutputFormat').value);
                 formData.append('bitrate', document.getElementById('audioBitrate').value);
                 formData.append('channels', document.getElementById('audioChannels').value);
                 formData.append('sampleRate', document.getElementById('audioSampleRate').value);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             } else if (ext === 'gif') {
                 formData.append('maxSize', document.getElementById('gifMaxSize').value);
@@ -1230,8 +1298,11 @@ if (!$authenticated) {
             });
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             return await response.json();
 =======
+=======
+>>>>>>> Stashed changes
             const result = await response.json();
             
             if (!result.success && result.error) {
@@ -1239,6 +1310,9 @@ if (!$authenticated) {
             }
             
             return result;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         }
 
