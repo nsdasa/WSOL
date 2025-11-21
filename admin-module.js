@@ -1340,27 +1340,71 @@ class AdminModule extends LearningModule {
             'rec': 'Voice Recorder'
         };
 
+        const phaseNames = {
+            'intro': 'Introduction',
+            'review': 'Review Mode',
+            'test': 'Test Mode',
+            'cardBack': 'Card Back (Flipped)'
+        };
+
         let html = '<div class="tour-editor-modules">';
 
-        for (const [moduleId, steps] of Object.entries(this.tourConfig)) {
+        for (const [moduleId, moduleData] of Object.entries(this.tourConfig)) {
             // Skip comment fields
             if (moduleId.startsWith('_')) continue;
 
             const moduleName = moduleNames[moduleId] || moduleId;
-            const stepCount = Array.isArray(steps) ? steps.length : 0;
+            const isPhased = !Array.isArray(moduleData) && typeof moduleData === 'object';
+
+            // Calculate total step count
+            let stepCount = 0;
+            if (isPhased) {
+                for (const phase of Object.values(moduleData)) {
+                    if (Array.isArray(phase)) stepCount += phase.length;
+                }
+            } else if (Array.isArray(moduleData)) {
+                stepCount = moduleData.length;
+            }
 
             html += `
                 <div class="tour-module-section" data-module="${moduleId}">
                     <div class="tour-module-header" onclick="this.parentElement.classList.toggle('expanded')">
-                        <span class="tour-module-toggle"><i class="fas fa-chevron-right"></i></span>
-                        <span class="tour-module-name">${moduleName}</span>
-                        <span class="tour-module-count">${stepCount} steps</span>
+                        <h4><i class="fas fa-route"></i> ${moduleName} <span class="step-count">${stepCount} steps</span></h4>
+                        <i class="fas fa-chevron-down expand-icon"></i>
                     </div>
                     <div class="tour-module-steps">
-                        ${this.renderTourSteps(moduleId, steps)}
-                        <button class="btn btn-sm btn-secondary tour-add-step-btn" data-module="${moduleId}">
-                            <i class="fas fa-plus"></i> Add Step
-                        </button>
+            `;
+
+            if (isPhased) {
+                // Phased format - show each phase as a sub-section
+                for (const [phaseId, steps] of Object.entries(moduleData)) {
+                    if (!Array.isArray(steps)) continue;
+
+                    const phaseName = phaseNames[phaseId] || phaseId;
+                    html += `
+                        <div class="tour-phase-section" data-phase="${phaseId}">
+                            <div class="tour-phase-header">
+                                <span class="tour-phase-name">${phaseName}</span>
+                                <span class="tour-phase-count">${steps.length} steps</span>
+                            </div>
+                            ${this.renderTourSteps(moduleId, steps, phaseId)}
+                            <button class="btn btn-sm btn-secondary add-step-btn" data-module="${moduleId}" data-phase="${phaseId}">
+                                <i class="fas fa-plus"></i> Add Step to ${phaseName}
+                            </button>
+                        </div>
+                    `;
+                }
+            } else if (Array.isArray(moduleData)) {
+                // Simple array format
+                html += this.renderTourSteps(moduleId, moduleData, null);
+                html += `
+                    <button class="btn btn-sm btn-secondary add-step-btn" data-module="${moduleId}">
+                        <i class="fas fa-plus"></i> Add Step
+                    </button>
+                `;
+            }
+
+            html += `
                     </div>
                 </div>
             `;
@@ -1373,23 +1417,25 @@ class AdminModule extends LearningModule {
         this.setupTourStepHandlers();
     }
 
-    renderTourSteps(moduleId, steps) {
+    renderTourSteps(moduleId, steps, phaseId = null) {
         if (!Array.isArray(steps) || steps.length === 0) {
             return '<p class="tour-no-steps">No steps defined</p>';
         }
 
+        const phaseAttr = phaseId ? `data-phase="${phaseId}"` : '';
+
         return steps.map((step, index) => `
-            <div class="tour-step-card" data-module="${moduleId}" data-index="${index}">
+            <div class="tour-step-card" data-module="${moduleId}" data-index="${index}" ${phaseAttr}>
                 <div class="tour-step-header">
-                    <span class="tour-step-number">Step ${index + 1}</span>
+                    <span class="step-number">Step ${index + 1}</span>
                     <div class="tour-step-actions">
-                        <button class="btn-icon tour-move-up" title="Move up" ${index === 0 ? 'disabled' : ''}>
+                        <button class="tour-move-up" title="Move up" ${index === 0 ? 'disabled' : ''}>
                             <i class="fas fa-arrow-up"></i>
                         </button>
-                        <button class="btn-icon tour-move-down" title="Move down" ${index === steps.length - 1 ? 'disabled' : ''}>
+                        <button class="tour-move-down" title="Move down" ${index === steps.length - 1 ? 'disabled' : ''}>
                             <i class="fas fa-arrow-down"></i>
                         </button>
-                        <button class="btn-icon tour-delete-step" title="Delete step">
+                        <button class="tour-delete-step delete-step" title="Delete step">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -1397,19 +1443,19 @@ class AdminModule extends LearningModule {
                 <div class="tour-step-fields">
                     <div class="tour-field">
                         <label>Element Selector</label>
-                        <input type="text" class="form-input tour-input-element" value="${this.escapeHtml(step.element || '')}" placeholder="CSS selector (e.g., #myButton)">
+                        <input type="text" class="tour-input-element" value="${this.escapeHtml(step.element || '')}" placeholder="CSS selector (e.g., #myButton) or leave empty">
                     </div>
                     <div class="tour-field">
                         <label>Title</label>
-                        <input type="text" class="form-input tour-input-title" value="${this.escapeHtml(step.title || '')}" placeholder="Step title">
+                        <input type="text" class="tour-input-title" value="${this.escapeHtml(step.title || '')}" placeholder="Step title">
+                    </div>
+                    <div class="tour-field full-width">
+                        <label>Description</label>
+                        <textarea class="tour-input-description" rows="2" placeholder="Step description">${this.escapeHtml(step.description || '')}</textarea>
                     </div>
                     <div class="tour-field">
-                        <label>Description</label>
-                        <textarea class="form-input tour-input-description" rows="2" placeholder="Step description">${this.escapeHtml(step.description || '')}</textarea>
-                    </div>
-                    <div class="tour-field tour-field-small">
                         <label>Position</label>
-                        <select class="form-input tour-input-position">
+                        <select class="tour-input-position">
                             <option value="bottom" ${step.position === 'bottom' ? 'selected' : ''}>Bottom</option>
                             <option value="top" ${step.position === 'top' ? 'selected' : ''}>Top</option>
                             <option value="left" ${step.position === 'left' ? 'selected' : ''}>Left</option>
@@ -1436,8 +1482,9 @@ class AdminModule extends LearningModule {
             btn.addEventListener('click', (e) => {
                 const card = e.target.closest('.tour-step-card');
                 const moduleId = card.dataset.module;
+                const phaseId = card.dataset.phase || null;
                 const index = parseInt(card.dataset.index);
-                this.moveTourStep(moduleId, index, -1);
+                this.moveTourStep(moduleId, phaseId, index, -1);
             });
         });
 
@@ -1446,8 +1493,9 @@ class AdminModule extends LearningModule {
             btn.addEventListener('click', (e) => {
                 const card = e.target.closest('.tour-step-card');
                 const moduleId = card.dataset.module;
+                const phaseId = card.dataset.phase || null;
                 const index = parseInt(card.dataset.index);
-                this.moveTourStep(moduleId, index, 1);
+                this.moveTourStep(moduleId, phaseId, index, 1);
             });
         });
 
@@ -1457,17 +1505,19 @@ class AdminModule extends LearningModule {
                 if (confirm('Delete this step?')) {
                     const card = e.target.closest('.tour-step-card');
                     const moduleId = card.dataset.module;
+                    const phaseId = card.dataset.phase || null;
                     const index = parseInt(card.dataset.index);
-                    this.deleteTourStep(moduleId, index);
+                    this.deleteTourStep(moduleId, phaseId, index);
                 }
             });
         });
 
         // Handle add step buttons
-        container.querySelectorAll('.tour-add-step-btn').forEach(btn => {
+        container.querySelectorAll('.add-step-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const moduleId = e.target.dataset.module;
-                this.addTourStep(moduleId);
+                const moduleId = e.target.closest('button').dataset.module;
+                const phaseId = e.target.closest('button').dataset.phase || null;
+                this.addTourStep(moduleId, phaseId);
             });
         });
     }
@@ -1477,23 +1527,27 @@ class AdminModule extends LearningModule {
         if (!card) return;
 
         const moduleId = card.dataset.module;
+        const phaseId = card.dataset.phase || null;
         const index = parseInt(card.dataset.index);
 
-        const element = card.querySelector('.tour-input-element').value;
+        const element = card.querySelector('.tour-input-element').value || null;
         const title = card.querySelector('.tour-input-title').value;
         const description = card.querySelector('.tour-input-description').value;
         const position = card.querySelector('.tour-input-position').value;
 
-        if (this.tourConfig[moduleId] && this.tourConfig[moduleId][index]) {
-            this.tourConfig[moduleId][index] = { element, title, description, position };
+        // Get the steps array (either from phase or directly)
+        const steps = phaseId ? this.tourConfig[moduleId]?.[phaseId] : this.tourConfig[moduleId];
+
+        if (steps && steps[index]) {
+            steps[index] = { element, title, description, position };
             this.tourConfigModified = true;
             this.updateTourSaveButton();
         }
     }
 
-    moveTourStep(moduleId, index, direction) {
-        const steps = this.tourConfig[moduleId];
-        if (!steps) return;
+    moveTourStep(moduleId, phaseId, index, direction) {
+        const steps = phaseId ? this.tourConfig[moduleId]?.[phaseId] : this.tourConfig[moduleId];
+        if (!steps || !Array.isArray(steps)) return;
 
         const newIndex = index + direction;
         if (newIndex < 0 || newIndex >= steps.length) return;
@@ -1510,10 +1564,11 @@ class AdminModule extends LearningModule {
         if (section) section.classList.add('expanded');
     }
 
-    deleteTourStep(moduleId, index) {
-        if (!this.tourConfig[moduleId]) return;
+    deleteTourStep(moduleId, phaseId, index) {
+        const steps = phaseId ? this.tourConfig[moduleId]?.[phaseId] : this.tourConfig[moduleId];
+        if (!steps || !Array.isArray(steps)) return;
 
-        this.tourConfig[moduleId].splice(index, 1);
+        steps.splice(index, 1);
         this.tourConfigModified = true;
         this.renderTourEditor();
         this.updateTourSaveButton();
@@ -1523,13 +1578,25 @@ class AdminModule extends LearningModule {
         if (section) section.classList.add('expanded');
     }
 
-    addTourStep(moduleId) {
-        if (!this.tourConfig[moduleId]) {
-            this.tourConfig[moduleId] = [];
+    addTourStep(moduleId, phaseId = null) {
+        let steps;
+        if (phaseId) {
+            if (!this.tourConfig[moduleId]) {
+                this.tourConfig[moduleId] = {};
+            }
+            if (!this.tourConfig[moduleId][phaseId]) {
+                this.tourConfig[moduleId][phaseId] = [];
+            }
+            steps = this.tourConfig[moduleId][phaseId];
+        } else {
+            if (!Array.isArray(this.tourConfig[moduleId])) {
+                this.tourConfig[moduleId] = [];
+            }
+            steps = this.tourConfig[moduleId];
         }
 
-        this.tourConfig[moduleId].push({
-            element: '',
+        steps.push({
+            element: null,
             title: 'New Step',
             description: 'Enter description here',
             position: 'bottom'
@@ -1543,7 +1610,14 @@ class AdminModule extends LearningModule {
         const section = document.querySelector(`.tour-module-section[data-module="${moduleId}"]`);
         if (section) {
             section.classList.add('expanded');
-            const lastCard = section.querySelector('.tour-step-card:last-of-type');
+            // Find the last card in the appropriate phase section or module
+            let lastCard;
+            if (phaseId) {
+                const phaseSection = section.querySelector(`.tour-phase-section[data-phase="${phaseId}"]`);
+                lastCard = phaseSection?.querySelector('.tour-step-card:last-of-type');
+            } else {
+                lastCard = section.querySelector('.tour-step-card:last-of-type');
+            }
             if (lastCard) {
                 lastCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 lastCard.querySelector('.tour-input-title')?.focus();

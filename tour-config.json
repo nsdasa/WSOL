@@ -1,144 +1,256 @@
 {
   "_comment": "Tour Configuration - Edit the title and description text below",
-  "_instructions": "Each module has steps. Each step needs: element (CSS selector), title, description, and position (top/bottom/left/right)",
+  "_instructions": "Modules can use phases: intro (before setup), review (after review mode starts), test (after test mode starts), cardBack (after card is flipped). Or use simple array format for basic tours.",
 
-  "flashcards": [
-    {
-      "element": ".module-flashcards h1",
-      "title": "Welcome to Flashcards!",
-      "description": "Study vocabulary with interactive flashcards. Click cards to flip between the word and translation.",
-      "position": "bottom"
-    },
-    {
-      "element": ".vp-toggle-container",
-      "title": "Voice Practice Mode",
-      "description": "Enable this to practice speaking! You'll be able to record your pronunciation and compare it with native audio.",
-      "position": "bottom"
-    },
-    {
-      "element": ".translation-toggle-container",
-      "title": "Choose Translation Language",
-      "description": "For Maranao and Sinama, select whether you want to see English or Cebuano translations on the card backs.",
-      "position": "bottom"
-    },
-    {
-      "element": "#cardsGrid",
-      "title": "Flashcard Display",
-      "description": "Click any card to flip it and see the translation. Audio will play automatically if available.",
-      "position": "top"
-    },
-    {
-      "element": ".controls",
-      "title": "Navigation Controls",
-      "description": "Use Previous/Next to move between pages, or Restart to go back to the beginning. You can also use arrow keys!",
-      "position": "top"
-    }
-  ],
+  "flashcards": {
+    "intro": [
+      {
+        "element": ".module-flashcards h1",
+        "title": "Welcome to Flashcards!",
+        "description": "Study vocabulary with interactive flashcards. Click cards to flip between the word and translation.",
+        "position": "bottom"
+      },
+      {
+        "element": ".vp-toggle-container",
+        "title": "Voice Practice Mode",
+        "description": "Enable this to practice speaking! You'll be able to record your pronunciation and compare it with native audio.",
+        "position": "bottom"
+      },
+      {
+        "element": ".translation-toggle-container",
+        "title": "Choose Translation Language",
+        "description": "For Maranao and Sinama, select whether you want to see English or Cebuano translations on the card backs.",
+        "position": "bottom"
+      },
+      {
+        "element": "#cardsGrid",
+        "title": "Click to Flip Cards",
+        "description": "Click any card to flip it and reveal the back side. Let me find a card with notes to show you...",
+        "position": "top"
+      }
+    ],
+    "cardBack": [
+      {
+        "element": ".card.flipped .card-back",
+        "title": "The Card Back",
+        "description": "This is the back of a flashcard. It shows the translation and any notes for this word.",
+        "position": "top"
+      },
+      {
+        "element": ".card.flipped .primary-language",
+        "title": "Target Language",
+        "description": "The word in the language you're learning, along with any pronunciation or usage notes.",
+        "position": "right"
+      },
+      {
+        "element": ".card.flipped .secondary-language",
+        "title": "Translation",
+        "description": "The translation in your chosen language (English or Cebuano). Notes provide additional context.",
+        "position": "right"
+      },
+      {
+        "element": ".controls",
+        "title": "Navigation Controls",
+        "description": "Use Previous/Next to move between pages, or Restart to go back to the beginning. You can also use arrow keys!",
+        "position": "top"
+      }
+    ]
+  },
 
-  "match": [
-    {
-      "element": ".module-match h1",
-      "title": "Welcome to Picture Match!",
-      "description": "Test your vocabulary by matching words with their corresponding pictures.",
-      "position": "bottom"
-    },
-    {
-      "element": ".mode-buttons",
-      "title": "Choose Your Mode",
-      "description": "Review Mode: Practice until you master each word (repeat multiple times). Test Mode: One chance per word with a final score.",
-      "position": "bottom"
-    },
-    {
-      "element": "#reviewSettings",
-      "title": "Review Repetitions",
-      "description": "In Review Mode, set how many times you need to match each word correctly before it's considered mastered (default: 3 times).",
-      "position": "bottom"
-    },
-    {
-      "element": ".progress-section",
-      "title": "Track Your Progress",
-      "description": "Watch your progress bar fill up as you correctly match more words!",
-      "position": "bottom"
-    },
-    {
-      "element": "#matchingContainer",
-      "title": "How to Play",
-      "description": "Click a word from the top row, then click the matching picture below. Lines will connect your matches!",
-      "position": "top"
-    },
-    {
-      "element": "#startBtn",
-      "title": "Ready to Start?",
-      "description": "Click Start to begin matching! Good luck!",
-      "position": "left"
-    }
-  ],
+  "match": {
+    "intro": [
+      {
+        "element": ".module-match h1",
+        "title": "Welcome to Picture Match!",
+        "description": "Test your vocabulary by matching words with their corresponding pictures.",
+        "position": "bottom"
+      },
+      {
+        "element": ".mode-buttons",
+        "title": "Choose Your Mode",
+        "description": "Review Mode: Practice until you master each word (repeats multiple times). Test Mode: One chance per word with a final score.",
+        "position": "bottom"
+      },
+      {
+        "element": "#reviewSettings",
+        "title": "Review Repetitions",
+        "description": "In Review Mode, set how many times you need to match each word correctly before it's considered mastered (default: 3 times).",
+        "position": "bottom"
+      }
+    ],
+    "review": [
+      {
+        "element": ".progress-section",
+        "title": "Track Your Progress",
+        "description": "Watch your progress bar fill up as you correctly match more words!",
+        "position": "bottom"
+      },
+      {
+        "element": "#matchingContainer .audio-section",
+        "title": "Words to Match",
+        "description": "These are the words you need to match. Click on a word to select it.",
+        "position": "bottom"
+      },
+      {
+        "element": "#matchingContainer .picture-section",
+        "title": "Pictures",
+        "description": "After selecting a word, click the matching picture. Lines will connect your matches!",
+        "position": "top"
+      },
+      {
+        "element": null,
+        "title": "Review Mode Active",
+        "description": "In Review Mode, you'll keep practicing until you've matched each word correctly the required number of times. Now let's look at Test Mode...",
+        "position": "bottom"
+      }
+    ],
+    "test": [
+      {
+        "element": ".mode-buttons .mode-btn[data-mode='test']",
+        "title": "Test Mode",
+        "description": "You're now in Test Mode! Each word appears only once, and your final score is tracked.",
+        "position": "bottom"
+      },
+      {
+        "element": ".progress-section",
+        "title": "Score Tracking",
+        "description": "In Test Mode, your correct and incorrect matches are counted. Try to get them all right!",
+        "position": "bottom"
+      },
+      {
+        "element": "#startBtn",
+        "title": "Ready to Practice?",
+        "description": "Click Start anytime to begin a new round. Good luck!",
+        "position": "left"
+      }
+    ]
+  },
 
-  "match-sound": [
-    {
-      "element": ".module-match-sound h1",
-      "title": "Welcome to Audio Match!",
-      "description": "Listen to audio and match it with the correct picture. This helps develop your listening skills!",
-      "position": "bottom"
-    },
-    {
-      "element": ".mode-buttons",
-      "title": "Choose Your Mode",
-      "description": "Review Mode: Keep practicing each word until you master it. Test Mode: One attempt per word with scoring.",
-      "position": "bottom"
-    },
-    {
-      "element": "#reviewSettingsSound",
-      "title": "Review Repetitions",
-      "description": "Set how many correct matches needed before a word is mastered in Review Mode.",
-      "position": "bottom"
-    },
-    {
-      "element": "#matchingContainer",
-      "title": "Listen and Match",
-      "description": "Audio will play automatically. Click the picture that matches what you hear. Click the speaker icon to replay!",
-      "position": "top"
-    },
-    {
-      "element": ".progress-section",
-      "title": "Progress Tracker",
-      "description": "See how many words you've successfully matched!",
-      "position": "bottom"
-    }
-  ],
+  "match-sound": {
+    "intro": [
+      {
+        "element": ".module-match-sound h1",
+        "title": "Welcome to Audio Match!",
+        "description": "Listen to audio and match it with the correct picture. This helps develop your listening skills!",
+        "position": "bottom"
+      },
+      {
+        "element": ".mode-buttons",
+        "title": "Choose Your Mode",
+        "description": "Review Mode: Keep practicing each word until you master it. Test Mode: One attempt per word with scoring.",
+        "position": "bottom"
+      },
+      {
+        "element": "#reviewSettingsSound",
+        "title": "Review Repetitions",
+        "description": "Set how many correct matches needed before a word is mastered in Review Mode.",
+        "position": "bottom"
+      }
+    ],
+    "review": [
+      {
+        "element": "#matchingContainer .audio-section",
+        "title": "Listen to the Audio",
+        "description": "Audio plays automatically. Click the speaker icon to replay. Listen carefully to the word!",
+        "position": "bottom"
+      },
+      {
+        "element": "#matchingContainer .picture-section",
+        "title": "Match the Picture",
+        "description": "Click the picture that matches what you hear. A line will connect your selection.",
+        "position": "top"
+      },
+      {
+        "element": ".progress-section",
+        "title": "Progress Tracker",
+        "description": "See how many words you've successfully matched!",
+        "position": "bottom"
+      },
+      {
+        "element": null,
+        "title": "Review Mode Active",
+        "description": "In Review Mode, keep matching until you've mastered each word. Now let's see Test Mode...",
+        "position": "bottom"
+      }
+    ],
+    "test": [
+      {
+        "element": ".mode-buttons .mode-btn[data-mode='test']",
+        "title": "Test Mode",
+        "description": "You're now in Test Mode! Listen carefully - each audio plays only once per word.",
+        "position": "bottom"
+      },
+      {
+        "element": ".progress-section",
+        "title": "Your Score",
+        "description": "Track your correct and incorrect matches. Aim for a perfect score!",
+        "position": "bottom"
+      },
+      {
+        "element": "#startBtn",
+        "title": "Start Listening!",
+        "description": "Click Start to begin. Good luck with your listening practice!",
+        "position": "left"
+      }
+    ]
+  },
 
-  "quiz": [
-    {
-      "element": ".module-quiz h1",
-      "title": "Welcome to Unsa Ni?",
-      "description": "\"Unsa Ni?\" means \"What is this?\" in Cebuano. Type the correct word for each picture!",
-      "position": "bottom"
-    },
-    {
-      "element": ".mode-buttons",
-      "title": "Select Mode",
-      "description": "Review Mode: Practice with spaced repetition until mastered. Test Mode: Go through all cards once with scoring.",
-      "position": "bottom"
-    },
-    {
-      "element": "#quizContainer .center-panel",
-      "title": "Picture Display",
-      "description": "Look at the picture and type the corresponding word in your target language.",
-      "position": "left"
-    },
-    {
-      "element": "#quizContainer .left-panel",
-      "title": "Type Your Answer",
-      "description": "Enter the word in the input field and press Enter or click Submit. The system accepts multiple correct spellings!",
-      "position": "right"
-    },
-    {
-      "element": "#rightPanel",
-      "title": "Score Tracking",
-      "description": "In Test Mode, see your correct and incorrect counts here as you progress.",
-      "position": "left"
-    }
-  ],
+  "quiz": {
+    "intro": [
+      {
+        "element": ".module-quiz h1",
+        "title": "Welcome to Unsa Ni?",
+        "description": "\"Unsa Ni?\" means \"What is this?\" in Cebuano. Type the correct word for each picture!",
+        "position": "bottom"
+      },
+      {
+        "element": ".mode-buttons",
+        "title": "Select Mode",
+        "description": "Review Mode: Practice with spaced repetition until mastered. Test Mode: Go through all cards once with scoring.",
+        "position": "bottom"
+      }
+    ],
+    "review": [
+      {
+        "element": "#quizContainer .center-panel",
+        "title": "Picture Display",
+        "description": "Look at the picture and think of the word in your target language.",
+        "position": "left"
+      },
+      {
+        "element": "#quizContainer .left-panel",
+        "title": "Type Your Answer",
+        "description": "Enter the word in the input field and press Enter or click Submit. The system accepts multiple correct spellings!",
+        "position": "right"
+      },
+      {
+        "element": null,
+        "title": "Review Mode Active",
+        "description": "In Review Mode, words you miss will come back for more practice. Now let's see Test Mode...",
+        "position": "bottom"
+      }
+    ],
+    "test": [
+      {
+        "element": ".mode-buttons .mode-btn[data-mode='test']",
+        "title": "Test Mode",
+        "description": "You're now in Test Mode! Each word appears once, and you'll see your final score at the end.",
+        "position": "bottom"
+      },
+      {
+        "element": "#rightPanel",
+        "title": "Score Tracking",
+        "description": "In Test Mode, see your correct and incorrect counts here as you progress.",
+        "position": "left"
+      },
+      {
+        "element": "#startBtn",
+        "title": "Ready to Test?",
+        "description": "Click Start to begin the quiz. Type carefully and good luck!",
+        "position": "left"
+      }
+    ]
+  },
 
   "rec": [
     {
