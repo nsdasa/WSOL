@@ -1177,8 +1177,50 @@ class DeckBuilderModule extends LearningModule {
             currentFilePath = audioPaths[variantIndex] || null;
         }
 
-        if (currentFilePath) {
-            currentFileName = currentFilePath.split('/').pop();
+        // Determine modal title based on file type
+        let modalTitle = '';
+        if (fileType === 'png') {
+            modalTitle = 'Select Image File (PNG/JPG/JPEG/WebP)';
+        } else if (fileType === 'gif') {
+            modalTitle = 'Select Video/Animation File (GIF/MP4/WebM)';
+        } else if (fileType === 'audio') {
+            modalTitle = `Select Audio File (MP3/M4A) ${audioLang ? `(${audioLang.toUpperCase()})` : ''}`;
+        }
+
+        // Get all linked files for this card from manifest.images
+        const linkedFiles = [];
+        const imageData = this.assets?.manifest?.images?.[cardId] || {};
+
+        if (fileType === 'png') {
+            // Show all static image formats
+            if (imageData.png) linkedFiles.push({ format: 'PNG', path: imageData.png });
+            if (imageData.jpg) linkedFiles.push({ format: 'JPG', path: imageData.jpg });
+            if (imageData.jpeg) linkedFiles.push({ format: 'JPEG', path: imageData.jpeg });
+            if (imageData.webp) linkedFiles.push({ format: 'WebP', path: imageData.webp });
+        } else if (fileType === 'gif') {
+            // Show all video/animation formats
+            if (imageData.gif) linkedFiles.push({ format: 'GIF', path: imageData.gif });
+            if (imageData.mp4) linkedFiles.push({ format: 'MP4', path: imageData.mp4 });
+            if (imageData.webm) linkedFiles.push({ format: 'WebM', path: imageData.webm });
+        }
+
+        // Build current files display
+        let currentFilesHTML = '';
+        if (linkedFiles.length > 0) {
+            currentFilesHTML = `
+                <div class="linked-files-list">
+                    ${linkedFiles.map(file => `
+                        <div class="linked-file-item">
+                            <span class="format-badge">${file.format}</span>
+                            <span class="file-name">${file.path.split('/').pop()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else if (currentFilePath) {
+            currentFilesHTML = `<span class="current-file-name">${currentFileName}</span>`;
+        } else {
+            currentFilesHTML = `<span class="current-file-name">No file selected</span>`;
         }
 
         // Create modal overlay
@@ -1189,7 +1231,7 @@ class DeckBuilderModule extends LearningModule {
                 <div class="file-selection-header">
                     <h3>
                         <i class="fas fa-file"></i>
-                        Select ${fileType.toUpperCase()} ${audioLang ? `(${audioLang.toUpperCase()})` : ''} File
+                        ${modalTitle}
                     </h3>
                     <button class="close-modal-btn" id="closeFileModal">
                         <i class="fas fa-times"></i>
@@ -1216,8 +1258,8 @@ class DeckBuilderModule extends LearningModule {
                         <!-- Current File Preview -->
                         <div class="current-file-preview" id="currentFilePreview">
                             <div class="current-file-header">
-                                <strong><i class="fas fa-file-image"></i> Current File:</strong>
-                                <span class="current-file-name">${currentFileName}</span>
+                                <strong><i class="fas fa-link"></i> Linked Files for Card #${cardId}:</strong>
+                                ${currentFilesHTML}
                             </div>
                             <div class="current-file-display" id="currentFileDisplay">
                                 ${this.generateCurrentFilePreview(currentFilePath, fileType)}
@@ -1225,11 +1267,24 @@ class DeckBuilderModule extends LearningModule {
                         </div>
 
                         <div class="file-browser-controls">
-                            <input type="text" id="fileBrowserSearch" class="form-input" 
+                            <input type="text" id="fileBrowserSearch" class="form-input"
                                 placeholder="Search files...">
                             <select id="fileBrowserFilter" class="select-control">
                                 <option value="all">All Files</option>
-                                <option value="${fileType === 'audio' ? 'audio' : fileType}">${fileType.toUpperCase()} Only</option>
+                                ${fileType === 'png' ? `
+                                    <option value="png">PNG Only</option>
+                                    <option value="jpg">JPG Only</option>
+                                    <option value="webp">WebP Only</option>
+                                ` : ''}
+                                ${fileType === 'gif' ? `
+                                    <option value="gif">GIF Only</option>
+                                    <option value="mp4">MP4 Only</option>
+                                    <option value="webm">WebM Only</option>
+                                ` : ''}
+                                ${fileType === 'audio' ? `
+                                    <option value="mp3">MP3 Only</option>
+                                    <option value="m4a">M4A Only</option>
+                                ` : ''}
                             </select>
                         </div>
                         <div class="file-browser-grid" id="fileBrowserGrid">
