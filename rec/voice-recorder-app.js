@@ -964,22 +964,27 @@ class VoiceRecorderApp {
             this.showToast('Please enter a filename', 'warning');
             return;
         }
-        
+
+        // Save blob/file to local variables BEFORE closing dialog
+        const blobToUpload = this.pendingBlob;
+        const fileToUpload = this.pendingFile;
+
+        // Close dialog and clear pending
         this.closeFilenameDialog();
         this.showToast('Uploading...', 'warning');
-        
+
         try {
             const formData = new FormData();
-            
-            if (this.pendingBlob) {
-                formData.append('audio', this.pendingBlob, filename);
-            } else if (this.pendingFile) {
-                formData.append('audio', this.pendingFile, filename);
+
+            if (blobToUpload) {
+                formData.append('audio', blobToUpload, filename);
+            } else if (fileToUpload) {
+                formData.append('audio', fileToUpload, filename);
             }
-            
+
             formData.append('filename', filename);
-            
-            console.log('Uploading audio:', filename, 'Blob size:', this.pendingBlob?.size || this.pendingFile?.size);
+
+            console.log('Uploading audio:', filename, 'Blob size:', blobToUpload?.size || fileToUpload?.size);
 
             const response = await fetch('../upload-audio.php', {
                 method: 'POST',
@@ -1020,9 +1025,6 @@ class VoiceRecorderApp {
         } catch (err) {
             this.showToast(`Upload error: ${err.message}`, 'error');
         }
-        
-        this.pendingFile = null;
-        this.pendingBlob = null;
     }
     
     cleanupRecorder() {
