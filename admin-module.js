@@ -224,6 +224,28 @@ class AdminModule extends LearningModule {
                         </div>
                     </div>
                 </div>
+
+                <div class="admin-section">
+                    <h3 class="section-title"><i class="fas fa-route"></i> Tour Guide Editor</h3>
+                    <div class="card" style="background:var(--bg-secondary);">
+                        <p style="margin-bottom:16px;color:var(--text-secondary);">
+                            Edit the guided tour text that appears when users click "Show Tour" in each module.
+                        </p>
+                        <div id="tourEditorContainer">
+                            <div class="tour-editor-loading">
+                                <i class="fas fa-spinner fa-spin"></i> Loading tour configuration...
+                            </div>
+                        </div>
+                        <div class="tour-editor-actions" style="margin-top:16px;display:flex;gap:12px;">
+                            <button id="saveTourConfigBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <button id="resetTourConfigBtn" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> Reset to Saved
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -240,6 +262,7 @@ class AdminModule extends LearningModule {
         this.setupMediaUpload();
         this.setupDebugControls();
         this.setupSessionTimeout();
+        this.setupTourEditor();
         
         // Close scan modal button
         const closeScanModal = document.getElementById('closeScanModal');
@@ -1250,6 +1273,330 @@ class AdminModule extends LearningModule {
                 this.updateDebugLog();
             }
         }, 2000);
+    }
+
+    // =========================================
+    // TOUR EDITOR
+    // =========================================
+
+    async setupTourEditor() {
+        this.tourConfig = null;
+        this.tourConfigModified = false;
+
+        const container = document.getElementById('tourEditorContainer');
+        const saveBtn = document.getElementById('saveTourConfigBtn');
+        const resetBtn = document.getElementById('resetTourConfigBtn');
+
+        if (!container) return;
+
+        // Load the tour configuration
+        try {
+            const response = await fetch('tour-config.json?v=' + Date.now());
+            if (!response.ok) throw new Error('Failed to load config');
+            this.tourConfig = await response.json();
+            this.renderTourEditor();
+        } catch (error) {
+            container.innerHTML = `
+                <div class="tour-editor-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load tour configuration: ${error.message}</p>
+                    <button class="btn btn-secondary" onclick="location.reload()">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        // Save button handler
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveTourConfig());
+        }
+
+        // Reset button handler
+        if (resetBtn) {
+            resetBtn.addEventListener('click', async () => {
+                if (confirm('Discard all changes and reload from saved configuration?')) {
+                    const response = await fetch('tour-config.json?v=' + Date.now());
+                    this.tourConfig = await response.json();
+                    this.tourConfigModified = false;
+                    this.renderTourEditor();
+                    this.updateTourSaveButton();
+                    toastManager?.show('Configuration reset', 'info');
+                }
+            });
+        }
+    }
+
+    renderTourEditor() {
+        const container = document.getElementById('tourEditorContainer');
+        if (!container || !this.tourConfig) return;
+
+        const moduleNames = {
+            'flashcards': 'Flashcards',
+            'match': 'Picture Match',
+            'match-sound': 'Audio Match',
+            'quiz': 'Unsa Ni? Quiz',
+            'rec': 'Voice Recorder'
+        };
+
+        let html = '<div class="tour-editor-modules">';
+
+        for (const [moduleId, steps] of Object.entries(this.tourConfig)) {
+            // Skip comment fields
+            if (moduleId.startsWith('_')) continue;
+
+            const moduleName = moduleNames[moduleId] || moduleId;
+            const stepCount = Array.isArray(steps) ? steps.length : 0;
+
+            html += `
+                <div class="tour-module-section" data-module="${moduleId}">
+                    <div class="tour-module-header" onclick="this.parentElement.classList.toggle('expanded')">
+                        <span class="tour-module-toggle"><i class="fas fa-chevron-right"></i></span>
+                        <span class="tour-module-name">${moduleName}</span>
+                        <span class="tour-module-count">${stepCount} steps</span>
+                    </div>
+                    <div class="tour-module-steps">
+                        ${this.renderTourSteps(moduleId, steps)}
+                        <button class="btn btn-sm btn-secondary tour-add-step-btn" data-module="${moduleId}">
+                            <i class="fas fa-plus"></i> Add Step
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+
+        // Setup step editing handlers
+        this.setupTourStepHandlers();
+    }
+
+    renderTourSteps(moduleId, steps) {
+        if (!Array.isArray(steps) || steps.length === 0) {
+            return '<p class="tour-no-steps">No steps defined</p>';
+        }
+
+        return steps.map((step, index) => `
+            <div class="tour-step-card" data-module="${moduleId}" data-index="${index}">
+                <div class="tour-step-header">
+                    <span class="tour-step-number">Step ${index + 1}</span>
+                    <div class="tour-step-actions">
+                        <button class="btn-icon tour-move-up" title="Move up" ${index === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button class="btn-icon tour-move-down" title="Move down" ${index === steps.length - 1 ? 'disabled' : ''}>
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="btn-icon tour-delete-step" title="Delete step">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="tour-step-fields">
+                    <div class="tour-field">
+                        <label>Element Selector</label>
+                        <input type="text" class="form-input tour-input-element" value="${this.escapeHtml(step.element || '')}" placeholder="CSS selector (e.g., #myButton)">
+                    </div>
+                    <div class="tour-field">
+                        <label>Title</label>
+                        <input type="text" class="form-input tour-input-title" value="${this.escapeHtml(step.title || '')}" placeholder="Step title">
+                    </div>
+                    <div class="tour-field">
+                        <label>Description</label>
+                        <textarea class="form-input tour-input-description" rows="2" placeholder="Step description">${this.escapeHtml(step.description || '')}</textarea>
+                    </div>
+                    <div class="tour-field tour-field-small">
+                        <label>Position</label>
+                        <select class="form-input tour-input-position">
+                            <option value="bottom" ${step.position === 'bottom' ? 'selected' : ''}>Bottom</option>
+                            <option value="top" ${step.position === 'top' ? 'selected' : ''}>Top</option>
+                            <option value="left" ${step.position === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="right" ${step.position === 'right' ? 'selected' : ''}>Right</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    setupTourStepHandlers() {
+        const container = document.getElementById('tourEditorContainer');
+        if (!container) return;
+
+        // Handle input changes
+        container.querySelectorAll('.tour-input-element, .tour-input-title, .tour-input-description, .tour-input-position').forEach(input => {
+            input.addEventListener('input', (e) => this.handleTourInputChange(e));
+            input.addEventListener('change', (e) => this.handleTourInputChange(e));
+        });
+
+        // Handle move up buttons
+        container.querySelectorAll('.tour-move-up').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const card = e.target.closest('.tour-step-card');
+                const moduleId = card.dataset.module;
+                const index = parseInt(card.dataset.index);
+                this.moveTourStep(moduleId, index, -1);
+            });
+        });
+
+        // Handle move down buttons
+        container.querySelectorAll('.tour-move-down').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const card = e.target.closest('.tour-step-card');
+                const moduleId = card.dataset.module;
+                const index = parseInt(card.dataset.index);
+                this.moveTourStep(moduleId, index, 1);
+            });
+        });
+
+        // Handle delete buttons
+        container.querySelectorAll('.tour-delete-step').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (confirm('Delete this step?')) {
+                    const card = e.target.closest('.tour-step-card');
+                    const moduleId = card.dataset.module;
+                    const index = parseInt(card.dataset.index);
+                    this.deleteTourStep(moduleId, index);
+                }
+            });
+        });
+
+        // Handle add step buttons
+        container.querySelectorAll('.tour-add-step-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const moduleId = e.target.dataset.module;
+                this.addTourStep(moduleId);
+            });
+        });
+    }
+
+    handleTourInputChange(e) {
+        const card = e.target.closest('.tour-step-card');
+        if (!card) return;
+
+        const moduleId = card.dataset.module;
+        const index = parseInt(card.dataset.index);
+
+        const element = card.querySelector('.tour-input-element').value;
+        const title = card.querySelector('.tour-input-title').value;
+        const description = card.querySelector('.tour-input-description').value;
+        const position = card.querySelector('.tour-input-position').value;
+
+        if (this.tourConfig[moduleId] && this.tourConfig[moduleId][index]) {
+            this.tourConfig[moduleId][index] = { element, title, description, position };
+            this.tourConfigModified = true;
+            this.updateTourSaveButton();
+        }
+    }
+
+    moveTourStep(moduleId, index, direction) {
+        const steps = this.tourConfig[moduleId];
+        if (!steps) return;
+
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= steps.length) return;
+
+        // Swap steps
+        [steps[index], steps[newIndex]] = [steps[newIndex], steps[index]];
+
+        this.tourConfigModified = true;
+        this.renderTourEditor();
+        this.updateTourSaveButton();
+
+        // Re-expand the module section
+        const section = document.querySelector(`.tour-module-section[data-module="${moduleId}"]`);
+        if (section) section.classList.add('expanded');
+    }
+
+    deleteTourStep(moduleId, index) {
+        if (!this.tourConfig[moduleId]) return;
+
+        this.tourConfig[moduleId].splice(index, 1);
+        this.tourConfigModified = true;
+        this.renderTourEditor();
+        this.updateTourSaveButton();
+
+        // Re-expand the module section
+        const section = document.querySelector(`.tour-module-section[data-module="${moduleId}"]`);
+        if (section) section.classList.add('expanded');
+    }
+
+    addTourStep(moduleId) {
+        if (!this.tourConfig[moduleId]) {
+            this.tourConfig[moduleId] = [];
+        }
+
+        this.tourConfig[moduleId].push({
+            element: '',
+            title: 'New Step',
+            description: 'Enter description here',
+            position: 'bottom'
+        });
+
+        this.tourConfigModified = true;
+        this.renderTourEditor();
+        this.updateTourSaveButton();
+
+        // Expand the module section and scroll to new step
+        const section = document.querySelector(`.tour-module-section[data-module="${moduleId}"]`);
+        if (section) {
+            section.classList.add('expanded');
+            const lastCard = section.querySelector('.tour-step-card:last-of-type');
+            if (lastCard) {
+                lastCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                lastCard.querySelector('.tour-input-title')?.focus();
+            }
+        }
+    }
+
+    updateTourSaveButton() {
+        const saveBtn = document.getElementById('saveTourConfigBtn');
+        if (saveBtn) {
+            saveBtn.disabled = !this.tourConfigModified;
+        }
+    }
+
+    async saveTourConfig() {
+        const saveBtn = document.getElementById('saveTourConfigBtn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        }
+
+        try {
+            const response = await fetch('save-tour-config.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.tourConfig)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to save');
+            }
+
+            this.tourConfigModified = false;
+            toastManager?.show('Tour configuration saved!', 'success');
+            debugLogger?.log(0, 'Tour configuration saved');
+
+        } catch (error) {
+            toastManager?.show(`Error saving: ${error.message}`, 'error');
+            debugLogger?.log(1, `Tour config save error: ${error.message}`);
+        } finally {
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                this.updateTourSaveButton();
+            }
+        }
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     destroy() {
