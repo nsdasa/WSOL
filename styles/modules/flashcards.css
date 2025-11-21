@@ -132,7 +132,8 @@
     opacity: 1;
 }
 
-.card-front img {
+.card-front img,
+.card-front video {
     width: 100%;
     height: 100%;
     object-fit: contain;
