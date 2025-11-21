@@ -64,7 +64,7 @@ function cacheBust($file) {
     <link rel="stylesheet" href="voice-recorder.css?v=<?php echo time(); ?>">
 
     <!-- Driver.js for onboarding tours -->
-    <link rel="stylesheet" href="https://unpkg.com/driver.js@1.3.1/dist/driver.css"/>
+    <link rel="stylesheet" href="../assets/vendor/driver.css?v=<?php echo cacheBust('assets/vendor/driver.css'); ?>"/>
 </head>
 <body>
     <?php if (!$hasAccess): ?>
@@ -352,7 +352,7 @@ function cacheBust($file) {
     <script src="voice-recorder-app.js?v=<?php echo time(); ?>"></script>
 
     <!-- Driver.js for onboarding tours -->
-    <script src="https://unpkg.com/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+    <script src="../assets/vendor/driver.js?v=<?php echo cacheBust('assets/vendor/driver.js'); ?>"></script>
     <script src="../tour-guide.js?v=<?php echo time(); ?>"></script>
     <?php endif; ?>
 </body>

@@ -122,13 +122,8 @@ class FlashcardsModule extends LearningModule {
                 (voicePracticeManager?.isEnabled() ? ' Click the Mic icon to practice pronunciation.' : '')
             );
         }
-
-        // Initialize tour for first-time users
-        if (typeof initTour !== 'undefined') {
-            initTour('flashcards');
-        }
     }
-    
+
     restart() {
         this.currentIndex = 0;
         this.renderPage();
