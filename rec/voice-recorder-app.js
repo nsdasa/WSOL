@@ -180,24 +180,27 @@ class VoiceRecorderApp {
     }
     
     filterCards() {
+        console.log('filterCards called');
         const fromLesson = parseInt(document.getElementById('lessonFilterFrom').value) || 0;
         const toLesson = parseInt(document.getElementById('lessonFilterTo').value) || 999;
         const search = document.getElementById('searchCards').value.toLowerCase().trim();
-        
+
         this.filteredCards = this.allCards.filter(card => {
             const lesson = card.lesson || 0;
             if (lesson < fromLesson || lesson > toLesson) return false;
-            
+
             if (search) {
                 const word = (card.word || '').toLowerCase();
                 const english = (card.english || '').toLowerCase();
                 if (!word.includes(search) && !english.includes(search)) return false;
             }
-            
+
             return true;
         });
-        
+
+        console.log('Calling renderCards...');
         this.renderCards();
+        console.log('Calling updateStats...');
         this.updateStats();
     }
     
@@ -996,7 +999,12 @@ class VoiceRecorderApp {
             console.log('Upload result:', result);
 
             if (result.success) {
+                console.log('Finding card with ID:', this.currentCardId);
                 const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
+                console.log('Found card:', card);
+                console.log('Current variant index:', this.currentVariantIndex);
+                console.log('Card audio before update:', card?.audio);
+
                 if (card) {
                     // Handle multi-variant audio (audio as array)
                     // Ensure audio is array
@@ -1013,8 +1021,12 @@ class VoiceRecorderApp {
                     card.audio[this.currentVariantIndex] = result.path;
                     card.hasAudio = true;
 
+                    console.log('Card audio after update:', card.audio);
+                    console.log('Card hasAudio:', card.hasAudio);
+
                     // Mark card as edited for saving to manifest
                     this.markCardAsEdited(card);
+                    console.log('Edited cards count:', this.editedCards.size);
                 }
 
                 this.filterCards();
@@ -1062,19 +1074,24 @@ class VoiceRecorderApp {
 
     markCardAsEdited(card) {
         const cardId = card.cardNum || card.wordNum;
+        console.log('markCardAsEdited called for card:', cardId);
         this.editedCards.set(cardId, card);
+        console.log('editedCards after set:', this.editedCards);
         this.updateSaveButton();
     }
 
     updateSaveButton() {
+        console.log('updateSaveButton called, edited count:', this.editedCards.size);
         const saveBtn = document.getElementById('saveChangesBtn');
         if (this.editedCards.size > 0) {
             saveBtn.disabled = false;
             saveBtn.textContent = ` Save Changes (${this.editedCards.size})`;
             saveBtn.innerHTML = `<i class="fas fa-save"></i> Save Changes (${this.editedCards.size})`;
+            console.log('Save button enabled');
         } else {
             saveBtn.disabled = true;
             saveBtn.innerHTML = `<i class="fas fa-save"></i> Save Changes`;
+            console.log('Save button disabled');
         }
     }
 
