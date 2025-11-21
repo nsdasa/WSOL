@@ -297,14 +297,16 @@
 .audio-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    min-height: 44px; /* Touch-friendly minimum size */
+    touch-action: manipulation; /* Prevents double-tap zoom on mobile */
 }
 
 .audio-badge.has-audio {
@@ -447,6 +449,67 @@
 /* File Browser */
 .file-browser-controls {
     margin-bottom: 12px;
+}
+
+/* Current File Preview */
+.current-file-preview {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.current-file-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.current-file-name {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.current-file-display {
+    margin-top: 8px;
+}
+
+.no-current-file {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px;
+}
+
+.no-current-file i {
+    font-size: 32px;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+.no-current-file p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.current-audio-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.audio-preview-icon {
+    font-size: 48px;
+    color: var(--primary);
+}
+
+.audio-preview-icon i {
+    opacity: 0.7;
 }
 
 .file-browser-grid {
@@ -842,10 +905,16 @@
     
     /* Compact audio badge on mobile */
     .audio-badge {
-        padding: 4px 8px;
-        font-size: 11px;
+        padding: 12px 18px;
+        font-size: 15px;
+        gap: 10px;
+        min-height: 48px; /* Even larger on mobile for better touch */
     }
-    
+
+    .audio-badge i {
+        font-size: 16px;
+    }
+
     /* Status badge compact */
     .status-badge {
         font-size: 10px;
@@ -943,13 +1012,13 @@
     }
     
     .audio-badge {
-        padding: 3px 6px;
-        font-size: 10px;
-        gap: 4px;
+        padding: 12px 16px;
+        font-size: 14px;
+        gap: 8px;
+        min-height: 48px;
     }
-    
-    /* Hide text on audio badge, show only icon */
-    .audio-badge span {
-        display: none;
+
+    .audio-badge i {
+        font-size: 15px;
     }
 }

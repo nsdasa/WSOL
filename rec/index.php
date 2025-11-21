@@ -131,7 +131,17 @@ function cacheBust($file) {
                     <option value="sin">Sinama</option>
                 </select>
             </div>
-            
+
+            <div class="filter-group" id="translationLangGroup" style="display: none;">
+                <label for="translationLangFilter">
+                    <i class="fas fa-globe"></i> Translation:
+                </label>
+                <select id="translationLangFilter" class="select-control">
+                    <option value="eng">English</option>
+                    <option value="ceb">Cebuano</option>
+                </select>
+            </div>
+
             <div class="filter-group">
                 <label for="lessonFilterFrom">
                     <i class="fas fa-filter"></i> Lesson:
@@ -168,17 +178,16 @@ function cacheBust($file) {
             <table class="cards-table" id="cardsTable">
                 <thead>
                     <tr>
+                        <th class="col-audio">Audio</th>
+                        <th class="col-word">Word</th>
+                        <th class="col-english">Translation</th>
                         <th class="col-lesson">Lesson</th>
                         <th class="col-card">Card #</th>
-                        <th class="col-word">Word</th>
-                        <th class="col-english">English</th>
-                        <th class="col-audio">Audio</th>
-                        <th class="col-status">Status</th>
                     </tr>
                 </thead>
                 <tbody id="cardsTableBody">
                     <tr>
-                        <td colspan="6" class="loading-cell">
+                        <td colspan="5" class="loading-cell">
                             <i class="fas fa-spinner fa-spin"></i> Loading cards...
                         </td>
                     </tr>

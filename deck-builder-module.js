@@ -1834,28 +1834,30 @@ class DeckBuilderModule extends LearningModule {
     }
 
     /**
-     * Make marker draggable
+     * Make marker draggable (with touch support)
      */
     makeMarkerDraggable(markerEl, canvas, type, modal) {
         let isDragging = false;
 
-        markerEl.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            e.preventDefault();
-        });
+        // Helper function to get position from event (mouse or touch)
+        const getPositionFromEvent = (e, rect) => {
+            let clientX;
+            if (e.type.startsWith('touch')) {
+                clientX = e.touches[0]?.clientX || e.changedTouches[0]?.clientX;
+            } else {
+                clientX = e.clientX;
+            }
+            const x = clientX - rect.left;
+            return Math.max(0, Math.min(1, x / rect.width));
+        };
 
-        document.addEventListener('mousemove', (e) => {
+        // Update marker position
+        const updateMarkerPosition = (e) => {
             if (!isDragging) return;
-            
-            // Use actual displayed width from getBoundingClientRect
+
             const rect = canvas.getBoundingClientRect();
-            const containerWidth = rect.width;
-            
-            let x = e.clientX - rect.left;
-            x = Math.max(0, Math.min(containerWidth, x));
-            
-            const position = x / containerWidth;
-            
+            const position = getPositionFromEvent(e, rect);
+
             if (type === 'start') {
                 if (position < this.audioRecorder.markerEnd - 0.01) {
                     this.audioRecorder.markerStart = position;
@@ -1867,9 +1869,38 @@ class DeckBuilderModule extends LearningModule {
                     markerEl.style.left = `${position * 100}%`;
                 }
             }
+        };
+
+        // Mouse events
+        markerEl.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            e.preventDefault();
         });
 
+        document.addEventListener('mousemove', updateMarkerPosition);
+
         document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Touch events for mobile
+        markerEl.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                updateMarkerPosition(e);
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        document.addEventListener('touchcancel', () => {
             isDragging = false;
         });
     }
@@ -1905,6 +1936,59 @@ class DeckBuilderModule extends LearningModule {
         // Reset markers
         this.audioRecorder.markerStart = 0;
         this.audioRecorder.markerEnd = 1;
+    }
+
+    /**
+     * Encode AudioBuffer to different formats (Opus, M4A, or WAV)
+     */
+    async encodeAudioBuffer(audioBuffer, format) {
+        const mimeTypes = {
+            'opus': 'audio/webm;codecs=opus',
+            'm4a': 'audio/mp4',
+            'wav': 'audio/wav'
+        };
+
+        const mimeType = mimeTypes[format] || mimeTypes.opus;
+
+        // For WAV, use the existing WAV encoder
+        if (format === 'wav') {
+            return this.audioBufferToBlob(audioBuffer);
+        }
+
+        // For Opus and M4A, use MediaRecorder
+        return new Promise((resolve, reject) => {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+
+            const destination = audioContext.createMediaStreamDestination();
+            source.connect(destination);
+
+            const chunks = [];
+            const mediaRecorder = new MediaRecorder(destination.stream, {
+                mimeType: mimeType,
+                audioBitsPerSecond: 128000
+            });
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                audioContext.close();
+                resolve(blob);
+            };
+
+            mediaRecorder.onerror = (e) => {
+                audioContext.close();
+                reject(e);
+            };
+
+            mediaRecorder.start();
+            source.start(0);
+            source.onended = () => mediaRecorder.stop();
+        });
     }
 
     /**
@@ -1999,15 +2083,22 @@ class DeckBuilderModule extends LearningModule {
             console.error('Error closing modal:', err);
         }
 
-        // Show filename edit dialog
-        this.showFilenameDialog(defaultFilename, async (finalFilename) => {
+        // Show filename edit dialog with audio format selection
+        this.showFilenameDialog(defaultFilename, async (finalFilename, selectedFormat) => {
             // Show uploading message
             toastManager.show('Uploading audio...', 'warning', 3000);
 
             try {
+                // Re-encode if format is different from WAV
+                let finalBlob = audioBlob;
+                if (selectedFormat && selectedFormat !== 'wav' && this.audioRecorder.audioBuffer) {
+                    toastManager.show(`Converting to ${selectedFormat.toUpperCase()}...`, 'warning', 3000);
+                    finalBlob = await this.encodeAudioBuffer(this.audioRecorder.audioBuffer, selectedFormat);
+                }
+
                 // Upload the audio blob to the server
                 const formData = new FormData();
-                formData.append('audio', audioBlob, finalFilename);
+                formData.append('audio', finalBlob, finalFilename);
                 formData.append('filename', finalFilename);
 
                 const response = await fetch('upload-audio.php', {
@@ -2082,6 +2173,21 @@ class DeckBuilderModule extends LearningModule {
             }
         }
         
+        // Add format selector for audio files
+        let formatSelectorHtml = '';
+        if (fileType === 'audio') {
+            formatSelectorHtml = `
+                <div class="form-group">
+                    <label class="form-label">Audio Format</label>
+                    <select id="audioFormatSelect" class="form-input">
+                        <option value="opus">Opus (Recommended - Smallest, Best Quality)</option>
+                        <option value="m4a">M4A (Good Compatibility)</option>
+                        <option value="wav">WAV (Uncompressed, Large)</option>
+                    </select>
+                </div>
+            `;
+        }
+
         dialog.innerHTML = `
             <div class="filename-dialog">
                 <div class="filename-dialog-header">
@@ -2093,6 +2199,7 @@ class DeckBuilderModule extends LearningModule {
                         <label class="form-label">Filename</label>
                         <input type="text" id="filenameInput" class="form-input" value="${defaultFilename}">
                     </div>
+                    ${formatSelectorHtml}
                     <p class="filename-hint">
                         <i class="fas fa-info-circle"></i>
                         File will be saved to the assets folder
@@ -2119,12 +2226,32 @@ class DeckBuilderModule extends LearningModule {
             input.setSelectionRange(0, dotIndex);
         }
 
+        // Format selector auto-update extension
+        if (fileType === 'audio') {
+            const formatSelect = dialog.querySelector('#audioFormatSelect');
+            formatSelect.addEventListener('change', () => {
+                const currentFilename = input.value;
+                const lastDotIndex = currentFilename.lastIndexOf('.');
+                if (lastDotIndex > 0) {
+                    const baseName = currentFilename.substring(0, lastDotIndex);
+                    const newExtension = formatSelect.value;
+                    input.value = `${baseName}.${newExtension}`;
+                }
+            });
+        }
+
         // Confirm button
         dialog.querySelector('#confirmFilenameBtn').addEventListener('click', () => {
             const filename = input.value.trim();
             if (filename) {
                 document.body.removeChild(dialog);
-                onConfirm(filename);
+                // Pass both filename and format for audio files
+                if (fileType === 'audio') {
+                    const formatSelect = dialog.querySelector('#audioFormatSelect');
+                    onConfirm(filename, formatSelect.value);
+                } else {
+                    onConfirm(filename);
+                }
             } else {
                 toastManager.show('Please enter a filename', 'warning');
             }

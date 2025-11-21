@@ -1552,15 +1552,20 @@
     width: 3px;
     cursor: ew-resize;
     z-index: 10;
+    /* Larger touch target for mobile */
+    padding: 0 15px;
+    margin-left: -15px;
+    touch-action: none;
 }
 
 .marker::before {
+    /* Invisible touch area for better mobile interaction */
     content: '';
     position: absolute;
-    top: 0;
-    left: -5px;
-    right: -5px;
-    bottom: 0;
+    top: -10px;
+    bottom: -10px;
+    left: 0;
+    right: 0;
 }
 
 .marker::after {
@@ -1569,9 +1574,10 @@
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .marker-start {

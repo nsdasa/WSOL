@@ -6,6 +6,8 @@
 class VoiceRecorderApp {
     constructor() {
         this.currentLanguage = 'ceb';
+        this.translationLanguage = 'eng'; // Default to English for translations
+        this.cebuanoCards = []; // Store Cebuano cards for translation lookup
         this.languageNames = {
             'ceb': 'Cebuano',
             'mrw': 'Maranao',
@@ -24,6 +26,7 @@ class VoiceRecorderApp {
     async init() {
         this.setupEventListeners();
         this.setupThemeToggle();
+        this.updateTranslationSelectorVisibility();
         await this.loadCards();
     }
     
@@ -31,7 +34,14 @@ class VoiceRecorderApp {
         // Language filter
         document.getElementById('languageFilter').addEventListener('change', (e) => {
             this.currentLanguage = e.target.value;
+            this.updateTranslationSelectorVisibility();
             this.loadCards();
+        });
+
+        // Translation language filter (for mrw/sin)
+        document.getElementById('translationLangFilter').addEventListener('change', (e) => {
+            this.translationLanguage = e.target.value;
+            this.renderCards();
         });
         
         // Lesson filters
@@ -103,12 +113,22 @@ class VoiceRecorderApp {
         });
     }
     
+    updateTranslationSelectorVisibility() {
+        const translationGroup = document.getElementById('translationLangGroup');
+        // Show translation selector only for Maranao and Sinama
+        if (this.currentLanguage === 'mrw' || this.currentLanguage === 'sin') {
+            translationGroup.style.display = '';
+        } else {
+            translationGroup.style.display = 'none';
+        }
+    }
+
     setupThemeToggle() {
         const toggle = document.getElementById('themeToggle');
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeIcon(savedTheme);
-        
+
         toggle.addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme');
             const newTheme = current === 'light' ? 'dark' : 'light';
@@ -147,6 +167,11 @@ class VoiceRecorderApp {
             if (isV4) {
                 // v4.0 structure: manifest.cards is an object with language keys
                 this.allCards = manifest.cards[this.currentLanguage] || [];
+
+                // Load Cebuano cards for translation lookup (for mrw/sin)
+                if (this.currentLanguage === 'mrw' || this.currentLanguage === 'sin') {
+                    this.cebuanoCards = manifest.cards['ceb'] || [];
+                }
 
                 // Merge image data if available
                 if (manifest.images) {
@@ -210,7 +235,7 @@ class VoiceRecorderApp {
         if (this.filteredCards.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="loading-cell">
+                    <td colspan="5" class="loading-cell">
                         <i class="fas fa-search"></i> No cards found
                     </td>
                 </tr>
@@ -257,25 +282,27 @@ class VoiceRecorderApp {
                 `;
             }).join('');
 
-            // Check if any variant has audio (exclude empty strings)
-            const hasAnyAudio = audioPaths.some(path => path && path.trim() !== '');
+            // Get translation based on selected language
+            let translation = card.english || '';
+            if (this.translationLanguage === 'ceb' && (this.currentLanguage === 'mrw' || this.currentLanguage === 'sin')) {
+                // Find matching Cebuano card by lesson and card number
+                const cebCard = this.cebuanoCards.find(c =>
+                    c.lesson === card.lesson && (c.cardNum || c.wordNum) === cardId
+                );
+                translation = cebCard ? (cebCard.word || '') : translation;
+            }
 
             return `
                 <tr>
-                    <td>${card.lesson || '-'}</td>
-                    <td>${cardId}</td>
-                    <td>${card.word || ''}</td>
-                    <td>${card.english || ''}</td>
                     <td>
                         <div class="audio-badges-container">
                             ${audioBadgesHtml}
                         </div>
                     </td>
-                    <td>
-                        <span class="status-badge ${hasAnyAudio ? 'complete' : 'missing'}">
-                            ${hasAnyAudio ? 'Complete' : 'Needs Audio'}
-                        </span>
-                    </td>
+                    <td>${card.word || ''}</td>
+                    <td>${translation}</td>
+                    <td>${card.lesson || '-'}</td>
+                    <td>${cardId}</td>
                 </tr>
             `;
         }).join('');
@@ -350,6 +377,29 @@ class VoiceRecorderApp {
         }
     }
     
+    generateCurrentFilePreview(filePath) {
+        if (!filePath) {
+            return `
+                <div class="no-current-file">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>No file currently assigned</p>
+                </div>
+            `;
+        }
+
+        const fileName = filePath.split('/').pop();
+        return `
+            <div class="current-audio-preview">
+                <div class="audio-preview-icon">
+                    <i class="fas fa-file-audio"></i>
+                </div>
+                <button class="btn btn-primary btn-sm" id="playCurrentAudio">
+                    <i class="fas fa-play"></i> Play Audio
+                </button>
+            </div>
+        `;
+    }
+
     displayServerFiles(files) {
         const grid = document.getElementById('fileBrowserGrid');
 
@@ -366,13 +416,15 @@ class VoiceRecorderApp {
 
         // Show current file at top if one is linked
         let currentFileHtml = '';
-        if (currentFileName) {
+        if (currentAudioPath || currentFileName) {
             currentFileHtml = `
-                <div style="padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 16px; border: 2px solid var(--primary);">
-                    <div style="display: flex; align-items: center; gap: 8px; color: var(--text-primary); font-weight: 500;">
-                        <i class="fas fa-file-audio" style="color: var(--primary);"></i>
-                        <span>Current File:</span>
-                        <span style="color: var(--primary);">${currentFileName}</span>
+                <div class="current-file-preview">
+                    <div class="current-file-header">
+                        <strong><i class="fas fa-file-audio"></i> Current File:</strong>
+                        <span class="current-file-name">${currentFileName || 'Unknown'}</span>
+                    </div>
+                    <div class="current-file-display">
+                        ${this.generateCurrentFilePreview(currentAudioPath)}
                     </div>
                 </div>
             `;
@@ -384,6 +436,17 @@ class VoiceRecorderApp {
                 <div class="filename">${file.name}</div>
             </div>
         `).join('');
+
+        // Setup audio playback for current file
+        if (currentAudioPath) {
+            const playBtn = document.getElementById('playCurrentAudio');
+            if (playBtn) {
+                playBtn.addEventListener('click', () => {
+                    const audio = new Audio(currentAudioPath);
+                    audio.play();
+                });
+            }
+        }
     }
     
     filterServerFiles(search) {
