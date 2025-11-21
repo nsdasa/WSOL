@@ -2069,7 +2069,7 @@ class DeckBuilderModule extends LearningModule {
 
         const word = this.getCardWord(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'word';
         const english = this.getCardEnglish(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'english';
-        const defaultFilename = `${cardId}.${audioLang}.${word}.${english}.wav`;
+        const defaultFilename = `${cardId}.${audioLang}.${word}.${english}.opus`;
 
         // Store the audio blob before closing modal (modal cleanup destroys it)
         const audioBlob = this.audioRecorder.audioBlob;
