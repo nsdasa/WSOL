@@ -139,19 +139,19 @@ class AdminModule extends LearningModule {
                     <h3 class="section-title"><i class="fas fa-photo-video"></i> Media Files Upload</h3>
                     <div class="card" style="background:var(--bg-secondary);">
                         <p style="margin-bottom:16px;color:var(--text-secondary);">
-                            Upload image files (PNG/GIF) and audio files (MP3/M4A) for your words. Files must follow the naming convention.
+                            Upload image/video files (PNG/JPG/WebP/GIF/MP4/WebM) and audio files (MP3/M4A) for your words. Files must follow the naming convention.
                         </p>
-                        
+
                         <div class="csv-upload-section">
                             <div class="file-upload-container">
                                 <label class="file-upload-label">
-                                    <i class="fas fa-images"></i> Image Files (PNG/GIF)
-                                    <span class="file-hint">Format: WordNum.word.translation.png/gif (e.g., 17.tilaw.taste.png)</span>
+                                    <i class="fas fa-images"></i> Image Files (PNG/JPG/WebP/GIF/MP4/WebM)
+                                    <span class="file-hint">Format: WordNum.word.translation.ext (e.g., 17.tilaw.taste.png)</span>
                                 </label>
-                                <input type="file" id="imageFilesInput" accept=".png,.gif" multiple class="file-input">
+                                <input type="file" id="imageFilesInput" accept=".png,.jpg,.jpeg,.webp,.gif,.mp4,.webm" multiple class="file-input">
                                 <div class="file-status" id="imageFilesStatus">No files selected</div>
                             </div>
-                            
+
                             <div class="file-upload-container">
                                 <label class="file-upload-label">
                                     <i class="fas fa-music"></i> Audio Files (MP3/M4A)
