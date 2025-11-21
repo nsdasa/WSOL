@@ -81,6 +81,53 @@ try {
     // Update the specific language's cards
     $manifest['cards'][$trigraph] = $cards;
 
+    // Update manifest.images based on card data
+    // Initialize images array if not exists
+    if (!isset($manifest['images']) || !is_array($manifest['images'])) {
+        $manifest['images'] = [];
+    }
+
+    // Scan assets directory to build images array with all format variants
+    foreach ($cards as $card) {
+        $cardNum = isset($card['cardNum']) ? $card['cardNum'] : (isset($card['wordNum']) ? $card['wordNum'] : null);
+        if (!$cardNum) continue;
+
+        // Initialize card's image formats if not exists
+        if (!isset($manifest['images'][(string)$cardNum])) {
+            $manifest['images'][(string)$cardNum] = [];
+        }
+
+        // Check for image file variants (png, jpg, jpeg, webp)
+        if (!empty($card['printImagePath'])) {
+            $ext = strtolower(pathinfo($card['printImagePath'], PATHINFO_EXTENSION));
+            $manifest['images'][(string)$cardNum][$ext] = $card['printImagePath'];
+
+            // Check for other image format variants with same base name
+            $basePath = preg_replace('/\.(png|jpg|jpeg|webp)$/i', '', $card['printImagePath']);
+            foreach (['png', 'jpg', 'jpeg', 'webp'] as $checkExt) {
+                $variantPath = $basePath . '.' . $checkExt;
+                if (file_exists(__DIR__ . '/' . $variantPath)) {
+                    $manifest['images'][(string)$cardNum][$checkExt] = $variantPath;
+                }
+            }
+        }
+
+        // Check for video/animation file variants (gif, mp4, webm)
+        if (!empty($card['gifPath'])) {
+            $ext = strtolower(pathinfo($card['gifPath'], PATHINFO_EXTENSION));
+            $manifest['images'][(string)$cardNum][$ext] = $card['gifPath'];
+
+            // Check for other video format variants with same base name
+            $basePath = preg_replace('/\.(gif|mp4|webm)$/i', '', $card['gifPath']);
+            foreach (['gif', 'mp4', 'webm'] as $checkExt) {
+                $variantPath = $basePath . '.' . $checkExt;
+                if (file_exists(__DIR__ . '/' . $variantPath)) {
+                    $manifest['images'][(string)$cardNum][$checkExt] = $variantPath;
+                }
+            }
+        }
+    }
+
     // Update timestamp
     $manifest['lastUpdated'] = date('c');
 
@@ -108,7 +155,7 @@ try {
         'message' => 'Changes saved directly to manifest.json',
         'cardCount' => count($cards),
         'bytes' => $result,
-        'info' => 'Changes are immediately active. No rescan needed unless you added new asset files.'
+        'info' => 'Changes are immediately active. Format variants automatically detected.'
     ]);
 
 } catch (Exception $e) {
