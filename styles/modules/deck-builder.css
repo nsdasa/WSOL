@@ -692,6 +692,46 @@
     border-radius: 4px;
 }
 
+/* Linked Files List */
+.linked-files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.linked-file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: var(--bg-primary);
+    border-radius: 4px;
+}
+
+.linked-file-item .format-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--primary);
+    color: white;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    min-width: 45px;
+    text-align: center;
+}
+
+.linked-file-item .file-name {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-family: monospace;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .current-file-display {
     display: flex;
     align-items: center;
