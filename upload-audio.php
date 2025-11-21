@@ -45,7 +45,7 @@ $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
 
 // Ensure it has a valid extension
 $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-$allowedExtensions = ['wav', 'mp3', 'm4a', 'webm', 'ogg'];
+$allowedExtensions = ['wav', 'mp3', 'm4a', 'webm', 'ogg', 'opus'];
 
 if (!in_array($ext, $allowedExtensions)) {
     http_response_code(400);
