@@ -340,8 +340,8 @@ function showTour(moduleName) {
         return;
     }
 
-    // Driver.js exports to window.driver.js (note the .js)
-    const driverObj = window.driver && window.driver.js;
+    // Driver.js exports to window.driver.js.driver
+    const driverObj = window.driver && window.driver.js && window.driver.js.driver;
 
     if (!driverObj) {
         console.error('Driver.js library not loaded properly');
@@ -384,7 +384,6 @@ console.log('Tour Guide System loaded. Available tours:', Object.keys(tours));
 
 // Debug: Check what Driver.js exposes
 console.log('Driver.js check:', {
-    'window.driver': window.driver,
-    'window.driver.js': window.driver && window.driver.js,
-    'typeof window.driver.js': typeof (window.driver && window.driver.js)
+    'window.driver.js.driver': window.driver && window.driver.js && window.driver.js.driver,
+    'typeof': typeof (window.driver && window.driver.js && window.driver.js.driver)
 });
