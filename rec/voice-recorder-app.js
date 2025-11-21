@@ -402,9 +402,11 @@ class VoiceRecorderApp {
 
     displayServerFiles(files) {
         const grid = document.getElementById('fileBrowserGrid');
+        const previewContainer = document.getElementById('currentFilePreview');
 
         if (files.length === 0) {
             grid.innerHTML = '<div class="loading-files">No audio files found</div>';
+            previewContainer.style.display = 'none';
             return;
         }
 
@@ -414,36 +416,46 @@ class VoiceRecorderApp {
         const currentAudioPath = audioPaths[this.currentVariantIndex] || null;
         const currentFileName = currentAudioPath ? currentAudioPath.split('/').pop() : null;
 
-        // Show current file at top if one is linked
-        let currentFileHtml = '';
-        if (currentAudioPath || currentFileName) {
-            currentFileHtml = `
+        // Show current file preview separately (outside grid)
+        if (currentAudioPath && currentFileName) {
+            previewContainer.innerHTML = `
                 <div class="current-file-preview">
                     <div class="current-file-header">
                         <strong><i class="fas fa-file-audio"></i> Current File:</strong>
-                        <span class="current-file-name">${currentFileName || 'Unknown'}</span>
+                        <span class="current-file-name">${currentFileName}</span>
                     </div>
                     <div class="current-file-display">
                         ${this.generateCurrentFilePreview(currentAudioPath)}
                     </div>
                 </div>
             `;
+            previewContainer.style.display = 'block';
+        } else {
+            previewContainer.style.display = 'none';
         }
 
-        grid.innerHTML = currentFileHtml + files.map(file => `
+        // Populate file grid (without current file preview)
+        grid.innerHTML = files.map(file => `
             <div class="file-item" onclick="app.selectServerFile('${file.name}', '${file.path}')">
                 <i class="fas fa-file-audio"></i>
                 <div class="filename">${file.name}</div>
             </div>
         `).join('');
 
-        // Setup audio playback for current file
+        // Setup audio playback for current file (fix path relative to /rec/)
         if (currentAudioPath) {
             const playBtn = document.getElementById('playCurrentAudio');
             if (playBtn) {
                 playBtn.addEventListener('click', () => {
-                    const audio = new Audio(currentAudioPath);
-                    audio.play();
+                    // Adjust path: we're in /rec/, need to go up to root for assets/
+                    const adjustedPath = currentAudioPath.startsWith('assets/')
+                        ? `../${currentAudioPath}`
+                        : currentAudioPath;
+                    const audio = new Audio(adjustedPath);
+                    audio.play().catch(err => {
+                        console.error('Error playing audio:', err);
+                        this.showToast('Error playing audio', 'error');
+                    });
                 });
             }
         }

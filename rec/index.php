@@ -224,6 +224,11 @@ function cacheBust($file) {
             <div class="modal-body">
                 <!-- Browse Tab -->
                 <div class="tab-content active" id="browseTab">
+                    <!-- Current File Preview -->
+                    <div id="currentFilePreview" style="display: none;">
+                        <!-- Dynamically populated -->
+                    </div>
+
                     <div class="file-browser-controls">
                         <input type="text" id="fileBrowserSearch" class="form-input" placeholder="Search files...">
                     </div>
