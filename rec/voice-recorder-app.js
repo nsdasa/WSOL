@@ -808,19 +808,26 @@ class VoiceRecorderApp {
         const marker = document.getElementById(markerId);
         const canvas = document.getElementById('waveformCanvas');
         let isDragging = false;
-        
-        marker.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            e.preventDefault();
-        });
-        
-        document.addEventListener('mousemove', (e) => {
+
+        // Helper function to get position from event
+        const getPositionFromEvent = (e, rect) => {
+            let clientX;
+            if (e.type.startsWith('touch')) {
+                clientX = e.touches[0]?.clientX || e.changedTouches[0]?.clientX;
+            } else {
+                clientX = e.clientX;
+            }
+            const x = clientX - rect.left;
+            return Math.max(0, Math.min(1, x / rect.width));
+        };
+
+        // Helper function to update marker position
+        const updateMarkerPosition = (e) => {
             if (!isDragging) return;
-            
+
             const rect = canvas.getBoundingClientRect();
-            let x = e.clientX - rect.left;
-            const position = Math.max(0, Math.min(1, x / rect.width));
-            
+            const position = getPositionFromEvent(e, rect);
+
             if (type === 'start' && position < this.audioRecorder.markerEnd - 0.01) {
                 this.audioRecorder.markerStart = position;
                 marker.style.left = `${position * 100}%`;
@@ -828,9 +835,38 @@ class VoiceRecorderApp {
                 this.audioRecorder.markerEnd = position;
                 marker.style.left = `${position * 100}%`;
             }
+        };
+
+        // Mouse events
+        marker.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            e.preventDefault();
         });
-        
+
+        document.addEventListener('mousemove', updateMarkerPosition);
+
         document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Touch events for mobile
+        marker.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                updateMarkerPosition(e);
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        document.addEventListener('touchcancel', () => {
             isDragging = false;
         });
     }
@@ -928,7 +964,7 @@ class VoiceRecorderApp {
             ? this.currentVariant.toLowerCase().replace(/[^a-z0-9]/g, '')
             : (card.word || 'word').toLowerCase().replace(/[^a-z0-9]/g, '');
         const english = (card.english || 'english').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${wordForFilename}.${english}.wav`;
+        const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${wordForFilename}.${english}.opus`;
 
         this.pendingBlob = this.audioRecorder.audioBlob;
         this.pendingFile = null;
