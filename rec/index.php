@@ -62,6 +62,9 @@ function cacheBust($file) {
     <link rel="stylesheet" href="../styles/core.css?v=<?php echo cacheBust('styles/core.css'); ?>">
     <link rel="stylesheet" href="../styles/theme.css?v=<?php echo cacheBust('styles/theme.css'); ?>">
     <link rel="stylesheet" href="voice-recorder.css?v=<?php echo time(); ?>">
+
+    <!-- Driver.js for onboarding tours -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
 </head>
 <body>
     <?php if (!$hasAccess): ?>
@@ -110,6 +113,9 @@ function cacheBust($file) {
                 </span>
             </div>
             <div class="header-right">
+                <button id="showTourBtn" class="btn btn-secondary" title="Show guided tour">
+                    <i class="fas fa-question-circle"></i> Show Tour
+                </button>
                 <button id="themeToggle" class="btn btn-icon" title="Toggle theme">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -344,6 +350,10 @@ function cacheBust($file) {
     </div>
 
     <script src="voice-recorder-app.js?v=<?php echo time(); ?>"></script>
+
+    <!-- Driver.js for onboarding tours -->
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.iife.js"></script>
+    <script src="../tour-guide.js?v=<?php echo time(); ?>"></script>
     <?php endif; ?>
 </body>
 </html>

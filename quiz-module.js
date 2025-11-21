@@ -31,6 +31,7 @@ class UnsaNiQuizModule extends LearningModule {
                     </div>
                     <button id="startBtn">Start</button>
                     <button id="restartQuizBtn" class="btn-secondary"><i class="fas fa-redo"></i> Restart</button>
+                    <button id="showTourBtn" class="btn btn-secondary" title="Show guided tour"><i class="fas fa-question-circle"></i> Show Tour</button>
                 </div>
                 <div class="quiz-container" id="quizContainer" style="display:none;">
                     <div class="left-panel">
@@ -115,6 +116,16 @@ class UnsaNiQuizModule extends LearningModule {
         document.getElementById('userInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.submitAnswer();
         });
+
+        // Show Tour button
+        const showTourBtn = document.getElementById('showTourBtn');
+        if (showTourBtn) {
+            showTourBtn.addEventListener('click', () => {
+                if (typeof showTour !== 'undefined') {
+                    showTour('quiz');
+                }
+            });
+        }
         
         // Show instructions
         if (instructionManager) {
@@ -123,6 +134,11 @@ class UnsaNiQuizModule extends LearningModule {
                 'Unsa Ni? Instructions',
                 'Type in the word that matches the picture. Press enter or click on Submit.'
             );
+        }
+
+        // Initialize tour for first-time users
+        if (typeof initTour !== 'undefined') {
+            initTour('quiz');
         }
     }
     
