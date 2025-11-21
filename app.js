@@ -1098,6 +1098,7 @@ class AssetManager {
                     // Fallback to print image if no animation available
                     imagePath = card.printImagePath;
                 }
+                debugLogger?.log(3, `Card ${card.cardNum}: Available formats: ${JSON.stringify(Object.keys(availableFormats))}, Selected: ${videoFormat || 'fallback'}, isVideo: ${isVideo}`);
             } else {
                 // Use static image with format preference
                 const imageFormat = browserCapabilityDetector?.getPreferredImageFormat(availableFormats);
@@ -1107,6 +1108,7 @@ class AssetManager {
                     // Fallback to printImagePath
                     imagePath = card.printImagePath;
                 }
+                debugLogger?.log(3, `Card ${card.cardNum}: Available formats: ${JSON.stringify(Object.keys(availableFormats))}, Selected: ${imageFormat || 'fallback'}, Path: ${imagePath}`);
             }
 
             // Handle audio as array (for multi-variant support)
