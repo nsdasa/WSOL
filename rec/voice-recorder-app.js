@@ -28,6 +28,11 @@ class VoiceRecorderApp {
         this.setupThemeToggle();
         this.updateTranslationSelectorVisibility();
         await this.loadCards();
+
+        // Initialize tour for first-time users
+        if (typeof initTour !== 'undefined') {
+            initTour('rec');
+        }
     }
     
     setupEventListeners() {

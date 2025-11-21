@@ -59,6 +59,11 @@ function cacheBust($file) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Recorder - Filipino Languages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Driver.js for onboarding tours -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css">
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.iife.js"></script>
+
     <link rel="stylesheet" href="../styles/core.css?v=<?php echo cacheBust('styles/core.css'); ?>">
     <link rel="stylesheet" href="../styles/theme.css?v=<?php echo cacheBust('styles/theme.css'); ?>">
     <link rel="stylesheet" href="voice-recorder.css?v=<?php echo time(); ?>">
@@ -110,6 +115,9 @@ function cacheBust($file) {
                 </span>
             </div>
             <div class="header-right">
+                <button id="showTourBtn" class="btn btn-secondary" onclick="if(typeof showTour !== 'undefined') showTour('rec')" title="Show Tour">
+                    <i class="fas fa-question-circle"></i> Show Tour
+                </button>
                 <button id="themeToggle" class="btn btn-icon" title="Toggle theme">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -342,6 +350,9 @@ function cacheBust($file) {
             </div>
         </div>
     </div>
+
+    <!-- Tour Guide System -->
+    <script src="../tour-guide.js?v=<?php echo filemtime('../tour-guide.js'); ?>"></script>
 
     <script src="voice-recorder-app.js?v=<?php echo time(); ?>"></script>
     <?php endif; ?>

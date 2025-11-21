@@ -18,7 +18,11 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
     <title>Bob and Mariel Ward School of Filipino Languages</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
+    <!-- Driver.js for onboarding tours -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css">
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.iife.js"></script>
+
     <?php
     function cacheBust($file) {
         $fullPath = __DIR__ . '/' . $file;
@@ -278,6 +282,9 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
         </div>
         <div id="debugLog" class="debug-log"></div>
     </div>
+
+    <!-- Tour Guide System -->
+    <script src="tour-guide.js?v=<?php echo cacheBust('tour-guide.js'); ?>"></script>
 
     <script src="app.js?v=<?php echo cacheBust('app.js'); ?>"></script>
     <script src="auth-manager.js?v=<?php echo cacheBust('auth-manager.js'); ?>"></script>
