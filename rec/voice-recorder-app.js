@@ -964,12 +964,16 @@ class VoiceRecorderApp {
             ? this.currentVariant.toLowerCase().replace(/[^a-z0-9]/g, '')
             : (card.word || 'word').toLowerCase().replace(/[^a-z0-9]/g, '');
         const english = (card.english || 'english').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${wordForFilename}.${english}.opus`;
+
+        // Determine extension based on blob type
+        // After cutting, blob is WAV. Original recording is WebM/Opus
+        const extension = this.audioRecorder.audioBlob.type.includes('wav') ? 'wav' : 'opus';
+        const defaultFilename = `${this.currentCardId}.${this.currentLanguage}.${wordForFilename}.${english}.${extension}`;
 
         this.pendingBlob = this.audioRecorder.audioBlob;
         this.pendingFile = null;
 
-        console.log('saveRecording - blob:', this.pendingBlob, 'size:', this.pendingBlob?.size, 'type:', this.pendingBlob?.type);
+        console.log('saveRecording - blob:', this.pendingBlob, 'size:', this.pendingBlob?.size, 'type:', this.pendingBlob?.type, 'extension:', extension);
 
         this.closeFileModal();
         this.showFilenameDialog(defaultFilename);
