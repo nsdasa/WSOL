@@ -137,7 +137,8 @@
     background: rgba(79, 70, 229, 0.1);
 }
 
-.item img {
+.item img,
+.item video {
     max-width: 100%;
     max-height: 120px;
     object-fit: contain;
@@ -237,7 +238,8 @@
     padding: 4px;
 }
 
-.module-match .picture-only img {
+.module-match .picture-only img,
+.module-match .picture-only video {
     border-radius: 8px;
     width: 100%;
     height: 100%;
@@ -368,7 +370,8 @@ body.mobile-phone .item {
     padding: 12px;
 }
 
-body.mobile-phone .item img {
+body.mobile-phone .item img,
+body.mobile-phone .item video {
     max-height: 80px;
 }
 
