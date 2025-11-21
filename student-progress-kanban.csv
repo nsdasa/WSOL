@@ -1,0 +1,246 @@
+Title,Description,Status,Priority,Story Points,Epic,Type,Tags,Acceptance Criteria
+Setup .env file and gitignore,"Create .env file with admin password hash, session secret, and database path. Add .env and database files to .gitignore to prevent committing sensitive data.",Backlog,High,1,Phase 1: Security Foundation,Task,security;setup,"- .env file created with ADMIN_PASSWORD_HASH
+- .env.example template created
+- .gitignore updated to exclude .env and *.sqlite files
+- Documentation added for generating password hash"
+Update config.php to load environment variables,"Modify config.php to read from .env file instead of hardcoded values. Add simple .env parser.",Backlog,High,2,Phase 1: Security Foundation,Task,security;backend,"- config.php loads variables from .env
+- Falls back gracefully if .env missing
+- All sensitive constants use getenv()
+- Code tested with .env file"
+Implement password hashing in auth.php,"Replace plaintext password comparisons with password_hash() and password_verify(). Update admin authentication to use hashed password from .env.",Backlog,High,3,Phase 1: Security Foundation,Task,security;backend,"- Admin authentication uses password_verify()
+- All password comparisons use proper hashing
+- No plaintext passwords in code
+- Test login with hashed password works"
+Add rate limiting system,"Implement login attempt tracking in database. Block IPs after 5 failed attempts for 15 minutes. Create login_attempts table.",Backlog,High,3,Phase 1: Security Foundation,Task,security;backend,"- login_attempts table created
+- Failed login attempts logged with IP and timestamp
+- Rate limiting blocks after 5 failures
+- Returns clear error message when rate limited
+- Rate limit resets after 15 minutes"
+Add session security hardening,"Implement session_regenerate_id() on login. Set secure session cookie parameters (httpOnly, secure, SameSite).",Backlog,High,2,Phase 1: Security Foundation,Task,security;backend,"- Session ID regenerated on login
+- httpOnly flag set on session cookie
+- secure flag set (HTTPS only)
+- SameSite=Strict set for CSRF protection
+- Test session fixation attack prevented"
+Create database schema for all tables,"Write schema.sql with all required tables: staff_accounts, student_accounts, student_progress_flashcards, student_progress_exercises, student_progress_cards, login_attempts.",Backlog,High,3,Phase 1: Security Foundation,Task,database;backend,"- schema.sql created with all 6 tables
+- Proper foreign keys defined
+- Indexes added for performance
+- UNIQUE constraints on username fields
+- CHECK constraints for valid enums"
+Create database initialization script,"Create init-db.php to initialize SQLite database from schema.sql. Include error handling and success feedback.",Backlog,Medium,2,Phase 1: Security Foundation,Task,database;backend,"- init-db.php creates database.sqlite
+- Executes schema.sql successfully
+- Creates db/ directory if missing
+- Reports success/failure with clear messages
+- Can be run multiple times safely"
+Test all Phase 1 security changes,"Comprehensive testing of authentication with new security measures. Test rate limiting, session security, password hashing.",Backlog,High,2,Phase 1: Security Foundation,Task,testing;security,"- Admin login works with hashed password
+- Rate limiting blocks after 5 failures
+- Session persists correctly
+- Session regenerates on login
+- No security warnings in testing"
+Create account-manager.php API,"Build REST API for staff account CRUD operations. Endpoints: list staff, create staff, update staff, delete/deactivate staff. Requires admin authentication.",Backlog,High,5,Phase 2: Account Management,Story,backend;api,"- GET /api/account-manager.php?action=list returns all staff
+- POST create action creates new staff account with hashed password
+- POST update action updates staff details
+- POST delete action deactivates staff account
+- All endpoints verify admin authentication
+- Returns JSON with success/error messages"
+Create account-manager-module.js UI,"Build admin UI for managing staff accounts. Tabbed interface for Staff Accounts and Student Accounts. Table view with create/edit/delete actions.",Backlog,High,8,Phase 2: Account Management,Story,frontend;ui,"- Navigation tab for Account Manager added
+- Staff accounts table displays all staff
+- Add Staff button opens modal form
+- Edit action populates form with existing data
+- Delete action shows confirmation dialog
+- Form validates username and password
+- Success/error toasts show after actions"
+Implement staff account creation,"Staff creation form with username, password, role selection (deck-manager or voice-recorder). Client and server-side validation.",Backlog,High,3,Phase 2: Account Management,Task,frontend;backend,"- Form validates username (alphanumeric + underscore)
+- Password validation (min 8 chars, letter + number)
+- Role dropdown with two options
+- Password hashing on server
+- Duplicate username detection
+- Created_by tracked as 'admin'"
+Implement staff account editing,"Edit form pre-populates existing data. Can change role, reset password, or deactivate account.",Backlog,Medium,3,Phase 2: Account Management,Task,frontend;backend,"- Edit modal loads existing staff data
+- Can update role
+- Optional password reset field
+- Deactivate checkbox
+- Prevents editing last admin account
+- Confirmation for deactivation"
+Add student account viewing for admin,"Read-only view of student accounts with search/filter. Shows username, display name, grade, registration date, last login.",Backlog,Medium,3,Phase 2: Account Management,Task,frontend;backend,"- Student accounts table displays all students
+- Search box filters by username or name
+- Sort by last login or created date
+- Shows total count of active students
+- View button opens student details"
+Add student account editing for admin,"Admin can deactivate student accounts, reset passwords, or edit profile information.",Backlog,Low,3,Phase 2: Account Management,Task,frontend;backend,"- Edit modal for student accounts
+- Can deactivate account
+- Can reset password
+- Can edit display name and grade
+- Confirmation dialog for destructive actions
+- Success message on update"
+Style account manager module,"Create account-manager.css with responsive design. Tables, forms, modals styled consistently with existing modules.",Backlog,Medium,3,Phase 2: Account Management,Task,frontend;css,"- CSS file created and linked
+- Tables styled with hover effects
+- Forms use existing design system
+- Modals centered and responsive
+- Mobile-friendly layout
+- Matches existing module style"
+Test account management features,"Test all staff CRUD operations. Verify admin-only access. Test validation and error handling.",Backlog,High,3,Phase 2: Account Management,Task,testing,"- Create staff account works
+- Edit staff account works
+- Deactivate staff account works
+- Non-admin cannot access
+- Validation errors display correctly
+- Edge cases handled (deleting self, etc.)"
+Create student-auth.php API,"Build API for student registration and authentication. Endpoints: register, login (integrated with auth.php), profile view/edit.",Backlog,High,5,Phase 3: Student Accounts,Story,backend;api,"- POST register creates student account with validation
+- Username uniqueness checked
+- Password hashed before storage
+- Email optional but validated if provided
+- Grade level stored
+- Returns success with student ID
+- Integrates with existing auth.php login"
+Create student registration form UI,"Public registration form accessible without login. Username, password, confirm password, display name, email (optional), grade level.",Backlog,High,5,Phase 3: Student Accounts,Story,frontend;ui,"- Registration form renders on homepage
+- All fields have proper labels
+- Password strength indicator
+- Password confirmation validation
+- Grade dropdown with K-12 options
+- Email validation
+- Submits to student-auth.php"
+Add student login to auth-manager.js,"Update auth-manager.js to support student login. Different UI/permissions for student role.",Backlog,High,3,Phase 3: Student Accounts,Task,frontend;auth,"- Login modal accepts students
+- Student role stored in session
+- Student menu shows relevant modules only
+- Admin/Deck Builder tabs hidden for students
+- Progress Viewer tab visible for students
+- Logout works for students"
+Add guest mode detection,"Show login prompt when student tries to access progress tracking. Allow guest mode for all learning modules.",Backlog,Medium,2,Phase 3: Student Accounts,Task,frontend;ux,"- Learning modules work without login
+- Progress Viewer requires login
+- Subtle login prompt in header for guests
+- Modal explains benefits of account
+- Easy to dismiss and continue as guest"
+Implement password strength validation,"Client-side password strength checker with visual feedback. Minimum 8 characters, at least one letter and number.",Backlog,Low,2,Phase 3: Student Accounts,Task,frontend;validation,"- Real-time password strength display
+- Color-coded (red/yellow/green)
+- Shows specific requirements
+- Prevents weak passwords
+- Matches server-side validation"
+Add registration success flow,"Success message after registration with automatic login. Welcome message with quick tour option.",Backlog,Low,2,Phase 3: Student Accounts,Task,frontend;ux,"- Success message shows after registration
+- Automatically logs in new student
+- Welcome toast notification
+- Redirects to flashcards module
+- Option to view Progress Viewer"
+Test student registration and login,"Complete testing of student registration flow. Test validation, duplicate usernames, login, logout.",Backlog,High,3,Phase 3: Student Accounts,Task,testing,"- Registration form validates all fields
+- Duplicate username prevented
+- Student can log in after registration
+- Session persists correctly
+- Logout works
+- Guest mode works"
+Create progress-tracker.php API,"Build API to record student progress. Endpoints: record flashcard interaction, record exercise result, record card-level progress.",Backlog,High,5,Phase 4: Progress Tracking,Story,backend;api,"- POST /flashcard endpoint records seen/flipped/audio/voice
+- POST /exercise endpoint records test results
+- POST /card endpoint records correct/incorrect attempts
+- All endpoints verify student authentication
+- Transactions used for data integrity
+- Aggregations calculated correctly"
+Create ProgressTracker JavaScript class,"Client-side progress tracker that sends events to API. Batches requests for performance.",Backlog,Medium,3,Phase 4: Progress Tracking,Task,frontend;tracking,"- ProgressTracker class instantiated globally
+- recordFlashcard() method
+- recordExercise() method
+- recordCard() method
+- Only sends if student logged in
+- Queues requests if offline
+- Error handling with retry"
+Update flashcards module for progress tracking,"Track seen, flipped, audio played, and voice practice scores. Send to ProgressTracker.",Backlog,High,5,Phase 4: Progress Tracking,Task,frontend;module,"- Card view tracked as 'seen'
+- Card flip tracked as 'flipped'
+- Audio play tracked with count
+- Voice practice score recorded
+- All events sent to ProgressTracker
+- No tracking if guest mode"
+Update match modules for progress tracking,"Record review and test results. Track per-card correct/incorrect counts.",Backlog,High,5,Phase 4: Progress Tracking,Task,frontend;module,"- Exercise completion tracked (both modules)
+- Test results recorded with scores
+- Review mode tracks attempts
+- Per-card success/failure tracked
+- Module type stored correctly
+- Works in both match and match-sound"
+Update quiz module for progress tracking,"Track test results and per-card performance. Record mastery status.",Backlog,High,3,Phase 4: Progress Tracking,Task,frontend;module,"- Test completion recorded
+- Per-card attempts tracked
+- Review mode mastery tracked
+- Scores calculated correctly
+- Lesson and language stored
+- No duplicate entries"
+Add progress tracking error handling,"Handle offline mode, failed requests, and edge cases. Queue and retry failed tracking events.",Backlog,Medium,3,Phase 4: Progress Tracking,Task,frontend;backend,"- Failed requests queued locally
+- Retry on reconnection
+- Graceful degradation if API down
+- User not blocked by tracking failures
+- Debug logging for tracking errors
+- Server-side validation prevents bad data"
+Test all progress tracking,"Comprehensive testing of progress tracking across all modules. Verify data accuracy in database.",Backlog,High,5,Phase 4: Progress Tracking,Task,testing,"- Flashcard tracking verified in DB
+- Match module tracking verified
+- Quiz module tracking verified
+- Aggregations calculated correctly
+- No duplicate entries
+- Offline queuing works"
+Create progress-viewer.php API,"Build API to retrieve student progress. Endpoints: lesson overview, detailed card view, test history, aggregated stats.",Backlog,High,5,Phase 5: Progress Viewing,Story,backend;api,"- GET /overview returns lesson completion %
+- GET /lesson/{id} returns detailed card data
+- GET /tests returns test score history
+- GET /stats returns aggregated statistics
+- All endpoints verify student authentication
+- Returns JSON with proper structure"
+Create progress-viewer-module.js overview,"Build overview screen showing all lessons with completion bars, average scores, and last activity date.",Backlog,High,8,Phase 5: Progress Viewing,Story,frontend;ui,"- Lesson cards with progress bars
+- Completion percentage displayed
+- Average test scores shown
+- Last activity timestamp
+- Filter by language
+- Click lesson for details
+- Responsive grid layout"
+Create detailed lesson view,"Detailed view for individual lesson showing per-card progress, test history, and mastery status.",Backlog,High,5,Phase 5: Progress Viewing,Story,frontend;ui,"- Card-by-card breakdown table
+- Shows seen/flipped/audio counts
+- Voice practice scores
+- Match/quiz attempts
+- Mastery indicators
+- Test history section
+- Back to overview button"
+Add progress visualizations,"Charts showing progress over time, score trends, and lesson completion.",Backlog,Medium,5,Phase 5: Progress Viewing,Task,frontend;charts,"- Progress bar for each lesson
+- Score trend line chart (optional)
+- Activity heatmap (optional)
+- Uses chart library or custom SVG
+- Responsive and accessible
+- Color-coded by performance"
+Add progress data export,"Allow students to export their progress data as CSV or JSON.",Backlog,Low,2,Phase 5: Progress Viewing,Task,frontend;backend,"- Export button in Progress Viewer
+- Generates CSV with all progress data
+- Downloads to browser
+- Includes all lessons and cards
+- Formatted for spreadsheet use"
+Style progress viewer module,"Create progress-viewer.css with responsive design. Cards, progress bars, tables styled consistently.",Backlog,Medium,3,Phase 5: Progress Viewing,Task,frontend;css,"- CSS file created and linked
+- Progress bars styled with gradients
+- Cards have hover effects
+- Tables responsive
+- Mobile-friendly layout
+- Matches existing module style"
+Test progress viewer features,"Test overview and detail views. Verify calculations are accurate. Test with various data scenarios.",Backlog,High,5,Phase 5: Progress Viewing,Task,testing,"- Overview loads all lessons correctly
+- Progress percentages accurate
+- Detail view shows correct card data
+- Test scores display properly
+- Filters work correctly
+- No data shows appropriate message
+- Performance acceptable with large datasets"
+Add HTTPS enforcement in .htaccess,"Add rewrite rules to force HTTPS on all pages. Prevent insecure connections.",Backlog,Medium,1,Security Hardening,Task,security;devops,"- RewriteRule redirects HTTP to HTTPS
+- Works on both www and non-www
+- Tested on production server
+- No redirect loops
+- Certificate valid"
+Add security headers,"Add security headers to prevent XSS, clickjacking, and other attacks. Content-Security-Policy, X-Frame-Options, etc.",Backlog,Low,2,Security Hardening,Task,security;backend,"- X-Frame-Options: DENY
+- X-Content-Type-Options: nosniff
+- Content-Security-Policy configured
+- Referrer-Policy set
+- Headers sent on all pages"
+Add database backup script,"Create script to backup SQLite database daily. Store encrypted backups.",Backlog,Low,2,Operations,Task,devops;backend,"- Backup script created
+- Runs via cron daily
+- Creates timestamped backups
+- Keeps last 30 days
+- Tested restore process"
+Create admin documentation,"Document how to manage accounts, view student progress, and perform common admin tasks.",Backlog,Low,3,Documentation,Task,documentation,"- Admin guide created (Markdown)
+- Screenshots included
+- Step-by-step instructions
+- Troubleshooting section
+- Stored in /docs folder"
+Create student user guide,"Simple guide for students on how to register, use modules, and view progress.",Backlog,Low,2,Documentation,Task,documentation,"- Student guide created
+- Simple language
+- Screenshots of key features
+- FAQ section
+- Accessible from help button"
+End-to-end testing,"Complete system test of all features. Student registration through progress viewing. Admin account management.",Backlog,High,8,Testing,Task,testing,"- Student can register and login
+- Student progress tracked correctly
+- Progress viewer shows accurate data
+- Admin can manage accounts
+- All security measures working
+- No console errors
+- Mobile responsive"
