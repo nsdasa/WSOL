@@ -276,23 +276,60 @@ class FlashcardsModule extends LearningModule {
             }
 
             const secondaryFontSize = getSecondaryFontSize(secondaryWord);
+            const hasNotes = primaryNote || secondaryNote;
 
             let backHTML = `
                 <div class="card-back-content">
                     <div class="primary-word-box">
                         <div class="primary-lang-label">${learningLangLabel.toUpperCase()}</div>
                         <div class="primary-word" style="font-size: ${primaryFontSize}px;">${primaryWord}</div>
-                        ${primaryNote ? `<div class="primary-note">${primaryNote}</div>` : ''}
                     </div>
                     <div class="secondary-language">
                         <div class="secondary-lang-label">${secondaryLabel}</div>
                         <div class="secondary-word" style="font-size: ${secondaryFontSize}px;">${secondaryWord}</div>
-                        ${secondaryNote ? `<div class="secondary-note">${secondaryNote}</div>` : ''}
                     </div>
                 </div>
             `;
-            
+
             back.innerHTML = backHTML;
+
+            // Add notes icon if notes exist
+            if (hasNotes) {
+                const notesIcon = document.createElement('div');
+                notesIcon.className = 'notes-icon';
+                notesIcon.innerHTML = '<i class="fas fa-sticky-note"></i>';
+
+                // Build notes content
+                let notesContent = '';
+                if (primaryNote) {
+                    notesContent += `<div class="note-item"><strong>${learningLangLabel}:</strong> ${primaryNote}</div>`;
+                }
+                if (secondaryNote) {
+                    notesContent += `<div class="note-item"><strong>${secondaryLabel.replace(':', '')}:</strong> ${secondaryNote}</div>`;
+                }
+
+                // Create popover
+                const notesPopover = document.createElement('div');
+                notesPopover.className = 'notes-popover';
+                notesPopover.innerHTML = notesContent;
+                notesIcon.appendChild(notesPopover);
+
+                // Handle hover for PC
+                notesIcon.addEventListener('mouseenter', () => {
+                    notesPopover.classList.add('visible');
+                });
+                notesIcon.addEventListener('mouseleave', () => {
+                    notesPopover.classList.remove('visible');
+                });
+
+                // Handle click/tap for mobile
+                notesIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notesPopover.classList.toggle('visible');
+                });
+
+                back.appendChild(notesIcon);
+            }
             
             if (card.hasAudio && card.audioPath && card.audioPath.length > 0) {
                 const speakerBack = document.createElement('div');

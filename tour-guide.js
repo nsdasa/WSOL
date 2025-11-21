@@ -49,6 +49,14 @@ const tours = {
             }
         },
         {
+            element: '.notes-icon',
+            popover: {
+                title: 'Word Notes',
+                description: 'When you see this yellow icon on a flipped card, it means there are helpful notes! On desktop, hover over it to see the notes. On mobile/tablet, tap it to view.',
+                position: 'left'
+            }
+        },
+        {
             element: '.controls',
             popover: {
                 title: 'Navigation Controls',

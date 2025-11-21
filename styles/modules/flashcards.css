@@ -288,6 +288,91 @@
     background: var(--primary-dark);
 }
 
+/* Notes Icon and Popover */
+.notes-icon {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: var(--warning, #f59e0b);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s;
+    z-index: 15;
+}
+
+.notes-icon:hover {
+    transform: scale(1.1);
+    background: var(--warning-dark, #d97706);
+}
+
+.notes-popover {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    min-width: 200px;
+    max-width: 280px;
+    background: var(--bg-primary, white);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+    z-index: 100;
+    text-align: left;
+}
+
+.notes-popover.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.notes-popover .note-item {
+    font-size: 13px;
+    color: var(--text-primary, #111827);
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.notes-popover .note-item:last-child {
+    margin-bottom: 0;
+}
+
+.notes-popover .note-item strong {
+    color: var(--primary, #2563eb);
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+}
+
+/* Popover arrow */
+.notes-popover::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 12px;
+    width: 12px;
+    height: 12px;
+    background: var(--bg-primary, white);
+    border-left: 1px solid var(--border-color, #e5e7eb);
+    border-top: 1px solid var(--border-color, #e5e7eb);
+    transform: rotate(45deg);
+}
+
 .no-cards {
     text-align: center;
     padding: 48px 24px;
@@ -342,6 +427,18 @@ body.mobile-phone .speaker-icon {
     width: 48px;
     height: 48px;
     font-size: 22px;
+}
+
+body.mobile-phone .notes-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+}
+
+body.mobile-phone .notes-popover {
+    min-width: 180px;
+    max-width: 240px;
+    right: -8px;
 }
 
 /* Tablet: 2 cards */
