@@ -290,10 +290,11 @@ function initTour(moduleName) {
     }
 
     // Create driver instance
-    const driverObj = typeof driver !== 'undefined' ? driver : (typeof window.driver === 'function' ? window.driver : null);
+    // Driver.js exports to window.driver.js (note the .js)
+    const driverObj = window.driver && window.driver.js;
 
     if (!driverObj) {
-        console.error('Driver.js library not loaded');
+        console.error('Driver.js library not loaded properly');
         return;
     }
 
@@ -339,10 +340,11 @@ function showTour(moduleName) {
         return;
     }
 
-    const driverObj = typeof driver !== 'undefined' ? driver : (typeof window.driver === 'function' ? window.driver : null);
+    // Driver.js exports to window.driver.js (note the .js)
+    const driverObj = window.driver && window.driver.js;
 
     if (!driverObj) {
-        console.error('Driver.js library not loaded');
+        console.error('Driver.js library not loaded properly');
         alert('Tour feature not available. Please refresh the page and try again.');
         return;
     }
@@ -382,8 +384,7 @@ console.log('Tour Guide System loaded. Available tours:', Object.keys(tours));
 
 // Debug: Check what Driver.js exposes
 console.log('Driver.js check:', {
-    'typeof driver': typeof driver,
-    'typeof window.driver': typeof window.driver,
-    'typeof Driver': typeof Driver,
-    'typeof window.Driver': typeof window.Driver
+    'window.driver': window.driver,
+    'window.driver.js': window.driver && window.driver.js,
+    'typeof window.driver.js': typeof (window.driver && window.driver.js)
 });
