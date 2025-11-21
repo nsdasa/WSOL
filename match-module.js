@@ -31,6 +31,7 @@ class MatchExerciseModule extends LearningModule {
                     targetWord: targetWord,         // The specific word to test
                     physicalIndex: physicalIndex,   // Index in allCards array
                     imagePath: card.imagePath,
+                    isVideo: card.isVideo,          // Video flag for MP4/WebM files
                     audioPath: individualAudioPath, // Individual audio for this variant
                     allWords: acceptableAnswers,    // For exclusion logic
                     originalCard: card              // Full card reference
