@@ -153,13 +153,8 @@ class MatchExerciseModule extends LearningModule {
                 'Look at the picture, then click the matching word above. In Review Mode, you need to get each word correct multiple times (default: 3).'
             );
         }
-
-        // Initialize tour for first-time users
-        if (typeof initTour !== 'undefined') {
-            initTour('match');
-        }
     }
-    
+
     startExercise() {
         if (this.allCards.length === 0) {
             alert('No cards available. Please scan assets.');

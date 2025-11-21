@@ -135,13 +135,8 @@ class UnsaNiQuizModule extends LearningModule {
                 'Type in the word that matches the picture. Press enter or click on Submit.'
             );
         }
-
-        // Initialize tour for first-time users
-        if (typeof initTour !== 'undefined') {
-            initTour('quiz');
-        }
     }
-    
+
     startQuiz() {
         if (this.rawCards.length === 0) {
             alert('No cards available. Please scan assets.');

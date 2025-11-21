@@ -201,14 +201,6 @@ class VoiceRecorderApp {
             }
 
             this.filterCards();
-
-            // Initialize tour for first-time users
-            // Use setTimeout to ensure all UI is fully rendered
-            setTimeout(() => {
-                if (typeof initTour !== 'undefined') {
-                    initTour('rec');
-                }
-            }, 500);
         } catch (err) {
             console.error('Error loading cards:', err);
             tbody.innerHTML = `
