@@ -1681,17 +1681,19 @@ class DeckBuilderModule extends LearningModule {
 
         // Update time display during playback
         this.audioRecorder.playbackAudio.addEventListener('timeupdate', () => {
+            if (!this.audioRecorder || !this.audioRecorder.playbackAudio) return;
             modal.querySelector('#currentTime').textContent = this.formatTime(this.audioRecorder.playbackAudio.currentTime);
         });
 
         // Handle audio ending naturally
         this.audioRecorder.playbackAudio.addEventListener('ended', () => {
+            if (!this.audioRecorder) return;
             this.stopPlayback(modal);
         });
 
         // Animate playhead function
         const animatePlayhead = () => {
-            if (!this.audioRecorder.isPlaying) return;
+            if (!this.audioRecorder || !this.audioRecorder.isPlaying) return;
             
             const audio = this.audioRecorder.playbackAudio;
             const duration = this.audioRecorder.audioBuffer.duration;
@@ -1720,12 +1722,14 @@ class DeckBuilderModule extends LearningModule {
 
         // Play button - play between markers
         playBtn.addEventListener('click', () => {
+            if (!this.audioRecorder || !this.audioRecorder.audioBuffer || !this.audioRecorder.playbackAudio) return;
+
             const duration = this.audioRecorder.audioBuffer.duration;
             const startTime = this.audioRecorder.markerStart * duration;
-            
+
             this.audioRecorder.playbackAudio.currentTime = startTime;
             this.audioRecorder.playbackAudio.play();
-            
+
             // Show and start playhead animation
             this.audioRecorder.isPlaying = true;
             playheadEl.classList.add('active');
@@ -1735,6 +1739,8 @@ class DeckBuilderModule extends LearningModule {
 
         // Pause button
         pauseBtn.addEventListener('click', () => {
+            if (!this.audioRecorder || !this.audioRecorder.playbackAudio) return;
+
             this.audioRecorder.playbackAudio.pause();
             this.audioRecorder.isPlaying = false;
             if (this.audioRecorder.animationId) {
@@ -1750,18 +1756,22 @@ class DeckBuilderModule extends LearningModule {
 
         // Cut button
         cutBtn.addEventListener('click', async () => {
+            if (!this.audioRecorder || !this.audioRecorder.audioBlob) return;
+
             // Stop any playback first
             this.stopPlayback(modal);
-            
+
             await this.cutAudio();
             this.drawWaveform(modal);
-            
+
             // Update audio for playback
-            const newUrl = URL.createObjectURL(this.audioRecorder.audioBlob);
-            this.audioRecorder.playbackAudio.src = newUrl;
-            modal.querySelector('#totalTime').textContent = this.formatTime(this.audioRecorder.audioBuffer.duration);
-            
-            toastManager.show('Audio trimmed to markers', 'success');
+            if (this.audioRecorder && this.audioRecorder.audioBlob && this.audioRecorder.playbackAudio && this.audioRecorder.audioBuffer) {
+                const newUrl = URL.createObjectURL(this.audioRecorder.audioBlob);
+                this.audioRecorder.playbackAudio.src = newUrl;
+                modal.querySelector('#totalTime').textContent = this.formatTime(this.audioRecorder.audioBuffer.duration);
+
+                toastManager.show('Audio trimmed to markers', 'success');
+            }
         });
 
         // Save button
@@ -2071,8 +2081,9 @@ class DeckBuilderModule extends LearningModule {
         const english = this.getCardEnglish(card).toLowerCase().replace(/[^a-z0-9]/g, '') || 'english';
         const defaultFilename = `${cardId}.${audioLang}.${word}.${english}.opus`;
 
-        // Store the audio blob before closing modal (modal cleanup destroys it)
+        // Store the audio blob and buffer before closing modal (modal cleanup destroys them)
         const audioBlob = this.audioRecorder.audioBlob;
+        const audioBuffer = this.audioRecorder.audioBuffer;
 
         // Close the file selection modal immediately
         try {
@@ -2091,9 +2102,9 @@ class DeckBuilderModule extends LearningModule {
             try {
                 // Re-encode if format is different from WAV
                 let finalBlob = audioBlob;
-                if (selectedFormat && selectedFormat !== 'wav' && this.audioRecorder.audioBuffer) {
+                if (selectedFormat && selectedFormat !== 'wav' && audioBuffer) {
                     toastManager.show(`Converting to ${selectedFormat.toUpperCase()}...`, 'warning', 3000);
-                    finalBlob = await this.encodeAudioBuffer(this.audioRecorder.audioBuffer, selectedFormat);
+                    finalBlob = await this.encodeAudioBuffer(audioBuffer, selectedFormat);
                 }
 
                 // Upload the audio blob to the server
