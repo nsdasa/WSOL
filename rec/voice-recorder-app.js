@@ -317,7 +317,7 @@ class VoiceRecorderApp {
     closeFileModal() {
         document.getElementById('fileModal').classList.add('hidden');
         this.cleanupRecorder();
-        this.currentCardId = null;
+        // Don't clear currentCardId here - we still need it for filename confirmation
     }
     
     switchTab(tabName) {
@@ -396,6 +396,11 @@ class VoiceRecorderApp {
         this.closeFileModal();
         this.filterCards();
         this.showToast(`Audio linked: ${filename}`, 'success');
+
+        // Clear current card tracking
+        this.currentCardId = null;
+        this.currentVariantIndex = 0;
+        this.currentVariant = null;
     }
     
     handleFileUpload(file) {
@@ -1036,6 +1041,11 @@ class VoiceRecorderApp {
             }
         } catch (err) {
             this.showToast(`Upload error: ${err.message}`, 'error');
+        } finally {
+            // Clear currentCardId after upload completes (success or failure)
+            this.currentCardId = null;
+            this.currentVariantIndex = 0;
+            this.currentVariant = null;
         }
     }
     
