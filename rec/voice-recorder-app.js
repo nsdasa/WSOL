@@ -230,7 +230,8 @@ class VoiceRecorderApp {
             // Generate audio badges for each variant
             const audioBadgesHtml = wordVariants.map((variant, index) => {
                 const audioPath = audioPaths[index] || null;
-                const hasAudio = !!audioPath;
+                // Check for both null and empty string
+                const hasAudio = audioPath && audioPath.trim() !== '';
 
                 // Label: show filename if file exists, otherwise show word variant
                 let label = '';
@@ -256,8 +257,8 @@ class VoiceRecorderApp {
                 `;
             }).join('');
 
-            // Check if any variant has audio
-            const hasAnyAudio = audioPaths.some(path => !!path);
+            // Check if any variant has audio (exclude empty strings)
+            const hasAnyAudio = audioPaths.some(path => path && path.trim() !== '');
 
             return `
                 <tr>
