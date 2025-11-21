@@ -43,7 +43,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     <link rel="stylesheet" href="styles/modules/voice-practice.css?v=<?php echo cacheBust('styles/modules/voice-practice.css'); ?>">
 
     <!-- Driver.js for onboarding tours -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/driver.js@1.3.1/dist/driver.css"/>
 </head>
 <body>
     <div class="header">
@@ -295,7 +295,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Driver.js for onboarding tours -->
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.iife.js"></script>
+    <script src="https://unpkg.com/driver.js@1.3.1/dist/driver.js.iife.js"></script>
     <script src="tour-guide.js?v=<?php echo cacheBust('tour-guide.js'); ?>"></script>
 </body>
 </html>
