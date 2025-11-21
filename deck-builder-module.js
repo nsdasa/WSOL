@@ -995,7 +995,7 @@ class DeckBuilderModule extends LearningModule {
             hasFile = !!card.printImagePath;
             filename = card.printImagePath ? card.printImagePath.split('/').pop() : '';
             // Check all available image formats in manifest
-            const imageData = this.assetManager?.manifest?.images?.[cardId] || {};
+            const imageData = this.assets?.manifest?.images?.[cardId] || {};
             if (imageData.png) availableFormats.push('PNG');
             if (imageData.jpg) availableFormats.push('JPG');
             if (imageData.jpeg) availableFormats.push('JPEG');
@@ -1004,7 +1004,7 @@ class DeckBuilderModule extends LearningModule {
             hasFile = card.hasGif || !!card.gifPath;
             filename = card.gifPath ? card.gifPath.split('/').pop() : '';
             // Check all available video/animation formats in manifest
-            const imageData = this.assetManager?.manifest?.images?.[cardId] || {};
+            const imageData = this.assets?.manifest?.images?.[cardId] || {};
             if (imageData.gif) availableFormats.push('GIF');
             if (imageData.mp4) availableFormats.push('MP4');
             if (imageData.webm) availableFormats.push('WebM');
