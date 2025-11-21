@@ -351,13 +351,33 @@ class VoiceRecorderApp {
     
     displayServerFiles(files) {
         const grid = document.getElementById('fileBrowserGrid');
-        
+
         if (files.length === 0) {
             grid.innerHTML = '<div class="loading-files">No audio files found</div>';
             return;
         }
-        
-        grid.innerHTML = files.map(file => `
+
+        // Get current audio file for this variant
+        const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
+        const audioPaths = Array.isArray(card?.audio) ? card.audio : (card?.audio ? [card.audio] : []);
+        const currentAudioPath = audioPaths[this.currentVariantIndex] || null;
+        const currentFileName = currentAudioPath ? currentAudioPath.split('/').pop() : null;
+
+        // Show current file at top if one is linked
+        let currentFileHtml = '';
+        if (currentFileName) {
+            currentFileHtml = `
+                <div style="padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 16px; border: 2px solid var(--primary);">
+                    <div style="display: flex; align-items: center; gap: 8px; color: var(--text-primary); font-weight: 500;">
+                        <i class="fas fa-file-audio" style="color: var(--primary);"></i>
+                        <span>Current File:</span>
+                        <span style="color: var(--primary);">${currentFileName}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        grid.innerHTML = currentFileHtml + files.map(file => `
             <div class="file-item" onclick="app.selectServerFile('${file.name}', '${file.path}')">
                 <i class="fas fa-file-audio"></i>
                 <div class="filename">${file.name}</div>
