@@ -290,14 +290,21 @@ function initTour(moduleName) {
     }
 
     // Create driver instance
-    const driver = window.driver({
+    const driverObj = typeof driver !== 'undefined' ? driver : (typeof window.driver === 'function' ? window.driver : null);
+
+    if (!driverObj) {
+        console.error('Driver.js library not loaded');
+        return;
+    }
+
+    const driverInstance = driverObj({
         showProgress: true,
         showButtons: ['next', 'previous', 'close'],
         steps: availableSteps,
         onDestroyStarted: () => {
             // Mark tour as completed
             localStorage.setItem(tourKey, 'true');
-            driver.destroy();
+            driverInstance.destroy();
         },
         onDestroyed: () => {
             // Clean up
@@ -307,7 +314,7 @@ function initTour(moduleName) {
     // Show tour after a brief delay to ensure all UI elements are rendered
     setTimeout(() => {
         try {
-            driver.drive();
+            driverInstance.drive();
         } catch (error) {
             console.error('Error starting tour:', error);
         }
@@ -332,7 +339,15 @@ function showTour(moduleName) {
         return;
     }
 
-    const driver = window.driver({
+    const driverObj = typeof driver !== 'undefined' ? driver : (typeof window.driver === 'function' ? window.driver : null);
+
+    if (!driverObj) {
+        console.error('Driver.js library not loaded');
+        alert('Tour feature not available. Please refresh the page and try again.');
+        return;
+    }
+
+    const driverInstance = driverObj({
         showProgress: true,
         showButtons: ['next', 'previous', 'close'],
         steps: availableSteps,
@@ -342,7 +357,7 @@ function showTour(moduleName) {
     });
 
     try {
-        driver.drive();
+        driverInstance.drive();
     } catch (error) {
         console.error('Error showing tour:', error);
         alert('Unable to start tour. Please try again.');
@@ -364,3 +379,11 @@ window.resetAllTours = resetAllTours;
 
 // Debug: Log when tour guide is loaded
 console.log('Tour Guide System loaded. Available tours:', Object.keys(tours));
+
+// Debug: Check what Driver.js exposes
+console.log('Driver.js check:', {
+    'typeof driver': typeof driver,
+    'typeof window.driver': typeof window.driver,
+    'typeof Driver': typeof Driver,
+    'typeof window.Driver': typeof window.Driver
+});
