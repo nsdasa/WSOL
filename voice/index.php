@@ -187,6 +187,62 @@
                             <button class="active" data-scale="overlay" data-type="displayMode">Overlay</button>
                         </div>
                     </div>
+                    <div class="scale-control-group">
+                        <label>Filter:</label>
+                        <select id="waveformFilterModeSelect" style="padding: 4px 6px; border-radius: 4px; font-size: 12px;">
+                            <option value="none">None</option>
+                            <option value="threshold">Threshold</option>
+                            <option value="noisegate">Noise Gate</option>
+                            <option value="percentile">Percentile</option>
+                            <option value="rms">RMS Smooth</option>
+                        </select>
+                    </div>
+                    <div class="scale-control-group" id="waveformFilterValueGroup" style="display: none;">
+                        <label id="waveformFilterValueLabel">Threshold:</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="range" id="waveformFilterValueSlider" min="0" max="0.5" value="0.01" step="0.001" style="width: 100px;">
+                            <input type="number" id="waveformFilterValueInput" min="0" max="0.5" value="0.01" step="0.001" style="width: 60px;">
+                        </div>
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Zoom X:</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="range" id="waveformZoomXSlider" min="1" max="10" value="1" step="0.1" style="width: 100px;">
+                            <input type="number" id="waveformZoomXInput" min="1" max="10" value="1" step="0.1" style="width: 50px;">
+                            <span style="font-size: 11px; color: #6b7280;">×</span>
+                        </div>
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Zoom Y:</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="range" id="waveformZoomYSlider" min="1" max="10" value="1" step="0.1" style="width: 100px;">
+                            <input type="number" id="waveformZoomYInput" min="1" max="10" value="1" step="0.1" style="width: 50px;">
+                            <span style="font-size: 11px; color: #6b7280;">×</span>
+                        </div>
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Time:</label>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="waveformTimeStartInput" min="0" max="1" value="0" step="0.01" style="width: 50px; padding: 4px; font-size: 12px;">
+                            <span style="font-size: 11px; color: #6b7280;">to</span>
+                            <input type="number" id="waveformTimeEndInput" min="0" max="1" value="1" step="0.01" style="width: 50px; padding: 4px; font-size: 12px;">
+                        </div>
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Downsample:</label>
+                        <div class="scale-toggle">
+                            <button class="active" data-scale="minmax" data-type="waveformDownsample">Min-Max</button>
+                            <button data-scale="max" data-type="waveformDownsample">Peak</button>
+                            <button data-scale="avg" data-type="waveformDownsample">Avg</button>
+                        </div>
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Normalize:</label>
+                        <div class="scale-toggle">
+                            <button class="active" data-scale="independent" data-type="waveformNorm">Independent</button>
+                            <button data-scale="shared" data-type="waveformNorm">Shared</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Spectrogram Controls -->
@@ -215,17 +271,20 @@
                     </div>
                     <div class="scale-control-group">
                         <label>Filter Mode:</label>
-                        <select id="filterModeSelect" style="padding: 4px 6px; border-radius: 4px;">
-                            <option value="none">None</option>
+                        <select id="filterModeSelect" style="padding: 4px 6px; border-radius: 4px; font-size: 12px;">
+                            <option value="global" selected>Global Peak %</option>
                             <option value="percentile">Percentile</option>
-                            <option value="threshold">Threshold</option>
+                            <option value="perbin">Per-Frequency Bin</option>
+                            <option value="db">dB Threshold</option>
+                            <option value="statistical">Statistical</option>
                         </select>
                     </div>
-                    <div class="scale-control-group" id="filterValueGroup" style="display: none;">
-                        <label id="filterValueLabel">Threshold:</label>
+                    <div class="scale-control-group" id="filterValueGroup">
+                        <label id="filterValueLabel">Peak %:</label>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="range" id="filterValueSlider" min="0" max="100" value="0" step="1" style="width: 100px;">
+                            <input type="range" id="filterValueSlider" min="0" max="100" value="0" step="1" style="width: 120px;">
                             <input type="number" id="filterValueInput" min="0" max="100" value="0" step="1" style="width: 60px;">
+                            <span id="filterValueUnit" style="font-size: 11px; color: #6b7280;">%</span>
                         </div>
                     </div>
                     <div class="scale-control-group">
@@ -344,34 +403,57 @@
                 <!-- Pitch Controls -->
                 <div id="pitchControls" style="display: none;">
                     <div class="scale-control-group">
-                        <label>Min Confidence:</label>
+                        <label>Confidence:</label>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="range" id="pitchConfidenceSlider" min="0" max="1" value="0" step="0.05" style="width: 100px;">
-                            <input type="number" id="pitchConfidenceInput" min="0" max="1" value="0" step="0.05" style="width: 60px;">
+                            <input type="range" id="pitchConfidenceSlider" min="0" max="0.8" value="0" step="0.05" style="width: 80px;">
+                            <input type="number" id="pitchConfidenceInput" min="0" max="0.8" value="0" step="0.05" style="width: 50px;">
                         </div>
                     </div>
                     <div class="scale-control-group">
-                        <label><input type="checkbox" id="pitchSmoothingCheck"> Smoothing</label>
+                        <label>Smoothing:</label>
+                        <select id="pitchSmoothingSelect" style="padding: 4px 6px; border-radius: 4px; font-size: 12px;">
+                            <option value="median" selected>Median</option>
+                            <option value="moving-avg">Moving Avg</option>
+                            <option value="savitzky-golay">Savitzky-Golay</option>
+                            <option value="none">None (Raw)</option>
+                        </select>
                     </div>
-                    <div class="scale-control-group" id="pitchSmoothingWindowGroup" style="display: none;">
+                    <div class="scale-control-group" id="pitchSmoothingWindowGroup">
                         <label>Window:</label>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="range" id="pitchSmoothingWindowSlider" min="1" max="15" value="3" step="2" style="width: 80px;">
-                            <input type="number" id="pitchSmoothingWindowInput" min="1" max="15" value="3" step="2" style="width: 50px;">
+                            <input type="range" id="pitchSmoothingWindowSlider" min="3" max="15" value="5" step="2" style="width: 60px;">
+                            <input type="number" id="pitchSmoothingWindowInput" min="3" max="15" value="5" step="2" style="width: 45px;">
                         </div>
                     </div>
                     <div class="scale-control-group">
-                        <label>Y Min:</label>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="range" id="pitchYMinSlider" min="0" max="500" value="50" step="10" style="width: 80px;">
-                            <input type="number" id="pitchYMinInput" min="0" max="500" value="50" step="10" style="width: 60px;">
-                        </div>
+                        <label>Scale:</label>
+                        <select id="pitchScaleSelect" style="padding: 4px 6px; border-radius: 4px; font-size: 12px;">
+                            <option value="linear" selected>Linear (Hz)</option>
+                            <option value="semitone">Semitone</option>
+                        </select>
                     </div>
                     <div class="scale-control-group">
-                        <label>Y Max:</label>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="range" id="pitchYMaxSlider" min="100" max="1000" value="500" step="10" style="width: 80px;">
-                            <input type="number" id="pitchYMaxInput" min="100" max="1000" value="500" step="10" style="width: 60px;">
+                        <label>Normalize:</label>
+                        <select id="pitchNormalizeSelect" style="padding: 4px 6px; border-radius: 4px; font-size: 12px;">
+                            <option value="none" selected>None</option>
+                            <option value="mean">To Mean</option>
+                        </select>
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Show Confidence:</label>
+                        <input type="checkbox" id="pitchShowConfidenceCheck">
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Show Gaps:</label>
+                        <input type="checkbox" id="pitchShowUnvoicedCheck" checked>
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Y Range:</label>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="pitchYMinInput" min="0" max="500" value="0" step="10" style="width: 50px; padding: 4px; font-size: 12px;" placeholder="Auto">
+                            <span style="font-size: 11px; color: #6b7280;">-</span>
+                            <input type="number" id="pitchYMaxInput" min="0" max="800" value="0" step="10" style="width: 50px; padding: 4px; font-size: 12px;" placeholder="Auto">
+                            <span style="font-size: 10px; color: #9ca3af;">Hz (0=auto)</span>
                         </div>
                     </div>
                 </div>

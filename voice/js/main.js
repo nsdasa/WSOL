@@ -111,15 +111,15 @@ window.scalePreferences = {
     mfccNormalization: 'independent',
 
     // Pitch visualization options
-    pitchMinConfidence: 0.0,
-    pitchSmoothing: false,
-    pitchSmoothingWindow: 3,
+    pitchConfidenceThreshold: 0.0,
+    pitchSmoothingMode: 'median',
+    pitchSmoothingWindow: 5,
     pitchScale: 'linear',
-    pitchNormalize: false,
-    pitchShowConfidence: true,
+    pitchNormalize: 'none',
+    pitchShowConfidence: false,
     pitchShowUnvoiced: true,
-    pitchYMin: 50,
-    pitchYMax: 500,
+    pitchYMin: 0,
+    pitchYMax: 0,
 
     // Intensity visualization options
     intensityNormalization: 'independent',
@@ -1072,82 +1072,113 @@ function setupMFCCControls() {
 }
 
 function setupPitchControls() {
-    // Pitch min confidence
+    // Pitch confidence threshold
     const confSlider = document.getElementById('pitchConfidenceSlider');
     const confInput = document.getElementById('pitchConfidenceInput');
 
-    confSlider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        confInput.value = value;
-        window.scalePreferences.pitchMinConfidence = value;
-        updateVisualization();
-    });
+    if (confSlider && confInput) {
+        confSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            confInput.value = value;
+            window.scalePreferences.pitchConfidenceThreshold = value;
+            updateVisualization();
+        });
 
-    confInput.addEventListener('change', (e) => {
-        const value = parseFloat(e.target.value);
-        confSlider.value = value;
-        window.scalePreferences.pitchMinConfidence = value;
-        updateVisualization();
-    });
+        confInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            confSlider.value = value;
+            window.scalePreferences.pitchConfidenceThreshold = value;
+            updateVisualization();
+        });
+    }
 
-    // Pitch smoothing
-    document.getElementById('pitchSmoothingCheck').addEventListener('change', (e) => {
-        window.scalePreferences.pitchSmoothing = e.target.checked;
-        updateScaleControlsVisibility();
-        updateVisualization();
-    });
+    // Pitch smoothing mode dropdown
+    const smoothingSelect = document.getElementById('pitchSmoothingSelect');
+    if (smoothingSelect) {
+        smoothingSelect.addEventListener('change', (e) => {
+            window.scalePreferences.pitchSmoothingMode = e.target.value;
+            // Show/hide window control based on mode
+            const windowGroup = document.getElementById('pitchSmoothingWindowGroup');
+            if (windowGroup) {
+                windowGroup.style.display = e.target.value === 'none' ? 'none' : 'flex';
+            }
+            updateVisualization();
+        });
+    }
 
     // Pitch smoothing window
     const smoothSlider = document.getElementById('pitchSmoothingWindowSlider');
     const smoothInput = document.getElementById('pitchSmoothingWindowInput');
 
-    smoothSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        smoothInput.value = value;
-        window.scalePreferences.pitchSmoothingWindow = value;
-        updateVisualization();
-    });
+    if (smoothSlider && smoothInput) {
+        smoothSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            smoothInput.value = value;
+            window.scalePreferences.pitchSmoothingWindow = value;
+            updateVisualization();
+        });
 
-    smoothInput.addEventListener('change', (e) => {
-        const value = parseInt(e.target.value);
-        smoothSlider.value = value;
-        window.scalePreferences.pitchSmoothingWindow = value;
-        updateVisualization();
-    });
+        smoothInput.addEventListener('change', (e) => {
+            const value = parseInt(e.target.value);
+            smoothSlider.value = value;
+            window.scalePreferences.pitchSmoothingWindow = value;
+            updateVisualization();
+        });
+    }
 
-    // Pitch Y range
-    const yMinSlider = document.getElementById('pitchYMinSlider');
+    // Pitch scale dropdown
+    const scaleSelect = document.getElementById('pitchScaleSelect');
+    if (scaleSelect) {
+        scaleSelect.addEventListener('change', (e) => {
+            window.scalePreferences.pitchScale = e.target.value;
+            updateVisualization();
+        });
+    }
+
+    // Pitch normalize dropdown
+    const normalizeSelect = document.getElementById('pitchNormalizeSelect');
+    if (normalizeSelect) {
+        normalizeSelect.addEventListener('change', (e) => {
+            window.scalePreferences.pitchNormalize = e.target.value;
+            updateVisualization();
+        });
+    }
+
+    // Show confidence checkbox
+    const showConfCheck = document.getElementById('pitchShowConfidenceCheck');
+    if (showConfCheck) {
+        showConfCheck.addEventListener('change', (e) => {
+            window.scalePreferences.pitchShowConfidence = e.target.checked;
+            updateVisualization();
+        });
+    }
+
+    // Show gaps/unvoiced checkbox
+    const showUnvoicedCheck = document.getElementById('pitchShowUnvoicedCheck');
+    if (showUnvoicedCheck) {
+        showUnvoicedCheck.addEventListener('change', (e) => {
+            window.scalePreferences.pitchShowUnvoiced = e.target.checked;
+            updateVisualization();
+        });
+    }
+
+    // Pitch Y range (min and max inputs only - no sliders)
     const yMinInput = document.getElementById('pitchYMinInput');
-    const yMaxSlider = document.getElementById('pitchYMaxSlider');
     const yMaxInput = document.getElementById('pitchYMaxInput');
 
-    yMinSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        yMinInput.value = value;
-        window.scalePreferences.pitchYMin = value;
-        updateVisualization();
-    });
+    if (yMinInput) {
+        yMinInput.addEventListener('change', (e) => {
+            window.scalePreferences.pitchYMin = parseInt(e.target.value) || 0;
+            updateVisualization();
+        });
+    }
 
-    yMinInput.addEventListener('change', (e) => {
-        const value = parseInt(e.target.value);
-        yMinSlider.value = value;
-        window.scalePreferences.pitchYMin = value;
-        updateVisualization();
-    });
-
-    yMaxSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        yMaxInput.value = value;
-        window.scalePreferences.pitchYMax = value;
-        updateVisualization();
-    });
-
-    yMaxInput.addEventListener('change', (e) => {
-        const value = parseInt(e.target.value);
-        yMaxSlider.value = value;
-        window.scalePreferences.pitchYMax = value;
-        updateVisualization();
-    });
+    if (yMaxInput) {
+        yMaxInput.addEventListener('change', (e) => {
+            window.scalePreferences.pitchYMax = parseInt(e.target.value) || 0;
+            updateVisualization();
+        });
+    }
 }
 
 function setupIntensityControls() {
