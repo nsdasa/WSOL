@@ -2147,34 +2147,33 @@ export class Visualizer {
         // Compute simplified spectrum for mini view
         let nativeSpectrum, userSpectrum;
 
-        // Fast simplified spectrum - just one frame from middle
+            // Fast simplified spectrum - just one frame from middle
         const computeQuickSpectrum = (buffer) => {
-                const data = buffer.getChannelData(0);
-                const fftSize = 512;
-                const start = Math.floor(data.length / 2) - fftSize / 2;
-                const numBins = 128;
-                const spectrum = new Float32Array(numBins);
-                
-                // Simple DFT on reduced bins
-                for (let k = 0; k < numBins; k++) {
-                    let real = 0, imag = 0;
-                    const freq = k * (fftSize / 2) / numBins;
-                    for (let n = 0; n < fftSize; n++) {
-                        const window = 0.54 - 0.46 * Math.cos(2 * Math.PI * n / (fftSize - 1));
-                        const sample = data[start + n] * window;
-                        const angle = 2 * Math.PI * freq * n / fftSize;
-                        real += sample * Math.cos(angle);
-                        imag -= sample * Math.sin(angle);
-                    }
-                    spectrum[k] = Math.sqrt(real * real + imag * imag);
+            const data = buffer.getChannelData(0);
+            const fftSize = 512;
+            const start = Math.floor(data.length / 2) - fftSize / 2;
+            const numBins = 128;
+            const spectrum = new Float32Array(numBins);
+
+            // Simple DFT on reduced bins
+            for (let k = 0; k < numBins; k++) {
+                let real = 0, imag = 0;
+                const freq = k * (fftSize / 2) / numBins;
+                for (let n = 0; n < fftSize; n++) {
+                    const window = 0.54 - 0.46 * Math.cos(2 * Math.PI * n / (fftSize - 1));
+                    const sample = data[start + n] * window;
+                    const angle = 2 * Math.PI * freq * n / fftSize;
+                    real += sample * Math.cos(angle);
+                    imag -= sample * Math.sin(angle);
                 }
-                return spectrum;
-            };
-            
-            nativeSpectrum = computeQuickSpectrum(nativeBuffer);
-            userSpectrum = computeQuickSpectrum(userBuffer);
-        }
-        
+                spectrum[k] = Math.sqrt(real * real + imag * imag);
+            }
+            return spectrum;
+        };
+
+        nativeSpectrum = computeQuickSpectrum(nativeBuffer);
+        userSpectrum = computeQuickSpectrum(userBuffer);
+
         // Downsample for display
         const displayBins = Math.min(plotWidth, nativeSpectrum.length);
         const binSize = Math.floor(nativeSpectrum.length / displayBins);
