@@ -1242,6 +1242,7 @@ class PronunciationAnalyzer {
 
     async analyzeEnhanced() {
         const processor = new EnhancedMFCCProcessor(this.audioContext);
+        const stressDetector = new ProsodicStressDetector();
 
         // Extract features using enhanced processor
         const nativePitch = processor.extractPitch(this.nativeBuffer);
@@ -1253,36 +1254,52 @@ class PronunciationAnalyzer {
         const nativeIntensity = processor.extractIntensity(this.nativeBuffer);
         const userIntensity = processor.extractIntensity(this.userBuffer);
 
+        // Detect stressed syllables
+        const nativeStresses = stressDetector.detect(nativePitch, nativeIntensity, this.audioContext.sampleRate);
+        const userStresses = stressDetector.detect(userPitch, userIntensity, this.audioContext.sampleRate);
+
         // Use enhanced MFCC comparison with deltas and Z-normalization
         const mfccComparison = compareMFCCsEnhanced(nativeMFCCResult, userMFCCResult, this.useDTW);
 
-        const pitchScore = this.comparePitch(nativePitch, userPitch);
+        // Use enhanced pitch/intensity comparison
+        const pitchComparison = comparePitchEnhanced(nativePitch, userPitch, this.useDTW);
+        const intensityComparison = compareIntensityEnhanced(nativeIntensity, userIntensity, this.useDTW);
+
+        // Stress position and pattern scoring
+        const stressScores = StressScorer.score(nativeStresses, userStresses, this.nativeBuffer.duration);
+
         const durationScore = this.compareDuration();
         const spectralScore = this.compareSpectralFromFrames(nativeMFCCResult.frames, userMFCCResult.frames);
-        const stressScore = this.compareStress(nativeIntensity, userIntensity);
         const qualityScore = this.assessQualityFromFrames(userMFCCResult.frames, userPitch);
 
-        // Enhanced MFCC score gets higher weight due to deltas
+        // New weights with prosodic stress components
         const weights = {
-            pitch: 0.25,
-            mfcc: 0.35,  // Increased weight for enhanced MFCC
-            spectral: 0.10,
-            duration: 0.15,
-            stress: 0.10,
-            quality: 0.05
+            pitch: 0.15,           // Pitch contour
+            mfcc: 0.30,            // Enhanced MFCC with deltas
+            stressPosition: 0.15, // Syllable timing alignment
+            stressPattern: 0.10,  // Prominence ordering
+            intensity: 0.10,      // Envelope comparison
+            duration: 0.10,       // Overall duration
+            spectral: 0.05,       // Spectral characteristics
+            quality: 0.05         // Recording quality
         };
 
         const overallScore = Math.round(
-            pitchScore * weights.pitch +
+            pitchComparison.score * weights.pitch +
             mfccComparison.score * weights.mfcc +
-            spectralScore * weights.spectral +
+            stressScores.position * weights.stressPosition +
+            stressScores.pattern * weights.stressPattern +
+            intensityComparison.score * weights.intensity +
             durationScore * weights.duration +
-            stressScore * weights.stress +
+            spectralScore * weights.spectral +
             qualityScore * weights.quality
         );
 
         debugLogger?.log(3, `Enhanced analysis complete. Score: ${overallScore}`);
-        debugLogger?.log(3, `  Pitch: ${pitchScore.toFixed(1)}, MFCC: ${mfccComparison.score}, Duration: ${durationScore}`);
+        debugLogger?.log(3, `  Pitch: ${pitchComparison.score}, MFCC: ${mfccComparison.score}`);
+        debugLogger?.log(3, `  Stress Position: ${stressScores.position}, Pattern: ${stressScores.pattern}`);
+        debugLogger?.log(3, `  Intensity: ${intensityComparison.score}, Duration: ${durationScore}`);
+        debugLogger?.log(3, `  Stresses: native=${nativeStresses.length}, user=${userStresses.length}`);
         debugLogger?.log(3, `  VAD trimmed native: ${nativeMFCCResult.vadInfo.trimmedDuration.toFixed(2)}s`);
         debugLogger?.log(3, `  VAD trimmed user: ${userMFCCResult.vadInfo.trimmedDuration.toFixed(2)}s`);
 
@@ -1296,11 +1313,18 @@ class PronunciationAnalyzer {
                 nativeIntensity,
                 userIntensity
             },
+            stresses: {
+                native: nativeStresses,
+                user: userStresses
+            },
             vadInfo: {
                 native: nativeMFCCResult.vadInfo,
                 user: userMFCCResult.vadInfo
             },
-            mfccDetails: mfccComparison
+            mfccDetails: mfccComparison,
+            pitchDetails: pitchComparison,
+            intensityDetails: intensityComparison,
+            stressScores
         };
     }
 
@@ -2037,7 +2061,7 @@ class EnhancedMFCCProcessor {
         return coeffs;
     }
 
-    // Extract pitch (autocorrelation method)
+    // Extract pitch (autocorrelation method) with isVoiced flag and confidence
     extractPitch(audioBuffer) {
         const data = audioBuffer.getChannelData(0);
         const frameSize = 2048;
@@ -2048,22 +2072,26 @@ class EnhancedMFCCProcessor {
 
         for (let i = 0; i < data.length - frameSize; i += hopSize) {
             const frame = data.slice(i, i + frameSize);
-            const pitch = this.estimatePitch(Array.from(frame), minPitch, maxPitch);
+            const result = this.estimatePitchWithConfidence(Array.from(frame), minPitch, maxPitch);
             pitchTrack.push({
                 time: i / this.sampleRate,
-                pitch: pitch
+                pitch: result.pitch,
+                confidence: result.confidence,
+                isVoiced: result.pitch > 0 && result.confidence >= 0.3
             });
         }
 
-        // Median filter for smoothing
+        // Median filter for smoothing (only on voiced frames)
         const smoothed = this.medianFilter(pitchTrack.map(p => p.pitch), 5);
         return pitchTrack.map((p, i) => ({
             time: p.time,
-            pitch: smoothed[i]
+            pitch: smoothed[i],
+            confidence: p.confidence,
+            isVoiced: smoothed[i] > 0 && p.confidence >= 0.3
         }));
     }
 
-    estimatePitch(frame, minPitch, maxPitch) {
+    estimatePitchWithConfidence(frame, minPitch, maxPitch) {
         const minLag = Math.floor(this.sampleRate / maxPitch);
         const maxLag = Math.floor(this.sampleRate / minPitch);
         let maxCorr = -Infinity;
@@ -2085,8 +2113,11 @@ class EnhancedMFCCProcessor {
             }
         }
 
-        if (maxCorr < 0.3) return 0;
-        return this.sampleRate / bestLag;
+        const voicingThreshold = 0.3;
+        if (maxCorr < voicingThreshold) {
+            return { pitch: 0, confidence: maxCorr };
+        }
+        return { pitch: this.sampleRate / bestLag, confidence: maxCorr };
     }
 
     medianFilter(data, windowSize) {
@@ -2101,7 +2132,7 @@ class EnhancedMFCCProcessor {
         return result;
     }
 
-    // Extract intensity (RMS energy)
+    // Extract intensity (RMS energy) with both rms and intensity fields
     extractIntensity(audioBuffer) {
         const data = audioBuffer.getChannelData(0);
         const frameSize = this.frameSize;
@@ -2117,15 +2148,16 @@ class EnhancedMFCCProcessor {
             const rms = Math.sqrt(sum / frameSize);
             intensity.push({
                 time: i / this.sampleRate,
-                intensity: rms
+                rms: rms,           // Raw RMS for stress detection
+                intensity: rms      // Will be normalized below
             });
         }
 
-        // Normalize
-        const maxIntensity = Math.max(...intensity.map(i => i.intensity));
+        // Normalize intensity field (keep rms as raw)
+        const maxIntensity = Math.max(...intensity.map(i => i.rms));
         if (maxIntensity > 0) {
             intensity.forEach(i => {
-                i.intensity = i.intensity / maxIntensity;
+                i.intensity = i.rms / maxIntensity;
             });
         }
 
@@ -2229,6 +2261,318 @@ function compareMFCCsEnhanced(nativeResult, userResult, useDTW = true) {
         distance,
         avgDistance,
         alignmentRatio: Math.min(n, m) / Math.max(n, m)
+    };
+}
+
+// =================================================================
+// PROSODIC STRESS DETECTOR - Syllable-level stress detection
+// =================================================================
+class ProsodicStressDetector {
+    constructor(options = {}) {
+        this.pitchWeight = options.pitchWeight ?? 0.55;
+        this.intensityWeight = options.intensityWeight ?? 0.35;
+        this.durationWeight = options.durationWeight ?? 0.10;
+        this.minProminence = options.minProminence ?? 0.65;
+        this.windowMs = options.windowMs ?? 120;
+    }
+
+    // Main entry point: returns stress events with timing + strength
+    detect(pitchContour, intensityContour, sampleRate) {
+        if (!pitchContour || !intensityContour || pitchContour.length === 0) {
+            return [];
+        }
+
+        const stresses = [];
+        const hopMs = 1000 / (sampleRate / 128); // ~7.8ms per frame at 128 hop
+
+        for (let i = 0; i < pitchContour.length; i++) {
+            const p = pitchContour[i];
+            if (!p.isVoiced || p.pitch === 0) continue;
+
+            const centerTime = p.time;
+            const windowFrames = Math.round(this.windowMs / hopMs);
+            const start = Math.max(0, i - windowFrames);
+            const end = Math.min(pitchContour.length, i + windowFrames + 1);
+
+            // Gather local statistics
+            const localPitches = [];
+            const localEnergies = [];
+
+            for (let j = start; j < end; j++) {
+                if (pitchContour[j].isVoiced) {
+                    localPitches.push(pitchContour[j].pitch);
+                    if (intensityContour[j]) {
+                        localEnergies.push(intensityContour[j].rms || intensityContour[j].intensity);
+                    }
+                }
+            }
+
+            if (localPitches.length < 5) continue;
+
+            const meanP = this.mean(localPitches);
+            const stdP = this.std(localPitches, meanP);
+            const meanE = this.mean(localEnergies);
+            const stdE = this.std(localEnergies, meanE);
+
+            const zPitch = stdP > 0 ? (p.pitch - meanP) / stdP : 0;
+            const currentEnergy = intensityContour[i] ?
+                (intensityContour[i].rms || intensityContour[i].intensity) : 0;
+            const zEnergy = stdE > 0 ? (currentEnergy - meanE) / stdE : 0;
+
+            // Duration proxy: how long this voiced segment is compared to neighbors
+            let durationScore = 0;
+            const segment = this.findVoicedSegment(pitchContour, i);
+            if (segment.length > 3) {
+                const neighborLengths = [
+                    this.findVoicedSegment(pitchContour, Math.max(0, i - 15)).length,
+                    this.findVoicedSegment(pitchContour, Math.min(pitchContour.length - 1, i + 15)).length
+                ].filter(l => l > 0);
+                const avgNeighbor = neighborLengths.length > 0 ? this.mean(neighborLengths) : segment.length;
+                durationScore = segment.length > avgNeighbor ? 1 : 0.3;
+            }
+
+            const prominence =
+                this.pitchWeight * Math.max(0, zPitch) +
+                this.intensityWeight * Math.max(0, zEnergy) +
+                this.durationWeight * durationScore;
+
+            if (prominence >= this.minProminence) {
+                stresses.push({
+                    time: centerTime,
+                    frame: i,
+                    prominence,
+                    zPitch,
+                    zEnergy,
+                    durationScore,
+                    segmentLength: segment.length
+                });
+            }
+        }
+
+        // Merge very close stresses (within ~80ms)
+        return this.mergeCloseStresses(stresses, 0.08);
+    }
+
+    // Helper: find current voiced segment length around index
+    findVoicedSegment(contour, idx) {
+        if (idx < 0 || idx >= contour.length) return { start: idx, end: idx, length: 0 };
+        let start = idx, end = idx;
+        while (start > 0 && contour[start - 1].isVoiced) start--;
+        while (end < contour.length - 1 && contour[end + 1].isVoiced) end++;
+        return { start, end, length: end - start + 1 };
+    }
+
+    mergeCloseStresses(stresses, maxGapSec) {
+        if (stresses.length <= 1) return stresses;
+        const merged = [stresses[0]];
+        for (let i = 1; i < stresses.length; i++) {
+            const last = merged[merged.length - 1];
+            const curr = stresses[i];
+            if (curr.time - last.time <= maxGapSec) {
+                // Keep the stronger one
+                if (curr.prominence > last.prominence) {
+                    merged[merged.length - 1] = curr;
+                }
+            } else {
+                merged.push(curr);
+            }
+        }
+        return merged;
+    }
+
+    mean(arr) {
+        if (!arr || arr.length === 0) return 0;
+        return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    std(arr, meanVal) {
+        if (!arr || arr.length === 0) return 1;
+        const m = meanVal !== undefined ? meanVal : this.mean(arr);
+        const variance = arr.reduce((s, v) => s + (v - m) ** 2, 0) / arr.length;
+        return Math.sqrt(variance) || 1;
+    }
+}
+
+// =================================================================
+// STRESS SCORER - Position + Pattern scoring
+// =================================================================
+class StressScorer {
+    static score(nativeStresses, userStresses, duration) {
+        if (!nativeStresses || nativeStresses.length === 0) {
+            return { position: 100, pattern: 100, details: { nativeCount: 0, userCount: userStresses?.length || 0, matches: 0 } };
+        }
+
+        // 1. Stress Position Score (timing alignment)
+        const positionMatches = this.countTimingMatches(nativeStresses, userStresses, duration);
+        const positionScore = Math.round(100 * positionMatches / nativeStresses.length);
+
+        // 2. Stress Pattern Score (relative ordering)
+        const patternScore = this.relativePatternScore(nativeStresses, userStresses);
+
+        return {
+            position: Math.max(0, positionScore),
+            pattern: Math.max(0, Math.round(patternScore)),
+            details: {
+                nativeCount: nativeStresses.length,
+                userCount: userStresses?.length || 0,
+                matches: positionMatches
+            }
+        };
+    }
+
+    // Count how many native stresses have a user stress within ±100ms
+    static countTimingMatches(native, user, duration) {
+        if (!user || user.length === 0) return 0;
+        const tolerance = 0.100; // 100ms window
+        let matches = 0;
+        for (const ns of native) {
+            for (const us of user) {
+                if (Math.abs(ns.time - us.time) <= tolerance) {
+                    matches++;
+                    break;
+                }
+            }
+        }
+        return matches;
+    }
+
+    // Compare relative prominence order (e.g. strong–weak–strong)
+    static relativePatternScore(native, user) {
+        if (!native || native.length < 2 || !user || user.length < 2) {
+            return 80; // not enough data → neutral
+        }
+
+        const nativeOrder = native.map(s => s.prominence);
+        const userOrder = user.map(s => s.prominence);
+
+        // Proper ranking with tie-breaking
+        const rank = arr => {
+            const indexed = arr.map((v, i) => ({ v, i }));
+            indexed.sort((a, b) => b.v - a.v);
+            const ranks = new Array(arr.length);
+            indexed.forEach((item, rankIdx) => {
+                ranks[item.i] = rankIdx;
+            });
+            return ranks;
+        };
+
+        const nativeRank = rank(nativeOrder);
+        const userRank = rank(userOrder);
+
+        // Spearman rank correlation
+        const n = Math.min(nativeRank.length, userRank.length);
+        let d2 = 0;
+        for (let i = 0; i < n; i++) {
+            const diff = nativeRank[i] - (userRank[i] !== undefined ? userRank[i] : userRank[userRank.length - 1]);
+            d2 += diff * diff;
+        }
+        const spearman = n >= 3 ? 1 - (6 * d2) / (n * (n * n - 1)) : 0.7;
+        return Math.round(100 * Math.max(0, spearman));
+    }
+}
+
+// =================================================================
+// ENHANCED PITCH/INTENSITY COMPARISON
+// =================================================================
+function comparePitchEnhanced(nativePitch, userPitch, useDTW = true) {
+    if (!nativePitch || !userPitch || nativePitch.length === 0 || userPitch.length === 0) {
+        return { score: 50, contourScore: 50, rangeScore: 50 };
+    }
+
+    const nativeVoiced = nativePitch.filter(p => p.isVoiced && p.pitch > 0);
+    const userVoiced = userPitch.filter(p => p.isVoiced && p.pitch > 0);
+
+    if (nativeVoiced.length === 0 || userVoiced.length === 0) {
+        return { score: 50, contourScore: 50, rangeScore: 50 };
+    }
+
+    // Extract pitch values
+    const nativePitches = nativeVoiced.map(p => p.pitch);
+    const userPitches = userVoiced.map(p => p.pitch);
+
+    // 1. Pitch Range Score (compare F0 range)
+    const nativeRange = { min: Math.min(...nativePitches), max: Math.max(...nativePitches) };
+    const userRange = { min: Math.min(...userPitches), max: Math.max(...userPitches) };
+
+    const nativeSpan = nativeRange.max - nativeRange.min;
+    const userSpan = userRange.max - userRange.min;
+    const rangeRatio = Math.min(nativeSpan, userSpan) / Math.max(nativeSpan, userSpan);
+    const rangeScore = Math.round(rangeRatio * 100);
+
+    // 2. Contour Score (normalized DTW comparison)
+    const nativeMean = nativePitches.reduce((a, b) => a + b, 0) / nativePitches.length;
+    const userMean = userPitches.reduce((a, b) => a + b, 0) / userPitches.length;
+
+    const nativeNorm = nativePitches.map(p => p / nativeMean);
+    const userNorm = userPitches.map(p => p / userMean);
+
+    let contourScore;
+    if (useDTW) {
+        const dtwResult = DTW.compute1D(nativeNorm, userNorm, 20);
+        contourScore = Math.max(0, 100 * (1 - dtwResult.normalizedDistance));
+    } else {
+        const len = Math.min(nativeNorm.length, userNorm.length);
+        let diff = 0;
+        for (let i = 0; i < len; i++) {
+            diff += Math.abs(nativeNorm[i] - userNorm[i]);
+        }
+        contourScore = Math.max(0, 100 * (1 - diff / len));
+    }
+
+    // Combined score
+    const score = Math.round(0.6 * contourScore + 0.4 * rangeScore);
+
+    return {
+        score: Math.min(100, Math.max(0, score)),
+        contourScore: Math.round(contourScore),
+        rangeScore,
+        nativeRange,
+        userRange
+    };
+}
+
+function compareIntensityEnhanced(nativeIntensity, userIntensity, useDTW = true) {
+    if (!nativeIntensity || !userIntensity || nativeIntensity.length === 0 || userIntensity.length === 0) {
+        return { score: 50, envelopeScore: 50, dynamicRangeScore: 50 };
+    }
+
+    const nativeRMS = nativeIntensity.map(i => i.rms || i.intensity);
+    const userRMS = userIntensity.map(i => i.rms || i.intensity);
+
+    // 1. Dynamic Range Score
+    const nativeMax = Math.max(...nativeRMS);
+    const nativeMin = Math.min(...nativeRMS.filter(r => r > 0.01));
+    const userMax = Math.max(...userRMS);
+    const userMin = Math.min(...userRMS.filter(r => r > 0.01));
+
+    const nativeDR = nativeMax / (nativeMin || 0.01);
+    const userDR = userMax / (userMin || 0.01);
+    const drRatio = Math.min(nativeDR, userDR) / Math.max(nativeDR, userDR);
+    const dynamicRangeScore = Math.round(drRatio * 100);
+
+    // 2. Envelope Score (normalized comparison)
+    const nativeNorm = nativeRMS.map(r => r / nativeMax);
+    const userNorm = userRMS.map(r => r / userMax);
+
+    let envelopeScore;
+    if (useDTW) {
+        const dtwResult = DTW.compute1D(nativeNorm, userNorm, 20);
+        envelopeScore = Math.max(0, 100 * (1 - dtwResult.normalizedDistance * 2));
+    } else {
+        const len = Math.min(nativeNorm.length, userNorm.length);
+        let diff = 0;
+        for (let i = 0; i < len; i++) {
+            diff += Math.abs(nativeNorm[i] - userNorm[i]);
+        }
+        envelopeScore = Math.max(0, 100 * (1 - diff / len));
+    }
+
+    const score = Math.round(0.7 * envelopeScore + 0.3 * dynamicRangeScore);
+
+    return {
+        score: Math.min(100, Math.max(0, score)),
+        envelopeScore: Math.round(envelopeScore),
+        dynamicRangeScore
     };
 }
 
