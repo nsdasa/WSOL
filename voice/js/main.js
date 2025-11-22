@@ -54,6 +54,10 @@ let stream = null;
 let analysisResults = null;
 let detailedAnalysis = null;
 
+// Audio processing options
+let useFilter = true;  // Apply 70-12000 Hz speech filter
+let useDTW = true;     // Use Dynamic Time Warping for comparison
+
 // Cache for computed spectra (avoid recomputing on display mode switch)
 let spectrumCache = {
     nativeSpectrum: null,
@@ -261,6 +265,8 @@ async function init() {
     setupSettingsHandlers();
     setupExportHandlers();
     setupAIHandlers(aiUI);
+    setupProcessingOptions();
+    setupCopyPromptHandlers();
     
     // Initialize canvas with placeholder
     visualizer.ctx.fillStyle = '#1f2937';
@@ -550,7 +556,13 @@ function setupAnalysisHandlers(comparator, aiAnalyzer) {
             if (aiBtn && aiAnalyzer.isConfigured()) {
                 aiBtn.disabled = false;
             }
-            
+
+            // Enable copy prompt buttons
+            const copyBalancedBtn = document.getElementById('copyBalancedPrompt');
+            if (copyBalancedBtn) copyBalancedBtn.disabled = false;
+            const copyFullBtn = document.getElementById('copyFullPrompt');
+            if (copyFullBtn) copyFullBtn.disabled = false;
+
             debugLog.log('Analysis complete', 'success');
         } catch (err) {
             debugLog.log(`Error: ${err.message}`, 'error');
@@ -1684,6 +1696,124 @@ function setupAIHandlers(aiUI) {
             aiUI.runAnalysis();
         });
     }
+}
+
+// ===================================================================
+// PROCESSING OPTIONS HANDLERS
+// ===================================================================
+function setupProcessingOptions() {
+    // Speech Filter toggle (70-12000 Hz)
+    const filterToggle = document.getElementById('filterToggle');
+    if (filterToggle) {
+        filterToggle.addEventListener('change', (e) => {
+            useFilter = e.target.checked;
+            debugLog.log(`Speech filter: ${useFilter ? 'enabled' : 'disabled'}`);
+        });
+    }
+
+    // DTW toggle
+    const dtwToggle = document.getElementById('dtwToggle');
+    if (dtwToggle) {
+        dtwToggle.addEventListener('change', (e) => {
+            useDTW = e.target.checked;
+            debugLog.log(`DTW: ${useDTW ? 'enabled' : 'disabled'}`);
+        });
+    }
+}
+
+// ===================================================================
+// COPY PROMPT HANDLERS
+// ===================================================================
+function setupCopyPromptHandlers() {
+    const copyBalancedBtn = document.getElementById('copyBalancedPrompt');
+    const copyFullBtn = document.getElementById('copyFullPrompt');
+
+    if (copyBalancedBtn) {
+        copyBalancedBtn.addEventListener('click', () => {
+            copyPromptToClipboard('balanced');
+        });
+    }
+
+    if (copyFullBtn) {
+        copyFullBtn.addEventListener('click', () => {
+            copyPromptToClipboard('full');
+        });
+    }
+}
+
+function copyPromptToClipboard(mode = 'balanced') {
+    if (!analysisResults) {
+        debugLog.log('No analysis results to copy', 'error');
+        alert('Please run analysis first');
+        return;
+    }
+
+    const targetWord = document.getElementById('targetWord')?.textContent || 'Unknown';
+    const score = analysisResults.score;
+    const breakdown = analysisResults.breakdown;
+
+    let prompt = '';
+
+    if (mode === 'balanced') {
+        prompt = `I'm practicing pronunciation of "${targetWord}".
+
+My overall score: ${score}/100
+
+Score breakdown:
+- Pitch/Intonation: ${breakdown.pitch}%
+- MFCCs (Spectral): ${breakdown.mfcc}%
+- Envelope: ${breakdown.envelope}%
+- Duration: ${breakdown.duration}%
+- Stress Position: ${breakdown.stressPosition}%
+- Stress Pattern: ${breakdown.stress}%
+- Voice Quality: ${breakdown.quality}%
+
+Please analyze my pronunciation and give specific tips for improvement.`;
+    } else {
+        // Full mode - include detailed analysis
+        prompt = `I'm practicing pronunciation of "${targetWord}".
+
+=== ANALYSIS RESULTS ===
+Overall Score: ${score}/100
+Feedback: ${analysisResults.feedback || 'N/A'}
+Method: ${analysisResults.method || 'combined'}
+
+=== DETAILED BREAKDOWN ===
+- Pitch/Intonation (20%): ${breakdown.pitch}%
+- MFCCs/Spectral (25%): ${breakdown.mfcc}%
+- Envelope (15%): ${breakdown.envelope}%
+- Duration (10%): ${breakdown.duration}%
+- Stress Position (10%): ${breakdown.stressPosition}%
+- Stress Pattern (10%): ${breakdown.stress}%
+- Voice Quality (10%): ${breakdown.quality}%
+
+=== SETTINGS ===
+- Speech Filter: ${useFilter ? 'Enabled (70-12000 Hz)' : 'Disabled'}
+- DTW: ${useDTW ? 'Enabled' : 'Disabled'}
+- Native Duration: ${nativeBuffer ? nativeBuffer.duration.toFixed(2) + 's' : 'N/A'}
+- User Duration: ${userBuffer ? userBuffer.duration.toFixed(2) + 's' : 'N/A'}
+
+Please provide detailed analysis and specific tips for improving my pronunciation.`;
+    }
+
+    navigator.clipboard.writeText(prompt).then(() => {
+        const btnId = mode === 'balanced' ? 'copyBalancedPrompt' : 'copyFullPrompt';
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            const originalText = btn.querySelector('span:last-child')?.textContent;
+            const textSpan = btn.querySelector('span:last-child');
+            if (textSpan) {
+                textSpan.textContent = 'Copied!';
+                setTimeout(() => {
+                    textSpan.textContent = originalText;
+                }, 2000);
+            }
+        }
+        debugLog.log(`${mode} prompt copied to clipboard`, 'success');
+    }).catch(err => {
+        debugLog.log(`Failed to copy: ${err.message}`, 'error');
+        alert('Failed to copy to clipboard');
+    });
 }
 
 // ===================================================================
