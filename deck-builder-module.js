@@ -199,6 +199,103 @@ class DeckBuilderModule extends LearningModule {
                     <h2>No Cards Found</h2>
                     <p>Click "Add New Card" to create your first card, or check your filters.</p>
                 </div>
+
+                <!-- CSV Data Management Section (Admin only) -->
+                <div class="deck-section ${adminOnlyClass}" id="csvManagementSection">
+                    <h3 class="section-title"><i class="fas fa-sync-alt"></i> CSV Data Management</h3>
+                    <div class="section-card">
+                        <p class="section-description">
+                            Upload and process your Language List and Word List CSV files. In v4.0, each language has its own Word List file.
+                        </p>
+
+                        <div class="csv-upload-section">
+                            <div class="upload-options">
+                                <label style="font-weight:600;margin-bottom:12px;display:block;color:var(--text-primary);">What do you want to update?</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="deckUpdateType" value="both" checked>
+                                        <span>Both Lists (Language + Word)</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="deckUpdateType" value="language">
+                                        <span>Language List Only</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="deckUpdateType" value="word">
+                                        <span>Word Lists Only</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="file-upload-container" id="deckLanguageUploadContainer">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-language"></i> Language List CSV
+                                    <span class="file-hint">Expected: 3 columns (ID, Name, Trigraph)</span>
+                                </label>
+                                <input type="file" id="deckLanguageFileInput" accept=".csv" class="file-input">
+                                <div class="file-status" id="deckLanguageFileStatus">No file selected</div>
+                            </div>
+
+                            <div id="deckWordUploadContainer">
+                                <label class="file-upload-label" style="margin-bottom:16px;">
+                                    <i class="fas fa-list"></i> Word List CSVs (per language)
+                                    <span class="file-hint">v4.0: Each language has its own word list file</span>
+                                </label>
+                                <div class="language-uploads" id="deckWordFileInputs">
+                                    <!-- Will be populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-actions">
+                            <button id="deckUploadProcessBtn" class="btn btn-primary btn-lg" disabled>
+                                <i class="fas fa-upload"></i> Upload & Process
+                            </button>
+                            <button id="deckScanAssetsBtn" class="btn btn-secondary">
+                                <i class="fas fa-sync"></i> Rescan Assets Only
+                            </button>
+                        </div>
+                        <p class="section-hint">
+                            <i class="fas fa-info-circle"></i> Upload CSVs first, then the system will scan for matching images/audio files
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Media Files Upload Section (Admin only) -->
+                <div class="deck-section ${adminOnlyClass}" id="mediaUploadSection">
+                    <h3 class="section-title"><i class="fas fa-photo-video"></i> Media Files Upload</h3>
+                    <div class="section-card">
+                        <p class="section-description">
+                            Upload image/video files (PNG/JPG/WebP/GIF/MP4/WebM) and audio files (MP3/M4A) for your words. Files must follow the naming convention.
+                        </p>
+
+                        <div class="csv-upload-section">
+                            <div class="file-upload-container">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-images"></i> Image Files (PNG/JPG/WebP/GIF/MP4/WebM)
+                                    <span class="file-hint">Format: WordNum.word.translation.ext (e.g., 17.tilaw.taste.png)</span>
+                                </label>
+                                <input type="file" id="deckImageFilesInput" accept=".png,.jpg,.jpeg,.webp,.gif,.mp4,.webm" multiple class="file-input">
+                                <div class="file-status" id="deckImageFilesStatus">No files selected</div>
+                            </div>
+
+                            <div class="file-upload-container">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-music"></i> Audio Files (MP3/M4A)
+                                    <span class="file-hint">Format: WordNum.trigraph.word.mp3/m4a (e.g., 17.ceb.tilaw.m4a)</span>
+                                </label>
+                                <input type="file" id="deckAudioFilesInput" accept=".mp3,.m4a" multiple class="file-input">
+                                <div class="file-status" id="deckAudioFilesStatus">No files selected</div>
+                            </div>
+                        </div>
+
+                        <div class="section-actions">
+                            <button id="deckUploadMediaBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-cloud-upload-alt"></i> Upload Media Files
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Categories Editor Modal -->
@@ -289,7 +386,7 @@ class DeckBuilderModule extends LearningModule {
     async init() {
         // Load cards for current language from v4.0 manifest structure
         this.loadCardsForLanguage(this.currentTrigraph);
-        
+
         if (this.allCards.length === 0) {
             document.getElementById('emptyState').style.display = 'block';
             document.querySelector('.deck-table-container').style.display = 'none';
@@ -297,6 +394,12 @@ class DeckBuilderModule extends LearningModule {
 
         // Setup event listeners
         this.setupEventListeners();
+
+        // Setup CSV and Media upload (admin only)
+        if (this.isAdmin) {
+            this.setupCSVUpload();
+            this.setupMediaUpload();
+        }
 
         // Initial render (will apply default sort)
         this.filterAndRenderCards();
@@ -3288,6 +3391,379 @@ class DeckBuilderModule extends LearningModule {
 
     capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // =========================================
+    // CSV DATA MANAGEMENT
+    // =========================================
+
+    setupCSVUpload() {
+        this.languageFile = null;
+        this.wordFiles = {};
+
+        // Populate language file inputs
+        const languages = this.assets.manifest?.languages || [
+            {trigraph: 'ceb', name: 'Cebuano'},
+            {trigraph: 'mrw', name: 'Maranao'},
+            {trigraph: 'sin', name: 'Sinama'}
+        ];
+        const targetLanguages = languages.filter(l => l.trigraph.toLowerCase() !== 'eng');
+
+        const wordFileInputsContainer = document.getElementById('deckWordFileInputs');
+        if (wordFileInputsContainer) {
+            wordFileInputsContainer.innerHTML = targetLanguages.map(lang => `
+                <div class="file-upload-container word-file-row" data-trigraph="${lang.trigraph}">
+                    <label class="file-upload-label">
+                        <i class="fas fa-file-csv"></i> ${lang.name}
+                        <span class="file-hint">Word_List_${lang.name}.csv</span>
+                    </label>
+                    <input type="file" name="wordFile_${lang.trigraph}" accept=".csv" class="file-input">
+                    <div class="file-status">No file selected</div>
+                </div>
+            `).join('');
+        }
+
+        // Radio button changes
+        document.querySelectorAll('input[name="deckUpdateType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const value = e.target.value;
+                const languageContainer = document.getElementById('deckLanguageUploadContainer');
+                const wordContainer = document.getElementById('deckWordUploadContainer');
+
+                if (value === 'both') {
+                    languageContainer.style.display = 'block';
+                    wordContainer.style.display = 'block';
+                } else if (value === 'language') {
+                    languageContainer.style.display = 'block';
+                    wordContainer.style.display = 'none';
+                    this.wordFiles = {};
+                    this.clearWordFileStatuses();
+                } else if (value === 'word') {
+                    languageContainer.style.display = 'none';
+                    wordContainer.style.display = 'block';
+                    this.languageFile = null;
+                    const status = document.getElementById('deckLanguageFileStatus');
+                    if (status) {
+                        status.textContent = 'No file selected';
+                        status.style.color = 'var(--text-secondary)';
+                    }
+                }
+                this.updateUploadButton();
+            });
+        });
+
+        // Language file input
+        const languageInput = document.getElementById('deckLanguageFileInput');
+        if (languageInput) {
+            languageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                const status = document.getElementById('deckLanguageFileStatus');
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.csv')) {
+                        toastManager.show('Please select a CSV file', 'error');
+                        languageInput.value = '';
+                        this.languageFile = null;
+                        status.textContent = 'No file selected';
+                        status.style.color = 'var(--text-secondary)';
+                    } else {
+                        this.languageFile = file;
+                        status.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        status.style.color = 'var(--success)';
+                    }
+                } else {
+                    this.languageFile = null;
+                    status.textContent = 'No file selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                this.updateUploadButton();
+            });
+        }
+
+        // Word file inputs
+        document.querySelectorAll('#deckWordFileInputs input[type="file"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                const row = e.target.closest('.word-file-row');
+                const status = row.querySelector('.file-status');
+                const trigraph = row.dataset.trigraph;
+
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.csv')) {
+                        toastManager.show('Please select a CSV file', 'error');
+                        input.value = '';
+                        delete this.wordFiles[trigraph];
+                        status.textContent = 'No file selected';
+                        status.style.color = 'var(--text-secondary)';
+                    } else {
+                        this.wordFiles[trigraph] = file;
+                        status.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        status.style.color = 'var(--success)';
+                    }
+                } else {
+                    delete this.wordFiles[trigraph];
+                    status.textContent = 'No file selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                this.updateUploadButton();
+            });
+        });
+
+        // Upload button
+        const uploadBtn = document.getElementById('deckUploadProcessBtn');
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => this.uploadAndProcess());
+        }
+
+        // Scan assets button
+        const scanBtn = document.getElementById('deckScanAssetsBtn');
+        if (scanBtn) {
+            scanBtn.addEventListener('click', () => this.triggerAssetScan());
+        }
+    }
+
+    clearWordFileStatuses() {
+        document.querySelectorAll('#deckWordFileInputs .word-file-row').forEach(row => {
+            const status = row.querySelector('.file-status');
+            const input = row.querySelector('input[type="file"]');
+            if (status) {
+                status.textContent = 'No file selected';
+                status.style.color = 'var(--text-secondary)';
+            }
+            if (input) input.value = '';
+        });
+    }
+
+    updateUploadButton() {
+        const uploadBtn = document.getElementById('deckUploadProcessBtn');
+        if (!uploadBtn) return;
+
+        const updateType = document.querySelector('input[name="deckUpdateType"]:checked')?.value || 'both';
+        let canUpload = false;
+
+        if (updateType === 'both') {
+            canUpload = this.languageFile && Object.keys(this.wordFiles).length > 0;
+        } else if (updateType === 'language') {
+            canUpload = this.languageFile !== null;
+        } else if (updateType === 'word') {
+            canUpload = Object.keys(this.wordFiles).length > 0;
+        }
+
+        uploadBtn.disabled = !canUpload;
+    }
+
+    async uploadAndProcess() {
+        const uploadBtn = document.getElementById('deckUploadProcessBtn');
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading & Processing...';
+
+        try {
+            const formData = new FormData();
+
+            if (this.languageFile) {
+                formData.append('languageFile', this.languageFile);
+            }
+
+            Object.entries(this.wordFiles).forEach(([trigraph, file]) => {
+                formData.append(`wordFile_${trigraph}`, file);
+            });
+
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=upload&_=${timestamp}`, {
+                method: 'POST',
+                body: formData,
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                toastManager.show('CSV files uploaded and processed successfully!', 'success', 5000);
+                await assetManager.loadManifest();
+                this.loadCardsForLanguage(this.currentTrigraph);
+                this.filterAndRenderCards();
+                this.updateStats();
+            } else {
+                toastManager.show(`Upload failed: ${result.error || result.message}`, 'error', 5000);
+            }
+        } catch (err) {
+            toastManager.show(`Error: ${err.message}`, 'error', 5000);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload & Process';
+
+            const languageInput = document.getElementById('deckLanguageFileInput');
+            if (languageInput) languageInput.value = '';
+            this.languageFile = null;
+            const languageStatus = document.getElementById('deckLanguageFileStatus');
+            if (languageStatus) {
+                languageStatus.textContent = 'No file selected';
+                languageStatus.style.color = 'var(--text-secondary)';
+            }
+
+            this.wordFiles = {};
+            this.clearWordFileStatuses();
+            this.updateUploadButton();
+        }
+    }
+
+    async triggerAssetScan() {
+        const scanBtn = document.getElementById('deckScanAssetsBtn');
+        if (scanBtn) {
+            scanBtn.disabled = true;
+            scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+        }
+
+        try {
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=scan&mode=update_all&_=${timestamp}`, {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                toastManager.show('Assets scanned! manifest.json updated.', 'success', 5000);
+                await assetManager.loadManifest();
+                this.loadCardsForLanguage(this.currentTrigraph);
+                this.filterAndRenderCards();
+                this.updateStats();
+            } else {
+                toastManager.show(`Scan failed: ${result.error || result.message}`, 'error', 5000);
+            }
+        } catch (err) {
+            toastManager.show(`Error: ${err.message}`, 'error', 5000);
+        } finally {
+            if (scanBtn) {
+                scanBtn.disabled = false;
+                scanBtn.innerHTML = '<i class="fas fa-sync"></i> Rescan Assets Only';
+            }
+        }
+    }
+
+    // =========================================
+    // MEDIA FILES UPLOAD
+    // =========================================
+
+    setupMediaUpload() {
+        this.imageFiles = [];
+        this.audioFiles = [];
+
+        const imageInput = document.getElementById('deckImageFilesInput');
+        const audioInput = document.getElementById('deckAudioFilesInput');
+        const uploadBtn = document.getElementById('deckUploadMediaBtn');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', (e) => {
+                this.imageFiles = Array.from(e.target.files);
+                const status = document.getElementById('deckImageFilesStatus');
+                if (this.imageFiles.length > 0) {
+                    status.textContent = `${this.imageFiles.length} file(s) selected`;
+                    status.style.color = 'var(--success)';
+                } else {
+                    status.textContent = 'No files selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                this.updateMediaUploadButton();
+            });
+        }
+
+        if (audioInput) {
+            audioInput.addEventListener('change', (e) => {
+                this.audioFiles = Array.from(e.target.files);
+                const status = document.getElementById('deckAudioFilesStatus');
+                if (this.audioFiles.length > 0) {
+                    status.textContent = `${this.audioFiles.length} file(s) selected`;
+                    status.style.color = 'var(--success)';
+                } else {
+                    status.textContent = 'No files selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                this.updateMediaUploadButton();
+            });
+        }
+
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => this.uploadMediaFiles());
+        }
+    }
+
+    updateMediaUploadButton() {
+        const uploadBtn = document.getElementById('deckUploadMediaBtn');
+        if (uploadBtn) {
+            uploadBtn.disabled = this.imageFiles.length === 0 && this.audioFiles.length === 0;
+        }
+    }
+
+    async uploadMediaFiles() {
+        const uploadBtn = document.getElementById('deckUploadMediaBtn');
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+        try {
+            const formData = new FormData();
+
+            this.imageFiles.forEach(file => {
+                formData.append('imageFiles[]', file);
+            });
+
+            this.audioFiles.forEach(file => {
+                formData.append('audioFiles[]', file);
+            });
+
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=uploadMedia&_=${timestamp}`, {
+                method: 'POST',
+                body: formData,
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                toastManager.show(
+                    `Media uploaded! ${result.stats?.imagesUploaded || 0} images, ${result.stats?.audioUploaded || 0} audio files.`,
+                    'success',
+                    5000
+                );
+
+                // Trigger asset scan after upload
+                await this.triggerAssetScan();
+            } else {
+                toastManager.show(`Upload failed: ${result.error || result.message}`, 'error', 5000);
+            }
+        } catch (err) {
+            toastManager.show(`Error: ${err.message}`, 'error', 5000);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Media Files';
+
+            const imageInput = document.getElementById('deckImageFilesInput');
+            const audioInput = document.getElementById('deckAudioFilesInput');
+            if (imageInput) imageInput.value = '';
+            if (audioInput) audioInput.value = '';
+            this.imageFiles = [];
+            this.audioFiles = [];
+
+            const imageStatus = document.getElementById('deckImageFilesStatus');
+            const audioStatus = document.getElementById('deckAudioFilesStatus');
+            if (imageStatus) {
+                imageStatus.textContent = 'No files selected';
+                imageStatus.style.color = 'var(--text-secondary)';
+            }
+            if (audioStatus) {
+                audioStatus.textContent = 'No files selected';
+                audioStatus.style.color = 'var(--text-secondary)';
+            }
+            this.updateMediaUploadButton();
+        }
     }
 
     destroy() {
