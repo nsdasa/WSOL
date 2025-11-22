@@ -1,0 +1,29 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "username": "admin",
+            "password": "WSOL10:15",
+            "role": "admin",
+            "created": "2025-01-01T00:00:00Z",
+            "lastModified": "2025-01-01T00:00:00Z"
+        },
+        {
+            "id": 2,
+            "username": "deckmanager",
+            "password": "deck123",
+            "role": "deck-manager",
+            "created": "2025-01-01T00:00:00Z",
+            "lastModified": "2025-01-01T00:00:00Z"
+        },
+        {
+            "id": 3,
+            "username": "voicerecorder",
+            "password": "voice123",
+            "role": "voice-recorder",
+            "created": "2025-01-01T00:00:00Z",
+            "lastModified": "2025-01-01T00:00:00Z"
+        }
+    ],
+    "nextId": 4
+}
