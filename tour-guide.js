@@ -53,7 +53,35 @@ const tours = {
             popover: {
                 title: 'Word Notes',
                 description: 'When you see this yellow icon on a flipped card, it means there are helpful notes! On desktop, hover over it to see the notes. On mobile/tablet, tap it to view.',
-                position: 'left'
+                position: 'left',
+                onPrevClick: () => {
+                    // Unflip the card when going back
+                    const flippedCard = document.querySelector('.card-container.flipped');
+                    if (flippedCard) {
+                        flippedCard.click();
+                    }
+                }
+            },
+            onHighlightStarted: () => {
+                // Auto-flip first card to show the back (where notes icon is)
+                const firstCard = document.querySelector('.card-container');
+                if (firstCard && !firstCard.classList.contains('flipped')) {
+                    firstCard.click();
+                }
+                // Also show the notes popover
+                setTimeout(() => {
+                    const notesPopover = document.querySelector('.notes-popover');
+                    if (notesPopover) {
+                        notesPopover.classList.add('visible');
+                    }
+                }, 300);
+            },
+            onDeselected: () => {
+                // Hide the notes popover when moving away
+                const notesPopover = document.querySelector('.notes-popover');
+                if (notesPopover) {
+                    notesPopover.classList.remove('visible');
+                }
             }
         },
         {
@@ -105,6 +133,19 @@ const tours = {
                 title: 'How to Play',
                 description: 'Click a word from the top row, then click the matching picture below. Lines will connect your matches!',
                 position: 'top'
+            },
+            onHighlightStarted: () => {
+                // Auto-click Review mode and Start to show the game
+                const reviewBtn = document.querySelector('#reviewModeBtn');
+                if (reviewBtn && !reviewBtn.classList.contains('active')) {
+                    reviewBtn.click();
+                }
+                setTimeout(() => {
+                    const startBtn = document.querySelector('#startBtn');
+                    if (startBtn && !startBtn.disabled) {
+                        startBtn.click();
+                    }
+                }, 300);
             }
         },
         {
@@ -148,6 +189,19 @@ const tours = {
                 title: 'Listen and Match',
                 description: 'Audio will play automatically. Click the picture that matches what you hear. Click the speaker icon to replay!',
                 position: 'top'
+            },
+            onHighlightStarted: () => {
+                // Auto-click Review mode and Start to show the game
+                const reviewBtn = document.querySelector('#reviewModeBtnSound');
+                if (reviewBtn && !reviewBtn.classList.contains('active')) {
+                    reviewBtn.click();
+                }
+                setTimeout(() => {
+                    const startBtn = document.querySelector('#startBtnSound');
+                    if (startBtn && !startBtn.disabled) {
+                        startBtn.click();
+                    }
+                }, 300);
             }
         },
         {
@@ -183,6 +237,19 @@ const tours = {
                 title: 'Picture Display',
                 description: 'Look at the picture and type the corresponding word in your target language.',
                 position: 'left'
+            },
+            onHighlightStarted: () => {
+                // Auto-click Review mode and Start to show the quiz
+                const reviewBtn = document.querySelector('#reviewModeBtnQuiz');
+                if (reviewBtn && !reviewBtn.classList.contains('active')) {
+                    reviewBtn.click();
+                }
+                setTimeout(() => {
+                    const startBtn = document.querySelector('#startBtnQuiz');
+                    if (startBtn && !startBtn.disabled) {
+                        startBtn.click();
+                    }
+                }, 300);
             }
         },
         {
