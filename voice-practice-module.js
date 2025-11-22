@@ -1,6 +1,9 @@
 // =================================================================
 // VOICE PRACTICE MODULE - Pronunciation Analysis for Flashcards
-// Version 1.1 - November 2025 - Fixed UI, timing, and visualizations
+// Version 2.0 - November 2025 - Enhanced MFCC with Meyda, VAD, Deltas
+// =================================================================
+// DEPENDENCY: Meyda library required for accurate FFT & MFCC extraction
+// Add to HTML: <script src="https://unpkg.com/meyda@5.6.0/dist/web/meyda.min.js"></script>
 // =================================================================
 
 // Global voice practice manager
@@ -585,24 +588,34 @@ class VoicePracticeManager {
         // Hide recording, show results
         document.getElementById('vpRecording').style.display = 'none';
         document.getElementById('vpResults').style.display = 'block';
-        
-        // Run analysis
-        const analyzer = new PronunciationAnalyzer(this.nativeBuffer, this.userBuffer, this.useDTW);
-        const results = analyzer.analyze();
-        
+
+        // Run enhanced analysis with audioContext for Meyda + VAD + Deltas
+        const analyzer = new PronunciationAnalyzer(
+            this.nativeBuffer,
+            this.userBuffer,
+            this.useDTW,
+            this.audioContext  // Pass audioContext to enable enhanced MFCC processing
+        );
+        const results = await analyzer.analyze();
+
         // Store results for visualization
         this.analysisResults = results;
-        
+
+        // Log VAD info if available
+        if (results.vadInfo) {
+            debugLogger?.log(3, `VAD Info - Native: ${results.vadInfo.native?.trimmedDuration?.toFixed(2)}s, User: ${results.vadInfo.user?.trimmedDuration?.toFixed(2)}s`);
+        }
+
         // Display score
         this.displayScore(results.score);
-        
+
         // Draw initial visualization (waveform)
         this.updateVisualization('waveform');
-        
-        // Auto-play sequence: native ? user ? native
+
+        // Auto-play sequence: native → user → native
         // Wait for score animation to complete (~1 second)
         await this.delay(1200);
-        
+
         // Play sequence with error handling
         try {
             await this.playComparisonSequence();
@@ -1205,37 +1218,119 @@ class DTW {
 }
 
 // =================================================================
-// PRONUNCIATION ANALYZER
+// PRONUNCIATION ANALYZER (Enhanced with Meyda + VAD + Deltas)
 // =================================================================
 class PronunciationAnalyzer {
-    constructor(nativeBuffer, userBuffer, useDTW = true) {
+    constructor(nativeBuffer, userBuffer, useDTW = true, audioContext = null) {
         this.nativeBuffer = nativeBuffer;
         this.userBuffer = userBuffer;
         this.useDTW = useDTW;
+        this.audioContext = audioContext;
     }
-    
-    analyze() {
-        debugLogger?.log(3, 'Starting pronunciation analysis...');
-        
-        const nativeAnalyzer = new AcousticAnalyzer(this.nativeBuffer);
-        const userAnalyzer = new AcousticAnalyzer(this.userBuffer);
-        
-        const nativePitch = nativeAnalyzer.extractPitch();
-        const userPitch = userAnalyzer.extractPitch();
-        
-        const nativeMFCCs = nativeAnalyzer.extractMFCCs();
-        const userMFCCs = userAnalyzer.extractMFCCs();
-        
-        const nativeIntensity = nativeAnalyzer.extractIntensity();
-        const userIntensity = userAnalyzer.extractIntensity();
-        
+
+    async analyze() {
+        debugLogger?.log(3, 'Starting enhanced pronunciation analysis...');
+
+        // Use EnhancedMFCCProcessor if audioContext is available
+        if (this.audioContext) {
+            return this.analyzeEnhanced();
+        }
+
+        // Fallback to legacy analysis if no audioContext
+        return this.analyzeLegacy();
+    }
+
+    async analyzeEnhanced() {
+        const processor = new EnhancedMFCCProcessor(this.audioContext);
+
+        // Extract features using enhanced processor
+        const nativePitch = processor.extractPitch(this.nativeBuffer);
+        const userPitch = processor.extractPitch(this.userBuffer);
+
+        const nativeMFCCResult = await processor.extractMFCCs(this.nativeBuffer, { includeDeltas: true });
+        const userMFCCResult = await processor.extractMFCCs(this.userBuffer, { includeDeltas: true });
+
+        const nativeIntensity = processor.extractIntensity(this.nativeBuffer);
+        const userIntensity = processor.extractIntensity(this.userBuffer);
+
+        // Use enhanced MFCC comparison with deltas and Z-normalization
+        const mfccComparison = compareMFCCsEnhanced(nativeMFCCResult, userMFCCResult, this.useDTW);
+
         const pitchScore = this.comparePitch(nativePitch, userPitch);
-        const mfccScore = this.compareMFCCs(nativeMFCCs, userMFCCs);
+        const durationScore = this.compareDuration();
+        const spectralScore = this.compareSpectralFromFrames(nativeMFCCResult.frames, userMFCCResult.frames);
+        const stressScore = this.compareStress(nativeIntensity, userIntensity);
+        const qualityScore = this.assessQualityFromFrames(userMFCCResult.frames, userPitch);
+
+        // Enhanced MFCC score gets higher weight due to deltas
+        const weights = {
+            pitch: 0.25,
+            mfcc: 0.35,  // Increased weight for enhanced MFCC
+            spectral: 0.10,
+            duration: 0.15,
+            stress: 0.10,
+            quality: 0.05
+        };
+
+        const overallScore = Math.round(
+            pitchScore * weights.pitch +
+            mfccComparison.score * weights.mfcc +
+            spectralScore * weights.spectral +
+            durationScore * weights.duration +
+            stressScore * weights.stress +
+            qualityScore * weights.quality
+        );
+
+        debugLogger?.log(3, `Enhanced analysis complete. Score: ${overallScore}`);
+        debugLogger?.log(3, `  Pitch: ${pitchScore.toFixed(1)}, MFCC: ${mfccComparison.score}, Duration: ${durationScore}`);
+        debugLogger?.log(3, `  VAD trimmed native: ${nativeMFCCResult.vadInfo.trimmedDuration.toFixed(2)}s`);
+        debugLogger?.log(3, `  VAD trimmed user: ${userMFCCResult.vadInfo.trimmedDuration.toFixed(2)}s`);
+
+        return {
+            score: overallScore,
+            features: {
+                nativePitch,
+                userPitch,
+                nativeMFCCs: nativeMFCCResult.frames,
+                userMFCCs: userMFCCResult.frames,
+                nativeIntensity,
+                userIntensity
+            },
+            vadInfo: {
+                native: nativeMFCCResult.vadInfo,
+                user: userMFCCResult.vadInfo
+            },
+            mfccDetails: mfccComparison
+        };
+    }
+
+    analyzeLegacy() {
+        debugLogger?.log(3, 'Using legacy analysis (no audioContext)');
+
+        // Create a temporary processor for pitch/intensity extraction
+        const tempProcessor = {
+            sampleRate: this.nativeBuffer.sampleRate,
+            frameSize: 1024,
+            hopSize: 128
+        };
+
+        // Extract pitch using autocorrelation
+        const nativePitch = this.extractPitchLegacy(this.nativeBuffer);
+        const userPitch = this.extractPitchLegacy(this.userBuffer);
+
+        const nativeMFCCs = this.extractMFCCsLegacy(this.nativeBuffer);
+        const userMFCCs = this.extractMFCCsLegacy(this.userBuffer);
+
+        const nativeIntensity = this.extractIntensityLegacy(this.nativeBuffer);
+        const userIntensity = this.extractIntensityLegacy(this.userBuffer);
+
+        const pitchScore = this.comparePitch(nativePitch, userPitch);
+        const mfccScore = this.compareMFCCsLegacy(nativeMFCCs, userMFCCs);
         const durationScore = this.compareDuration();
         const spectralScore = this.compareSpectral(nativeMFCCs, userMFCCs);
         const stressScore = this.compareStress(nativeIntensity, userIntensity);
-        const qualityScore = this.assessQuality(userMFCCs, userPitch);
-        
+        const qualityScore = this.assessQuality(nativeMFCCs, userPitch);
+
         const weights = {
             pitch: 0.30,
             mfcc: 0.25,
@@ -1244,7 +1339,7 @@ class PronunciationAnalyzer {
             stress: 0.10,
             quality: 0.05
         };
-        
+
         const overallScore = Math.round(
             pitchScore * weights.pitch +
             mfccScore * weights.mfcc +
@@ -1253,9 +1348,9 @@ class PronunciationAnalyzer {
             stressScore * weights.stress +
             qualityScore * weights.quality
         );
-        
-        debugLogger?.log(3, `Analysis complete. Score: ${overallScore}`);
-        
+
+        debugLogger?.log(3, `Legacy analysis complete. Score: ${overallScore}`);
+
         return {
             score: overallScore,
             features: {
@@ -1268,31 +1363,181 @@ class PronunciationAnalyzer {
             }
         };
     }
-    
+
+    // Legacy extraction methods for fallback
+    extractPitchLegacy(buffer) {
+        const data = buffer.getChannelData(0);
+        const sampleRate = buffer.sampleRate;
+        const frameSize = 2048;
+        const hopSize = 128;
+        const minPitch = 75;
+        const maxPitch = 500;
+        const pitchTrack = [];
+
+        for (let i = 0; i < data.length - frameSize; i += hopSize) {
+            const frame = Array.from(data.slice(i, i + frameSize));
+            const pitch = this.estimatePitchLegacy(frame, sampleRate, minPitch, maxPitch);
+            pitchTrack.push({ time: i / sampleRate, pitch });
+        }
+
+        return pitchTrack;
+    }
+
+    estimatePitchLegacy(frame, sampleRate, minPitch, maxPitch) {
+        const minLag = Math.floor(sampleRate / maxPitch);
+        const maxLag = Math.floor(sampleRate / minPitch);
+        let maxCorr = -Infinity;
+        let bestLag = 0;
+
+        for (let lag = minLag; lag < maxLag; lag++) {
+            let corr = 0, norm1 = 0, norm2 = 0;
+            for (let j = 0; j < frame.length - lag; j++) {
+                corr += frame[j] * frame[j + lag];
+                norm1 += frame[j] * frame[j];
+                norm2 += frame[j + lag] * frame[j + lag];
+            }
+            if (norm1 > 0 && norm2 > 0) corr /= Math.sqrt(norm1 * norm2);
+            if (corr > maxCorr) { maxCorr = corr; bestLag = lag; }
+        }
+
+        return maxCorr < 0.3 ? 0 : sampleRate / bestLag;
+    }
+
+    extractMFCCsLegacy(buffer) {
+        const data = buffer.getChannelData(0);
+        const sampleRate = buffer.sampleRate;
+        const frameSize = 1024;
+        const hopSize = 128;
+        const numCoeffs = 13;
+        const numFilters = 40;
+        const mfccs = [];
+
+        const filterbank = this.createMelFilterbankLegacy(frameSize, numFilters, sampleRate);
+
+        for (let i = 0; i < data.length - frameSize; i += hopSize) {
+            const frame = Array.from(data.slice(i, i + frameSize));
+            const windowed = this.applyHammingWindowLegacy(frame);
+            const spectrum = this.computeFFTLegacy(windowed);
+            const melEnergies = this.applyMelFilterbankLegacy(spectrum, filterbank);
+            const logMelEnergies = melEnergies.map(e => Math.log(Math.max(e, 1e-10)));
+            const coeffs = this.computeDCTLegacy(logMelEnergies, numCoeffs);
+
+            mfccs.push({ time: i / sampleRate, coeffs });
+        }
+
+        return mfccs;
+    }
+
+    extractIntensityLegacy(buffer) {
+        const data = buffer.getChannelData(0);
+        const sampleRate = buffer.sampleRate;
+        const frameSize = 1024;
+        const hopSize = 128;
+        const intensity = [];
+
+        for (let i = 0; i < data.length - frameSize; i += hopSize) {
+            const frame = data.slice(i, i + frameSize);
+            let sum = 0;
+            for (const sample of frame) sum += sample * sample;
+            intensity.push({ time: i / sampleRate, intensity: Math.sqrt(sum / frameSize) });
+        }
+
+        const maxInt = Math.max(...intensity.map(i => i.intensity));
+        if (maxInt > 0) intensity.forEach(i => i.intensity /= maxInt);
+
+        return intensity;
+    }
+
+    // Legacy helper methods
+    createMelFilterbankLegacy(frameSize, numFilters, sampleRate) {
+        const fftSize = frameSize / 2 + 1;
+        const hzToMel = hz => 2595 * Math.log10(1 + hz / 700);
+        const melToHz = mel => 700 * (Math.pow(10, mel / 2595) - 1);
+        const melMin = hzToMel(0);
+        const melMax = hzToMel(sampleRate / 2);
+
+        const melPoints = [];
+        for (let i = 0; i <= numFilters + 1; i++) {
+            melPoints.push(melMin + (i / (numFilters + 1)) * (melMax - melMin));
+        }
+
+        const binPoints = melPoints.map(mel => Math.floor((frameSize + 1) * melToHz(mel) / sampleRate));
+
+        const filterbank = [];
+        for (let m = 1; m <= numFilters; m++) {
+            const filter = new Array(fftSize).fill(0);
+            for (let k = binPoints[m - 1]; k < binPoints[m]; k++) {
+                filter[k] = (k - binPoints[m - 1]) / (binPoints[m] - binPoints[m - 1]);
+            }
+            for (let k = binPoints[m]; k < binPoints[m + 1]; k++) {
+                filter[k] = (binPoints[m + 1] - k) / (binPoints[m + 1] - binPoints[m]);
+            }
+            filterbank.push(filter);
+        }
+        return filterbank;
+    }
+
+    applyHammingWindowLegacy(frame) {
+        const N = frame.length;
+        return frame.map((s, n) => s * (0.54 - 0.46 * Math.cos(2 * Math.PI * n / (N - 1))));
+    }
+
+    computeFFTLegacy(frame) {
+        const N = frame.length;
+        const spectrum = new Array(N / 2 + 1).fill(0);
+        for (let k = 0; k <= N / 2; k++) {
+            let real = 0, imag = 0;
+            for (let n = 0; n < N; n++) {
+                const angle = -2 * Math.PI * k * n / N;
+                real += frame[n] * Math.cos(angle);
+                imag += frame[n] * Math.sin(angle);
+            }
+            spectrum[k] = (real * real + imag * imag) / N;
+        }
+        return spectrum;
+    }
+
+    applyMelFilterbankLegacy(spectrum, filterbank) {
+        return filterbank.map(filter => {
+            let energy = 0;
+            for (let k = 0; k < spectrum.length; k++) energy += spectrum[k] * filter[k];
+            return energy;
+        });
+    }
+
+    computeDCTLegacy(input, numCoeffs) {
+        const N = input.length;
+        const coeffs = [];
+        for (let k = 0; k < numCoeffs; k++) {
+            let sum = 0;
+            for (let n = 0; n < N; n++) {
+                sum += input[n] * Math.cos(Math.PI * k * (n + 0.5) / N);
+            }
+            coeffs.push(sum * Math.sqrt(2 / N));
+        }
+        return coeffs;
+    }
+
     comparePitch(native, user) {
         if (!native || !user || native.length === 0 || user.length === 0) return 50;
-        
+
         const nativeVoiced = native.filter(p => p.pitch > 0).map(p => p.pitch);
         const userVoiced = user.filter(p => p.pitch > 0).map(p => p.pitch);
-        
+
         if (nativeVoiced.length === 0 || userVoiced.length === 0) return 50;
-        
+
         let score;
-        
+
         if (this.useDTW) {
-            // Normalize pitch values for better comparison
             const nativeMean = nativeVoiced.reduce((a, b) => a + b, 0) / nativeVoiced.length;
             const userMean = userVoiced.reduce((a, b) => a + b, 0) / userVoiced.length;
-            
+
             const nativeNorm = nativeVoiced.map(p => p / nativeMean);
             const userNorm = userVoiced.map(p => p / userMean);
-            
-            // Use DTW class with windowed approach
+
             const dtwResult = DTW.compute1D(nativeNorm, userNorm, 20);
-            
-            // Convert normalized distance to score
             score = Math.max(0, 100 * (1 - dtwResult.normalizedDistance));
-            
+
             debugLogger?.log(3, `Pitch DTW: distance=${dtwResult.normalizedDistance.toFixed(4)}, score=${score.toFixed(1)}`);
         } else {
             const nativeMean = nativeVoiced.reduce((a, b) => a + b, 0) / nativeVoiced.length;
@@ -1300,34 +1545,29 @@ class PronunciationAnalyzer {
             const ratio = Math.min(nativeMean, userMean) / Math.max(nativeMean, userMean);
             score = ratio * 100;
         }
-        
+
         return Math.min(100, Math.max(0, score));
     }
-    
-    compareMFCCs(native, user) {
+
+    compareMFCCsLegacy(native, user) {
         if (!native || !user || native.length === 0 || user.length === 0) return 50;
-        
+
         let score;
-        
+
         if (this.useDTW) {
             const numCoeffs = native[0].coeffs.length;
-            
-            // Convert to array format for DTW (skip c0)
             const nativeSeq = native.map(m => m.coeffs.slice(1));
             const userSeq = user.map(m => m.coeffs.slice(1));
-            
-            // Use multi-dimensional DTW
+
             const dtwResult = DTW.computeMultiDim(nativeSeq, userSeq, numCoeffs - 1, 20);
-            
-            // Convert normalized distance to score
             score = Math.max(0, 100 * (1 - dtwResult.normalizedDistance / 10));
-            
-            debugLogger?.log(3, `MFCC DTW: distance=${dtwResult.normalizedDistance.toFixed(4)}, score=${score.toFixed(1)}`);
+
+            debugLogger?.log(3, `MFCC DTW (legacy): distance=${dtwResult.normalizedDistance.toFixed(4)}, score=${score.toFixed(1)}`);
         } else {
             const minLen = Math.min(native.length, user.length);
             let totalDist = 0;
             const numCoeffs = native[0].coeffs.length;
-            
+
             for (let i = 0; i < minLen; i++) {
                 let frameDist = 0;
                 for (let c = 1; c < numCoeffs; c++) {
@@ -1336,30 +1576,39 @@ class PronunciationAnalyzer {
                 }
                 totalDist += Math.sqrt(frameDist);
             }
-            
+
             const avgDist = totalDist / minLen;
             score = Math.max(0, 100 * (1 - avgDist / 10));
         }
-        
+
         return Math.min(100, Math.max(0, score));
     }
-    
+
     compareDuration() {
         const nativeDur = this.nativeBuffer.duration;
         const userDur = this.userBuffer.duration;
         const ratio = Math.min(nativeDur, userDur) / Math.max(nativeDur, userDur);
         return Math.round(ratio * 100);
     }
-    
+
     compareSpectral(native, user) {
         if (!native || !user || native.length === 0 || user.length === 0) return 50;
-        
+
         const nativeCentroid = this.computeSpectralCentroid(native);
         const userCentroid = this.computeSpectralCentroid(user);
         const ratio = Math.min(nativeCentroid, userCentroid) / Math.max(nativeCentroid, userCentroid);
         return Math.round(ratio * 100);
     }
-    
+
+    compareSpectralFromFrames(nativeFrames, userFrames) {
+        if (!nativeFrames || !userFrames || nativeFrames.length === 0 || userFrames.length === 0) return 50;
+
+        const nativeCentroid = this.computeSpectralCentroidFromFrames(nativeFrames);
+        const userCentroid = this.computeSpectralCentroidFromFrames(userFrames);
+        const ratio = Math.min(nativeCentroid, userCentroid) / Math.max(nativeCentroid, userCentroid);
+        return Math.round(ratio * 100);
+    }
+
     computeSpectralCentroid(mfccs) {
         let sum = 0;
         for (const frame of mfccs) {
@@ -1367,44 +1616,51 @@ class PronunciationAnalyzer {
         }
         return sum / mfccs.length;
     }
-    
+
+    computeSpectralCentroidFromFrames(frames) {
+        let sum = 0;
+        for (const frame of frames) {
+            if (frame.coeffs && frame.coeffs.length > 2) {
+                sum += Math.abs(frame.coeffs[1]) + Math.abs(frame.coeffs[2]);
+            }
+        }
+        return sum / frames.length;
+    }
+
     compareStress(nativeIntensity, userIntensity) {
         if (!nativeIntensity || !userIntensity) return 50;
-        
+
         const nativePattern = nativeIntensity.map(i => i.intensity);
         const userPattern = userIntensity.map(i => i.intensity);
-        
+
         if (nativePattern.length === 0 || userPattern.length === 0) return 50;
-        
+
         let score;
-        
+
         if (this.useDTW) {
-            // Use DTW for stress pattern comparison
             const dtwResult = DTW.compute1D(nativePattern, userPattern, 20);
             score = Math.max(0, 100 * (1 - dtwResult.normalizedDistance * 2));
-            
+
             debugLogger?.log(3, `Stress DTW: distance=${dtwResult.normalizedDistance.toFixed(4)}, score=${score.toFixed(1)}`);
         } else {
             const len = Math.min(nativePattern.length, userPattern.length);
-            
             let diff = 0;
             for (let i = 0; i < len; i++) {
                 diff += Math.abs(nativePattern[i] - userPattern[i]);
             }
-            
             const avgDiff = diff / len;
             score = Math.round((1 - avgDiff) * 100);
         }
-        
+
         return Math.min(100, Math.max(0, score));
     }
-    
+
     assessQuality(mfccs, pitch) {
         if (!mfccs || mfccs.length === 0) return 50;
-        
+
         const voicedFrames = pitch.filter(p => p.pitch > 0).length;
         const voicingRatio = voicedFrames / pitch.length;
-        
+
         let variance = 0;
         for (let c = 1; c < 5; c++) {
             const values = mfccs.map(m => m.coeffs[c]);
@@ -1414,181 +1670,350 @@ class PronunciationAnalyzer {
             }
         }
         variance /= mfccs.length * 4;
-        
+
+        const stabilityScore = Math.max(0, 100 - variance);
+        return Math.round((voicingRatio * 50 + stabilityScore * 0.5));
+    }
+
+    assessQualityFromFrames(frames, pitch) {
+        if (!frames || frames.length === 0) return 50;
+
+        const voicedFrames = pitch.filter(p => p.pitch > 0).length;
+        const voicingRatio = voicedFrames / pitch.length;
+
+        let variance = 0;
+        for (let c = 1; c < 5; c++) {
+            const values = frames.map(f => f.coeffs[c]).filter(v => v !== undefined);
+            if (values.length === 0) continue;
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            for (const v of values) {
+                variance += (v - mean) * (v - mean);
+            }
+        }
+        variance /= frames.length * 4;
+
         const stabilityScore = Math.max(0, 100 - variance);
         return Math.round((voicingRatio * 50 + stabilityScore * 0.5));
     }
 }
 
 // =================================================================
-// ACOUSTIC ANALYZER
+// ENHANCED MFCC PROCESSOR - Accurate FFT via Meyda + VAD + Deltas
 // =================================================================
-class AcousticAnalyzer {
-    constructor(audioBuffer) {
-        this.buffer = audioBuffer;
-        this.data = audioBuffer.getChannelData(0);
-        this.sampleRate = audioBuffer.sampleRate;
+class EnhancedMFCCProcessor {
+    constructor(audioContext) {
+        this.audioContext = audioContext;
+        this.sampleRate = audioContext.sampleRate;
+        this.frameSize = 1024;
+        this.hopSize = 128;
+        this.vadThresholdEnergy = 0.01;
+        this.vadThresholdZCR = 0.2;
+        this.minVoicedFrames = 10;
     }
-    
-    extractPitch() {
-        const frameSize = 2048;
-        const hopSize = 512;
-        const minPitch = 75;
-        const maxPitch = 500;
-        const pitchTrack = [];
-        
-        for (let i = 0; i < this.data.length - frameSize; i += hopSize) {
-            const frame = this.data.slice(i, i + frameSize);
-            const pitch = this.estimatePitch(Array.from(frame), minPitch, maxPitch);
-            
-            pitchTrack.push({
-                time: i / this.sampleRate,
-                pitch: pitch
+
+    // Voice Activity Detection (Energy + ZCR hybrid)
+    detectVoicedRegions(buffer) {
+        const signal = buffer.getChannelData(0);
+        const frames = [];
+        const energies = [];
+        const zcrs = [];
+
+        for (let i = 0; i < signal.length - this.frameSize; i += this.hopSize) {
+            const frame = signal.subarray(i, i + this.frameSize);
+
+            // RMS Energy
+            let sumSq = 0;
+            for (let j = 0; j < frame.length; j++) sumSq += frame[j] * frame[j];
+            const energy = Math.sqrt(sumSq / frame.length);
+            energies.push(energy);
+
+            // Zero-Crossing Rate
+            let zcr = 0;
+            for (let j = 1; j < frame.length; j++) {
+                if ((frame[j-1] >= 0 && frame[j] < 0) || (frame[j-1] < 0 && frame[j] >= 0)) zcr++;
+            }
+            zcrs.push(zcr / frame.length);
+
+            frames.push({
+                start: i,
+                end: i + this.frameSize,
+                energy,
+                zcr: zcr / frame.length,
+                time: i / this.sampleRate
             });
         }
-        
-        const smoothed = this.medianFilter(pitchTrack.map(p => p.pitch), 5);
-        
-        return pitchTrack.map((p, i) => ({
-            time: p.time,
-            pitch: smoothed[i]
-        }));
+
+        // Adaptive energy threshold (90th percentile)
+        const sortedEnergies = [...energies].sort((a, b) => a - b);
+        const energyThresh = sortedEnergies[Math.floor(sortedEnergies.length * 0.9)];
+
+        // VAD decision: energy above threshold AND low ZCR (voiced speech)
+        const voicedFrames = frames.filter(f =>
+            f.energy > Math.max(this.vadThresholdEnergy, energyThresh * 0.3) &&
+            f.zcr < this.vadThresholdZCR
+        );
+
+        if (voicedFrames.length < this.minVoicedFrames) {
+            debugLogger?.log(2, "VAD: Not enough voiced speech detected. Using full audio.");
+            return { voicedFrames: frames, trimStart: 0, trimEnd: buffer.duration };
+        }
+
+        const trimStart = voicedFrames[0].time;
+        const trimEnd = voicedFrames[voicedFrames.length - 1].time + this.frameSize / this.sampleRate;
+
+        return {
+            voicedFrames,
+            trimStart,
+            trimEnd,
+            totalVoicedSeconds: trimEnd - trimStart
+        };
     }
-    
-    estimatePitch(frame, minPitch, maxPitch) {
-        const minLag = Math.floor(this.sampleRate / maxPitch);
-        const maxLag = Math.floor(this.sampleRate / minPitch);
-        
-        let maxCorr = -Infinity;
-        let bestLag = 0;
-        
-        for (let lag = minLag; lag < maxLag; lag++) {
-            let corr = 0;
-            let norm1 = 0;
-            let norm2 = 0;
-            
-            for (let j = 0; j < frame.length - lag; j++) {
-                corr += frame[j] * frame[j + lag];
-                norm1 += frame[j] * frame[j];
-                norm2 += frame[j + lag] * frame[j + lag];
-            }
-            
-            if (norm1 > 0 && norm2 > 0) {
-                corr /= Math.sqrt(norm1 * norm2);
-            }
-            
-            if (corr > maxCorr) {
-                maxCorr = corr;
-                bestLag = lag;
+
+    // Extract MFCCs using Meyda with VAD trimming
+    async extractMFCCs(audioBuffer, options = {}) {
+        const {
+            numCoeffs = 13,
+            melBands = 40,
+            lifter = 22,
+            includeDeltas = true
+        } = options;
+
+        // Run VAD and trim silence
+        const vad = this.detectVoicedRegions(audioBuffer);
+        let processedBuffer = audioBuffer;
+
+        if (vad.trimStart > 0 || vad.trimEnd < audioBuffer.duration) {
+            const startSample = Math.floor(vad.trimStart * this.sampleRate);
+            const endSample = Math.min(
+                Math.ceil(vad.trimEnd * this.sampleRate),
+                audioBuffer.length
+            );
+            const trimmed = this.audioContext.createBuffer(
+                1,
+                endSample - startSample,
+                this.sampleRate
+            );
+            trimmed.copyToChannel(audioBuffer.getChannelData(0).slice(startSample, endSample), 0);
+            processedBuffer = trimmed;
+        }
+
+        const signal = processedBuffer.getChannelData(0);
+
+        // Check if Meyda is available
+        if (typeof Meyda === 'undefined') {
+            debugLogger?.log(1, 'Meyda not loaded, falling back to manual MFCC extraction');
+            return this.extractMFCCsFallback(processedBuffer, vad, options);
+        }
+
+        // Extract MFCCs frame by frame using Meyda
+        const allMfccs = [];
+        for (let i = 0; i < signal.length - this.frameSize; i += this.hopSize) {
+            const frame = signal.slice(i, i + this.frameSize);
+
+            // Ensure frame is correct length (pad if necessary)
+            const paddedFrame = new Float32Array(this.frameSize);
+            paddedFrame.set(frame);
+
+            try {
+                const mfcc = Meyda.extract('mfcc', paddedFrame, {
+                    sampleRate: this.sampleRate,
+                    bufferSize: this.frameSize,
+                    numberOfMFCCCoefficients: numCoeffs,
+                    melBands: melBands
+                });
+
+                if (mfcc && mfcc.length > 0) {
+                    allMfccs.push(Array.from(mfcc));
+                }
+            } catch (err) {
+                debugLogger?.log(2, `Meyda extraction error at frame ${i}: ${err.message}`);
             }
         }
-        
-        if (maxCorr < 0.3) return 0;
-        
-        return this.sampleRate / bestLag;
-    }
-    
-    medianFilter(data, windowSize) {
-        const result = [];
-        const halfWindow = Math.floor(windowSize / 2);
-        
-        for (let i = 0; i < data.length; i++) {
-            const start = Math.max(0, i - halfWindow);
-            const end = Math.min(data.length, i + halfWindow + 1);
-            const window = data.slice(start, end).sort((a, b) => a - b);
-            result.push(window[Math.floor(window.length / 2)]);
+
+        if (allMfccs.length === 0) {
+            debugLogger?.log(1, 'No MFCCs extracted, falling back to manual extraction');
+            return this.extractMFCCsFallback(processedBuffer, vad, options);
         }
-        
-        return result;
+
+        // Build frame objects with liftering and deltas
+        const framesPerSecond = this.sampleRate / this.hopSize;
+        const frames = [];
+
+        for (let i = 0; i < allMfccs.length; i++) {
+            const mfccFrame = [...allMfccs[i]];
+
+            // Apply liftering
+            if (lifter > 0) {
+                for (let c = 0; c < mfccFrame.length; c++) {
+                    const lift = 1 + (lifter / 2) * Math.sin(Math.PI * c / lifter);
+                    mfccFrame[c] *= lift;
+                }
+            }
+
+            frames.push({
+                time: (i / framesPerSecond) + vad.trimStart,
+                coeffs: mfccFrame,
+                deltas: includeDeltas ? this.computeDeltas(allMfccs, i) : null,
+                deltaDeltas: includeDeltas ? this.computeDeltaDeltas(allMfccs, i) : null
+            });
+        }
+
+        debugLogger?.log(3, `Extracted ${frames.length} MFCC frames (Meyda)`);
+
+        return {
+            frames,
+            vadInfo: {
+                originalDuration: audioBuffer.duration,
+                trimmedDuration: processedBuffer.duration,
+                voicedRatio: processedBuffer.duration / audioBuffer.duration,
+                trimStart: vad.trimStart,
+                trimEnd: vad.trimEnd
+            }
+        };
     }
-    
-    extractMFCCs() {
-        const frameSize = 2048;
-        const hopSize = 512;
-        const numCoeffs = 13;
-        const numFilters = 26;
-        const mfccs = [];
-        
-        const filterbank = this.createMelFilterbank(frameSize, numFilters);
-        
-        for (let i = 0; i < this.data.length - frameSize; i += hopSize) {
-            const frame = this.data.slice(i, i + frameSize);
+
+    // Fallback MFCC extraction when Meyda is not available
+    extractMFCCsFallback(processedBuffer, vad, options = {}) {
+        const { numCoeffs = 13, lifter = 22, includeDeltas = true } = options;
+        const signal = processedBuffer.getChannelData(0);
+        const numFilters = 40;
+        const frames = [];
+        const allMfccs = [];
+
+        const filterbank = this.createMelFilterbank(this.frameSize, numFilters);
+
+        for (let i = 0; i < signal.length - this.frameSize; i += this.hopSize) {
+            const frame = signal.slice(i, i + this.frameSize);
             const windowed = this.applyHammingWindow(Array.from(frame));
             const spectrum = this.computeFFT(windowed);
             const melEnergies = this.applyMelFilterbank(spectrum, filterbank);
             const logMelEnergies = melEnergies.map(e => Math.log(Math.max(e, 1e-10)));
             const coeffs = this.computeDCT(logMelEnergies, numCoeffs);
-            
-            mfccs.push({
-                time: i / this.sampleRate,
-                coeffs: coeffs
+
+            allMfccs.push(coeffs);
+        }
+
+        const framesPerSecond = this.sampleRate / this.hopSize;
+
+        for (let i = 0; i < allMfccs.length; i++) {
+            const mfccFrame = [...allMfccs[i]];
+
+            // Apply liftering
+            if (lifter > 0) {
+                for (let c = 0; c < mfccFrame.length; c++) {
+                    const lift = 1 + (lifter / 2) * Math.sin(Math.PI * c / lifter);
+                    mfccFrame[c] *= lift;
+                }
+            }
+
+            frames.push({
+                time: (i / framesPerSecond) + vad.trimStart,
+                coeffs: mfccFrame,
+                deltas: includeDeltas ? this.computeDeltas(allMfccs, i) : null,
+                deltaDeltas: includeDeltas ? this.computeDeltaDeltas(allMfccs, i) : null
             });
         }
-        
-        return mfccs;
+
+        debugLogger?.log(3, `Extracted ${frames.length} MFCC frames (fallback)`);
+
+        return {
+            frames,
+            vadInfo: {
+                originalDuration: processedBuffer.duration,
+                trimmedDuration: processedBuffer.duration,
+                voicedRatio: 1.0,
+                trimStart: vad.trimStart,
+                trimEnd: vad.trimEnd
+            }
+        };
     }
-    
+
+    // Delta computation (first-order regression)
+    computeDeltas(mfccArray, frameIdx, window = 2) {
+        if (!mfccArray || mfccArray.length === 0) return null;
+        const delta = new Array(mfccArray[0].length).fill(0);
+        let norm = 0;
+
+        for (let n = 1; n <= window; n++) {
+            const prev = mfccArray[Math.max(0, frameIdx - n)] || mfccArray[frameIdx];
+            const next = mfccArray[Math.min(mfccArray.length - 1, frameIdx + n)] || mfccArray[frameIdx];
+            for (let i = 0; i < delta.length; i++) {
+                delta[i] += n * (next[i] - prev[i]);
+            }
+            norm += n * n;
+        }
+        norm *= 2;
+        return delta.map(d => norm === 0 ? 0 : d / norm);
+    }
+
+    // Delta-delta computation
+    computeDeltaDeltas(mfccArray, frameIdx, window = 2) {
+        if (!mfccArray || mfccArray.length === 0) return null;
+
+        // First compute deltas for surrounding frames
+        const deltas = [];
+        for (let i = Math.max(0, frameIdx - window); i <= Math.min(mfccArray.length - 1, frameIdx + window); i++) {
+            deltas.push(this.computeDeltas(mfccArray, i, window));
+        }
+
+        // Then compute delta of deltas
+        const centerIdx = Math.min(window, frameIdx);
+        return this.computeDeltas(deltas, centerIdx, Math.min(window, deltas.length - 1));
+    }
+
+    // Fallback helper methods
     createMelFilterbank(frameSize, numFilters) {
         const fftSize = frameSize / 2 + 1;
         const melMin = this.hzToMel(0);
         const melMax = this.hzToMel(this.sampleRate / 2);
-        
+
         const melPoints = [];
         for (let i = 0; i <= numFilters + 1; i++) {
             melPoints.push(melMin + (i / (numFilters + 1)) * (melMax - melMin));
         }
-        
+
         const binPoints = melPoints.map(mel => {
             const hz = this.melToHz(mel);
             return Math.floor((frameSize + 1) * hz / this.sampleRate);
         });
-        
+
         const filterbank = [];
         for (let m = 1; m <= numFilters; m++) {
             const filter = new Array(fftSize).fill(0);
-            
             for (let k = binPoints[m - 1]; k < binPoints[m]; k++) {
                 filter[k] = (k - binPoints[m - 1]) / (binPoints[m] - binPoints[m - 1]);
             }
-            
             for (let k = binPoints[m]; k < binPoints[m + 1]; k++) {
                 filter[k] = (binPoints[m + 1] - k) / (binPoints[m + 1] - binPoints[m]);
             }
-            
             filterbank.push(filter);
         }
-        
         return filterbank;
     }
-    
+
     hzToMel(hz) { return 2595 * Math.log10(1 + hz / 700); }
     melToHz(mel) { return 700 * (Math.pow(10, mel / 2595) - 1); }
-    
+
     applyHammingWindow(frame) {
         const N = frame.length;
         return frame.map((sample, n) => sample * (0.54 - 0.46 * Math.cos(2 * Math.PI * n / (N - 1))));
     }
-    
+
     computeFFT(frame) {
         const N = frame.length;
         const spectrum = new Array(N / 2 + 1).fill(0);
-        
         for (let k = 0; k <= N / 2; k++) {
-            let real = 0;
-            let imag = 0;
-            
+            let real = 0, imag = 0;
             for (let n = 0; n < N; n++) {
                 const angle = -2 * Math.PI * k * n / N;
                 real += frame[n] * Math.cos(angle);
                 imag += frame[n] * Math.sin(angle);
             }
-            
             spectrum[k] = (real * real + imag * imag) / N;
         }
-        
         return spectrum;
     }
-    
+
     applyMelFilterbank(spectrum, filterbank) {
         return filterbank.map(filter => {
             let energy = 0;
@@ -1598,11 +2023,10 @@ class AcousticAnalyzer {
             return energy;
         });
     }
-    
+
     computeDCT(input, numCoeffs) {
         const N = input.length;
         const coeffs = [];
-        
         for (let k = 0; k < numCoeffs; k++) {
             let sum = 0;
             for (let n = 0; n < N; n++) {
@@ -1610,39 +2034,202 @@ class AcousticAnalyzer {
             }
             coeffs.push(sum * Math.sqrt(2 / N));
         }
-        
         return coeffs;
     }
-    
-    extractIntensity() {
+
+    // Extract pitch (autocorrelation method)
+    extractPitch(audioBuffer) {
+        const data = audioBuffer.getChannelData(0);
         const frameSize = 2048;
-        const hopSize = 512;
+        const hopSize = this.hopSize;
+        const minPitch = 75;
+        const maxPitch = 500;
+        const pitchTrack = [];
+
+        for (let i = 0; i < data.length - frameSize; i += hopSize) {
+            const frame = data.slice(i, i + frameSize);
+            const pitch = this.estimatePitch(Array.from(frame), minPitch, maxPitch);
+            pitchTrack.push({
+                time: i / this.sampleRate,
+                pitch: pitch
+            });
+        }
+
+        // Median filter for smoothing
+        const smoothed = this.medianFilter(pitchTrack.map(p => p.pitch), 5);
+        return pitchTrack.map((p, i) => ({
+            time: p.time,
+            pitch: smoothed[i]
+        }));
+    }
+
+    estimatePitch(frame, minPitch, maxPitch) {
+        const minLag = Math.floor(this.sampleRate / maxPitch);
+        const maxLag = Math.floor(this.sampleRate / minPitch);
+        let maxCorr = -Infinity;
+        let bestLag = 0;
+
+        for (let lag = minLag; lag < maxLag; lag++) {
+            let corr = 0, norm1 = 0, norm2 = 0;
+            for (let j = 0; j < frame.length - lag; j++) {
+                corr += frame[j] * frame[j + lag];
+                norm1 += frame[j] * frame[j];
+                norm2 += frame[j + lag] * frame[j + lag];
+            }
+            if (norm1 > 0 && norm2 > 0) {
+                corr /= Math.sqrt(norm1 * norm2);
+            }
+            if (corr > maxCorr) {
+                maxCorr = corr;
+                bestLag = lag;
+            }
+        }
+
+        if (maxCorr < 0.3) return 0;
+        return this.sampleRate / bestLag;
+    }
+
+    medianFilter(data, windowSize) {
+        const result = [];
+        const halfWindow = Math.floor(windowSize / 2);
+        for (let i = 0; i < data.length; i++) {
+            const start = Math.max(0, i - halfWindow);
+            const end = Math.min(data.length, i + halfWindow + 1);
+            const window = data.slice(start, end).sort((a, b) => a - b);
+            result.push(window[Math.floor(window.length / 2)]);
+        }
+        return result;
+    }
+
+    // Extract intensity (RMS energy)
+    extractIntensity(audioBuffer) {
+        const data = audioBuffer.getChannelData(0);
+        const frameSize = this.frameSize;
+        const hopSize = this.hopSize;
         const intensity = [];
-        
-        for (let i = 0; i < this.data.length - frameSize; i += hopSize) {
-            const frame = this.data.slice(i, i + frameSize);
-            
+
+        for (let i = 0; i < data.length - frameSize; i += hopSize) {
+            const frame = data.slice(i, i + frameSize);
             let sum = 0;
             for (const sample of frame) {
                 sum += sample * sample;
             }
             const rms = Math.sqrt(sum / frameSize);
-            
             intensity.push({
                 time: i / this.sampleRate,
                 intensity: rms
             });
         }
-        
+
+        // Normalize
         const maxIntensity = Math.max(...intensity.map(i => i.intensity));
         if (maxIntensity > 0) {
             intensity.forEach(i => {
                 i.intensity = i.intensity / maxIntensity;
             });
         }
-        
+
         return intensity;
     }
+}
+
+// =================================================================
+// ENHANCED MFCC COMPARISON (with deltas + Z-normalization + Sakoe-Chiba DTW)
+// =================================================================
+function compareMFCCsEnhanced(nativeResult, userResult, useDTW = true) {
+    const nativeFrames = nativeResult.frames;
+    const userFrames = userResult.frames;
+
+    if (!nativeFrames || !userFrames || nativeFrames.length === 0 || userFrames.length === 0) {
+        return { score: 50, distance: Infinity, avgDistance: Infinity };
+    }
+
+    // Concatenate static + delta + delta-delta
+    const concat = (frame) => {
+        const c = frame.coeffs || [];
+        const d = frame.deltas || [];
+        const dd = frame.deltaDeltas || [];
+        return [...c, ...d, ...dd];
+    };
+
+    const nativeVec = nativeFrames.map(concat);
+    const userVec = userFrames.map(concat);
+
+    // Z-score normalization per coefficient across all frames
+    const zNormalize = (vectors) => {
+        if (vectors.length === 0 || vectors[0].length === 0) return vectors;
+
+        const dim = vectors[0].length;
+        const stats = [];
+
+        for (let i = 0; i < dim; i++) {
+            let sum = 0, sumSq = 0;
+            for (const v of vectors) {
+                sum += v[i];
+                sumSq += v[i] * v[i];
+            }
+            const mean = sum / vectors.length;
+            const variance = sumSq / vectors.length - mean * mean;
+            const std = variance > 0 ? Math.sqrt(variance) : 1;
+            stats.push({ mean, std });
+        }
+
+        return vectors.map(frame =>
+            frame.map((val, i) => (val - stats[i].mean) / stats[i].std)
+        );
+    };
+
+    const nativeNorm = zNormalize(nativeVec);
+    const userNorm = zNormalize(userVec);
+
+    const euclidean = (a, b) => {
+        let sum = 0;
+        for (let i = 0; i < a.length; i++) {
+            const diff = a[i] - b[i];
+            sum += diff * diff;
+        }
+        return Math.sqrt(sum);
+    };
+
+    if (!useDTW) {
+        const len = Math.min(nativeNorm.length, userNorm.length);
+        let total = 0;
+        for (let i = 0; i < len; i++) total += euclidean(nativeNorm[i], userNorm[i]);
+        const score = Math.max(0, 100 - total * 2.5);
+        return { score: Math.round(score), distance: total };
+    }
+
+    // DTW with Sakoe-Chiba band (±10% of length)
+    const n = nativeNorm.length;
+    const m = userNorm.length;
+    const band = Math.floor(Math.max(n, m) * 0.1);
+
+    const dtw = Array(n + 1).fill().map(() => Array(m + 1).fill(Infinity));
+    dtw[0][0] = 0;
+
+    for (let i = 1; i <= n; i++) {
+        const jStart = Math.max(1, i - band);
+        const jEnd = Math.min(m, i + band);
+        for (let j = jStart; j <= jEnd; j++) {
+            const cost = euclidean(nativeNorm[i - 1], userNorm[j - 1]);
+            dtw[i][j] = cost + Math.min(
+                dtw[i - 1][j],
+                dtw[i][j - 1],
+                dtw[i - 1][j - 1]
+            );
+        }
+    }
+
+    const distance = dtw[n][m];
+    const avgDistance = distance / Math.max(n, m);
+    const score = Math.max(0, Math.min(100, 100 - avgDistance * 4.5));
+
+    return {
+        score: Math.round(score),
+        distance,
+        avgDistance,
+        alignmentRatio: Math.min(n, m) / Math.max(n, m)
+    };
 }
 
 // =================================================================
