@@ -141,11 +141,14 @@ function transformSteps(steps) {
 // Setup function for match/match-sound modules
 async function setupMatchModule(moduleName) {
     const isMatchSound = moduleName === 'match-sound';
-    const reviewSettingsId = isMatchSound ? '#reviewSettingsSound' : '#reviewSettings';
 
-    // Check if already started (content exists in matching container)
-    const container = document.querySelector('#matchingContainer');
-    const hasContent = container && container.querySelector('.pictures-row');
+    // Check if already started by looking for actual content inside the rows
+    // Match uses #wordsRow for text, match-sound uses #picturesRow for pictures
+    const contentRow = isMatchSound
+        ? document.querySelector('#picturesRow')
+        : document.querySelector('#wordsRow');
+
+    const hasContent = contentRow && contentRow.children.length > 0;
 
     if (!hasContent) {
         // Ensure review mode is selected
@@ -161,10 +164,37 @@ async function setupMatchModule(moduleName) {
             startBtn.click();
             // Wait for content to load
             await delay(500);
+
+            // Wait for the content row to have children
+            const targetRow = isMatchSound ? '#picturesRow' : '#wordsRow';
             try {
-                await waitForElement('.pictures-row', 2000);
+                await new Promise((resolve, reject) => {
+                    const checkContent = () => {
+                        const row = document.querySelector(targetRow);
+                        if (row && row.children.length > 0) {
+                            resolve();
+                            return true;
+                        }
+                        return false;
+                    };
+
+                    if (checkContent()) return;
+
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (checkContent()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, { childList: true, subtree: true });
+
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Content not loaded in time'));
+                    }, 2000);
+                });
             } catch (e) {
-                console.warn('Could not wait for pictures to load');
+                console.warn('Could not wait for match content to load:', e);
             }
         }
     }
@@ -174,11 +204,11 @@ async function setupMatchModule(moduleName) {
 
 // Setup function for quiz module
 async function setupQuizModule() {
-    // Check if quiz is already started
+    // Check if quiz is already started by checking if quizContainer is visible
     const quizContainer = document.querySelector('#quizContainer');
-    const hasStarted = quizContainer && quizContainer.querySelector('.quiz-content');
+    const isVisible = quizContainer && quizContainer.style.display !== 'none' && quizContainer.style.display !== '';
 
-    if (!hasStarted) {
+    if (!isVisible) {
         // Ensure review mode is selected
         const reviewBtn = document.querySelector('.mode-btn[data-mode="review"]');
         if (reviewBtn && !reviewBtn.classList.contains('active')) {
@@ -191,10 +221,36 @@ async function setupQuizModule() {
         if (startBtn) {
             startBtn.click();
             await delay(500);
+
+            // Wait for quizContainer to become visible
             try {
-                await waitForElement('.quiz-content', 2000);
+                await new Promise((resolve, reject) => {
+                    const checkVisible = () => {
+                        const container = document.querySelector('#quizContainer');
+                        if (container && container.style.display !== 'none' && container.style.display !== '') {
+                            resolve();
+                            return true;
+                        }
+                        return false;
+                    };
+
+                    if (checkVisible()) return;
+
+                    const observer = new MutationObserver((mutations, obs) => {
+                        if (checkVisible()) {
+                            obs.disconnect();
+                        }
+                    });
+
+                    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['style'] });
+
+                    setTimeout(() => {
+                        observer.disconnect();
+                        reject(new Error('Quiz not visible in time'));
+                    }, 2000);
+                });
             } catch (e) {
-                console.warn('Could not wait for quiz to load');
+                console.warn('Could not wait for quiz to load:', e);
             }
         }
     }
@@ -260,14 +316,31 @@ async function switchToTestMode(moduleName) {
         startBtn.click();
         await delay(500);
 
-        // Wait for content to load
+        // Wait for content to load based on module type
         if (moduleName === 'quiz') {
+            // Wait for quiz container to be visible
             try {
-                await waitForElement('.quiz-content', 2000);
+                await new Promise((resolve, reject) => {
+                    const check = () => {
+                        const container = document.querySelector('#quizContainer');
+                        return container && container.style.display !== 'none' && container.style.display !== '';
+                    };
+                    if (check()) { resolve(); return; }
+                    setTimeout(() => check() ? resolve() : reject(), 1000);
+                });
             } catch (e) {}
         } else {
+            // Wait for content row to have children
+            const targetRow = moduleName === 'match-sound' ? '#picturesRow' : '#wordsRow';
             try {
-                await waitForElement('.pictures-row', 2000);
+                await new Promise((resolve, reject) => {
+                    const check = () => {
+                        const row = document.querySelector(targetRow);
+                        return row && row.children.length > 0;
+                    };
+                    if (check()) { resolve(); return; }
+                    setTimeout(() => check() ? resolve() : reject(), 1000);
+                });
             } catch (e) {}
         }
     }
