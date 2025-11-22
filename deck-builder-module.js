@@ -99,107 +99,6 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
-                <!-- Legend -->
-                <div class="deck-legend">
-                    <strong>Status Legend:</strong>
-                    <span class="legend-item"><span class="status status-complete-animated">Complete (Animated)</span> - PNG + GIF + Audio</span>
-                    <span class="legend-item"><span class="status status-complete-static">Complete (Static)</span> - PNG + Audio</span>
-                    <span class="legend-item"><span class="status status-partial">Partial</span> - Some assets</span>
-                    <span class="legend-item"><span class="status status-missing">Missing</span> - No assets</span>
-                    <span class="legend-item"><span class="type-badge new">N</span> - New Word</span>
-                    <span class="legend-item"><span class="type-badge review">R</span> - Review</span>
-                </div>
-
-                <!-- Filter Controls Bar (above table) -->
-                <div class="deck-controls">
-                    <div class="filter-group">
-                        <label for="languageFilter">
-                            <i class="fas fa-language"></i> Language:
-                        </label>
-                        <select id="languageFilter" class="select-control">
-                            <option value="ceb">Cebuano</option>
-                            <option value="mrw">Maranao</option>
-                            <option value="sin">Sinama</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="lessonFilterFrom">
-                            <i class="fas fa-filter"></i> Lesson:
-                        </label>
-                        <input type="number" id="lessonFilterFrom" class="form-input lesson-range-input" placeholder="From" min="1">
-                        <span style="color: var(--text-secondary);">-</span>
-                        <input type="number" id="lessonFilterTo" class="form-input lesson-range-input" placeholder="To" min="1">
-                        <button id="clearLessonFilter" class="btn btn-sm btn-secondary" title="Clear lesson filter">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <div class="filter-group search-group">
-                        <label for="searchCards">
-                            <i class="fas fa-search"></i>
-                        </label>
-                        <input type="text" id="searchCards" class="form-input" placeholder="Search words...">
-                    </div>
-
-                    <button id="addCardBtnTop" class="btn btn-success ${adminOnlyClass}">
-                        <i class="fas fa-plus"></i> Add New Card
-                    </button>
-
-                    <div class="stats-mini">
-                        <span id="cardCount">0 cards</span>
-                        <span id="unsavedCount" class="unsaved-indicator hidden ${adminOnlyClass}">0 unsaved</span>
-                    </div>
-                </div>
-
-                <!-- Card Table -->
-                <div class="deck-table-container">
-                    <table class="deck-table" id="deckTable">
-                        <thead>
-                            <tr>
-                                <th style="width: 80px;" class="sortable-header" data-sort="lesson">
-                                    Lesson <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th style="width: 60px;">Type</th>
-                                <th style="width: 80px;" class="sortable-header" data-sort="cardNum">
-                                    Card # <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th style="width: 200px;" class="sortable-header" data-sort="word" id="langHeader">
-                                    Cebuano <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th style="width: 200px;" class="sortable-header" data-sort="english">
-                                    English <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th style="width: 100px;">Categories</th>
-                                <th style="width: 120px;">Picture (PNG)</th>
-                                <th style="width: 120px;">Animated (GIF)</th>
-                                <th style="width: 100px;">Audio</th>
-                                <th style="width: 120px;" class="sortable-header" data-sort="status">
-                                    Status <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th style="width: 100px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="deckTableBody">
-                            <!-- Cards will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Add New Card Button (Bottom) -->
-                <div style="margin: 16px 0; text-align: center;">
-                    <button id="addCardBtnBottom" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Add New Card
-                    </button>
-                </div>
-
-                <!-- Empty State -->
-                <div class="empty-state" id="emptyState" style="display:none;">
-                    <i class="fas fa-layer-group"></i>
-                    <h2>No Cards Found</h2>
-                    <p>Click "Add New Card" to create your first card, or check your filters.</p>
-                </div>
-
                 <!-- CSV Data Management Section (Admin only) -->
                 <div class="deck-section ${adminOnlyClass}" id="csvManagementSection">
                     <h3 class="section-title"><i class="fas fa-sync-alt"></i> CSV Data Management</h3>
@@ -295,6 +194,107 @@ class DeckBuilderModule extends LearningModule {
                             </button>
                         </div>
                     </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="deck-legend">
+                    <strong>Status Legend:</strong>
+                    <span class="legend-item"><span class="status status-complete-animated">Complete (Animated)</span> - PNG + GIF + Audio</span>
+                    <span class="legend-item"><span class="status status-complete-static">Complete (Static)</span> - PNG + Audio</span>
+                    <span class="legend-item"><span class="status status-partial">Partial</span> - Some assets</span>
+                    <span class="legend-item"><span class="status status-missing">Missing</span> - No assets</span>
+                    <span class="legend-item"><span class="type-badge new">N</span> - New Word</span>
+                    <span class="legend-item"><span class="type-badge review">R</span> - Review</span>
+                </div>
+
+                <!-- Filter Controls Bar (above table) -->
+                <div class="deck-controls">
+                    <div class="filter-group">
+                        <label for="languageFilter">
+                            <i class="fas fa-language"></i> Language:
+                        </label>
+                        <select id="languageFilter" class="select-control">
+                            <option value="ceb">Cebuano</option>
+                            <option value="mrw">Maranao</option>
+                            <option value="sin">Sinama</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="lessonFilterFrom">
+                            <i class="fas fa-filter"></i> Lesson:
+                        </label>
+                        <input type="number" id="lessonFilterFrom" class="form-input lesson-range-input" placeholder="From" min="1">
+                        <span style="color: var(--text-secondary);">-</span>
+                        <input type="number" id="lessonFilterTo" class="form-input lesson-range-input" placeholder="To" min="1">
+                        <button id="clearLessonFilter" class="btn btn-sm btn-secondary" title="Clear lesson filter">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="filter-group search-group">
+                        <label for="searchCards">
+                            <i class="fas fa-search"></i>
+                        </label>
+                        <input type="text" id="searchCards" class="form-input" placeholder="Search words...">
+                    </div>
+
+                    <button id="addCardBtnTop" class="btn btn-success ${adminOnlyClass}">
+                        <i class="fas fa-plus"></i> Add New Card
+                    </button>
+
+                    <div class="stats-mini">
+                        <span id="cardCount">0 cards</span>
+                        <span id="unsavedCount" class="unsaved-indicator hidden ${adminOnlyClass}">0 unsaved</span>
+                    </div>
+                </div>
+
+                <!-- Card Table -->
+                <div class="deck-table-container">
+                    <table class="deck-table" id="deckTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;" class="sortable-header" data-sort="lesson">
+                                    Lesson <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th style="width: 60px;">Type</th>
+                                <th style="width: 80px;" class="sortable-header" data-sort="cardNum">
+                                    Card # <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th style="width: 200px;" class="sortable-header" data-sort="word" id="langHeader">
+                                    Cebuano <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th style="width: 200px;" class="sortable-header" data-sort="english">
+                                    English <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th style="width: 100px;">Categories</th>
+                                <th style="width: 120px;">Picture (PNG)</th>
+                                <th style="width: 120px;">Animated (GIF)</th>
+                                <th style="width: 100px;">Audio</th>
+                                <th style="width: 120px;" class="sortable-header" data-sort="status">
+                                    Status <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th style="width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deckTableBody">
+                            <!-- Cards will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Add New Card Button (Bottom) -->
+                <div style="margin: 16px 0; text-align: center;">
+                    <button id="addCardBtnBottom" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add New Card
+                    </button>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <i class="fas fa-layer-group"></i>
+                    <h2>No Cards Found</h2>
+                    <p>Click "Add New Card" to create your first card, or check your filters.</p>
                 </div>
             </div>
 
