@@ -59,12 +59,14 @@ let useFilter = true;  // Apply 70-12000 Hz speech filter
 let useDTW = true;     // Use Dynamic Time Warping for comparison
 
 // Cache for computed spectra (avoid recomputing on display mode switch)
-let spectrumCache = {
+// Exposed globally for visualizer.js to access
+window.spectrumCache = {
     nativeSpectrum: null,
     userSpectrum: null,
     nativeSpectrogram: null,
     userSpectrogram: null
 };
+const spectrumCache = window.spectrumCache;
 
 // Scale preferences (referenced globally by Visualizer)
 window.scalePreferences = {
@@ -109,15 +111,15 @@ window.scalePreferences = {
     mfccNormalization: 'independent',
 
     // Pitch visualization options
-    pitchMinConfidence: 0.0,
-    pitchSmoothing: false,
-    pitchSmoothingWindow: 3,
+    pitchConfidenceThreshold: 0.0,
+    pitchSmoothingMode: 'median',
+    pitchSmoothingWindow: 5,
     pitchScale: 'linear',
-    pitchNormalize: false,
-    pitchShowConfidence: true,
+    pitchNormalize: 'none',
+    pitchShowConfidence: false,
     pitchShowUnvoiced: true,
-    pitchYMin: 50,
-    pitchYMax: 500,
+    pitchYMin: 0,
+    pitchYMax: 0,
 
     // Intensity visualization options
     intensityNormalization: 'independent',
@@ -144,7 +146,8 @@ const fftSizeOptions = [256, 512, 1024, 2048, 4096];
 // ===================================================================
 // DEBUG LOGGING
 // ===================================================================
-const debugLog = {
+// Exposed globally for visualizer.js to access
+window.debugLog = {
     log: (message, type = 'info') => {
         const output = document.getElementById('debugOutput');
         if (!output) return;
@@ -165,6 +168,7 @@ const debugLog = {
         output.scrollTop = output.scrollHeight;
     }
 };
+const debugLog = window.debugLog;
 
 // ===================================================================
 // INITIALIZATION
@@ -808,66 +812,81 @@ function setupFFTControls() {
 
 function setupWaveformControls() {
     // Waveform filter mode
-    document.getElementById('waveformFilterModeSelect').addEventListener('change', (e) => {
-        window.scalePreferences.waveformFilterMode = e.target.value;
-        updateScaleControlsVisibility();
-        updateWaveformFilterControls();
-        updateVisualization();
-    });
+    const waveformFilterModeSelect = document.getElementById('waveformFilterModeSelect');
+    if (waveformFilterModeSelect) {
+        waveformFilterModeSelect.addEventListener('change', (e) => {
+            window.scalePreferences.waveformFilterMode = e.target.value;
+            updateScaleControlsVisibility();
+            updateWaveformFilterControls();
+            updateVisualization();
+        });
+    }
 
     // Waveform filter value
     const filterSlider = document.getElementById('waveformFilterValueSlider');
     const filterInput = document.getElementById('waveformFilterValueInput');
 
-    filterSlider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        filterInput.value = value;
-        updateWaveformFilterValue(value);
-        updateVisualization();
-    });
+    if (filterSlider) {
+        filterSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            if (filterInput) filterInput.value = value;
+            updateWaveformFilterValue(value);
+            updateVisualization();
+        });
+    }
 
-    filterInput.addEventListener('change', (e) => {
-        const value = parseFloat(e.target.value);
-        filterSlider.value = value;
-        updateWaveformFilterValue(value);
-        updateVisualization();
-    });
+    if (filterInput) {
+        filterInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            if (filterSlider) filterSlider.value = value;
+            updateWaveformFilterValue(value);
+            updateVisualization();
+        });
+    }
 
     // Waveform zoom X
     const waveZoomXSlider = document.getElementById('waveformZoomXSlider');
     const waveZoomXInput = document.getElementById('waveformZoomXInput');
 
-    waveZoomXSlider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        waveZoomXInput.value = value;
-        window.scalePreferences.waveformZoomX = value;
-        updateVisualization();
-    });
+    if (waveZoomXSlider) {
+        waveZoomXSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            if (waveZoomXInput) waveZoomXInput.value = value;
+            window.scalePreferences.waveformZoomX = value;
+            updateVisualization();
+        });
+    }
 
-    waveZoomXInput.addEventListener('change', (e) => {
-        const value = parseFloat(e.target.value);
-        waveZoomXSlider.value = value;
-        window.scalePreferences.waveformZoomX = value;
-        updateVisualization();
-    });
+    if (waveZoomXInput) {
+        waveZoomXInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            if (waveZoomXSlider) waveZoomXSlider.value = value;
+            window.scalePreferences.waveformZoomX = value;
+            updateVisualization();
+        });
+    }
 
     // Waveform zoom Y
     const waveZoomYSlider = document.getElementById('waveformZoomYSlider');
     const waveZoomYInput = document.getElementById('waveformZoomYInput');
 
-    waveZoomYSlider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        waveZoomYInput.value = value;
-        window.scalePreferences.waveformZoomY = value;
-        updateVisualization();
-    });
+    if (waveZoomYSlider) {
+        waveZoomYSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            if (waveZoomYInput) waveZoomYInput.value = value;
+            window.scalePreferences.waveformZoomY = value;
+            updateVisualization();
+        });
+    }
 
-    waveZoomYInput.addEventListener('change', (e) => {
-        const value = parseFloat(e.target.value);
-        waveZoomYSlider.value = value;
-        window.scalePreferences.waveformZoomY = value;
-        updateVisualization();
-    });
+    if (waveZoomYInput) {
+        waveZoomYInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            if (waveZoomYSlider) waveZoomYSlider.value = value;
+            window.scalePreferences.waveformZoomY = value;
+            updateVisualization();
+        });
+    }
 
     // Time crop
     const timeStartSlider = document.getElementById('waveformTimeStartSlider');
@@ -875,45 +894,59 @@ function setupWaveformControls() {
     const timeEndSlider = document.getElementById('waveformTimeEndSlider');
     const timeEndInput = document.getElementById('waveformTimeEndInput');
 
-    timeStartSlider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        timeStartInput.value = value;
-        window.scalePreferences.waveformTimeStart = value;
-        updateVisualization();
-    });
+    if (timeStartSlider) {
+        timeStartSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            if (timeStartInput) timeStartInput.value = value;
+            window.scalePreferences.waveformTimeStart = value;
+            updateVisualization();
+        });
+    }
 
-    timeStartInput.addEventListener('change', (e) => {
-        const value = parseFloat(e.target.value);
-        timeStartSlider.value = value;
-        window.scalePreferences.waveformTimeStart = value;
-        updateVisualization();
-    });
+    if (timeStartInput) {
+        timeStartInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            if (timeStartSlider) timeStartSlider.value = value;
+            window.scalePreferences.waveformTimeStart = value;
+            updateVisualization();
+        });
+    }
 
-    timeEndSlider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        timeEndInput.value = value;
-        window.scalePreferences.waveformTimeEnd = value;
-        updateVisualization();
-    });
+    if (timeEndSlider) {
+        timeEndSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            if (timeEndInput) timeEndInput.value = value;
+            window.scalePreferences.waveformTimeEnd = value;
+            updateVisualization();
+        });
+    }
 
-    timeEndInput.addEventListener('change', (e) => {
-        const value = parseFloat(e.target.value);
-        timeEndSlider.value = value;
-        window.scalePreferences.waveformTimeEnd = value;
-        updateVisualization();
-    });
+    if (timeEndInput) {
+        timeEndInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            if (timeEndSlider) timeEndSlider.value = value;
+            window.scalePreferences.waveformTimeEnd = value;
+            updateVisualization();
+        });
+    }
 
     // Downsampling mode
-    document.getElementById('waveformDownsampleSelect').addEventListener('change', (e) => {
-        window.scalePreferences.waveformDownsample = e.target.value;
-        updateVisualization();
-    });
+    const downsampleSelect = document.getElementById('waveformDownsampleSelect');
+    if (downsampleSelect) {
+        downsampleSelect.addEventListener('change', (e) => {
+            window.scalePreferences.waveformDownsample = e.target.value;
+            updateVisualization();
+        });
+    }
 
     // Normalization mode
-    document.getElementById('waveformNormalizationSelect').addEventListener('change', (e) => {
-        window.scalePreferences.waveformNormalization = e.target.value;
-        updateVisualization();
-    });
+    const normalizationSelect = document.getElementById('waveformNormalizationSelect');
+    if (normalizationSelect) {
+        normalizationSelect.addEventListener('change', (e) => {
+            window.scalePreferences.waveformNormalization = e.target.value;
+            updateVisualization();
+        });
+    }
 }
 
 function setupMFCCControls() {
@@ -1039,82 +1072,113 @@ function setupMFCCControls() {
 }
 
 function setupPitchControls() {
-    // Pitch min confidence
+    // Pitch confidence threshold
     const confSlider = document.getElementById('pitchConfidenceSlider');
     const confInput = document.getElementById('pitchConfidenceInput');
 
-    confSlider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        confInput.value = value;
-        window.scalePreferences.pitchMinConfidence = value;
-        updateVisualization();
-    });
+    if (confSlider && confInput) {
+        confSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            confInput.value = value;
+            window.scalePreferences.pitchConfidenceThreshold = value;
+            updateVisualization();
+        });
 
-    confInput.addEventListener('change', (e) => {
-        const value = parseFloat(e.target.value);
-        confSlider.value = value;
-        window.scalePreferences.pitchMinConfidence = value;
-        updateVisualization();
-    });
+        confInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            confSlider.value = value;
+            window.scalePreferences.pitchConfidenceThreshold = value;
+            updateVisualization();
+        });
+    }
 
-    // Pitch smoothing
-    document.getElementById('pitchSmoothingCheck').addEventListener('change', (e) => {
-        window.scalePreferences.pitchSmoothing = e.target.checked;
-        updateScaleControlsVisibility();
-        updateVisualization();
-    });
+    // Pitch smoothing mode dropdown
+    const smoothingSelect = document.getElementById('pitchSmoothingSelect');
+    if (smoothingSelect) {
+        smoothingSelect.addEventListener('change', (e) => {
+            window.scalePreferences.pitchSmoothingMode = e.target.value;
+            // Show/hide window control based on mode
+            const windowGroup = document.getElementById('pitchSmoothingWindowGroup');
+            if (windowGroup) {
+                windowGroup.style.display = e.target.value === 'none' ? 'none' : 'flex';
+            }
+            updateVisualization();
+        });
+    }
 
     // Pitch smoothing window
     const smoothSlider = document.getElementById('pitchSmoothingWindowSlider');
     const smoothInput = document.getElementById('pitchSmoothingWindowInput');
 
-    smoothSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        smoothInput.value = value;
-        window.scalePreferences.pitchSmoothingWindow = value;
-        updateVisualization();
-    });
+    if (smoothSlider && smoothInput) {
+        smoothSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            smoothInput.value = value;
+            window.scalePreferences.pitchSmoothingWindow = value;
+            updateVisualization();
+        });
 
-    smoothInput.addEventListener('change', (e) => {
-        const value = parseInt(e.target.value);
-        smoothSlider.value = value;
-        window.scalePreferences.pitchSmoothingWindow = value;
-        updateVisualization();
-    });
+        smoothInput.addEventListener('change', (e) => {
+            const value = parseInt(e.target.value);
+            smoothSlider.value = value;
+            window.scalePreferences.pitchSmoothingWindow = value;
+            updateVisualization();
+        });
+    }
 
-    // Pitch Y range
-    const yMinSlider = document.getElementById('pitchYMinSlider');
+    // Pitch scale dropdown
+    const scaleSelect = document.getElementById('pitchScaleSelect');
+    if (scaleSelect) {
+        scaleSelect.addEventListener('change', (e) => {
+            window.scalePreferences.pitchScale = e.target.value;
+            updateVisualization();
+        });
+    }
+
+    // Pitch normalize dropdown
+    const normalizeSelect = document.getElementById('pitchNormalizeSelect');
+    if (normalizeSelect) {
+        normalizeSelect.addEventListener('change', (e) => {
+            window.scalePreferences.pitchNormalize = e.target.value;
+            updateVisualization();
+        });
+    }
+
+    // Show confidence checkbox
+    const showConfCheck = document.getElementById('pitchShowConfidenceCheck');
+    if (showConfCheck) {
+        showConfCheck.addEventListener('change', (e) => {
+            window.scalePreferences.pitchShowConfidence = e.target.checked;
+            updateVisualization();
+        });
+    }
+
+    // Show gaps/unvoiced checkbox
+    const showUnvoicedCheck = document.getElementById('pitchShowUnvoicedCheck');
+    if (showUnvoicedCheck) {
+        showUnvoicedCheck.addEventListener('change', (e) => {
+            window.scalePreferences.pitchShowUnvoiced = e.target.checked;
+            updateVisualization();
+        });
+    }
+
+    // Pitch Y range (min and max inputs only - no sliders)
     const yMinInput = document.getElementById('pitchYMinInput');
-    const yMaxSlider = document.getElementById('pitchYMaxSlider');
     const yMaxInput = document.getElementById('pitchYMaxInput');
 
-    yMinSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        yMinInput.value = value;
-        window.scalePreferences.pitchYMin = value;
-        updateVisualization();
-    });
+    if (yMinInput) {
+        yMinInput.addEventListener('change', (e) => {
+            window.scalePreferences.pitchYMin = parseInt(e.target.value) || 0;
+            updateVisualization();
+        });
+    }
 
-    yMinInput.addEventListener('change', (e) => {
-        const value = parseInt(e.target.value);
-        yMinSlider.value = value;
-        window.scalePreferences.pitchYMin = value;
-        updateVisualization();
-    });
-
-    yMaxSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        yMaxInput.value = value;
-        window.scalePreferences.pitchYMax = value;
-        updateVisualization();
-    });
-
-    yMaxInput.addEventListener('change', (e) => {
-        const value = parseInt(e.target.value);
-        yMaxSlider.value = value;
-        window.scalePreferences.pitchYMax = value;
-        updateVisualization();
-    });
+    if (yMaxInput) {
+        yMaxInput.addEventListener('change', (e) => {
+            window.scalePreferences.pitchYMax = parseInt(e.target.value) || 0;
+            updateVisualization();
+        });
+    }
 }
 
 function setupIntensityControls() {
