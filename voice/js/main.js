@@ -534,8 +534,11 @@ function setupAnalysisHandlers(comparator, aiAnalyzer) {
         
         try {
             analysisResults = comparator.compare(nativeBuffer, userBuffer);
+            // Add buffers to results for visualizer access
+            analysisResults.nativeBuffer = nativeBuffer;
+            analysisResults.userBuffer = userBuffer;
             detailedAnalysis = analysisResults.detailedReport;
-            
+
             // Store results for AI analysis
             aiAnalyzer.setAnalysisResults(analysisResults);
             
@@ -1369,54 +1372,35 @@ function updateVisualization() {
             break;
         case 'pitch':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawPitch(
-                    analysisResults.features.nativePitch,
-                    analysisResults.features.userPitch
-                );
+                visualizer.drawPitch(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see pitch analysis');
             }
             break;
         case 'intensity':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawIntensity(
-                    analysisResults.features.nativeIntensity,
-                    analysisResults.features.userIntensity
-                );
+                visualizer.drawIntensity(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see intensity analysis');
             }
             break;
         case 'mfcc':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawMFCCs(
-                    analysisResults.features.nativeMFCCs,
-                    analysisResults.features.userMFCCs
-                );
+                visualizer.drawMFCCs(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see MFCC analysis');
             }
             break;
         case 'formants':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawFormants(
-                    analysisResults.features.nativeFormants,
-                    analysisResults.features.userFormants
-                );
+                visualizer.drawFormants(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see formant analysis');
             }
             break;
         case 'features':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawAllFeatures(
-                    nativeBuffer,
-                    userBuffer,
-                    analysisResults.features.nativePitch,
-                    analysisResults.features.userPitch,
-                    analysisResults.features.nativeIntensity,
-                    analysisResults.features.userIntensity
-                );
+                visualizer.drawAllFeatures(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see all features');
             }

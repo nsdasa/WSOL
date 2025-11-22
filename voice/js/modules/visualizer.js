@@ -2080,19 +2080,21 @@ export class Visualizer {
     drawMiniWaveform(results, x, y, width, height) {
         this.ctx.fillStyle = 'rgba(55, 65, 81, 0.5)';
         this.ctx.fillRect(x, y, width, height);
-        
+
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 12px sans-serif';
         this.ctx.textAlign = 'left';
         this.ctx.fillText('Waveform', x + 8, y + 16);
-        
+
+        const nativeBuffer = results.nativeBuffer;
+        const userBuffer = results.userBuffer;
         if (!nativeBuffer || !userBuffer) return;
-        
+
         const plotWidth = width - 16;
         const plotHeight = height - 28;
         const offsetX = x + 8;
         const offsetY = y + 22;
-        
+
         const nativeData = nativeBuffer.getChannelData(0);
         const userData = userBuffer.getChannelData(0);
         
@@ -2127,28 +2129,26 @@ export class Visualizer {
     drawMiniSpectrum(results, x, y, width, height) {
         this.ctx.fillStyle = 'rgba(55, 65, 81, 0.5)';
         this.ctx.fillRect(x, y, width, height);
-        
+
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 12px sans-serif';
         this.ctx.textAlign = 'left';
         this.ctx.fillText('Spectrum (FFT)', x + 8, y + 16);
-        
+
+        const nativeBuffer = results.nativeBuffer;
+        const userBuffer = results.userBuffer;
         if (!nativeBuffer || !userBuffer) return;
-        
+
         const plotWidth = width - 16;
         const plotHeight = height - 28;
         const offsetX = x + 8;
         const offsetY = y + 22;
-        
-        // Use cached spectrum if available, otherwise compute simplified version
+
+        // Compute simplified spectrum for mini view
         let nativeSpectrum, userSpectrum;
-        
-        if (spectrumCache.nativeSpectrum && spectrumCache.userSpectrum) {
-            nativeSpectrum = spectrumCache.nativeSpectrum;
-            userSpectrum = spectrumCache.userSpectrum;
-        } else {
-            // Fast simplified spectrum - just one frame from middle
-            const computeQuickSpectrum = (buffer) => {
+
+        // Fast simplified spectrum - just one frame from middle
+        const computeQuickSpectrum = (buffer) => {
                 const data = buffer.getChannelData(0);
                 const fftSize = 512;
                 const start = Math.floor(data.length / 2) - fftSize / 2;
@@ -2216,19 +2216,20 @@ export class Visualizer {
     drawMiniSpectrogram(results, x, y, width, height) {
         this.ctx.fillStyle = 'rgba(55, 65, 81, 0.5)';
         this.ctx.fillRect(x, y, width, height);
-        
+
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 12px sans-serif';
         this.ctx.textAlign = 'left';
         this.ctx.fillText('Spectrogram', x + 8, y + 16);
-        
+
+        const nativeBuffer = results.nativeBuffer;
         if (!nativeBuffer) return;
-        
+
         const plotWidth = width - 16;
         const plotHeight = height - 28;
         const offsetX = x + 8;
         const offsetY = y + 22;
-        
+
         const data = nativeBuffer.getChannelData(0);
         const fftSize = 128; // Smaller for speed
         const numCols = Math.min(plotWidth, 100); // Limit columns
