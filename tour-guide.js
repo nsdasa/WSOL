@@ -192,12 +192,12 @@ const tours = {
             },
             onHighlightStarted: () => {
                 // Auto-click Review mode and Start to show the game
-                const reviewBtn = document.querySelector('#reviewModeBtnSound');
+                const reviewBtn = document.querySelector('.module-match-sound .mode-btn[data-mode="review"]');
                 if (reviewBtn && !reviewBtn.classList.contains('active')) {
                     reviewBtn.click();
                 }
                 setTimeout(() => {
-                    const startBtn = document.querySelector('#startBtnSound');
+                    const startBtn = document.querySelector('.module-match-sound #startBtn');
                     if (startBtn && !startBtn.disabled) {
                         startBtn.click();
                     }
@@ -240,12 +240,12 @@ const tours = {
             },
             onHighlightStarted: () => {
                 // Auto-click Review mode and Start to show the quiz
-                const reviewBtn = document.querySelector('#reviewModeBtnQuiz');
+                const reviewBtn = document.querySelector('.module-quiz .mode-btn[data-mode="review"]');
                 if (reviewBtn && !reviewBtn.classList.contains('active')) {
                     reviewBtn.click();
                 }
                 setTimeout(() => {
-                    const startBtn = document.querySelector('#startBtnQuiz');
+                    const startBtn = document.querySelector('.module-quiz #startBtn');
                     if (startBtn && !startBtn.disabled) {
                         startBtn.click();
                     }
