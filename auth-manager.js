@@ -192,16 +192,13 @@ class AuthManager {
     async logout() {
         try {
             await fetch('auth.php?action=logout');
-            
+
             this.authenticated = false;
             this.role = null;
             this.removeLogoutButton();
 
-            // Show admin tab again for next login
-            const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
-            if (adminTab) {
-                adminTab.style.display = '';
-            }
+            // Hide protected tabs after logout
+            this.hideProtectedTabs();
 
             toastManager?.show('Logged out successfully', 'success');
             debugLogger?.log(2, 'User logged out');
@@ -331,21 +328,59 @@ class AuthManager {
 
     /**
      * Update UI elements based on user role
-     * Hides admin tab for deck-manager role
+     * Shows/hides admin and deck-builder tabs based on authentication and role
+     * - Admin: sees both Admin and Deck Builder tabs
+     * - Deck Manager: sees only Deck Builder tab
+     * - Voice Recorder: sees only Deck Builder tab (limited functionality)
+     * - Not authenticated: sees neither tab
      */
     updateUIForRole() {
-        if (this.role === 'deck-manager') {
-            // Hide the Admin tab for deck managers
-            const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
+        const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
+        const deckBuilderTab = document.querySelector('.nav-tab[data-module="deck-builder"]');
+
+        if (!this.authenticated) {
+            // Hide both tabs when not authenticated
             if (adminTab) {
-                adminTab.style.display = 'none';
+                adminTab.classList.add('hidden');
             }
-        } else if (this.role === 'admin') {
-            // Show the Admin tab for admins (in case it was hidden)
-            const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
+            if (deckBuilderTab) {
+                deckBuilderTab.classList.add('hidden');
+            }
+            return;
+        }
+
+        // Show tabs based on role
+        if (this.role === 'admin') {
+            // Admin sees both tabs
             if (adminTab) {
-                adminTab.style.display = '';
+                adminTab.classList.remove('hidden');
             }
+            if (deckBuilderTab) {
+                deckBuilderTab.classList.remove('hidden');
+            }
+        } else if (this.role === 'deck-manager' || this.role === 'voice-recorder') {
+            // Deck Manager and Voice Recorder see only Deck Builder tab
+            if (adminTab) {
+                adminTab.classList.add('hidden');
+            }
+            if (deckBuilderTab) {
+                deckBuilderTab.classList.remove('hidden');
+            }
+        }
+    }
+
+    /**
+     * Hide protected tabs (called on logout or when not authenticated)
+     */
+    hideProtectedTabs() {
+        const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
+        const deckBuilderTab = document.querySelector('.nav-tab[data-module="deck-builder"]');
+
+        if (adminTab) {
+            adminTab.classList.add('hidden');
+        }
+        if (deckBuilderTab) {
+            deckBuilderTab.classList.add('hidden');
         }
     }
 }

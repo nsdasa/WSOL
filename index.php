@@ -101,11 +101,11 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
                 <i class="fas fa-question-circle"></i>
                 Unsa Ni?
             </button>
-            <button class="nav-tab" data-module="deck-builder">
+            <button class="nav-tab hidden" data-module="deck-builder" id="deckBuilderTab">
                 <i class="fas fa-edit"></i>
                 Deck Builder
             </button>
-            <button class="nav-tab" data-module="admin">
+            <button class="nav-tab hidden" data-module="admin" id="adminTab">
                 <i class="fas fa-tools"></i>
                 Admin
             </button>
