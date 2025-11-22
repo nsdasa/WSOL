@@ -142,7 +142,7 @@ const fftSizeOptions = [256, 512, 1024, 2048, 4096];
 // ===================================================================
 const debugLog = {
     log: (message, type = 'info') => {
-        const output = document.getElementById('debugLog');
+        const output = document.getElementById('debugOutput');
         if (!output) return;
         
         const time = new Date().toLocaleTimeString();
@@ -169,7 +169,7 @@ async function init() {
     debugLog.log('Initializing Pronunciation Analyzer...');
     
     // Initialize core components
-    const canvas = document.getElementById('visualizationCanvas');
+    const canvas = document.getElementById('vizCanvas');
     if (!canvas) {
         debugLog.log('Canvas element not found!', 'error');
         return;
@@ -216,22 +216,22 @@ async function init() {
                 const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
                 
                 userBuffer = trimSilence(decodedBuffer);
-                
+
                 // Clear user cache since we have new audio
                 spectrumCache.userSpectrum = null;
                 spectrumCache.userSpectrogram = null;
-                
-                const userRecordingEl = document.getElementById('userRecordingLoaded');
+
+                const userRecordingEl = document.getElementById('userRecordingSection');
                 if (userRecordingEl) userRecordingEl.classList.add('show');
-                const userDurationEl = document.getElementById('userRecordingInfo');
+                const userDurationEl = document.getElementById('userDurationText');
                 if (userDurationEl) userDurationEl.textContent = `Duration: ${userBuffer.duration.toFixed(1)}s`;
 
                 // Show analysis controls
                 const analysisControls = document.getElementById('analysisControls');
                 if (analysisControls) analysisControls.style.display = 'block';
 
-                const analyzeBtn = document.getElementById('analyzeBtn');
-                if (analyzeBtn) analyzeBtn.disabled = false;
+                const compareBtn = document.getElementById('compareBtn');
+                if (compareBtn) compareBtn.disabled = false;
                 debugLog.log('Recording processed successfully', 'success');
             } catch (err) {
                 debugLog.log(`Error processing recording: ${err.message}`, 'error');
@@ -281,7 +281,7 @@ async function init() {
 // ===================================================================
 function setupFileHandlers() {
     // Native audio file upload - use correct ID from index.php
-    const nativeInput = document.getElementById('nativeAudioInput');
+    const nativeInput = document.getElementById('nativeAudioFile');
     if (!nativeInput) {
         debugLog.log('Native audio input not found', 'error');
         return;
@@ -307,26 +307,31 @@ function setupFileHandlers() {
             nativeAudioElement = new Audio(URL.createObjectURL(file));
 
             // Update UI elements - use correct IDs from index.php
-            const uploadSection = document.getElementById('nativeUploadSection');
+            const uploadSection = document.getElementById('uploadSection');
             if (uploadSection) uploadSection.classList.add('has-file');
-            const fileLoaded = document.getElementById('nativeFileLoaded');
+            const fileLoaded = document.getElementById('fileLoaded');
             if (fileLoaded) fileLoaded.classList.add('show');
-            const fileName = document.getElementById('nativeFileName');
+            const fileName = document.getElementById('fileName');
             if (fileName) fileName.textContent = `${file.name} (${nativeBuffer.duration.toFixed(1)}s)`;
 
             const wordName = file.name.replace(/\.(mp3|m4a|wav|webm|ogg)$/i, '');
             const targetWord = document.getElementById('targetWord');
             if (targetWord) targetWord.textContent = wordName;
-            const wordMeaning = document.getElementById('wordMeaning');
-            if (wordMeaning) wordMeaning.textContent = 'Ready to practice!';
+            const targetTranslation = document.getElementById('targetTranslation');
+            if (targetTranslation) targetTranslation.textContent = 'Ready to practice!';
 
             // Enable recording
             const recordBtn = document.getElementById('recordBtn');
             if (recordBtn) recordBtn.disabled = false;
 
-            // Show user recording section
-            const userRecordSection = document.getElementById('userRecordSection');
-            if (userRecordSection) userRecordSection.style.display = 'block';
+            // Enable user audio file upload
+            const userAudioFile = document.getElementById('userAudioFile');
+            if (userAudioFile) userAudioFile.disabled = false;
+            const userUploadLabel = document.getElementById('userUploadLabel');
+            if (userUploadLabel) {
+                userUploadLabel.style.opacity = '1';
+                userUploadLabel.style.cursor = 'pointer';
+            }
 
             if (userBuffer) {
                 updateVisualization();
@@ -359,17 +364,17 @@ function setupFileHandlers() {
 
                 debugLog.log(`User audio loaded: ${userBuffer.duration.toFixed(2)}s`, 'success');
 
-                const userRecordingEl = document.getElementById('userRecordingLoaded');
+                const userRecordingEl = document.getElementById('userRecordingSection');
                 if (userRecordingEl) userRecordingEl.classList.add('show');
-                const userDurationEl = document.getElementById('userRecordingInfo');
+                const userDurationEl = document.getElementById('userDurationText');
                 if (userDurationEl) userDurationEl.textContent = `Duration: ${userBuffer.duration.toFixed(1)}s`;
 
                 // Show analysis controls
                 const analysisControls = document.getElementById('analysisControls');
                 if (analysisControls) analysisControls.style.display = 'block';
 
-                const analyzeBtn = document.getElementById('analyzeBtn');
-                if (analyzeBtn) analyzeBtn.disabled = false;
+                const compareBtn = document.getElementById('compareBtn');
+                if (compareBtn) compareBtn.disabled = false;
             } catch (err) {
                 debugLog.log(`Error loading user file: ${err.message}`, 'error');
                 alert('Could not load audio file. Please ensure it\'s a valid audio format.');
@@ -464,10 +469,10 @@ function setupPlaybackHandlers() {
             spectrumCache.userSpectrum = null;
             spectrumCache.userSpectrogram = null;
 
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            if (analyzeBtn) analyzeBtn.disabled = true;
+            const compareBtn = document.getElementById('compareBtn');
+            if (compareBtn) compareBtn.disabled = true;
 
-            const userRecordingEl = document.getElementById('userRecordingLoaded');
+            const userRecordingEl = document.getElementById('userRecordingSection');
             if (userRecordingEl) userRecordingEl.classList.remove('show');
 
             // Clear AI analysis
@@ -483,13 +488,13 @@ function setupPlaybackHandlers() {
 // ANALYSIS HANDLERS
 // ===================================================================
 function setupAnalysisHandlers(comparator, aiAnalyzer) {
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    if (!analyzeBtn) {
-        debugLog.log('Analyze button not found', 'error');
+    const compareBtn = document.getElementById('compareBtn');
+    if (!compareBtn) {
+        debugLog.log('Compare button not found', 'error');
         return;
     }
 
-    analyzeBtn.addEventListener('click', async () => {
+    compareBtn.addEventListener('click', async () => {
         if (!nativeBuffer || !userBuffer) {
             debugLog.log('Missing audio buffers', 'error');
             alert('Please upload native audio and record your voice first.');
@@ -615,8 +620,8 @@ function setupVisualizationHandlers(visualizer) {
     const clearDebugBtn = document.getElementById('clearDebug');
     if (clearDebugBtn) {
         clearDebugBtn.addEventListener('click', () => {
-            const debugLog = document.getElementById('debugLog');
-            if (debugLog) debugLog.innerHTML = '';
+            const debugOutput = document.getElementById('debugOutput');
+            if (debugOutput) debugOutput.innerHTML = '';
         });
     }
 }
@@ -1332,7 +1337,7 @@ function updateVisualization() {
     debugLog.log(`Rendering ${currentViz} visualization`);
     
     // Get visualizer instance (assumes it was stored globally during init)
-    const canvas = document.getElementById('visualizationCanvas');
+    const canvas = document.getElementById('vizCanvas');
     if (!canvas) {
         debugLog.log('Canvas not found', 'error');
         return;

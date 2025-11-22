@@ -90,6 +90,10 @@
                     <span>🎤</span>
                     <span id="recordText">Record Your Voice</span>
                 </button>
+                <button id="stopBtn" class="btn btn-secondary" disabled style="background: #dc2626;">
+                    <span>⏹️</span>
+                    <span>Stop Recording</span>
+                </button>
                 <div class="file-input-wrapper">
                     <input type="file" id="userAudioFile" accept="audio/*" disabled />
                     <label for="userAudioFile" class="file-input-label" id="userUploadLabel" style="opacity: 0.5; cursor: not-allowed;">
