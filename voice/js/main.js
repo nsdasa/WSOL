@@ -76,7 +76,7 @@ window.scalePreferences = {
     zoomY: 1,
     fftSize: 512,
     hopSize: 'auto',
-    
+
     // Waveform filtering options
     waveformFilterMode: 'none',
     waveformThreshold: 0.01,
@@ -88,7 +88,7 @@ window.scalePreferences = {
     waveformTimeEnd: 1,
     waveformDownsample: 'minmax',
     waveformNormalization: 'independent',
-    
+
     // MFCC options
     mfccNumFilters: 60,
     mfccCoeffStart: 1,
@@ -103,7 +103,7 @@ window.scalePreferences = {
     mfccColormap: 'viridis',
     mfccSymmetric: false,
     mfccNormalization: 'independent',
-    
+
     // Pitch visualization options
     pitchMinConfidence: 0.0,
     pitchSmoothing: false,
@@ -114,13 +114,13 @@ window.scalePreferences = {
     pitchShowUnvoiced: true,
     pitchYMin: 50,
     pitchYMax: 500,
-    
+
     // Intensity visualization options
     intensityNormalization: 'independent',
     intensitySmoothing: false,
     intensitySmoothingWindow: 5,
     intensityLogScale: false,
-    
+
     // Formant visualization options
     formantSmoothing: false,
     formantSmoothingWindow: 3,
@@ -128,7 +128,7 @@ window.scalePreferences = {
     formantShowF1: true,
     formantShowF2: true,
     formantShowF3: true,
-    
+
     // Feature visualization
     featureLayout: 'grid',
     featureShowLabels: true
@@ -144,7 +144,7 @@ const debugLog = {
     log: (message, type = 'info') => {
         const output = document.getElementById('debugOutput');
         if (!output) return;
-        
+
         const time = new Date().toLocaleTimeString();
         const color = {
             info: '#60a5fa',
@@ -152,7 +152,7 @@ const debugLog = {
             error: '#f87171',
             warning: '#fbbf24'
         }[type] || '#9ca3af';
-        
+
         const entry = document.createElement('div');
         entry.style.marginBottom = '4px';
         entry.style.fontSize = '12px';
@@ -167,16 +167,16 @@ const debugLog = {
 // ===================================================================
 async function init() {
     debugLog.log('Initializing Pronunciation Analyzer...');
-    
+
     // Initialize core components
     const visualizer = new Visualizer(document.getElementById('vizCanvas'));
     const comparator = new PronunciationComparator();
     const aiAnalyzer = new AIAnalyzer();
     const aiUI = new AIAnalysisUI(aiAnalyzer);
-    
+
     // Override AI UI message handler to use debug log
     aiUI.showMessage = (msg, type) => debugLog.log(msg, type);
-    
+
     // Initialize AI UI
     aiUI.init({
         section: 'aiAnalysisSection',
@@ -185,41 +185,41 @@ async function init() {
         status: 'apiStatus',
         input: 'apiKeyInput'
     });
-    
+
     // Request microphone access
     const micStatus = document.getElementById('micStatus');
     micStatus.style.display = 'block';
-    
+
     try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
-        
+
         mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
                 audioChunks.push(event.data);
             }
         };
-        
+
         mediaRecorder.onstop = async () => {
             if (audioChunks.length === 0) return;
-            
+
             userAudioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
             audioChunks = [];
-            
+
             try {
                 const arrayBuffer = await userAudioBlob.arrayBuffer();
                 const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
-                
+
                 userBuffer = trimSilence(decodedBuffer);
-                
+
                 // Clear user cache since we have new audio
                 spectrumCache.userSpectrum = null;
                 spectrumCache.userSpectrogram = null;
-                
+
                 document.getElementById('userRecordingSection').classList.add('show');
-                document.getElementById('userDurationText').textContent = 
+                document.getElementById('userDurationText').textContent =
                     `Duration: ${userBuffer.duration.toFixed(1)}s`;
-                
+
                 document.getElementById('compareBtn').disabled = false;
                 debugLog.log('Recording processed successfully', 'success');
             } catch (err) {
@@ -227,7 +227,7 @@ async function init() {
                 alert('Error processing recording: ' + err.message);
             }
         };
-        
+
         micStatus.textContent = '✅ Microphone ready!';
         micStatus.classList.add('ready');
         debugLog.log('Microphone access granted', 'success');
@@ -236,7 +236,7 @@ async function init() {
         micStatus.textContent = '❌ Microphone access denied';
         micStatus.classList.add('error');
     }
-    
+
     // Set up all event handlers
     setupFileHandlers();
     setupRecordingHandlers();
@@ -246,18 +246,18 @@ async function init() {
     setupSettingsHandlers();
     setupExportHandlers();
     setupAIHandlers(aiUI);
-    
+
     // Initialize canvas with placeholder
     visualizer.ctx.fillStyle = '#1f2937';
     visualizer.ctx.fillRect(0, 0, visualizer.canvas.width, visualizer.canvas.height);
     visualizer.ctx.fillStyle = 'rgba(156, 163, 175, 0.5)';
     visualizer.ctx.font = '20px sans-serif';
     visualizer.ctx.textAlign = 'center';
-    visualizer.ctx.fillText('Upload native audio and record your voice to begin', 
+    visualizer.ctx.fillText('Upload native audio and record your voice to begin',
         visualizer.canvas.width / 2, visualizer.canvas.height / 2);
-    
+
     debugLog.log('Initialization complete!', 'success');
-    
+
     return { visualizer, comparator, aiAnalyzer, aiUI };
 }
 
@@ -269,39 +269,39 @@ function setupFileHandlers() {
     document.getElementById('nativeAudioFile').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         debugLog.log(`File selected: ${file.name} (${file.size} bytes)`);
-        
+
         try {
             const arrayBuffer = await file.arrayBuffer();
             const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
             nativeBuffer = trimSilence(decodedBuffer);
-            
+
             // Clear native cache since we have new audio
             spectrumCache.nativeSpectrum = null;
             spectrumCache.nativeSpectrogram = null;
-            
+
             debugLog.log(`Native audio loaded: ${nativeBuffer.duration.toFixed(2)}s`, 'success');
-            
+
             nativeAudioElement = new Audio(URL.createObjectURL(file));
-            
+
             document.getElementById('uploadSection').classList.add('has-file');
             document.getElementById('fileLoaded').classList.add('show');
             document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileDurationText').textContent = 
+            document.getElementById('fileDurationText').textContent =
                 `Duration: ${nativeBuffer.duration.toFixed(1)}s`;
-            
+
             const wordName = file.name.replace(/\.(mp3|m4a|wav|webm|ogg)$/i, '');
             document.getElementById('targetWord').textContent = wordName;
             document.getElementById('targetTranslation').textContent = 'Ready to practice!';
-            
+
             document.getElementById('recordBtn').disabled = false;
-            
+
             // Enable user audio upload
             document.getElementById('userAudioFile').disabled = false;
             document.getElementById('userUploadLabel').style.opacity = '1';
             document.getElementById('userUploadLabel').style.cursor = 'pointer';
-            
+
             if (userBuffer) {
                 updateVisualization();
             }
@@ -310,31 +310,31 @@ function setupFileHandlers() {
             alert('Could not load audio file. Please ensure it\'s a valid audio format.');
         }
     });
-    
+
     // User audio file upload handler
     document.getElementById('userAudioFile').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         debugLog.log(`User file selected: ${file.name} (${file.size} bytes)`);
-        
+
         try {
             const arrayBuffer = await file.arrayBuffer();
             const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
             userBuffer = trimSilence(decodedBuffer);
-            
+
             userAudioBlob = new Blob([arrayBuffer], { type: file.type });
-            
+
             // Clear user cache
             spectrumCache.userSpectrum = null;
             spectrumCache.userSpectrogram = null;
-            
+
             debugLog.log(`User audio loaded: ${userBuffer.duration.toFixed(2)}s`, 'success');
-            
+
             document.getElementById('userRecordingSection').classList.add('show');
-            document.getElementById('userDurationText').textContent = 
+            document.getElementById('userDurationText').textContent =
                 `Duration: ${userBuffer.duration.toFixed(1)}s`;
-            
+
             document.getElementById('compareBtn').disabled = false;
         } catch (err) {
             debugLog.log(`Error loading user file: ${err.message}`, 'error');
@@ -348,26 +348,40 @@ function setupFileHandlers() {
 // ===================================================================
 function setupRecordingHandlers() {
     const recordBtn = document.getElementById('recordBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    
+    const recordText = document.getElementById('recordText');
+    const recordingIndicator = document.getElementById('recordingIndicator');
+
+    if (!recordBtn) {
+        debugLog.log('Record button not found', 'error');
+        return;
+    }
+
     recordBtn.addEventListener('click', () => {
-        if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        if (!mediaRecorder) {
+            debugLog.log('MediaRecorder not initialized', 'error');
+            return;
+        }
+
+        if (mediaRecorder.state === 'inactive') {
+            // Start recording
             debugLog.log('Starting recording...');
             audioChunks = [];
             mediaRecorder.start();
-            recordBtn.disabled = true;
-            stopBtn.disabled = false;
-            recordBtn.textContent = '🎙️ Recording...';
-        }
-    });
-    
-    stopBtn.addEventListener('click', () => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
+
+            // Update UI
+            recordBtn.classList.add('recording');
+            if (recordText) recordText.textContent = 'Stop Recording';
+            if (recordingIndicator) recordingIndicator.classList.add('active');
+
+        } else if (mediaRecorder.state === 'recording') {
+            // Stop recording
             debugLog.log('Stopping recording...');
             mediaRecorder.stop();
-            recordBtn.disabled = false;
-            stopBtn.disabled = true;
-            recordBtn.textContent = '🎙️ Record';
+
+            // Update UI
+            recordBtn.classList.remove('recording');
+            if (recordText) recordText.textContent = 'Record Your Voice';
+            if (recordingIndicator) recordingIndicator.classList.remove('active');
         }
     });
 }
@@ -379,7 +393,7 @@ function setupPlaybackHandlers() {
     document.getElementById('playNative').addEventListener('click', async () => {
         // Ensure AudioContext is active
         await getAudioContext();
-        
+
         if (nativeAudioElement) {
             nativeAudioElement.currentTime = 0;
             nativeAudioElement.volume = 1.0;
@@ -388,11 +402,11 @@ function setupPlaybackHandlers() {
                 .catch(err => alert('Could not play audio: ' + err.message));
         }
     });
-    
+
     document.getElementById('playUser').addEventListener('click', async () => {
         // Ensure AudioContext is active
         await getAudioContext();
-        
+
         if (userAudioBlob) {
             const audioURL = URL.createObjectURL(userAudioBlob);
             const audio = new Audio(audioURL);
@@ -402,7 +416,7 @@ function setupPlaybackHandlers() {
                 .catch(err => alert('Could not play recording: ' + err.message));
         }
     });
-    
+
     document.getElementById('tryAgain').addEventListener('click', () => {
         document.getElementById('results').classList.remove('show');
         userBuffer = null;
@@ -413,11 +427,11 @@ function setupPlaybackHandlers() {
         document.getElementById('compareBtn').disabled = true;
         document.getElementById('exportAnalysis').disabled = true;
         document.getElementById('userRecordingSection').classList.remove('show');
-        
+
         // Clear AI analysis
         const aiSection = document.getElementById('aiAnalysisSection');
         if (aiSection) aiSection.style.display = 'none';
-        
+
         debugLog.log('Reset for new recording');
     });
 }
@@ -432,9 +446,9 @@ function setupAnalysisHandlers(comparator, aiAnalyzer) {
             alert('Please upload native audio and record your voice first.');
             return;
         }
-        
+
         debugLog.log('Starting pronunciation analysis...');
-        
+
         // Validate user recording
         const userData = userBuffer.getChannelData(0);
         let maxAmp = 0;
@@ -444,39 +458,39 @@ function setupAnalysisHandlers(comparator, aiAnalyzer) {
             rms += userData[i] * userData[i];
         }
         rms = Math.sqrt(rms / userData.length);
-        
+
         debugLog.log(`Validation - Max: ${maxAmp.toFixed(4)}, RMS: ${rms.toFixed(4)}`);
-        
+
         if (maxAmp < 0.01 || rms < 0.001) {
             alert('Your recording appears to be silent or too quiet. Please record again.');
             debugLog.log('Analysis rejected: invalid audio', 'error');
             return;
         }
-        
+
         document.getElementById('feedback').textContent = 'Processing...';
         document.getElementById('results').classList.add('show');
-        
+
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         try {
             analysisResults = comparator.compare(nativeBuffer, userBuffer);
             detailedAnalysis = analysisResults.detailedReport;
-            
+
             // Store results for AI analysis
             aiAnalyzer.setAnalysisResults(analysisResults);
-            
+
             showResults(analysisResults);
             showDetailedAnalysis(detailedAnalysis);
             updateVisualization();
-            
+
             document.getElementById('exportAnalysis').disabled = false;
-            
+
             // Enable AI analysis button if API is configured
             const aiBtn = document.getElementById('aiAnalysisBtn');
             if (aiBtn && aiAnalyzer.isConfigured()) {
                 aiBtn.disabled = false;
             }
-            
+
             debugLog.log('Analysis complete', 'success');
         } catch (err) {
             debugLog.log(`Error: ${err.message}`, 'error');
@@ -497,21 +511,21 @@ function setupVisualizationHandlers(visualizer) {
             e.target.classList.add('active');
             currentViz = e.target.dataset.viz;
             debugLog.log(`Switching to ${currentViz} visualization`);
-            
+
             updateScaleControlsVisibility();
             updateVisualization();
         });
     });
-    
+
     // Display mode toggle (overlay/stacked)
     document.querySelectorAll('.scale-toggle button').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const type = e.target.dataset.type;
             const scale = e.target.dataset.scale;
-            
+
             e.target.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
-            
+
             if (type === 'amplitude') {
                 window.scalePreferences.amplitude = scale;
                 debugLog.log(`Amplitude scale: ${scale}`);
@@ -528,11 +542,11 @@ function setupVisualizationHandlers(visualizer) {
                 window.scalePreferences.spectrogramFreq = scale;
                 debugLog.log(`Spectrogram frequency: ${scale}`);
             }
-            
+
             updateVisualization();
         });
     });
-    
+
     // Debug panel toggle
     document.getElementById('toggleDebug').addEventListener('click', () => {
         document.getElementById('debugPanel').classList.toggle('show');
@@ -546,7 +560,7 @@ function setupSettingsHandlers() {
     // Mel bins
     const melBinsSlider = document.getElementById('melBinsSlider');
     const melBinsInput = document.getElementById('melBinsInput');
-    
+
     melBinsSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         melBinsInput.value = value;
@@ -554,7 +568,7 @@ function setupSettingsHandlers() {
         debugLog.log(`Mel bins: ${value}`);
         updateVisualization();
     });
-    
+
     melBinsInput.addEventListener('change', (e) => {
         let value = parseInt(e.target.value);
         if (isNaN(value)) value = 80;
@@ -565,7 +579,7 @@ function setupSettingsHandlers() {
         debugLog.log(`Mel bins: ${value}`);
         updateVisualization();
     });
-    
+
     // Filter mode
     document.getElementById('filterModeSelect').addEventListener('change', (e) => {
         window.scalePreferences.filterMode = e.target.value;
@@ -573,11 +587,11 @@ function setupSettingsHandlers() {
         updateFilterControls();
         updateVisualization();
     });
-    
+
     // Filter value
     const filterSlider = document.getElementById('filterValueSlider');
     const filterInput = document.getElementById('filterValueInput');
-    
+
     filterSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         filterInput.value = value;
@@ -585,7 +599,7 @@ function setupSettingsHandlers() {
         debugLog.log(`Filter value: ${value}`);
         updateVisualization();
     });
-    
+
     filterInput.addEventListener('change', (e) => {
         let value = parseFloat(e.target.value);
         const slider = document.getElementById('filterValueSlider');
@@ -597,22 +611,22 @@ function setupSettingsHandlers() {
         debugLog.log(`Filter value: ${value}`);
         updateVisualization();
     });
-    
+
     // Zoom controls
     setupZoomControls();
-    
+
     // FFT size
     setupFFTControls();
-    
+
     // Waveform controls
     setupWaveformControls();
-    
+
     // MFCC controls
     setupMFCCControls();
-    
+
     // Pitch controls
     setupPitchControls();
-    
+
     // Intensity controls
     setupIntensityControls();
 }
@@ -621,7 +635,7 @@ function setupZoomControls() {
     // Zoom X
     const zoomXSlider = document.getElementById('zoomXSlider');
     const zoomXInput = document.getElementById('zoomXInput');
-    
+
     zoomXSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         zoomXInput.value = value;
@@ -629,7 +643,7 @@ function setupZoomControls() {
         debugLog.log(`Zoom X: ${value}×`);
         updateVisualization();
     });
-    
+
     zoomXInput.addEventListener('change', (e) => {
         let value = parseFloat(e.target.value);
         if (isNaN(value)) value = 1;
@@ -640,11 +654,11 @@ function setupZoomControls() {
         debugLog.log(`Zoom X: ${value}×`);
         updateVisualization();
     });
-    
+
     // Zoom Y
     const zoomYSlider = document.getElementById('zoomYSlider');
     const zoomYInput = document.getElementById('zoomYInput');
-    
+
     zoomYSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         zoomYInput.value = value;
@@ -652,7 +666,7 @@ function setupZoomControls() {
         debugLog.log(`Zoom Y: ${value}×`);
         updateVisualization();
     });
-    
+
     zoomYInput.addEventListener('change', (e) => {
         let value = parseFloat(e.target.value);
         if (isNaN(value)) value = 1;
@@ -668,7 +682,7 @@ function setupZoomControls() {
 function setupFFTControls() {
     const fftSizeSlider = document.getElementById('fftSizeSlider');
     const fftSizeSelect = document.getElementById('fftSizeSelect');
-    
+
     fftSizeSlider.addEventListener('input', (e) => {
         const index = parseInt(e.target.value);
         const fftSize = fftSizeOptions[index];
@@ -680,7 +694,7 @@ function setupFFTControls() {
         debugLog.log(`FFT size: ${fftSize}`);
         updateVisualization();
     });
-    
+
     fftSizeSelect.addEventListener('change', (e) => {
         const fftSize = parseInt(e.target.value);
         const index = fftSizeOptions.indexOf(fftSize);
@@ -692,7 +706,7 @@ function setupFFTControls() {
         debugLog.log(`FFT size: ${fftSize}`);
         updateVisualization();
     });
-    
+
     // Hop size
     document.getElementById('hopSizeSelect').addEventListener('change', (e) => {
         window.scalePreferences.hopSize = e.target.value;
@@ -709,101 +723,101 @@ function setupWaveformControls() {
         updateWaveformFilterControls();
         updateVisualization();
     });
-    
+
     // Waveform filter value
     const filterSlider = document.getElementById('waveformFilterValueSlider');
     const filterInput = document.getElementById('waveformFilterValueInput');
-    
+
     filterSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         filterInput.value = value;
         updateWaveformFilterValue(value);
         updateVisualization();
     });
-    
+
     filterInput.addEventListener('change', (e) => {
         const value = parseFloat(e.target.value);
         filterSlider.value = value;
         updateWaveformFilterValue(value);
         updateVisualization();
     });
-    
+
     // Waveform zoom X
     const waveZoomXSlider = document.getElementById('waveformZoomXSlider');
     const waveZoomXInput = document.getElementById('waveformZoomXInput');
-    
+
     waveZoomXSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         waveZoomXInput.value = value;
         window.scalePreferences.waveformZoomX = value;
         updateVisualization();
     });
-    
+
     waveZoomXInput.addEventListener('change', (e) => {
         const value = parseFloat(e.target.value);
         waveZoomXSlider.value = value;
         window.scalePreferences.waveformZoomX = value;
         updateVisualization();
     });
-    
+
     // Waveform zoom Y
     const waveZoomYSlider = document.getElementById('waveformZoomYSlider');
     const waveZoomYInput = document.getElementById('waveformZoomYInput');
-    
+
     waveZoomYSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         waveZoomYInput.value = value;
         window.scalePreferences.waveformZoomY = value;
         updateVisualization();
     });
-    
+
     waveZoomYInput.addEventListener('change', (e) => {
         const value = parseFloat(e.target.value);
         waveZoomYSlider.value = value;
         window.scalePreferences.waveformZoomY = value;
         updateVisualization();
     });
-    
+
     // Time crop
     const timeStartSlider = document.getElementById('waveformTimeStartSlider');
     const timeStartInput = document.getElementById('waveformTimeStartInput');
     const timeEndSlider = document.getElementById('waveformTimeEndSlider');
     const timeEndInput = document.getElementById('waveformTimeEndInput');
-    
+
     timeStartSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         timeStartInput.value = value;
         window.scalePreferences.waveformTimeStart = value;
         updateVisualization();
     });
-    
+
     timeStartInput.addEventListener('change', (e) => {
         const value = parseFloat(e.target.value);
         timeStartSlider.value = value;
         window.scalePreferences.waveformTimeStart = value;
         updateVisualization();
     });
-    
+
     timeEndSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         timeEndInput.value = value;
         window.scalePreferences.waveformTimeEnd = value;
         updateVisualization();
     });
-    
+
     timeEndInput.addEventListener('change', (e) => {
         const value = parseFloat(e.target.value);
         timeEndSlider.value = value;
         window.scalePreferences.waveformTimeEnd = value;
         updateVisualization();
     });
-    
+
     // Downsampling mode
     document.getElementById('waveformDownsampleSelect').addEventListener('change', (e) => {
         window.scalePreferences.waveformDownsample = e.target.value;
         updateVisualization();
     });
-    
+
     // Normalization mode
     document.getElementById('waveformNormalizationSelect').addEventListener('change', (e) => {
         window.scalePreferences.waveformNormalization = e.target.value;
@@ -815,79 +829,79 @@ function setupMFCCControls() {
     // MFCC num filters
     const numFiltersSlider = document.getElementById('mfccNumFiltersSlider');
     const numFiltersInput = document.getElementById('mfccNumFiltersInput');
-    
+
     numFiltersSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         numFiltersInput.value = value;
         window.scalePreferences.mfccNumFilters = value;
         updateVisualization();
     });
-    
+
     numFiltersInput.addEventListener('change', (e) => {
         const value = parseInt(e.target.value);
         numFiltersSlider.value = value;
         window.scalePreferences.mfccNumFilters = value;
         updateVisualization();
     });
-    
+
     // MFCC coefficient range
     const coeffStartSlider = document.getElementById('mfccCoeffStartSlider');
     const coeffStartInput = document.getElementById('mfccCoeffStartInput');
     const coeffEndSlider = document.getElementById('mfccCoeffEndSlider');
     const coeffEndInput = document.getElementById('mfccCoeffEndInput');
-    
+
     coeffStartSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         coeffStartInput.value = value;
         window.scalePreferences.mfccCoeffStart = value;
         updateVisualization();
     });
-    
+
     coeffStartInput.addEventListener('change', (e) => {
         const value = parseInt(e.target.value);
         coeffStartSlider.value = value;
         window.scalePreferences.mfccCoeffStart = value;
         updateVisualization();
     });
-    
+
     coeffEndSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         coeffEndInput.value = value;
         window.scalePreferences.mfccCoeffEnd = value;
         updateVisualization();
     });
-    
+
     coeffEndInput.addEventListener('change', (e) => {
         const value = parseInt(e.target.value);
         coeffEndSlider.value = value;
         window.scalePreferences.mfccCoeffEnd = value;
         updateVisualization();
     });
-    
+
     // MFCC delta checkbox
     document.getElementById('mfccDeltaCheck').addEventListener('change', (e) => {
         window.scalePreferences.mfccDelta = e.target.checked;
         updateVisualization();
     });
-    
+
     // MFCC lifter
     const lifterSlider = document.getElementById('mfccLifterSlider');
     const lifterInput = document.getElementById('mfccLifterInput');
-    
+
     lifterSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         lifterInput.value = value;
         window.scalePreferences.mfccLifter = value;
         updateVisualization();
     });
-    
+
     lifterInput.addEventListener('change', (e) => {
         const value = parseInt(e.target.value);
         lifterSlider.value = value;
         window.scalePreferences.mfccLifter = value;
         updateVisualization();
     });
-    
+
     // MFCC filter mode
     document.getElementById('mfccFilterModeSelect').addEventListener('change', (e) => {
         window.scalePreferences.mfccFilterMode = e.target.value;
@@ -895,37 +909,37 @@ function setupMFCCControls() {
         updateMfccFilterControls();
         updateVisualization();
     });
-    
+
     // MFCC zoom
     const mfccZoomXSlider = document.getElementById('mfccZoomXSlider');
     const mfccZoomXInput = document.getElementById('mfccZoomXInput');
-    
+
     mfccZoomXSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         mfccZoomXInput.value = value;
         window.scalePreferences.mfccZoomX = value;
         updateVisualization();
     });
-    
+
     mfccZoomXInput.addEventListener('change', (e) => {
         const value = parseFloat(e.target.value);
         mfccZoomXSlider.value = value;
         window.scalePreferences.mfccZoomX = value;
         updateVisualization();
     });
-    
+
     // MFCC colormap
     document.getElementById('mfccColormapSelect').addEventListener('change', (e) => {
         window.scalePreferences.mfccColormap = e.target.value;
         updateVisualization();
     });
-    
+
     // MFCC symmetric
     document.getElementById('mfccSymmetricCheck').addEventListener('change', (e) => {
         window.scalePreferences.mfccSymmetric = e.target.checked;
         updateVisualization();
     });
-    
+
     // MFCC normalization
     document.getElementById('mfccNormalizationSelect').addEventListener('change', (e) => {
         window.scalePreferences.mfccNormalization = e.target.value;
@@ -937,73 +951,73 @@ function setupPitchControls() {
     // Pitch min confidence
     const confSlider = document.getElementById('pitchConfidenceSlider');
     const confInput = document.getElementById('pitchConfidenceInput');
-    
+
     confSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         confInput.value = value;
         window.scalePreferences.pitchMinConfidence = value;
         updateVisualization();
     });
-    
+
     confInput.addEventListener('change', (e) => {
         const value = parseFloat(e.target.value);
         confSlider.value = value;
         window.scalePreferences.pitchMinConfidence = value;
         updateVisualization();
     });
-    
+
     // Pitch smoothing
     document.getElementById('pitchSmoothingCheck').addEventListener('change', (e) => {
         window.scalePreferences.pitchSmoothing = e.target.checked;
         updateScaleControlsVisibility();
         updateVisualization();
     });
-    
+
     // Pitch smoothing window
     const smoothSlider = document.getElementById('pitchSmoothingWindowSlider');
     const smoothInput = document.getElementById('pitchSmoothingWindowInput');
-    
+
     smoothSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         smoothInput.value = value;
         window.scalePreferences.pitchSmoothingWindow = value;
         updateVisualization();
     });
-    
+
     smoothInput.addEventListener('change', (e) => {
         const value = parseInt(e.target.value);
         smoothSlider.value = value;
         window.scalePreferences.pitchSmoothingWindow = value;
         updateVisualization();
     });
-    
+
     // Pitch Y range
     const yMinSlider = document.getElementById('pitchYMinSlider');
     const yMinInput = document.getElementById('pitchYMinInput');
     const yMaxSlider = document.getElementById('pitchYMaxSlider');
     const yMaxInput = document.getElementById('pitchYMaxInput');
-    
+
     yMinSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         yMinInput.value = value;
         window.scalePreferences.pitchYMin = value;
         updateVisualization();
     });
-    
+
     yMinInput.addEventListener('change', (e) => {
         const value = parseInt(e.target.value);
         yMinSlider.value = value;
         window.scalePreferences.pitchYMin = value;
         updateVisualization();
     });
-    
+
     yMaxSlider.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
         yMaxInput.value = value;
         window.scalePreferences.pitchYMax = value;
         updateVisualization();
     });
-    
+
     yMaxInput.addEventListener('change', (e) => {
         const value = parseInt(e.target.value);
         yMaxSlider.value = value;
@@ -1018,13 +1032,13 @@ function setupIntensityControls() {
         window.scalePreferences.intensityNormalization = e.target.value;
         updateVisualization();
     });
-    
+
     // Intensity smoothing
     document.getElementById('intensitySmoothingCheck')?.addEventListener('change', (e) => {
         window.scalePreferences.intensitySmoothing = e.target.checked;
         updateVisualization();
     });
-    
+
     // Intensity log scale
     document.getElementById('intensityLogScaleCheck')?.addEventListener('change', (e) => {
         window.scalePreferences.intensityLogScale = e.target.checked;
@@ -1043,7 +1057,7 @@ function updateScaleControlsVisibility() {
     const pitchControls = document.getElementById('pitchControls');
     const intensityControls = document.getElementById('intensityControls');
     const featureControls = document.getElementById('featureControls');
-    
+
     // Hide all
     if (waveformControls) waveformControls.style.display = 'none';
     if (spectrogramControls) spectrogramControls.style.display = 'none';
@@ -1051,7 +1065,7 @@ function updateScaleControlsVisibility() {
     if (pitchControls) pitchControls.style.display = 'none';
     if (intensityControls) intensityControls.style.display = 'none';
     if (featureControls) featureControls.style.display = 'none';
-    
+
     // Show relevant controls
     switch (currentViz) {
         case 'waveform':
@@ -1074,29 +1088,29 @@ function updateScaleControlsVisibility() {
             if (featureControls) featureControls.style.display = 'block';
             break;
     }
-    
+
     // Update filter control visibility
     const filterValueGroup = document.getElementById('filterValueGroup');
     if (filterValueGroup) {
-        filterValueGroup.style.display = 
+        filterValueGroup.style.display =
             window.scalePreferences.filterMode === 'none' ? 'none' : 'block';
     }
-    
+
     const waveformFilterValueGroup = document.getElementById('waveformFilterValueGroup');
     if (waveformFilterValueGroup) {
-        waveformFilterValueGroup.style.display = 
+        waveformFilterValueGroup.style.display =
             window.scalePreferences.waveformFilterMode === 'none' ? 'none' : 'block';
     }
-    
+
     const mfccFilterValueGroup = document.getElementById('mfccFilterValueGroup');
     if (mfccFilterValueGroup) {
-        mfccFilterValueGroup.style.display = 
+        mfccFilterValueGroup.style.display =
             window.scalePreferences.mfccFilterMode === 'none' ? 'none' : 'block';
     }
-    
+
     const pitchSmoothingWindowGroup = document.getElementById('pitchSmoothingWindowGroup');
     if (pitchSmoothingWindowGroup) {
-        pitchSmoothingWindowGroup.style.display = 
+        pitchSmoothingWindowGroup.style.display =
             window.scalePreferences.pitchSmoothing ? 'block' : 'none';
     }
 }
@@ -1106,9 +1120,9 @@ function updateFilterControls() {
     const slider = document.getElementById('filterValueSlider');
     const input = document.getElementById('filterValueInput');
     const label = document.getElementById('filterValueLabel');
-    
+
     if (!slider || !input || !label) return;
-    
+
     switch (mode) {
         case 'percentile':
             slider.min = 0;
@@ -1140,9 +1154,9 @@ function updateWaveformFilterControls() {
     const slider = document.getElementById('waveformFilterValueSlider');
     const input = document.getElementById('waveformFilterValueInput');
     const label = document.getElementById('waveformFilterValueLabel');
-    
+
     if (!slider || !input || !label) return;
-    
+
     switch (mode) {
         case 'threshold':
             slider.min = 0;
@@ -1196,9 +1210,9 @@ function updateMfccFilterControls() {
     const slider = document.getElementById('mfccFilterValueSlider');
     const input = document.getElementById('mfccFilterValueInput');
     const label = document.getElementById('mfccFilterValueLabel');
-    
+
     if (!slider || !input || !label) return;
-    
+
     switch (mode) {
         case 'percentile':
             slider.min = 0;
@@ -1246,14 +1260,14 @@ function updateVisualization() {
         debugLog.log('Buffers not ready for visualization');
         return;
     }
-    
+
     debugLog.log(`Rendering ${currentViz} visualization`);
-    
+
     // Get visualizer instance (assumes it was stored globally during init)
     const canvas = document.getElementById('vizCanvas');
     const visualizer = canvas._visualizer || new Visualizer(canvas);
     if (!canvas._visualizer) canvas._visualizer = visualizer;
-    
+
     switch (currentViz) {
         case 'waveform':
             visualizer.drawWaveform(nativeBuffer, userBuffer);
@@ -1319,7 +1333,7 @@ function updateVisualization() {
             }
             break;
     }
-    
+
     updateRawDataExportButton();
 }
 
@@ -1329,42 +1343,42 @@ function showPlaceholder(visualizer, message) {
     visualizer.ctx.fillStyle = 'white';
     visualizer.ctx.font = '16px sans-serif';
     visualizer.ctx.textAlign = 'center';
-    visualizer.ctx.fillText(message, 
+    visualizer.ctx.fillText(message,
         visualizer.canvas.width / 2, visualizer.canvas.height / 2);
 }
 
 function showResults(results) {
     const output = document.getElementById('analysisOutput');
     document.getElementById('analysisPanel').classList.add('show');
-    
+
     // Update score display
     const score = results.score;
     const maxDash = 440;
     const offset = maxDash - (score / 100) * maxDash;
-    
+
     document.getElementById('results').classList.add('show');
-    
+
     // Animate score circle
     setTimeout(() => {
         document.getElementById('scoreFill').style.strokeDashoffset = offset;
         document.getElementById('scoreText').textContent = results.score;
     }, 100);
-    
+
     // Update feedback
-    document.getElementById('feedback').textContent = 
+    document.getElementById('feedback').textContent =
         score >= 85 ? 'Excellent!' :
-        score >= 70 ? 'Good job!' :
-        score >= 50 ? 'Needs improvement' :
-        'Keep practicing';
-    
+            score >= 70 ? 'Good job!' :
+                score >= 50 ? 'Needs improvement' :
+                    'Keep practicing';
+
     document.getElementById('detailedFeedback').textContent = results.feedback;
-    
+
     // Update method indicator
     const methodIndicator = document.getElementById('methodIndicator');
     if (methodIndicator) {
         methodIndicator.textContent = `Using ${results.method || 'combined'} method`;
     }
-    
+
     // Update breakdown
     const breakdown = results.breakdown;
     for (const [type, score] of Object.entries(breakdown)) {
@@ -1380,9 +1394,9 @@ function showResults(results) {
 function showDetailedAnalysis(report) {
     const container = document.getElementById('detailedAnalysisContent');
     if (!container || !report) return;
-    
+
     let html = '<div class="analysis-sections">';
-    
+
     // Duration
     if (report.metadata) {
         html += `
@@ -1393,7 +1407,7 @@ function showDetailedAnalysis(report) {
             </div>
         `;
     }
-    
+
     // Pitch
     if (report.pitch) {
         html += `
@@ -1403,7 +1417,7 @@ function showDetailedAnalysis(report) {
             </div>
         `;
     }
-    
+
     // MFCCs
     if (report.mfcc) {
         html += `
@@ -1413,7 +1427,7 @@ function showDetailedAnalysis(report) {
             </div>
         `;
     }
-    
+
     // Stress
     if (report.stress) {
         html += `
@@ -1423,7 +1437,7 @@ function showDetailedAnalysis(report) {
             </div>
         `;
     }
-    
+
     html += '</div>';
     container.innerHTML = html;
 }
@@ -1431,15 +1445,15 @@ function showDetailedAnalysis(report) {
 function updateRawDataExportButton() {
     const container = document.getElementById('rawDataExportContainer');
     if (!container) return;
-    
+
     let hasData = false;
-    
+
     if (currentViz === 'waveform' || currentViz === 'spectrum' || currentViz === 'spectrogram') {
         hasData = nativeBuffer && userBuffer;
     } else {
         hasData = analysisResults && analysisResults.features;
     }
-    
+
     container.style.display = hasData ? 'block' : 'none';
 }
 
@@ -1453,7 +1467,7 @@ function setupExportHandlers() {
             alert('No analysis results to export');
             return;
         }
-        
+
         const data = JSON.stringify(analysisResults, null, 2);
         const blob = new Blob([data], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -1462,10 +1476,10 @@ function setupExportHandlers() {
         a.download = `pronunciation-analysis-${Date.now()}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        
+
         debugLog.log('Analysis exported', 'success');
     });
-    
+
     // Export raw data
     const exportRawBtn = document.getElementById('exportRawData');
     if (exportRawBtn) {
@@ -1474,7 +1488,7 @@ function setupExportHandlers() {
             if (modal) modal.style.display = 'flex';
         });
     }
-    
+
     const exportRawDataBtn = document.getElementById('exportRawBtn');
     if (exportRawDataBtn) {
         exportRawDataBtn.addEventListener('click', () => {
@@ -1483,7 +1497,7 @@ function setupExportHandlers() {
             if (modal) modal.style.display = 'none';
         });
     }
-    
+
     const exportFilteredBtn = document.getElementById('exportFilteredBtn');
     if (exportFilteredBtn) {
         exportFilteredBtn.addEventListener('click', () => {
@@ -1492,7 +1506,7 @@ function setupExportHandlers() {
             if (modal) modal.style.display = 'none';
         });
     }
-    
+
     const exportCancelBtn = document.getElementById('exportCancelBtn');
     if (exportCancelBtn) {
         exportCancelBtn.addEventListener('click', () => {
@@ -1500,7 +1514,7 @@ function setupExportHandlers() {
             if (modal) modal.style.display = 'none';
         });
     }
-    
+
     const exportModal = document.getElementById('exportModal');
     if (exportModal) {
         exportModal.addEventListener('click', (e) => {
@@ -1519,7 +1533,7 @@ function exportRawData(filtered = false) {
         native: {},
         user: {}
     };
-    
+
     // Add visualization-specific data
     switch (currentViz) {
         case 'waveform':
@@ -1528,21 +1542,21 @@ function exportRawData(filtered = false) {
             data.native.sampleRate = nativeBuffer.sampleRate;
             data.user.sampleRate = userBuffer.sampleRate;
             break;
-            
+
         case 'pitch':
             if (analysisResults && analysisResults.features) {
                 data.native.pitch = analysisResults.features.nativePitch;
                 data.user.pitch = analysisResults.features.userPitch;
             }
             break;
-            
+
         case 'intensity':
             if (analysisResults && analysisResults.features) {
                 data.native.intensity = analysisResults.features.nativeIntensity;
                 data.user.intensity = analysisResults.features.userIntensity;
             }
             break;
-            
+
         case 'mfcc':
             if (analysisResults && analysisResults.features) {
                 data.native.mfccs = analysisResults.features.nativeMFCCs;
@@ -1550,7 +1564,7 @@ function exportRawData(filtered = false) {
             }
             break;
     }
-    
+
     const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1559,7 +1573,7 @@ function exportRawData(filtered = false) {
     a.download = `${currentViz}-data-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     debugLog.log(`${currentViz} data exported (${filtered ? 'filtered' : 'raw'})`, 'success');
 }
 
@@ -1574,7 +1588,7 @@ function setupAIHandlers(aiUI) {
             aiUI.handleSaveKey();
         });
     }
-    
+
     // Clear API key
     const clearKeyBtn = document.getElementById('clearApiKey');
     if (clearKeyBtn) {
@@ -1582,7 +1596,7 @@ function setupAIHandlers(aiUI) {
             aiUI.handleClearKey();
         });
     }
-    
+
     // Run AI analysis
     const aiAnalysisBtn = document.getElementById('aiAnalysisBtn');
     if (aiAnalysisBtn) {
