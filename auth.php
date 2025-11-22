@@ -34,37 +34,53 @@ switch ($action) {
 
 function handleLogin() {
     $password = $_POST['password'] ?? '';
+    $selectedRole = $_POST['role'] ?? '';
 
-    // Check which role the password matches
-    $role = null;
-    if ($password === ADMIN_PASSWORD) {
-        $role = 'admin';
-    } elseif ($password === DECK_MANAGER_PASSWORD) {
-        $role = 'deck-manager';
-    } elseif ($password === VOICE_RECORDER_PASSWORD) {
-        $role = 'voice-recorder';
+    // Validate the selected role and password combination
+    $validRoles = ['admin', 'deck-manager', 'voice-recorder'];
+
+    if (!in_array($selectedRole, $validRoles)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Invalid role selected'
+        ]);
+        return;
     }
 
-    if ($role) {
+    // Check if the password matches the selected role
+    $passwordMatches = false;
+    switch ($selectedRole) {
+        case 'admin':
+            $passwordMatches = ($password === ADMIN_PASSWORD);
+            break;
+        case 'deck-manager':
+            $passwordMatches = ($password === DECK_MANAGER_PASSWORD);
+            break;
+        case 'voice-recorder':
+            $passwordMatches = ($password === VOICE_RECORDER_PASSWORD);
+            break;
+    }
+
+    if ($passwordMatches) {
         $_SESSION['admin_logged_in'] = true;
-        $_SESSION['user_role'] = $role;
+        $_SESSION['user_role'] = $selectedRole;
         $_SESSION['login_time'] = time();
         $_SESSION['last_activity'] = time();
-        
+
         // Use default or custom timeout
         if (!isset($_SESSION['timeout_minutes'])) {
             $_SESSION['timeout_minutes'] = DEFAULT_SESSION_TIMEOUT;
         }
-        
+
         echo json_encode([
             'success' => true,
-            'role' => $role,
+            'role' => $selectedRole,
             'timeout_minutes' => $_SESSION['timeout_minutes']
         ]);
     } else {
         echo json_encode([
             'success' => false,
-            'error' => 'Incorrect password'
+            'error' => 'Incorrect password for the selected role'
         ]);
     }
 }

@@ -1,4 +1,13 @@
 <?php
+// Force HTTPS if not already using it
+if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
+    if (!empty($_SERVER['HTTP_HOST']) && !empty($_SERVER['REQUEST_URI'])) {
+        $redirectUrl = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        header('Location: ' . $redirectUrl, true, 301);
+        exit;
+    }
+}
+
 // Prevent caching of the HTML page itself
 header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
 header('Pragma: no-cache');
@@ -79,6 +88,10 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
                     <i class="fas fa-moon"></i>
                     <span>Dark Mode</span>
                 </button>
+                <button id="loginBtn" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </button>
             </div>
         </div>
     </div>
@@ -138,15 +151,23 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     <div id="loginModal" class="modal hidden">
         <div class="modal-content login-modal">
             <div class="modal-header">
-                <h2><i class="fas fa-lock"></i> Admin Login Required</h2>
+                <h2><i class="fas fa-lock"></i> Login</h2>
             </div>
             <div class="modal-body">
                 <p style="margin-bottom: 20px; color: var(--text-secondary);">
-                    This module requires administrator authentication.
+                    Select your role and enter the password to access protected features.
                 </p>
                 <div class="form-group">
+                    <label class="form-label">Role</label>
+                    <select id="loginRole" class="form-input">
+                        <option value="admin">Admin</option>
+                        <option value="deck-manager">Deck Manager</option>
+                        <option value="voice-recorder">Voice Recorder</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
                     <label class="form-label">Password</label>
-                    <input type="password" id="adminPassword" class="form-input" placeholder="Enter admin password">
+                    <input type="password" id="adminPassword" class="form-input" placeholder="Enter password">
                 </div>
                 <div id="loginError" class="login-error hidden"></div>
             </div>
