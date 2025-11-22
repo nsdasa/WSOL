@@ -17,6 +17,7 @@ class AuthManager {
         const loginSubmitBtn = document.getElementById('loginSubmitBtn');
         const loginCancelBtn = document.getElementById('loginCancelBtn');
         const adminPassword = document.getElementById('adminPassword');
+        const loginBtn = document.getElementById('loginBtn');
 
         if (loginSubmitBtn) {
             loginSubmitBtn.addEventListener('click', () => this.handleLogin());
@@ -34,13 +35,21 @@ class AuthManager {
             });
         }
 
+        // Setup login button in header
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => this.showLoginModalDirect());
+        }
+
         // Check if already authenticated
         await this.checkSession();
 
-        // Add logout button to header if authenticated
+        // Update UI based on authentication state
         if (this.authenticated) {
             this.addLogoutButton();
             this.updateUIForRole();
+            this.hideLoginButton();
+        } else {
+            this.showLoginButton();
         }
     }
     
@@ -94,65 +103,98 @@ class AuthManager {
     showLoginModal(moduleName, resolve, reject) {
         const modal = document.getElementById('loginModal');
         const passwordInput = document.getElementById('adminPassword');
+        const roleSelect = document.getElementById('loginRole');
         const errorDiv = document.getElementById('loginError');
-        
+
         // Clear previous state
         passwordInput.value = '';
+        if (roleSelect) roleSelect.value = 'admin';
         errorDiv.classList.add('hidden');
-        
+
         // Show modal
         modal.classList.remove('hidden');
         passwordInput.focus();
-        
+
         // Store callbacks
         this.loginResolve = resolve;
         this.loginReject = reject;
         this.loginModuleName = moduleName;
+        this.isDirectLogin = false;
+    }
+
+    /**
+     * Show login modal directly (from login button click)
+     * No module access required
+     */
+    showLoginModalDirect() {
+        const modal = document.getElementById('loginModal');
+        const passwordInput = document.getElementById('adminPassword');
+        const roleSelect = document.getElementById('loginRole');
+        const errorDiv = document.getElementById('loginError');
+
+        // Clear previous state
+        passwordInput.value = '';
+        if (roleSelect) roleSelect.value = 'admin';
+        errorDiv.classList.add('hidden');
+
+        // Show modal
+        modal.classList.remove('hidden');
+        passwordInput.focus();
+
+        // Clear any previous callbacks
+        this.loginResolve = null;
+        this.loginReject = null;
+        this.loginModuleName = null;
+        this.isDirectLogin = true;
     }
     
     async handleLogin() {
         const passwordInput = document.getElementById('adminPassword');
+        const roleSelect = document.getElementById('loginRole');
         const errorDiv = document.getElementById('loginError');
         const submitBtn = document.getElementById('loginSubmitBtn');
-        
+
         const password = passwordInput.value;
-        
+        const selectedRole = roleSelect ? roleSelect.value : 'admin';
+
         if (!password) {
             errorDiv.textContent = 'Please enter a password';
             errorDiv.classList.remove('hidden');
             return;
         }
-        
+
         // Show loading
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
-        
+
         try {
             const formData = new FormData();
             formData.append('password', password);
-            
+            formData.append('role', selectedRole);
+
             const response = await fetch('auth.php?action=login', {
                 method: 'POST',
                 body: formData
             });
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 this.authenticated = true;
                 this.timeoutMinutes = result.timeout_minutes || 30;
                 this.role = result.role || 'admin';
-                
+
                 // Hide modal
                 document.getElementById('loginModal').classList.add('hidden');
-                
-                // Add logout button
+
+                // Add logout button and hide login button
                 this.addLogoutButton();
+                this.hideLoginButton();
 
                 // Update UI based on role
                 this.updateUIForRole();
 
-                // Resolve promise
+                // Resolve promise if this was a module access request
                 if (this.loginResolve) {
                     this.loginResolve(true);
                 }
@@ -196,6 +238,7 @@ class AuthManager {
             this.authenticated = false;
             this.role = null;
             this.removeLogoutButton();
+            this.showLoginButton();
 
             // Hide protected tabs after logout
             this.hideProtectedTabs();
@@ -235,6 +278,26 @@ class AuthManager {
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.remove();
+        }
+    }
+
+    /**
+     * Hide login button (when user is logged in)
+     */
+    hideLoginButton() {
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) {
+            loginBtn.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Show login button (when user is logged out)
+     */
+    showLoginButton() {
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) {
+            loginBtn.classList.remove('hidden');
         }
     }
     
