@@ -85,10 +85,32 @@
                 </details>
             </div>
 
+            <!-- Speech Filter Toggle -->
+            <div class="filter-toggle-container" id="filterToggleContainer">
+                <input type="checkbox" id="filterToggle" class="filter-checkbox" checked>
+                <label for="filterToggle" class="filter-label">
+                    🎚️ Apply Speech Filter (70-12000 Hz)
+                </label>
+                <span class="filter-info">Removes noise outside human speech range</span>
+            </div>
+
+            <!-- DTW Toggle -->
+            <div class="filter-toggle-container" id="dtwToggleContainer">
+                <input type="checkbox" id="dtwToggle" class="filter-checkbox" checked>
+                <label for="dtwToggle" class="filter-label">
+                    🔄 Use DTW (Dynamic Time Warping)
+                </label>
+                <span class="filter-info">Matches patterns regardless of speech speed</span>
+            </div>
+
             <div class="controls">
                 <button id="recordBtn" class="btn btn-secondary" disabled>
                     <span>🎤</span>
                     <span id="recordText">Record Your Voice</span>
+                </button>
+                <button id="stopBtn" class="btn btn-secondary" disabled style="background: #dc2626;">
+                    <span>⏹️</span>
+                    <span>Stop Recording</span>
                 </button>
                 <div class="file-input-wrapper">
                     <input type="file" id="userAudioFile" accept="audio/*" disabled />
@@ -484,6 +506,14 @@
                     <button id="aiAnalysisBtn" class="btn btn-secondary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);" disabled>
                         <span>🤖</span>
                         <span>AI Analysis</span>
+                    </button>
+                    <button id="copyBalancedPrompt" class="btn btn-secondary" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" disabled>
+                        <span>📋</span>
+                        <span>Copy Balanced</span>
+                    </button>
+                    <button id="copyFullPrompt" class="btn btn-secondary" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);" disabled>
+                        <span>📄</span>
+                        <span>Copy Full</span>
                     </button>
                 </div>
 

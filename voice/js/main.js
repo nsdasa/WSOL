@@ -54,6 +54,10 @@ let stream = null;
 let analysisResults = null;
 let detailedAnalysis = null;
 
+// Audio processing options
+let useFilter = true;  // Apply 70-12000 Hz speech filter
+let useDTW = true;     // Use Dynamic Time Warping for comparison
+
 // Cache for computed spectra (avoid recomputing on display mode switch)
 let spectrumCache = {
     nativeSpectrum: null,
@@ -169,7 +173,12 @@ async function init() {
     debugLog.log('Initializing Pronunciation Analyzer...');
 
     // Initialize core components
-    const visualizer = new Visualizer(document.getElementById('vizCanvas'));
+    const canvas = document.getElementById('vizCanvas');
+    if (!canvas) {
+        debugLog.log('Canvas element not found!', 'error');
+        return;
+    }
+    const visualizer = new Visualizer(canvas);
     const comparator = new PronunciationComparator();
     const aiAnalyzer = new AIAnalyzer();
     const aiUI = new AIAnalysisUI(aiAnalyzer);
@@ -188,7 +197,8 @@ async function init() {
 
     // Request microphone access
     const micStatus = document.getElementById('micStatus');
-    micStatus.style.display = 'block';
+    if (micStatus) micStatus.style.display = 'block';
+
 
     try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -216,11 +226,13 @@ async function init() {
                 spectrumCache.userSpectrum = null;
                 spectrumCache.userSpectrogram = null;
 
-                document.getElementById('userRecordingSection').classList.add('show');
-                document.getElementById('userDurationText').textContent =
-                    `Duration: ${userBuffer.duration.toFixed(1)}s`;
+                const userRecordingEl = document.getElementById('userRecordingSection');
+                if (userRecordingEl) userRecordingEl.classList.add('show');
+                const userDurationEl = document.getElementById('userDurationText');
+                if (userDurationEl) userDurationEl.textContent = `Duration: ${userBuffer.duration.toFixed(1)}s`;
 
-                document.getElementById('compareBtn').disabled = false;
+                const compareBtn = document.getElementById('compareBtn');
+                if (compareBtn) compareBtn.disabled = false;
                 debugLog.log('Recording processed successfully', 'success');
             } catch (err) {
                 debugLog.log(`Error processing recording: ${err.message}`, 'error');
@@ -228,13 +240,17 @@ async function init() {
             }
         };
 
-        micStatus.textContent = '✅ Microphone ready!';
-        micStatus.classList.add('ready');
+        if (micStatus) {
+            micStatus.textContent = '✅ Microphone ready!';
+            micStatus.classList.add('ready');
+        }
         debugLog.log('Microphone access granted', 'success');
     } catch (err) {
         debugLog.log(`Microphone error: ${err.message}`, 'error');
-        micStatus.textContent = '❌ Microphone access denied';
-        micStatus.classList.add('error');
+        if (micStatus) {
+            micStatus.textContent = '❌ Microphone access denied';
+            micStatus.classList.add('error');
+        }
     }
 
     // Set up all event handlers
@@ -246,6 +262,9 @@ async function init() {
     setupSettingsHandlers();
     setupExportHandlers();
     setupAIHandlers(aiUI);
+    setupProcessingOptions();
+    setupCopyPromptHandlers();
+
 
     // Initialize canvas with placeholder
     visualizer.ctx.fillStyle = '#1f2937';
@@ -265,8 +284,14 @@ async function init() {
 // FILE UPLOAD HANDLERS
 // ===================================================================
 function setupFileHandlers() {
-    // Native audio file upload
-    document.getElementById('nativeAudioFile').addEventListener('change', async (e) => {
+    // Native audio file upload - use correct ID from index.php
+    const nativeInput = document.getElementById('nativeAudioFile');
+    if (!nativeInput) {
+        debugLog.log('Native audio input not found', 'error');
+        return;
+    }
+
+    nativeInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -285,22 +310,34 @@ function setupFileHandlers() {
 
             nativeAudioElement = new Audio(URL.createObjectURL(file));
 
-            document.getElementById('uploadSection').classList.add('has-file');
-            document.getElementById('fileLoaded').classList.add('show');
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileDurationText').textContent =
-                `Duration: ${nativeBuffer.duration.toFixed(1)}s`;
+            // Update UI elements
+            const uploadSection = document.getElementById('uploadSection');
+            if (uploadSection) uploadSection.classList.add('has-file');
+            const fileLoaded = document.getElementById('fileLoaded');
+            if (fileLoaded) fileLoaded.classList.add('show');
+            const fileName = document.getElementById('fileName');
+            if (fileName) fileName.textContent = file.name;
+            const fileDurationText = document.getElementById('fileDurationText');
+            if (fileDurationText) fileDurationText.textContent = `Duration: ${nativeBuffer.duration.toFixed(1)}s`;
 
             const wordName = file.name.replace(/\.(mp3|m4a|wav|webm|ogg)$/i, '');
-            document.getElementById('targetWord').textContent = wordName;
-            document.getElementById('targetTranslation').textContent = 'Ready to practice!';
+            const targetWord = document.getElementById('targetWord');
+            if (targetWord) targetWord.textContent = wordName;
+            const targetTranslation = document.getElementById('targetTranslation');
+            if (targetTranslation) targetTranslation.textContent = 'Ready to practice!';
 
-            document.getElementById('recordBtn').disabled = false;
+            // Enable recording
+            const recordBtn = document.getElementById('recordBtn');
+            if (recordBtn) recordBtn.disabled = false;
 
             // Enable user audio upload
-            document.getElementById('userAudioFile').disabled = false;
-            document.getElementById('userUploadLabel').style.opacity = '1';
-            document.getElementById('userUploadLabel').style.cursor = 'pointer';
+            const userAudioFile = document.getElementById('userAudioFile');
+            if (userAudioFile) userAudioFile.disabled = false;
+            const userUploadLabel = document.getElementById('userUploadLabel');
+            if (userUploadLabel) {
+                userUploadLabel.style.opacity = '1';
+                userUploadLabel.style.cursor = 'pointer';
+            }
 
             if (userBuffer) {
                 updateVisualization();
@@ -312,35 +349,40 @@ function setupFileHandlers() {
     });
 
     // User audio file upload handler
-    document.getElementById('userAudioFile').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    const userAudioFileInput = document.getElementById('userAudioFile');
+    if (userAudioFileInput) {
+        userAudioFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-        debugLog.log(`User file selected: ${file.name} (${file.size} bytes)`);
+            debugLog.log(`User file selected: ${file.name} (${file.size} bytes)`);
 
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
-            userBuffer = trimSilence(decodedBuffer);
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
+                userBuffer = trimSilence(decodedBuffer);
 
-            userAudioBlob = new Blob([arrayBuffer], { type: file.type });
+                userAudioBlob = new Blob([arrayBuffer], { type: file.type });
 
-            // Clear user cache
-            spectrumCache.userSpectrum = null;
-            spectrumCache.userSpectrogram = null;
+                // Clear user cache
+                spectrumCache.userSpectrum = null;
+                spectrumCache.userSpectrogram = null;
 
-            debugLog.log(`User audio loaded: ${userBuffer.duration.toFixed(2)}s`, 'success');
+                debugLog.log(`User audio loaded: ${userBuffer.duration.toFixed(2)}s`, 'success');
 
-            document.getElementById('userRecordingSection').classList.add('show');
-            document.getElementById('userDurationText').textContent =
-                `Duration: ${userBuffer.duration.toFixed(1)}s`;
+                const userRecordingEl = document.getElementById('userRecordingSection');
+                if (userRecordingEl) userRecordingEl.classList.add('show');
+                const userDurationEl = document.getElementById('userDurationText');
+                if (userDurationEl) userDurationEl.textContent = `Duration: ${userBuffer.duration.toFixed(1)}s`;
 
-            document.getElementById('compareBtn').disabled = false;
-        } catch (err) {
-            debugLog.log(`Error loading user file: ${err.message}`, 'error');
-            alert('Could not load audio file. Please ensure it\'s a valid audio format.');
-        }
-    });
+                const compareBtn = document.getElementById('compareBtn');
+                if (compareBtn) compareBtn.disabled = false;
+            } catch (err) {
+                debugLog.log(`Error loading user file: ${err.message}`, 'error');
+                alert('Could not load audio file. Please ensure it\'s a valid audio format.');
+            }
+        });
+    }
 }
 
 // ===================================================================
@@ -390,57 +432,78 @@ function setupRecordingHandlers() {
 // PLAYBACK HANDLERS
 // ===================================================================
 function setupPlaybackHandlers() {
-    document.getElementById('playNative').addEventListener('click', async () => {
-        // Ensure AudioContext is active
-        await getAudioContext();
+    const playNativeBtn = document.getElementById('playNative');
+    if (playNativeBtn) {
+        playNativeBtn.addEventListener('click', async () => {
+            // Ensure AudioContext is active
+            await getAudioContext();
 
-        if (nativeAudioElement) {
-            nativeAudioElement.currentTime = 0;
-            nativeAudioElement.volume = 1.0;
-            nativeAudioElement.play()
-                .then(() => debugLog.log('Native playback started', 'success'))
-                .catch(err => alert('Could not play audio: ' + err.message));
-        }
-    });
+            if (nativeAudioElement) {
+                nativeAudioElement.currentTime = 0;
+                nativeAudioElement.volume = 1.0;
+                nativeAudioElement.play()
+                    .then(() => debugLog.log('Native playback started', 'success'))
+                    .catch(err => alert('Could not play audio: ' + err.message));
+            }
+        });
+    }
 
-    document.getElementById('playUser').addEventListener('click', async () => {
-        // Ensure AudioContext is active
-        await getAudioContext();
+    const playUserBtn = document.getElementById('playUser');
+    if (playUserBtn) {
+        playUserBtn.addEventListener('click', async () => {
+            // Ensure AudioContext is active
+            await getAudioContext();
 
-        if (userAudioBlob) {
-            const audioURL = URL.createObjectURL(userAudioBlob);
-            const audio = new Audio(audioURL);
-            audio.volume = 1.0;
-            audio.play()
-                .then(() => debugLog.log('User playback started', 'success'))
-                .catch(err => alert('Could not play recording: ' + err.message));
-        }
-    });
+            if (userAudioBlob) {
+                const audioURL = URL.createObjectURL(userAudioBlob);
+                const audio = new Audio(audioURL);
+                audio.volume = 1.0;
+                audio.play()
+                    .then(() => debugLog.log('User playback started', 'success'))
+                    .catch(err => alert('Could not play recording: ' + err.message));
+            }
+        });
+    }
 
-    document.getElementById('tryAgain').addEventListener('click', () => {
-        document.getElementById('results').classList.remove('show');
-        userBuffer = null;
-        userAudioBlob = null;
-        // Clear user cache
-        spectrumCache.userSpectrum = null;
-        spectrumCache.userSpectrogram = null;
-        document.getElementById('compareBtn').disabled = true;
-        document.getElementById('exportAnalysis').disabled = true;
-        document.getElementById('userRecordingSection').classList.remove('show');
+    const tryAgainBtn = document.getElementById('tryAgain');
+    if (tryAgainBtn) {
+        tryAgainBtn.addEventListener('click', () => {
+            const results = document.getElementById('results');
+            if (results) results.classList.remove('show');
+            userBuffer = null;
+            userAudioBlob = null;
+            // Clear user cache
+            spectrumCache.userSpectrum = null;
+            spectrumCache.userSpectrogram = null;
 
-        // Clear AI analysis
-        const aiSection = document.getElementById('aiAnalysisSection');
-        if (aiSection) aiSection.style.display = 'none';
+            const compareBtn = document.getElementById('compareBtn');
+            if (compareBtn) compareBtn.disabled = true;
+            const exportBtn = document.getElementById('exportAnalysis');
+            if (exportBtn) exportBtn.disabled = true;
 
-        debugLog.log('Reset for new recording');
-    });
+            const userRecordingEl = document.getElementById('userRecordingSection');
+            if (userRecordingEl) userRecordingEl.classList.remove('show');
+
+            // Clear AI analysis
+            const aiSection = document.getElementById('aiAnalysisSection');
+            if (aiSection) aiSection.style.display = 'none';
+
+            debugLog.log('Reset for new recording');
+        });
+    }
 }
 
 // ===================================================================
 // ANALYSIS HANDLERS
 // ===================================================================
 function setupAnalysisHandlers(comparator, aiAnalyzer) {
-    document.getElementById('compareBtn').addEventListener('click', async () => {
+    const compareBtn = document.getElementById('compareBtn');
+    if (!compareBtn) {
+        debugLog.log('Compare button not found', 'error');
+        return;
+    }
+
+    compareBtn.addEventListener('click', async () => {
         if (!nativeBuffer || !userBuffer) {
             debugLog.log('Missing audio buffers', 'error');
             alert('Please upload native audio and record your voice first.');
@@ -474,6 +537,9 @@ function setupAnalysisHandlers(comparator, aiAnalyzer) {
 
         try {
             analysisResults = comparator.compare(nativeBuffer, userBuffer);
+            // Add buffers to results for visualizer access
+            analysisResults.nativeBuffer = nativeBuffer;
+            analysisResults.userBuffer = userBuffer;
             detailedAnalysis = analysisResults.detailedReport;
 
             // Store results for AI analysis
@@ -483,13 +549,25 @@ function setupAnalysisHandlers(comparator, aiAnalyzer) {
             showDetailedAnalysis(detailedAnalysis);
             updateVisualization();
 
-            document.getElementById('exportAnalysis').disabled = false;
+            // Show visualization section
+            const vizSection = document.getElementById('visualizationSection');
+            if (vizSection) vizSection.style.display = 'block';
+
+            // Enable export if available
+            const exportBtn = document.getElementById('exportAnalysis');
+            if (exportBtn) exportBtn.disabled = false;
 
             // Enable AI analysis button if API is configured
             const aiBtn = document.getElementById('aiAnalysisBtn');
             if (aiBtn && aiAnalyzer.isConfigured()) {
                 aiBtn.disabled = false;
             }
+
+            // Enable copy prompt buttons
+            const copyBalancedBtn = document.getElementById('copyBalancedPrompt');
+            if (copyBalancedBtn) copyBalancedBtn.disabled = false;
+            const copyFullBtn = document.getElementById('copyFullPrompt');
+            if (copyFullBtn) copyFullBtn.disabled = false;
 
             debugLog.log('Analysis complete', 'success');
         } catch (err) {
@@ -548,9 +626,22 @@ function setupVisualizationHandlers(visualizer) {
     });
 
     // Debug panel toggle
-    document.getElementById('toggleDebug').addEventListener('click', () => {
-        document.getElementById('debugPanel').classList.toggle('show');
-    });
+    const toggleDebugBtn = document.getElementById('toggleDebug');
+    if (toggleDebugBtn) {
+        toggleDebugBtn.addEventListener('click', () => {
+            const debugPanel = document.getElementById('debugPanel');
+            if (debugPanel) debugPanel.classList.toggle('show');
+        });
+    }
+
+    // Clear debug button
+    const clearDebugBtn = document.getElementById('clearDebug');
+    if (clearDebugBtn) {
+        clearDebugBtn.addEventListener('click', () => {
+            const debugOutput = document.getElementById('debugOutput');
+            if (debugOutput) debugOutput.innerHTML = '';
+        });
+    }
 }
 
 // ===================================================================
@@ -1265,6 +1356,10 @@ function updateVisualization() {
 
     // Get visualizer instance (assumes it was stored globally during init)
     const canvas = document.getElementById('vizCanvas');
+    if (!canvas) {
+        debugLog.log('Canvas not found', 'error');
+        return;
+    }
     const visualizer = canvas._visualizer || new Visualizer(canvas);
     if (!canvas._visualizer) canvas._visualizer = visualizer;
 
@@ -1280,54 +1375,35 @@ function updateVisualization() {
             break;
         case 'pitch':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawPitch(
-                    analysisResults.features.nativePitch,
-                    analysisResults.features.userPitch
-                );
+                visualizer.drawPitch(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see pitch analysis');
             }
             break;
         case 'intensity':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawIntensity(
-                    analysisResults.features.nativeIntensity,
-                    analysisResults.features.userIntensity
-                );
+                visualizer.drawIntensity(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see intensity analysis');
             }
             break;
         case 'mfcc':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawMFCCs(
-                    analysisResults.features.nativeMFCCs,
-                    analysisResults.features.userMFCCs
-                );
+                visualizer.drawMFCCs(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see MFCC analysis');
             }
             break;
         case 'formants':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawFormants(
-                    analysisResults.features.nativeFormants,
-                    analysisResults.features.userFormants
-                );
+                visualizer.drawFormants(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see formant analysis');
             }
             break;
         case 'features':
             if (analysisResults && analysisResults.features) {
-                visualizer.drawAllFeatures(
-                    nativeBuffer,
-                    userBuffer,
-                    analysisResults.features.nativePitch,
-                    analysisResults.features.userPitch,
-                    analysisResults.features.nativeIntensity,
-                    analysisResults.features.userIntensity
-                );
+                visualizer.drawAllFeatures(analysisResults);
             } else {
                 showPlaceholder(visualizer, 'Click "Analyze Pronunciation" to see all features');
             }
@@ -1462,23 +1538,26 @@ function updateRawDataExportButton() {
 // ===================================================================
 function setupExportHandlers() {
     // Export analysis as JSON
-    document.getElementById('exportAnalysis').addEventListener('click', () => {
-        if (!analysisResults) {
-            alert('No analysis results to export');
-            return;
-        }
+    const exportAnalysisBtn = document.getElementById('exportAnalysis');
+    if (exportAnalysisBtn) {
+        exportAnalysisBtn.addEventListener('click', () => {
+            if (!analysisResults) {
+                alert('No analysis results to export');
+                return;
+            }
 
-        const data = JSON.stringify(analysisResults, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pronunciation-analysis-${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+            const data = JSON.stringify(analysisResults, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pronunciation-analysis-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
 
-        debugLog.log('Analysis exported', 'success');
-    });
+            debugLog.log('Analysis exported', 'success');
+        });
+    }
 
     // Export raw data
     const exportRawBtn = document.getElementById('exportRawData');
@@ -1604,6 +1683,124 @@ function setupAIHandlers(aiUI) {
             aiUI.runAnalysis();
         });
     }
+}
+
+// ===================================================================
+// PROCESSING OPTIONS HANDLERS
+// ===================================================================
+function setupProcessingOptions() {
+    // Speech Filter toggle (70-12000 Hz)
+    const filterToggle = document.getElementById('filterToggle');
+    if (filterToggle) {
+        filterToggle.addEventListener('change', (e) => {
+            useFilter = e.target.checked;
+            debugLog.log(`Speech filter: ${useFilter ? 'enabled' : 'disabled'}`);
+        });
+    }
+
+    // DTW toggle
+    const dtwToggle = document.getElementById('dtwToggle');
+    if (dtwToggle) {
+        dtwToggle.addEventListener('change', (e) => {
+            useDTW = e.target.checked;
+            debugLog.log(`DTW: ${useDTW ? 'enabled' : 'disabled'}`);
+        });
+    }
+}
+
+// ===================================================================
+// COPY PROMPT HANDLERS
+// ===================================================================
+function setupCopyPromptHandlers() {
+    const copyBalancedBtn = document.getElementById('copyBalancedPrompt');
+    const copyFullBtn = document.getElementById('copyFullPrompt');
+
+    if (copyBalancedBtn) {
+        copyBalancedBtn.addEventListener('click', () => {
+            copyPromptToClipboard('balanced');
+        });
+    }
+
+    if (copyFullBtn) {
+        copyFullBtn.addEventListener('click', () => {
+            copyPromptToClipboard('full');
+        });
+    }
+}
+
+function copyPromptToClipboard(mode = 'balanced') {
+    if (!analysisResults) {
+        debugLog.log('No analysis results to copy', 'error');
+        alert('Please run analysis first');
+        return;
+    }
+
+    const targetWord = document.getElementById('targetWord')?.textContent || 'Unknown';
+    const score = analysisResults.score;
+    const breakdown = analysisResults.breakdown;
+
+    let prompt = '';
+
+    if (mode === 'balanced') {
+        prompt = `I'm practicing pronunciation of "${targetWord}".
+
+My overall score: ${score}/100
+
+Score breakdown:
+- Pitch/Intonation: ${breakdown.pitch}%
+- MFCCs (Spectral): ${breakdown.mfcc}%
+- Envelope: ${breakdown.envelope}%
+- Duration: ${breakdown.duration}%
+- Stress Position: ${breakdown.stressPosition}%
+- Stress Pattern: ${breakdown.stress}%
+- Voice Quality: ${breakdown.quality}%
+
+Please analyze my pronunciation and give specific tips for improvement.`;
+    } else {
+        // Full mode - include detailed analysis
+        prompt = `I'm practicing pronunciation of "${targetWord}".
+
+=== ANALYSIS RESULTS ===
+Overall Score: ${score}/100
+Feedback: ${analysisResults.feedback || 'N/A'}
+Method: ${analysisResults.method || 'combined'}
+
+=== DETAILED BREAKDOWN ===
+- Pitch/Intonation (20%): ${breakdown.pitch}%
+- MFCCs/Spectral (25%): ${breakdown.mfcc}%
+- Envelope (15%): ${breakdown.envelope}%
+- Duration (10%): ${breakdown.duration}%
+- Stress Position (10%): ${breakdown.stressPosition}%
+- Stress Pattern (10%): ${breakdown.stress}%
+- Voice Quality (10%): ${breakdown.quality}%
+
+=== SETTINGS ===
+- Speech Filter: ${useFilter ? 'Enabled (70-12000 Hz)' : 'Disabled'}
+- DTW: ${useDTW ? 'Enabled' : 'Disabled'}
+- Native Duration: ${nativeBuffer ? nativeBuffer.duration.toFixed(2) + 's' : 'N/A'}
+- User Duration: ${userBuffer ? userBuffer.duration.toFixed(2) + 's' : 'N/A'}
+
+Please provide detailed analysis and specific tips for improving my pronunciation.`;
+    }
+
+    navigator.clipboard.writeText(prompt).then(() => {
+        const btnId = mode === 'balanced' ? 'copyBalancedPrompt' : 'copyFullPrompt';
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            const originalText = btn.querySelector('span:last-child')?.textContent;
+            const textSpan = btn.querySelector('span:last-child');
+            if (textSpan) {
+                textSpan.textContent = 'Copied!';
+                setTimeout(() => {
+                    textSpan.textContent = originalText;
+                }, 2000);
+            }
+        }
+        debugLog.log(`${mode} prompt copied to clipboard`, 'success');
+    }).catch(err => {
+        debugLog.log(`Failed to copy: ${err.message}`, 'error');
+        alert('Failed to copy to clipboard');
+    });
 }
 
 // ===================================================================
