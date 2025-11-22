@@ -277,26 +277,32 @@ class MatchSoundModule extends LearningModule {
     renderPictures() {
         const picturesRow = document.getElementById('picturesRow');
         picturesRow.innerHTML = '';
-        
+
         if (this.unmatched.size === 0 || this.currentTargetIdx < 0) return;
-        
+
         const targetCard = this.virtualCards[this.currentTargetIdx];
         const maxPictures = deviceDetector ? deviceDetector.getMaxPictures() : 4;
-        
-        // Get other unmatched cards (excluding cards that share words with target)
-        const otherUnmatched = Array.from(this.unmatched).filter(idx => {
+
+        // In test mode, use ALL cards as potential distractors (so we always show 4 cards)
+        // In review mode, only use unmatched cards
+        const candidatePool = this.currentMode === 'test'
+            ? this.virtualCards.map((_, i) => i)  // All card indices
+            : Array.from(this.unmatched);          // Only unmatched indices
+
+        // Get other cards (excluding cards that share words with target)
+        const otherCandidates = candidatePool.filter(idx => {
             const card = this.virtualCards[idx];
             // Exclude if it's a variant of the same physical card
             if (card.cardId === targetCard.cardId) return false;
             // Exclude if any of its words overlap with target's words
             return !card.allWords.some(w => targetCard.allWords.includes(w));
         });
-        
+
         // Shuffle and take up to (maxPictures - 1) other cards
-        const shuffled = otherUnmatched.sort(() => Math.random() - 0.5).slice(0, maxPictures - 1);
-        
+        const shuffled = shuffleArray(otherCandidates).slice(0, maxPictures - 1);
+
         // Create array with target and others, then shuffle positions
-        const displayPictures = [this.currentTargetIdx, ...shuffled].sort(() => Math.random() - 0.5);
+        const displayPictures = shuffleArray([this.currentTargetIdx, ...shuffled]);
         
         displayPictures.forEach(virtualIdx => {
             const card = this.virtualCards[virtualIdx];
