@@ -58,17 +58,103 @@ $authenticated = isset($_SESSION[$SESSION_NAME]) && $_SESSION[$SESSION_NAME] ===
 if ($authenticated && isset($_GET['download']) && isset($_GET['file'])) {
     $file = basename($_GET['file']); // Security: prevent directory traversal
     $filepath = $UPLOAD_DIR . $file;
-    
+
     if (file_exists($filepath)) {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($finfo, $filepath);
         finfo_close($finfo);
-        
+
         header('Content-Type: ' . $mime);
         header('Content-Disposition: attachment; filename="' . $file . '"');
         header('Content-Length: ' . filesize($filepath));
         readfile($filepath);
-        
+
+        // Clean up after download
+        unlink($filepath);
+        exit;
+    }
+}
+
+// ============================================
+// Bulk ZIP Download Handler
+// ============================================
+if ($authenticated && isset($_POST['downloadZip']) && isset($_POST['files'])) {
+    $requestedFiles = $_POST['files'];
+
+    if (!is_array($requestedFiles) || count($requestedFiles) === 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'No files specified']);
+        exit;
+    }
+
+    // Validate and collect files
+    $filesToZip = [];
+    foreach ($requestedFiles as $fileInfo) {
+        $serverFile = basename($fileInfo['serverFile']); // Security: prevent directory traversal
+        $downloadName = preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileInfo['downloadName']); // Sanitize filename
+        $filepath = $UPLOAD_DIR . $serverFile;
+
+        if (file_exists($filepath)) {
+            $filesToZip[] = [
+                'path' => $filepath,
+                'name' => $downloadName
+            ];
+        }
+    }
+
+    if (count($filesToZip) === 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'No valid files found']);
+        exit;
+    }
+
+    // Create ZIP file
+    $zipFilename = 'converted_files_' . date('Y-m-d_His') . '.zip';
+    $zipPath = $UPLOAD_DIR . $zipFilename;
+
+    $zip = new ZipArchive();
+    if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Could not create ZIP file']);
+        exit;
+    }
+
+    // Add files to ZIP
+    foreach ($filesToZip as $file) {
+        $zip->addFile($file['path'], $file['name']);
+    }
+
+    $zip->close();
+
+    // Return download URL for the ZIP
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'downloadUrl' => '?downloadZip=1&file=' . urlencode($zipFilename),
+        'fileCount' => count($filesToZip)
+    ]);
+
+    // Clean up original converted files after they're added to ZIP
+    foreach ($filesToZip as $file) {
+        if (file_exists($file['path'])) {
+            unlink($file['path']);
+        }
+    }
+
+    exit;
+}
+
+// Handle ZIP file download
+if ($authenticated && isset($_GET['downloadZip']) && isset($_GET['file'])) {
+    $file = basename($_GET['file']); // Security: prevent directory traversal
+    $filepath = $UPLOAD_DIR . $file;
+
+    if (file_exists($filepath) && pathinfo($file, PATHINFO_EXTENSION) === 'zip') {
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="' . $file . '"');
+        header('Content-Length: ' . filesize($filepath));
+        readfile($filepath);
+
         // Clean up after download
         unlink($filepath);
         exit;
@@ -947,7 +1033,7 @@ if (!$authenticated) {
 
     <div class="panel results-panel" id="resultsPanel">
         <h2>Results</h2>
-        
+
         <div class="stats">
             <div class="stat-box">
                 <div class="stat-value" id="statConverted">0</div>
@@ -961,6 +1047,10 @@ if (!$authenticated) {
                 <div class="stat-value" id="statNewSize">0 KB</div>
                 <div class="stat-label">New Size</div>
             </div>
+        </div>
+
+        <div class="button-group" id="bulkDownloadGroup" style="display: none; margin-bottom: 15px;">
+            <button class="btn btn-success" id="downloadAllBtn">Download All as ZIP</button>
         </div>
 
         <div class="file-list" id="resultsList"></div>
@@ -983,6 +1073,8 @@ if (!$authenticated) {
         const progressFill = document.getElementById('progressFill');
         const resultsPanel = document.getElementById('resultsPanel');
         const resultsList = document.getElementById('resultsList');
+        const bulkDownloadGroup = document.getElementById('bulkDownloadGroup');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
 
         // Tab handling
         document.querySelectorAll('.tab').forEach(tab => {
@@ -1023,6 +1115,7 @@ if (!$authenticated) {
 
         convertBtn.addEventListener('click', startConversion);
         clearBtn.addEventListener('click', clearAll);
+        downloadAllBtn.addEventListener('click', downloadAllAsZip);
 
         function handleFiles(e) {
             const validExts = ['png', 'gif', 'mp4', 'webm', 'mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
@@ -1087,6 +1180,7 @@ if (!$authenticated) {
             updateFileList();
             resultsPanel.classList.remove('show');
             progressContainer.style.display = 'none';
+            bulkDownloadGroup.style.display = 'none';
         }
 
         async function startConversion() {
@@ -1189,15 +1283,22 @@ if (!$authenticated) {
 
         function showResults() {
             resultsPanel.classList.add('show');
-            
+
             document.getElementById('statConverted').textContent = convertedFiles.length;
             document.getElementById('statOriginalSize').textContent = formatSize(totalOriginalSize);
             document.getElementById('statNewSize').textContent = formatSize(totalNewSize);
 
+            // Show bulk download button if 2 or more files converted
+            if (convertedFiles.length >= 2) {
+                bulkDownloadGroup.style.display = 'flex';
+            } else {
+                bulkDownloadGroup.style.display = 'none';
+            }
+
             resultsList.innerHTML = convertedFiles.map((file) => {
                 const savings = Math.round((1 - file.newSize / file.originalSize) * 100);
                 const savingsColor = savings > 0 ? '#16a34a' : '#dc2626';
-                
+
                 return `
                     <div class="file-item">
                         <span class="file-icon">[OK]</span>
@@ -1222,6 +1323,59 @@ if (!$authenticated) {
             const sizes = ['B', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        async function downloadAllAsZip() {
+            if (convertedFiles.length < 2) return;
+
+            downloadAllBtn.disabled = true;
+            downloadAllBtn.textContent = 'Creating ZIP...';
+
+            try {
+                // Extract server file names from download URLs and prepare file info
+                const filesForZip = convertedFiles.map(file => {
+                    // downloadUrl format: ?download=1&file=<filename>
+                    const urlParams = new URLSearchParams(file.downloadUrl.substring(1));
+                    const serverFile = urlParams.get('file');
+                    return {
+                        serverFile: serverFile,
+                        downloadName: file.newName
+                    };
+                });
+
+                // Send request to create ZIP
+                const formData = new FormData();
+                formData.append('downloadZip', '1');
+                filesForZip.forEach((file, index) => {
+                    formData.append(`files[${index}][serverFile]`, file.serverFile);
+                    formData.append(`files[${index}][downloadName]`, file.downloadName);
+                });
+
+                const response = await fetch('', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Trigger download
+                    window.location.href = result.downloadUrl;
+
+                    // Clear individual download links since files are now in ZIP
+                    convertedFiles = [];
+                    bulkDownloadGroup.style.display = 'none';
+                    resultsList.innerHTML = '<div class="file-item"><span class="file-icon">[ZIP]</span><div class="file-info"><div class="file-name">All files downloaded as ZIP</div><div class="file-size">Files have been bundled and cleaned up from server</div></div></div>';
+                } else {
+                    throw new Error(result.error || 'Failed to create ZIP');
+                }
+            } catch (error) {
+                console.error('ZIP download error:', error);
+                alert('Failed to create ZIP: ' + error.message);
+            } finally {
+                downloadAllBtn.disabled = false;
+                downloadAllBtn.textContent = 'Download All as ZIP';
+            }
         }
     </script>
 </body>
