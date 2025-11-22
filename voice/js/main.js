@@ -30,7 +30,18 @@ import { trimSilence } from './utils/audio-utils.js';
 // ===================================================================
 // GLOBAL STATE
 // ===================================================================
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+// AudioContext created lazily to comply with browser autoplay policies
+let audioContext = null;
+
+function getAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    return audioContext;
+}
 
 let nativeBuffer = null;
 let userBuffer = null;
@@ -197,7 +208,7 @@ async function init() {
             
             try {
                 const arrayBuffer = await userAudioBlob.arrayBuffer();
-                const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
                 
                 userBuffer = trimSilence(decodedBuffer);
                 
@@ -263,7 +274,7 @@ function setupFileHandlers() {
         
         try {
             const arrayBuffer = await file.arrayBuffer();
-            const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
             nativeBuffer = trimSilence(decodedBuffer);
             
             // Clear native cache since we have new audio
@@ -309,7 +320,7 @@ function setupFileHandlers() {
         
         try {
             const arrayBuffer = await file.arrayBuffer();
-            const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
             userBuffer = trimSilence(decodedBuffer);
             
             userAudioBlob = new Blob([arrayBuffer], { type: file.type });
@@ -366,9 +377,8 @@ function setupRecordingHandlers() {
 // ===================================================================
 function setupPlaybackHandlers() {
     document.getElementById('playNative').addEventListener('click', async () => {
-        if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-        }
+        // Ensure AudioContext is active
+        await getAudioContext();
         
         if (nativeAudioElement) {
             nativeAudioElement.currentTime = 0;
@@ -380,9 +390,8 @@ function setupPlaybackHandlers() {
     });
     
     document.getElementById('playUser').addEventListener('click', async () => {
-        if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-        }
+        // Ensure AudioContext is active
+        await getAudioContext();
         
         if (userAudioBlob) {
             const audioURL = URL.createObjectURL(userAudioBlob);
