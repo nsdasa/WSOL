@@ -349,7 +349,15 @@
                         </div>
                     </div>
                     <div class="scale-control-group">
-                        <label><input type="checkbox" id="mfccDeltaCheck"> Delta</label>
+                        <label>Derivatives:</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size: 11px; display: flex; align-items: center; gap: 3px;">
+                                <input type="checkbox" id="mfccDeltaCheck"> Δ
+                            </label>
+                            <label style="font-size: 11px; display: flex; align-items: center; gap: 3px;">
+                                <input type="checkbox" id="mfccDeltaDeltaCheck"> ΔΔ
+                            </label>
+                        </div>
                     </div>
                     <div class="scale-control-group">
                         <label>Lifter:</label>
@@ -374,10 +382,23 @@
                         </div>
                     </div>
                     <div class="scale-control-group">
+                        <label>Per-Bin Norm:</label>
+                        <input type="checkbox" id="mfccPerBinNormCheck">
+                    </div>
+                    <div class="scale-control-group">
                         <label>Zoom X:</label>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <input type="range" id="mfccZoomXSlider" min="1" max="10" value="1" step="0.1" style="width: 100px;">
                             <input type="number" id="mfccZoomXInput" min="1" max="10" value="1" step="0.1" style="width: 50px;">
+                            <span style="font-size: 11px; color: #6b7280;">×</span>
+                        </div>
+                    </div>
+                    <div class="scale-control-group">
+                        <label>Zoom Y:</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="range" id="mfccZoomYSlider" min="1" max="10" value="1" step="0.1" style="width: 100px;">
+                            <input type="number" id="mfccZoomYInput" min="1" max="10" value="1" step="0.1" style="width: 50px;">
+                            <span style="font-size: 11px; color: #6b7280;">×</span>
                         </div>
                     </div>
                     <div class="scale-control-group">
@@ -389,7 +410,8 @@
                         </select>
                     </div>
                     <div class="scale-control-group">
-                        <label><input type="checkbox" id="mfccSymmetricCheck"> Symmetric</label>
+                        <label>Center at 0:</label>
+                        <input type="checkbox" id="mfccSymmetricCheck" checked>
                     </div>
                     <div class="scale-control-group">
                         <label>Normalization:</label>
