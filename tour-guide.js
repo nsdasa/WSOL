@@ -371,14 +371,7 @@ async function runPhasedTour(moduleName, tourConfig) {
                     showProgress: true,
                     showButtons: ['next', 'previous', 'close'],
                     steps: introSteps,
-                    onDestroyed: resolve,
-                    onDestroyStarted: (element, step, options) => {
-                        // If user clicked close, abort the tour
-                        if (!options.state.activeIndex || options.state.activeIndex < introSteps.length - 1) {
-                            options.state.tourAborted = true;
-                        }
-                        return true;
-                    }
+                    onDestroyed: resolve
                 });
                 driverInstance.drive();
             });
