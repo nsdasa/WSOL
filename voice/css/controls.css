@@ -1,0 +1,253 @@
+/* ============================================
+   CONTROLS STYLESHEET - Buttons & Inputs
+   ============================================ */
+
+.controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+/* Button Base Styles */
+.btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Button Variants */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-record {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-stop {
+    background: #374151;
+    color: white;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+/* Play Buttons */
+.play-btn {
+    padding: 10px 20px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.play-btn.user {
+    background: #ef4444;
+}
+
+.play-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Visualization Controls */
+.visualization-controls {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.visualization-controls select {
+    padding: 10px 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.visualization-controls select:hover {
+    border-color: #667eea;
+}
+
+.visualization-controls select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Scale Controls */
+.scale-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+.scale-control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.scale-control-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    min-width: 80px;
+}
+
+.scale-control-group input[type="range"] {
+    width: 100px;
+    cursor: pointer;
+}
+
+.scale-control-group input[type="number"] {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.scale-control-group select {
+    padding: 4px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.scale-control-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Analysis Controls */
+#analysisControls {
+    text-align: center;
+    margin: 30px 0;
+    padding: 20px;
+    background: #f0fdf4;
+    border-radius: 10px;
+}
+
+#analysisControls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #374151;
+}
+
+#analysisControls input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Export Button */
+#exportRawData {
+    margin: 10px 0;
+}
+
+/* Modal Styles */
+#exportModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+#exportModal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h3 {
+    margin: 0 0 15px 0;
+    color: #374151;
+}
+
+.modal-content p {
+    margin: 0 0 20px 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Responsive Controls */
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .scale-controls {
+        flex-direction: column;
+    }
+    
+    .scale-control-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
