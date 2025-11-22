@@ -271,10 +271,10 @@ class MatchExerciseModule extends LearningModule {
         });
 
         // Shuffle and take up to (maxPictures - 1) other cards
-        const shuffled = otherCandidates.sort(() => Math.random() - 0.5).slice(0, maxPictures - 1);
+        const shuffled = shuffleArray(otherCandidates).slice(0, maxPictures - 1);
 
         // Create array with target and others, then shuffle positions
-        const displayWords = [this.currentTargetIdx, ...shuffled].sort(() => Math.random() - 0.5);
+        const displayWords = shuffleArray([this.currentTargetIdx, ...shuffled]);
         
         displayWords.forEach(virtualIdx => {
             const card = this.virtualCards[virtualIdx];

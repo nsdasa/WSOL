@@ -299,10 +299,10 @@ class MatchSoundModule extends LearningModule {
         });
 
         // Shuffle and take up to (maxPictures - 1) other cards
-        const shuffled = otherCandidates.sort(() => Math.random() - 0.5).slice(0, maxPictures - 1);
+        const shuffled = shuffleArray(otherCandidates).slice(0, maxPictures - 1);
 
         // Create array with target and others, then shuffle positions
-        const displayPictures = [this.currentTargetIdx, ...shuffled].sort(() => Math.random() - 0.5);
+        const displayPictures = shuffleArray([this.currentTargetIdx, ...shuffled]);
         
         displayPictures.forEach(virtualIdx => {
             const card = this.virtualCards[virtualIdx];
