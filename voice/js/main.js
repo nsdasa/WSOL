@@ -142,7 +142,7 @@ const fftSizeOptions = [256, 512, 1024, 2048, 4096];
 // ===================================================================
 const debugLog = {
     log: (message, type = 'info') => {
-        const output = document.getElementById('debugOutput');
+        const output = document.getElementById('debugLog');
         if (!output) return;
         
         const time = new Date().toLocaleTimeString();
@@ -169,14 +169,19 @@ async function init() {
     debugLog.log('Initializing Pronunciation Analyzer...');
     
     // Initialize core components
-    const visualizer = new Visualizer(document.getElementById('vizCanvas'));
+    const canvas = document.getElementById('visualizationCanvas');
+    if (!canvas) {
+        debugLog.log('Canvas element not found!', 'error');
+        return;
+    }
+    const visualizer = new Visualizer(canvas);
     const comparator = new PronunciationComparator();
     const aiAnalyzer = new AIAnalyzer();
     const aiUI = new AIAnalysisUI(aiAnalyzer);
-    
+
     // Override AI UI message handler to use debug log
     aiUI.showMessage = (msg, type) => debugLog.log(msg, type);
-    
+
     // Initialize AI UI
     aiUI.init({
         section: 'aiAnalysisSection',
@@ -185,10 +190,10 @@ async function init() {
         status: 'apiStatus',
         input: 'apiKeyInput'
     });
-    
-    // Request microphone access
+
+    // Request microphone access (micStatus element is optional)
     const micStatus = document.getElementById('micStatus');
-    micStatus.style.display = 'block';
+    if (micStatus) micStatus.style.display = 'block';
     
     try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -216,11 +221,17 @@ async function init() {
                 spectrumCache.userSpectrum = null;
                 spectrumCache.userSpectrogram = null;
                 
-                document.getElementById('userRecordingSection').classList.add('show');
-                document.getElementById('userDurationText').textContent = 
-                    `Duration: ${userBuffer.duration.toFixed(1)}s`;
-                
-                document.getElementById('compareBtn').disabled = false;
+                const userRecordingEl = document.getElementById('userRecordingLoaded');
+                if (userRecordingEl) userRecordingEl.classList.add('show');
+                const userDurationEl = document.getElementById('userRecordingInfo');
+                if (userDurationEl) userDurationEl.textContent = `Duration: ${userBuffer.duration.toFixed(1)}s`;
+
+                // Show analysis controls
+                const analysisControls = document.getElementById('analysisControls');
+                if (analysisControls) analysisControls.style.display = 'block';
+
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                if (analyzeBtn) analyzeBtn.disabled = false;
                 debugLog.log('Recording processed successfully', 'success');
             } catch (err) {
                 debugLog.log(`Error processing recording: ${err.message}`, 'error');
@@ -228,13 +239,17 @@ async function init() {
             }
         };
         
-        micStatus.textContent = '✅ Microphone ready!';
-        micStatus.classList.add('ready');
+        if (micStatus) {
+            micStatus.textContent = '✅ Microphone ready!';
+            micStatus.classList.add('ready');
+        }
         debugLog.log('Microphone access granted', 'success');
     } catch (err) {
         debugLog.log(`Microphone error: ${err.message}`, 'error');
-        micStatus.textContent = '❌ Microphone access denied';
-        micStatus.classList.add('error');
+        if (micStatus) {
+            micStatus.textContent = '❌ Microphone access denied';
+            micStatus.classList.add('error');
+        }
     }
     
     // Set up all event handlers
@@ -265,43 +280,54 @@ async function init() {
 // FILE UPLOAD HANDLERS
 // ===================================================================
 function setupFileHandlers() {
-    // Native audio file upload
-    document.getElementById('nativeAudioFile').addEventListener('change', async (e) => {
+    // Native audio file upload - use correct ID from index.php
+    const nativeInput = document.getElementById('nativeAudioInput');
+    if (!nativeInput) {
+        debugLog.log('Native audio input not found', 'error');
+        return;
+    }
+
+    nativeInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         debugLog.log(`File selected: ${file.name} (${file.size} bytes)`);
-        
+
         try {
             const arrayBuffer = await file.arrayBuffer();
             const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
             nativeBuffer = trimSilence(decodedBuffer);
-            
+
             // Clear native cache since we have new audio
             spectrumCache.nativeSpectrum = null;
             spectrumCache.nativeSpectrogram = null;
-            
+
             debugLog.log(`Native audio loaded: ${nativeBuffer.duration.toFixed(2)}s`, 'success');
-            
+
             nativeAudioElement = new Audio(URL.createObjectURL(file));
-            
-            document.getElementById('uploadSection').classList.add('has-file');
-            document.getElementById('fileLoaded').classList.add('show');
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileDurationText').textContent = 
-                `Duration: ${nativeBuffer.duration.toFixed(1)}s`;
-            
+
+            // Update UI elements - use correct IDs from index.php
+            const uploadSection = document.getElementById('nativeUploadSection');
+            if (uploadSection) uploadSection.classList.add('has-file');
+            const fileLoaded = document.getElementById('nativeFileLoaded');
+            if (fileLoaded) fileLoaded.classList.add('show');
+            const fileName = document.getElementById('nativeFileName');
+            if (fileName) fileName.textContent = `${file.name} (${nativeBuffer.duration.toFixed(1)}s)`;
+
             const wordName = file.name.replace(/\.(mp3|m4a|wav|webm|ogg)$/i, '');
-            document.getElementById('targetWord').textContent = wordName;
-            document.getElementById('targetTranslation').textContent = 'Ready to practice!';
-            
-            document.getElementById('recordBtn').disabled = false;
-            
-            // Enable user audio upload
-            document.getElementById('userAudioFile').disabled = false;
-            document.getElementById('userUploadLabel').style.opacity = '1';
-            document.getElementById('userUploadLabel').style.cursor = 'pointer';
-            
+            const targetWord = document.getElementById('targetWord');
+            if (targetWord) targetWord.textContent = wordName;
+            const wordMeaning = document.getElementById('wordMeaning');
+            if (wordMeaning) wordMeaning.textContent = 'Ready to practice!';
+
+            // Enable recording
+            const recordBtn = document.getElementById('recordBtn');
+            if (recordBtn) recordBtn.disabled = false;
+
+            // Show user recording section
+            const userRecordSection = document.getElementById('userRecordSection');
+            if (userRecordSection) userRecordSection.style.display = 'block';
+
             if (userBuffer) {
                 updateVisualization();
             }
@@ -310,37 +336,46 @@ function setupFileHandlers() {
             alert('Could not load audio file. Please ensure it\'s a valid audio format.');
         }
     });
-    
-    // User audio file upload handler
-    document.getElementById('userAudioFile').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        debugLog.log(`User file selected: ${file.name} (${file.size} bytes)`);
-        
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
-            userBuffer = trimSilence(decodedBuffer);
-            
-            userAudioBlob = new Blob([arrayBuffer], { type: file.type });
-            
-            // Clear user cache
-            spectrumCache.userSpectrum = null;
-            spectrumCache.userSpectrogram = null;
-            
-            debugLog.log(`User audio loaded: ${userBuffer.duration.toFixed(2)}s`, 'success');
-            
-            document.getElementById('userRecordingSection').classList.add('show');
-            document.getElementById('userDurationText').textContent = 
-                `Duration: ${userBuffer.duration.toFixed(1)}s`;
-            
-            document.getElementById('compareBtn').disabled = false;
-        } catch (err) {
-            debugLog.log(`Error loading user file: ${err.message}`, 'error');
-            alert('Could not load audio file. Please ensure it\'s a valid audio format.');
-        }
-    });
+
+    // User audio file upload handler (optional - may not exist in simplified UI)
+    const userAudioFile = document.getElementById('userAudioFile');
+    if (userAudioFile) {
+        userAudioFile.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            debugLog.log(`User file selected: ${file.name} (${file.size} bytes)`);
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const decodedBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
+                userBuffer = trimSilence(decodedBuffer);
+
+                userAudioBlob = new Blob([arrayBuffer], { type: file.type });
+
+                // Clear user cache
+                spectrumCache.userSpectrum = null;
+                spectrumCache.userSpectrogram = null;
+
+                debugLog.log(`User audio loaded: ${userBuffer.duration.toFixed(2)}s`, 'success');
+
+                const userRecordingEl = document.getElementById('userRecordingLoaded');
+                if (userRecordingEl) userRecordingEl.classList.add('show');
+                const userDurationEl = document.getElementById('userRecordingInfo');
+                if (userDurationEl) userDurationEl.textContent = `Duration: ${userBuffer.duration.toFixed(1)}s`;
+
+                // Show analysis controls
+                const analysisControls = document.getElementById('analysisControls');
+                if (analysisControls) analysisControls.style.display = 'block';
+
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                if (analyzeBtn) analyzeBtn.disabled = false;
+            } catch (err) {
+                debugLog.log(`Error loading user file: ${err.message}`, 'error');
+                alert('Could not load audio file. Please ensure it\'s a valid audio format.');
+            }
+        });
+    }
 }
 
 // ===================================================================
@@ -349,7 +384,12 @@ function setupFileHandlers() {
 function setupRecordingHandlers() {
     const recordBtn = document.getElementById('recordBtn');
     const stopBtn = document.getElementById('stopBtn');
-    
+
+    if (!recordBtn || !stopBtn) {
+        debugLog.log('Recording buttons not found', 'error');
+        return;
+    }
+
     recordBtn.addEventListener('click', () => {
         if (!mediaRecorder || mediaRecorder.state === 'inactive') {
             debugLog.log('Starting recording...');
@@ -357,17 +397,21 @@ function setupRecordingHandlers() {
             mediaRecorder.start();
             recordBtn.disabled = true;
             stopBtn.disabled = false;
-            recordBtn.textContent = '🎙️ Recording...';
+            // Update button text - find the span inside
+            const recordText = recordBtn.querySelector('span:last-child');
+            if (recordText) recordText.textContent = 'Recording...';
         }
     });
-    
+
     stopBtn.addEventListener('click', () => {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             debugLog.log('Stopping recording...');
             mediaRecorder.stop();
             recordBtn.disabled = false;
             stopBtn.disabled = true;
-            recordBtn.textContent = '🎙️ Record';
+            // Update button text - find the span inside
+            const recordText = recordBtn.querySelector('span:last-child');
+            if (recordText) recordText.textContent = 'Start Recording';
         }
     });
 }
@@ -376,57 +420,76 @@ function setupRecordingHandlers() {
 // PLAYBACK HANDLERS
 // ===================================================================
 function setupPlaybackHandlers() {
-    document.getElementById('playNative').addEventListener('click', async () => {
-        // Ensure AudioContext is active
-        await getAudioContext();
-        
-        if (nativeAudioElement) {
-            nativeAudioElement.currentTime = 0;
-            nativeAudioElement.volume = 1.0;
-            nativeAudioElement.play()
-                .then(() => debugLog.log('Native playback started', 'success'))
-                .catch(err => alert('Could not play audio: ' + err.message));
-        }
-    });
-    
-    document.getElementById('playUser').addEventListener('click', async () => {
-        // Ensure AudioContext is active
-        await getAudioContext();
-        
-        if (userAudioBlob) {
-            const audioURL = URL.createObjectURL(userAudioBlob);
-            const audio = new Audio(audioURL);
-            audio.volume = 1.0;
-            audio.play()
-                .then(() => debugLog.log('User playback started', 'success'))
-                .catch(err => alert('Could not play recording: ' + err.message));
-        }
-    });
-    
-    document.getElementById('tryAgain').addEventListener('click', () => {
-        document.getElementById('results').classList.remove('show');
-        userBuffer = null;
-        userAudioBlob = null;
-        // Clear user cache
-        spectrumCache.userSpectrum = null;
-        spectrumCache.userSpectrogram = null;
-        document.getElementById('compareBtn').disabled = true;
-        document.getElementById('exportAnalysis').disabled = true;
-        document.getElementById('userRecordingSection').classList.remove('show');
-        
-        // Clear AI analysis
-        const aiSection = document.getElementById('aiAnalysisSection');
-        if (aiSection) aiSection.style.display = 'none';
-        
-        debugLog.log('Reset for new recording');
-    });
+    const playNativeBtn = document.getElementById('playNative');
+    if (playNativeBtn) {
+        playNativeBtn.addEventListener('click', async () => {
+            // Ensure AudioContext is active
+            await getAudioContext();
+
+            if (nativeAudioElement) {
+                nativeAudioElement.currentTime = 0;
+                nativeAudioElement.volume = 1.0;
+                nativeAudioElement.play()
+                    .then(() => debugLog.log('Native playback started', 'success'))
+                    .catch(err => alert('Could not play audio: ' + err.message));
+            }
+        });
+    }
+
+    const playUserBtn = document.getElementById('playUser');
+    if (playUserBtn) {
+        playUserBtn.addEventListener('click', async () => {
+            // Ensure AudioContext is active
+            await getAudioContext();
+
+            if (userAudioBlob) {
+                const audioURL = URL.createObjectURL(userAudioBlob);
+                const audio = new Audio(audioURL);
+                audio.volume = 1.0;
+                audio.play()
+                    .then(() => debugLog.log('User playback started', 'success'))
+                    .catch(err => alert('Could not play recording: ' + err.message));
+            }
+        });
+    }
+
+    const tryAgainBtn = document.getElementById('tryAgain');
+    if (tryAgainBtn) {
+        tryAgainBtn.addEventListener('click', () => {
+            const results = document.getElementById('results');
+            if (results) results.classList.remove('show');
+            userBuffer = null;
+            userAudioBlob = null;
+            // Clear user cache
+            spectrumCache.userSpectrum = null;
+            spectrumCache.userSpectrogram = null;
+
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            if (analyzeBtn) analyzeBtn.disabled = true;
+
+            const userRecordingEl = document.getElementById('userRecordingLoaded');
+            if (userRecordingEl) userRecordingEl.classList.remove('show');
+
+            // Clear AI analysis
+            const aiSection = document.getElementById('aiAnalysisSection');
+            if (aiSection) aiSection.style.display = 'none';
+
+            debugLog.log('Reset for new recording');
+        });
+    }
 }
 
 // ===================================================================
 // ANALYSIS HANDLERS
 // ===================================================================
 function setupAnalysisHandlers(comparator, aiAnalyzer) {
-    document.getElementById('compareBtn').addEventListener('click', async () => {
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    if (!analyzeBtn) {
+        debugLog.log('Analyze button not found', 'error');
+        return;
+    }
+
+    analyzeBtn.addEventListener('click', async () => {
         if (!nativeBuffer || !userBuffer) {
             debugLog.log('Missing audio buffers', 'error');
             alert('Please upload native audio and record your voice first.');
@@ -468,9 +531,15 @@ function setupAnalysisHandlers(comparator, aiAnalyzer) {
             showResults(analysisResults);
             showDetailedAnalysis(detailedAnalysis);
             updateVisualization();
-            
-            document.getElementById('exportAnalysis').disabled = false;
-            
+
+            // Show visualization section
+            const vizSection = document.getElementById('visualizationSection');
+            if (vizSection) vizSection.style.display = 'block';
+
+            // Enable export if available
+            const exportBtn = document.getElementById('exportAnalysis');
+            if (exportBtn) exportBtn.disabled = false;
+
             // Enable AI analysis button if API is configured
             const aiBtn = document.getElementById('aiAnalysisBtn');
             if (aiBtn && aiAnalyzer.isConfigured()) {
@@ -533,10 +602,23 @@ function setupVisualizationHandlers(visualizer) {
         });
     });
     
-    // Debug panel toggle
-    document.getElementById('toggleDebug').addEventListener('click', () => {
-        document.getElementById('debugPanel').classList.toggle('show');
-    });
+    // Debug panel toggle (optional)
+    const toggleDebugBtn = document.getElementById('toggleDebug');
+    if (toggleDebugBtn) {
+        toggleDebugBtn.addEventListener('click', () => {
+            const debugPanel = document.getElementById('debugPanel');
+            if (debugPanel) debugPanel.classList.toggle('show');
+        });
+    }
+
+    // Clear debug button (optional)
+    const clearDebugBtn = document.getElementById('clearDebug');
+    if (clearDebugBtn) {
+        clearDebugBtn.addEventListener('click', () => {
+            const debugLog = document.getElementById('debugLog');
+            if (debugLog) debugLog.innerHTML = '';
+        });
+    }
 }
 
 // ===================================================================
@@ -1250,7 +1332,11 @@ function updateVisualization() {
     debugLog.log(`Rendering ${currentViz} visualization`);
     
     // Get visualizer instance (assumes it was stored globally during init)
-    const canvas = document.getElementById('vizCanvas');
+    const canvas = document.getElementById('visualizationCanvas');
+    if (!canvas) {
+        debugLog.log('Canvas not found', 'error');
+        return;
+    }
     const visualizer = canvas._visualizer || new Visualizer(canvas);
     if (!canvas._visualizer) canvas._visualizer = visualizer;
     
@@ -1447,24 +1533,27 @@ function updateRawDataExportButton() {
 // EXPORT HANDLERS
 // ===================================================================
 function setupExportHandlers() {
-    // Export analysis as JSON
-    document.getElementById('exportAnalysis').addEventListener('click', () => {
-        if (!analysisResults) {
-            alert('No analysis results to export');
-            return;
-        }
-        
-        const data = JSON.stringify(analysisResults, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pronunciation-analysis-${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        debugLog.log('Analysis exported', 'success');
-    });
+    // Export analysis as JSON (optional - may not exist in simplified UI)
+    const exportAnalysisBtn = document.getElementById('exportAnalysis');
+    if (exportAnalysisBtn) {
+        exportAnalysisBtn.addEventListener('click', () => {
+            if (!analysisResults) {
+                alert('No analysis results to export');
+                return;
+            }
+
+            const data = JSON.stringify(analysisResults, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pronunciation-analysis-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            debugLog.log('Analysis exported', 'success');
+        });
+    }
     
     // Export raw data
     const exportRawBtn = document.getElementById('exportRawData');
