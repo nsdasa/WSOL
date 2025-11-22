@@ -3,6 +3,102 @@
  * Helper functions for audio file handling and Web Audio API
  */
 
+/**
+ * Trim silence from beginning and end of audio buffer
+ * Uses RMS-based silence detection with dynamic thresholding
+ *
+ * @param {AudioBuffer} audioBuffer - Input audio buffer
+ * @param {number} fixedThreshold - Minimum silence threshold (default: 0.01)
+ * @returns {AudioBuffer} Trimmed audio buffer
+ */
+export function trimSilence(audioBuffer, fixedThreshold = 0.01) {
+    const data = audioBuffer.getChannelData(0);
+    const frameSize = 512;
+    const sampleRate = audioBuffer.sampleRate;
+    let start = 0;
+    let end = data.length;
+
+    const frameCount = Math.floor(data.length / frameSize);
+    const rmsValues = [];
+
+    // Calculate RMS for each frame
+    for (let i = 0; i < frameCount; i++) {
+        let rms = 0;
+        const offset = i * frameSize;
+        for (let j = 0; j < frameSize; j++) {
+            rms += data[offset + j] ** 2;
+        }
+        rms = Math.sqrt(rms / frameSize);
+        rmsValues.push(rms);
+    }
+
+    // Calculate dynamic threshold based on noise floor and signal level
+    const sortedRMS = [...rmsValues].sort((a, b) => a - b);
+    const noiseFloor = sortedRMS[Math.floor(sortedRMS.length * 0.1)];
+    const signalLevel = sortedRMS[Math.floor(sortedRMS.length * 0.9)];
+    const dynamicThreshold = noiseFloor + (signalLevel - noiseFloor) * 0.2;
+    const threshold = Math.max(fixedThreshold, dynamicThreshold);
+
+    // Find start of signal (requires consecutive frames above threshold)
+    let consecutiveFrames = 0;
+    const minSustainedFrames = 3;
+
+    for (let i = 0; i < rmsValues.length; i++) {
+        if (rmsValues[i] > threshold) {
+            consecutiveFrames++;
+            if (consecutiveFrames >= minSustainedFrames) {
+                start = Math.max(0, (i - consecutiveFrames) * frameSize);
+                break;
+            }
+        } else {
+            consecutiveFrames = 0;
+        }
+    }
+
+    // Find end of signal
+    consecutiveFrames = 0;
+    for (let i = rmsValues.length - 1; i >= 0; i--) {
+        if (rmsValues[i] > threshold) {
+            consecutiveFrames++;
+            if (consecutiveFrames >= minSustainedFrames) {
+                end = Math.min(data.length, (i + consecutiveFrames + 1) * frameSize);
+                break;
+            }
+        } else {
+            consecutiveFrames = 0;
+        }
+    }
+
+    // Return original if no trimming needed
+    if (start >= end) {
+        return audioBuffer;
+    }
+
+    // Create trimmed buffer using OfflineAudioContext
+    const trimmedLength = end - start;
+    const offlineContext = new OfflineAudioContext(
+        audioBuffer.numberOfChannels,
+        trimmedLength,
+        sampleRate
+    );
+    const trimmedBuffer = offlineContext.createBuffer(
+        audioBuffer.numberOfChannels,
+        trimmedLength,
+        sampleRate
+    );
+
+    // Copy trimmed audio data
+    for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+        const sourceData = audioBuffer.getChannelData(channel);
+        const destData = trimmedBuffer.getChannelData(channel);
+        for (let i = 0; i < trimmedLength; i++) {
+            destData[i] = sourceData[start + i];
+        }
+    }
+
+    return trimmedBuffer;
+}
+
 export class DebugLog {
     constructor(elementId) {
         this.element = document.getElementById(elementId);
