@@ -1254,6 +1254,7 @@ function setupIntensityControls() {
 // ===================================================================
 function updateScaleControlsVisibility() {
     // Show/hide control groups based on current visualization
+    const scaleControls = document.getElementById('scaleControls');
     const waveformControls = document.getElementById('waveformControls');
     const spectrogramControls = document.getElementById('spectrogramControls');
     const mfccControls = document.getElementById('mfccControls');
@@ -1261,7 +1262,7 @@ function updateScaleControlsVisibility() {
     const intensityControls = document.getElementById('intensityControls');
     const featureControls = document.getElementById('featureControls');
 
-    // Hide all
+    // Hide all child control groups
     if (waveformControls) waveformControls.style.display = 'none';
     if (spectrogramControls) spectrogramControls.style.display = 'none';
     if (mfccControls) mfccControls.style.display = 'none';
@@ -1269,27 +1270,39 @@ function updateScaleControlsVisibility() {
     if (intensityControls) intensityControls.style.display = 'none';
     if (featureControls) featureControls.style.display = 'none';
 
-    // Show relevant controls
+    // Show relevant controls and parent container
+    let hasControls = false;
     switch (currentViz) {
         case 'waveform':
-            if (waveformControls) waveformControls.style.display = 'block';
+            if (waveformControls) waveformControls.style.display = 'flex';
+            hasControls = true;
             break;
         case 'spectrum':
         case 'spectrogram':
-            if (spectrogramControls) spectrogramControls.style.display = 'block';
+            if (spectrogramControls) spectrogramControls.style.display = 'flex';
+            hasControls = true;
             break;
         case 'mfcc':
-            if (mfccControls) mfccControls.style.display = 'block';
+            if (mfccControls) mfccControls.style.display = 'flex';
+            hasControls = true;
             break;
         case 'pitch':
-            if (pitchControls) pitchControls.style.display = 'block';
+            if (pitchControls) pitchControls.style.display = 'flex';
+            hasControls = true;
             break;
         case 'intensity':
-            if (intensityControls) intensityControls.style.display = 'block';
+            if (intensityControls) intensityControls.style.display = 'flex';
+            hasControls = true;
             break;
         case 'features':
-            if (featureControls) featureControls.style.display = 'block';
+            if (featureControls) featureControls.style.display = 'flex';
+            hasControls = true;
             break;
+    }
+
+    // Show/hide parent container
+    if (scaleControls) {
+        scaleControls.style.display = hasControls ? 'flex' : 'none';
     }
 
     // Update filter control visibility
