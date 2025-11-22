@@ -226,6 +226,28 @@ class AdminModule extends LearningModule {
                 </div>
 
                 <div class="admin-section">
+                    <h3 class="section-title"><i class="fas fa-users-cog"></i> User Management</h3>
+                    <div class="card" style="background:var(--bg-secondary);">
+                        <p style="margin-bottom:16px;color:var(--text-secondary);">
+                            Add, edit, or remove users and manage their passwords and roles.
+                        </p>
+                        <div id="userManagementContainer">
+                            <div class="user-management-loading">
+                                <i class="fas fa-spinner fa-spin"></i> Loading users...
+                            </div>
+                        </div>
+                        <div class="user-management-actions" style="margin-top:16px;">
+                            <button id="addUserBtn" class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i> Add New User
+                            </button>
+                            <button id="refreshUsersBtn" class="btn btn-secondary" style="margin-left:8px;">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
                     <h3 class="section-title"><i class="fas fa-route"></i> Tour Guide Editor</h3>
                     <div class="card" style="background:var(--bg-secondary);">
                         <p style="margin-bottom:16px;color:var(--text-secondary);">
@@ -262,6 +284,7 @@ class AdminModule extends LearningModule {
         this.setupMediaUpload();
         this.setupDebugControls();
         this.setupSessionTimeout();
+        this.setupUserManagement();
         this.setupTourEditor();
         
         // Close scan modal button
@@ -496,6 +519,343 @@ class AdminModule extends LearningModule {
                 saveTimeoutBtn.innerHTML = '<i class="fas fa-save"></i> Update Timeout';
             });
         }
+    }
+
+    // =========================================
+    // USER MANAGEMENT
+    // =========================================
+
+    setupUserManagement() {
+        this.users = [];
+        this.loadUsers();
+
+        // Add user button
+        const addUserBtn = document.getElementById('addUserBtn');
+        if (addUserBtn) {
+            addUserBtn.addEventListener('click', () => this.showUserModal());
+        }
+
+        // Refresh users button
+        const refreshUsersBtn = document.getElementById('refreshUsersBtn');
+        if (refreshUsersBtn) {
+            refreshUsersBtn.addEventListener('click', () => this.loadUsers());
+        }
+    }
+
+    async loadUsers() {
+        const container = document.getElementById('userManagementContainer');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="user-management-loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading users...
+            </div>
+        `;
+
+        try {
+            const response = await fetch('users.php?action=list&_=' + Date.now());
+            const result = await response.json();
+
+            if (result.success) {
+                this.users = result.users;
+                this.renderUsersList();
+            } else {
+                throw new Error(result.error || 'Failed to load users');
+            }
+        } catch (error) {
+            container.innerHTML = `
+                <div class="user-management-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load users: ${error.message}</p>
+                    <button class="btn btn-secondary" onclick="document.getElementById('refreshUsersBtn').click()">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    renderUsersList() {
+        const container = document.getElementById('userManagementContainer');
+        if (!container) return;
+
+        if (this.users.length === 0) {
+            container.innerHTML = `
+                <div class="user-management-empty">
+                    <i class="fas fa-users-slash"></i>
+                    <p>No users found. Click "Add New User" to create one.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const roleLabels = {
+            'admin': { label: 'Admin', color: '#ef4444', icon: 'fa-user-shield' },
+            'deck-manager': { label: 'Deck Manager', color: '#3b82f6', icon: 'fa-edit' },
+            'voice-recorder': { label: 'Voice Recorder', color: '#10b981', icon: 'fa-microphone' }
+        };
+
+        let html = '<div class="users-list">';
+
+        this.users.forEach(user => {
+            const roleInfo = roleLabels[user.role] || { label: user.role, color: '#6b7280', icon: 'fa-user' };
+            const created = user.created ? new Date(user.created).toLocaleDateString() : 'N/A';
+
+            html += `
+                <div class="user-card" data-user-id="${user.id}">
+                    <div class="user-card-main">
+                        <div class="user-avatar" style="background:${roleInfo.color}20;color:${roleInfo.color};">
+                            <i class="fas ${roleInfo.icon}"></i>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">${this.escapeHtml(user.username)}</div>
+                            <div class="user-role" style="color:${roleInfo.color};">
+                                <i class="fas ${roleInfo.icon}"></i> ${roleInfo.label}
+                            </div>
+                            <div class="user-meta">Created: ${created}</div>
+                        </div>
+                    </div>
+                    <div class="user-card-actions">
+                        <button class="btn btn-sm btn-secondary edit-user-btn" data-user-id="${user.id}" title="Edit user">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-user-btn" data-user-id="${user.id}" title="Delete user">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+
+        // Setup event listeners for edit and delete buttons
+        container.querySelectorAll('.edit-user-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const userId = parseInt(e.currentTarget.dataset.userId);
+                const user = this.users.find(u => u.id === userId);
+                if (user) this.showUserModal(user);
+            });
+        });
+
+        container.querySelectorAll('.delete-user-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const userId = parseInt(e.currentTarget.dataset.userId);
+                const user = this.users.find(u => u.id === userId);
+                if (user) this.confirmDeleteUser(user);
+            });
+        });
+    }
+
+    showUserModal(user = null) {
+        const isEdit = user !== null;
+        const title = isEdit ? 'Edit User' : 'Add New User';
+
+        const roleOptions = [
+            { value: 'admin', label: 'Admin - Full access to all features' },
+            { value: 'deck-manager', label: 'Deck Manager - Full Deck Builder access' },
+            { value: 'voice-recorder', label: 'Voice Recorder - Audio recording only' }
+        ];
+
+        const modal = document.createElement('div');
+        modal.className = 'modal user-modal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width:500px;width:90%;background:var(--bg-primary);border-radius:12px;overflow:hidden;">
+                <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;">
+                    <h2 style="margin:0;font-size:18px;"><i class="fas ${isEdit ? 'fa-user-edit' : 'fa-user-plus'}"></i> ${title}</h2>
+                    <button class="modal-close-btn" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-secondary);">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding:24px;">
+                    <form id="userForm">
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label class="form-label" style="display:block;margin-bottom:6px;font-weight:600;">Username</label>
+                            <input type="text" id="userUsername" class="form-input" style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:14px;"
+                                   value="${isEdit ? this.escapeHtml(user.username) : ''}"
+                                   placeholder="Enter username (min 3 characters)"
+                                   required minlength="3">
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label class="form-label" style="display:block;margin-bottom:6px;font-weight:600;">
+                                Password ${isEdit ? '(leave blank to keep current)' : ''}
+                            </label>
+                            <div style="position:relative;">
+                                <input type="password" id="userPassword" class="form-input" style="width:100%;padding:10px 12px;padding-right:40px;border:1px solid var(--border-color);border-radius:6px;font-size:14px;"
+                                       placeholder="${isEdit ? 'Enter new password or leave blank' : 'Enter password (min 4 characters)'}"
+                                       ${isEdit ? '' : 'required'} minlength="4">
+                                <button type="button" class="toggle-password-btn" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label class="form-label" style="display:block;margin-bottom:6px;font-weight:600;">Role</label>
+                            <select id="userRole" class="form-input" style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:14px;" required>
+                                ${roleOptions.map(opt => `
+                                    <option value="${opt.value}" ${isEdit && user.role === opt.value ? 'selected' : ''}>
+                                        ${opt.label}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border-color);display:flex;justify-content:flex-end;gap:12px;">
+                    <button class="btn btn-secondary cancel-btn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-primary save-btn">
+                        <i class="fas fa-save"></i> ${isEdit ? 'Save Changes' : 'Create User'}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Toggle password visibility
+        const toggleBtn = modal.querySelector('.toggle-password-btn');
+        const passwordInput = modal.querySelector('#userPassword');
+        toggleBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            toggleBtn.innerHTML = `<i class="fas fa-eye${isPassword ? '-slash' : ''}"></i>`;
+        });
+
+        // Close modal handlers
+        const closeModal = () => document.body.removeChild(modal);
+
+        modal.querySelector('.modal-close-btn').addEventListener('click', closeModal);
+        modal.querySelector('.cancel-btn').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Save handler
+        modal.querySelector('.save-btn').addEventListener('click', async () => {
+            const username = modal.querySelector('#userUsername').value.trim();
+            const password = modal.querySelector('#userPassword').value;
+            const role = modal.querySelector('#userRole').value;
+
+            // Validation
+            if (username.length < 3) {
+                toastManager.show('Username must be at least 3 characters', 'error');
+                return;
+            }
+
+            if (!isEdit && password.length < 4) {
+                toastManager.show('Password must be at least 4 characters', 'error');
+                return;
+            }
+
+            if (isEdit && password && password.length < 4) {
+                toastManager.show('Password must be at least 4 characters', 'error');
+                return;
+            }
+
+            const saveBtn = modal.querySelector('.save-btn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                const action = isEdit ? 'edit' : 'add';
+                const payload = isEdit
+                    ? { id: user.id, username, role, ...(password ? { password } : {}) }
+                    : { username, password, role };
+
+                const response = await fetch(`users.php?action=${action}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    toastManager.show(result.message || `User ${isEdit ? 'updated' : 'created'} successfully!`, 'success');
+                    closeModal();
+                    this.loadUsers();
+                } else {
+                    throw new Error(result.error || 'Failed to save user');
+                }
+            } catch (error) {
+                toastManager.show(error.message, 'error');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i class="fas fa-save"></i> ${isEdit ? 'Save Changes' : 'Create User'}`;
+            }
+        });
+
+        // Focus username input
+        modal.querySelector('#userUsername').focus();
+    }
+
+    confirmDeleteUser(user) {
+        const modal = document.createElement('div');
+        modal.className = 'modal delete-modal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width:400px;width:90%;background:var(--bg-primary);border-radius:12px;overflow:hidden;">
+                <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border-color);background:#fef2f2;">
+                    <h2 style="margin:0;font-size:18px;color:#dc2626;">
+                        <i class="fas fa-exclamation-triangle"></i> Delete User
+                    </h2>
+                </div>
+                <div class="modal-body" style="padding:24px;">
+                    <p style="margin:0 0 16px 0;">Are you sure you want to delete the user <strong>${this.escapeHtml(user.username)}</strong>?</p>
+                    <p style="margin:0;color:var(--text-secondary);font-size:13px;">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border-color);display:flex;justify-content:flex-end;gap:12px;">
+                    <button class="btn btn-secondary cancel-btn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-danger delete-btn">
+                        <i class="fas fa-trash"></i> Delete User
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const closeModal = () => document.body.removeChild(modal);
+
+        modal.querySelector('.cancel-btn').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        modal.querySelector('.delete-btn').addEventListener('click', async () => {
+            const deleteBtn = modal.querySelector('.delete-btn');
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+
+            try {
+                const response = await fetch('users.php?action=delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: user.id })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    toastManager.show('User deleted successfully', 'success');
+                    closeModal();
+                    this.loadUsers();
+                } else {
+                    throw new Error(result.error || 'Failed to delete user');
+                }
+            } catch (error) {
+                toastManager.show(error.message, 'error');
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete User';
+            }
+        });
     }
 
     setupCSVUpload() {
