@@ -100,6 +100,7 @@ window.scalePreferences = {
     mfccCoeffStart: 1,
     mfccCoeffEnd: 12,
     mfccDelta: false,
+    mfccDeltaDelta: false,
     mfccLifter: 0,
     mfccFilterMode: 'global',
     mfccFilterValue: 0,
@@ -1003,10 +1004,22 @@ function setupMFCCControls() {
     });
 
     // MFCC delta checkbox
-    document.getElementById('mfccDeltaCheck').addEventListener('change', (e) => {
-        window.scalePreferences.mfccDelta = e.target.checked;
-        updateVisualization();
-    });
+    const mfccDeltaCheck = document.getElementById('mfccDeltaCheck');
+    if (mfccDeltaCheck) {
+        mfccDeltaCheck.addEventListener('change', (e) => {
+            window.scalePreferences.mfccDelta = e.target.checked;
+            updateVisualization();
+        });
+    }
+
+    // MFCC delta-delta checkbox
+    const mfccDeltaDeltaCheck = document.getElementById('mfccDeltaDeltaCheck');
+    if (mfccDeltaDeltaCheck) {
+        mfccDeltaDeltaCheck.addEventListener('change', (e) => {
+            window.scalePreferences.mfccDeltaDelta = e.target.checked;
+            updateVisualization();
+        });
+    }
 
     // MFCC lifter
     const lifterSlider = document.getElementById('mfccLifterSlider');
@@ -1034,23 +1047,58 @@ function setupMFCCControls() {
         updateVisualization();
     });
 
-    // MFCC zoom
+    // MFCC Per-Bin Norm checkbox
+    const mfccPerBinNormCheck = document.getElementById('mfccPerBinNormCheck');
+    if (mfccPerBinNormCheck) {
+        mfccPerBinNormCheck.addEventListener('change', (e) => {
+            window.scalePreferences.mfccPerBinNorm = e.target.checked;
+            updateVisualization();
+        });
+    }
+
+    // MFCC zoom X
     const mfccZoomXSlider = document.getElementById('mfccZoomXSlider');
     const mfccZoomXInput = document.getElementById('mfccZoomXInput');
 
-    mfccZoomXSlider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        mfccZoomXInput.value = value;
-        window.scalePreferences.mfccZoomX = value;
-        updateVisualization();
-    });
+    if (mfccZoomXSlider) {
+        mfccZoomXSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            if (mfccZoomXInput) mfccZoomXInput.value = value;
+            window.scalePreferences.mfccZoomX = value;
+            updateVisualization();
+        });
+    }
 
-    mfccZoomXInput.addEventListener('change', (e) => {
-        const value = parseFloat(e.target.value);
-        mfccZoomXSlider.value = value;
-        window.scalePreferences.mfccZoomX = value;
-        updateVisualization();
-    });
+    if (mfccZoomXInput) {
+        mfccZoomXInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            if (mfccZoomXSlider) mfccZoomXSlider.value = value;
+            window.scalePreferences.mfccZoomX = value;
+            updateVisualization();
+        });
+    }
+
+    // MFCC zoom Y
+    const mfccZoomYSlider = document.getElementById('mfccZoomYSlider');
+    const mfccZoomYInput = document.getElementById('mfccZoomYInput');
+
+    if (mfccZoomYSlider) {
+        mfccZoomYSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            if (mfccZoomYInput) mfccZoomYInput.value = value;
+            window.scalePreferences.mfccZoomY = value;
+            updateVisualization();
+        });
+    }
+
+    if (mfccZoomYInput) {
+        mfccZoomYInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value);
+            if (mfccZoomYSlider) mfccZoomYSlider.value = value;
+            window.scalePreferences.mfccZoomY = value;
+            updateVisualization();
+        });
+    }
 
     // MFCC colormap
     document.getElementById('mfccColormapSelect').addEventListener('change', (e) => {
