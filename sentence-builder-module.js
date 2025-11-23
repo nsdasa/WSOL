@@ -412,42 +412,56 @@ class SentenceBuilderModule extends LearningModule {
     findCardByWord(word) {
         const allCards = this.assets.getCards({ lesson: this.assets.currentLesson });
 
-        // Normalize the search word
-        const searchWord = word.toLowerCase().trim();
+        // Normalize function: lowercase, collapse spaces around slashes, trim
+        const normalize = (str) => {
+            return (str || '')
+                .toLowerCase()
+                .trim()
+                .replace(/\s*\/\s*/g, '/'); // "ako / ko" → "ako/ko"
+        };
 
-        // First try to find an exact match
+        const searchWord = normalize(word);
+
+        // Extract individual variants from search word (e.g., "ako/ko" → ["ako", "ko"])
+        const searchVariants = searchWord.split('/').map(v => v.trim()).filter(v => v);
+
+        // First pass: exact match on normalized word or any variant
         for (const card of allCards) {
-            const cardWord = (card.word || '').toLowerCase().trim();
+            const cardWord = normalize(card.word);
+            const cardVariants = cardWord.split('/').map(v => v.trim()).filter(v => v);
 
-            // Check exact match
+            // Check if normalized words match exactly
             if (cardWord === searchWord) {
                 return card;
             }
 
-            // Check acceptable answers (handles slash-separated)
-            if (card.acceptableAnswers) {
-                for (const answer of card.acceptableAnswers) {
-                    if (answer.toLowerCase().trim() === searchWord) {
-                        return card;
-                    }
+            // Check if any search variant matches any card variant
+            for (const searchVar of searchVariants) {
+                if (cardVariants.includes(searchVar)) {
+                    return card;
                 }
             }
 
-            // Check if search word is part of a slash-separated word
-            const variants = cardWord.split('/').map(v => v.trim());
-            if (variants.includes(searchWord)) {
-                return card;
+            // Check acceptableAnswers array
+            if (card.acceptableAnswers && Array.isArray(card.acceptableAnswers)) {
+                for (const answer of card.acceptableAnswers) {
+                    const normalizedAnswer = normalize(answer);
+                    if (normalizedAnswer === searchWord) {
+                        return card;
+                    }
+                    // Check variants in acceptable answers
+                    const answerVariants = normalizedAnswer.split('/').map(v => v.trim()).filter(v => v);
+                    for (const searchVar of searchVariants) {
+                        if (answerVariants.includes(searchVar)) {
+                            return card;
+                        }
+                    }
+                }
             }
         }
 
-        // Partial match as fallback
-        for (const card of allCards) {
-            const cardWord = (card.word || '').toLowerCase().trim();
-            if (cardWord.includes(searchWord) || searchWord.includes(cardWord)) {
-                return card;
-            }
-        }
-
+        // No partial/fuzzy matching - it causes wrong card matches
+        // If we didn't find an exact match, return null
         return null;
     }
 
