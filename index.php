@@ -43,6 +43,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     <link rel="stylesheet" href="styles/core.css?v=<?php echo cacheBust('styles/core.css'); ?>">
     <link rel="stylesheet" href="styles/theme.css?v=<?php echo cacheBust('styles/theme.css'); ?>">
     <link rel="stylesheet" href="styles/modules/flashcards.css?v=<?php echo cacheBust('styles/modules/flashcards.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/grammar.css?v=<?php echo cacheBust('styles/modules/grammar.css'); ?>">
     <link rel="stylesheet" href="styles/modules/match.css?v=<?php echo cacheBust('styles/modules/match.css'); ?>">
     <link rel="stylesheet" href="styles/modules/match-sound.css?v=<?php echo cacheBust('styles/modules/match-sound.css'); ?>">
     <link rel="stylesheet" href="styles/modules/quiz.css?v=<?php echo cacheBust('styles/modules/quiz.css'); ?>">
@@ -98,6 +99,10 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
     <div class="container">
         <div class="nav-tabs">
+            <button class="nav-tab" data-module="grammar">
+                <i class="fas fa-book-open"></i>
+                Grammar
+            </button>
             <button class="nav-tab active" data-module="flashcards">
                 <i class="fas fa-layer-group"></i>
                 Flashcards
@@ -308,6 +313,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     <script src="assets/vendor/meyda.min.js?v=<?php echo cacheBust('assets/vendor/meyda.min.js'); ?>"></script>
     <script src="voice-practice-module.js?v=<?php echo cacheBust('voice-practice-module.js'); ?>"></script>
     <script src="flashcards-module.js?v=<?php echo cacheBust('flashcards-module.js'); ?>"></script>
+    <script src="grammar-module.js?v=<?php echo cacheBust('grammar-module.js'); ?>"></script>
     <script src="match-module.js?v=<?php echo cacheBust('match-module.js'); ?>"></script>
     <script src="match-sound-module.js?v=<?php echo cacheBust('match-sound-module.js'); ?>"></script>
     <script src="quiz-module.js?v=<?php echo cacheBust('quiz-module.js'); ?>"></script>
