@@ -1,6 +1,6 @@
 {
     "version": "4.0",
-    "lastUpdated": "2025-11-21T11:54:09-08:00",
+    "lastUpdated": "2025-11-23T13:25:24-08:00",
     "languages": [
         {
             "id": 1,
@@ -880,7 +880,9 @@
                 "audio": [
                     "assets/1.ceb.asa.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/1.Asa.Where.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -909,7 +911,9 @@
                 "audio": [
                     "assets/2.ceb.unsa.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/2.Unsa.What.png",
+                "hasGif": true
             },
             {
                 "lesson": 1,
@@ -938,7 +942,9 @@
                 "audio": [
                     "assets/3.ceb.oo.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/3.Oo.Yes.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -967,7 +973,9 @@
                 "audio": [
                     "assets/4.ceb.dili.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/4.Dili.No.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -996,7 +1004,9 @@
                 "audio": [
                     "assets/5.ceb.istorya.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/5.Istorya.Tell.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1025,7 +1035,9 @@
                 "audio": [
                     "assets/6.ceb.tan-aw.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/6.Tanawa.Look.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1054,7 +1066,9 @@
                 "audio": [
                     "assets/7.ceb.paminaw.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/7.Paminaw.Listen.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1083,7 +1097,9 @@
                 "audio": [
                     "assets/8.ceb.itudlo.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/8.Itudlo.Point.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1112,7 +1128,9 @@
                 "audio": [
                     "assets/9.ceb.basa.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/9.Basa.Read.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1141,7 +1159,9 @@
                 "audio": [
                     "assets/10.ceb.sulat.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/10.Sulat.Write.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1170,7 +1190,9 @@
                 "audio": [
                     "assets/11.ceb.nagtudlo.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/11.Nagtudlo.Teach.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1203,7 +1225,9 @@
                     "assets/12.ceb.ako.ime.wav",
                     "assets/12.ceb.ko.i.wav"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/12.Ako.Me.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1235,7 +1259,9 @@
                     "assets/13.ceb.ikaw.you.opus",
                     "assets/13.ceb.ka.you.opus"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/13.Ikaw.You.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1267,7 +1293,9 @@
                     "assets/14.ceb.kini.this.opus",
                     "assets/14.ceb.ni.this.opus"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/14.Kini.This.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1296,10 +1324,12 @@
                     "na"
                 ],
                 "audio": [
-                    null,
-                    null
+                    "assets/15.ceb.kana.that.opus",
+                    "assets/15.ceb.na.that.opus"
                 ],
-                "hasAudio": false
+                "hasAudio": true,
+                "printImagePath": "assets/15.Kana.That.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1328,7 +1358,9 @@
                 "audio": [
                     "assets/16.ceb.bolpen.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/16.Bolpen.Pen.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1357,7 +1389,9 @@
                 "audio": [
                     "assets/17.ceb.lapis.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/17.Lapis.Pencil.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1386,7 +1420,9 @@
                 "audio": [
                     "assets/18.ceb.libro.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/18.Libro.Book.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1415,7 +1451,9 @@
                 "audio": [
                     "assets/19.ceb.papel.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/19.Papel.Paper.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1444,7 +1482,9 @@
                 "audio": [
                     "assets/20.ceb.ngalan.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/20.Ngalan.Name.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1473,10 +1513,12 @@
                     "a"
                 ],
                 "audio": [
-                    null,
+                    "assets/21.ceb.maestro-a.m4a",
                     null
                 ],
-                "hasAudio": false
+                "hasAudio": true,
+                "printImagePath": "assets/21.Mestro.Teacher.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1505,7 +1547,9 @@
                 "audio": [
                     "assets/22.ceb.estudyante.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/22.Estudyante.Student.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -1534,7 +1578,9 @@
                 "audio": [
                     "assets/23.ceb.maayong adlaw.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/23.Maayong Adlaw.Good Day.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1563,7 +1609,9 @@
                 "audio": [
                     "assets/24.ceb.tabang.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/24.Tabang.Help.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1592,7 +1640,9 @@
                 "audio": [
                     "assets/25.ceb.nga.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/25.Nga.Linker.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1621,7 +1671,9 @@
                 "audio": [
                     "assets/26.ceb.ka.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/26.Ka.Counter marker.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1650,7 +1702,9 @@
                 "audio": [
                     "assets/27.ceb.mga.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/27.Mga.Plural marker.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1679,7 +1733,9 @@
                 "audio": [
                     "assets/28.ceb.ang.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/28.Ang.The.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1709,7 +1765,9 @@
                 "audio": [
                     "assets/29.ceb.og.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/29.Og.And.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1740,7 +1798,9 @@
                 "audio": [
                     "assets/30.ceb.sa.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/30.Sa.In.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1769,7 +1829,9 @@
                 "audio": [
                     "assets/31.ceb.si.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/31.Si.Name marker.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1798,7 +1860,9 @@
                 "audio": [
                     "assets/32.ceb.lingkod.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/32.Lingkod.Sit.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1827,7 +1891,9 @@
                 "audio": [
                     "assets/33.ceb.tindog.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/33.Tindog.Stand.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1856,7 +1922,9 @@
                 "audio": [
                     "assets/34.ceb.ibutang.put.opus"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/34.Ibutang.Put.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1885,7 +1953,9 @@
                 "audio": [
                     "assets/35.ceb.kuha.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/35.Kuha.Get.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1914,7 +1984,9 @@
                 "audio": [
                     "assets/36.ceb.lamesa.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/36.Lamesa.Table.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1943,7 +2015,9 @@
                 "audio": [
                     "assets/37.ceb.lingkuranan.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/37.Lingkuranan.Chair.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -1972,7 +2046,9 @@
                 "audio": [
                     "assets/38.ceb.mga butang.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/38.Mga butang.Things.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2001,7 +2077,9 @@
                 "audio": [
                     "assets/39.ceb.itom.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/39.Itom.Black.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2030,7 +2108,9 @@
                 "audio": [
                     "assets/40.ceb.puti.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/40.Puti.White.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2059,7 +2139,9 @@
                 "audio": [
                     "assets/41.ceb.pula.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/41.Pula.Red.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2088,7 +2170,9 @@
                 "audio": [
                     "assets/42.ceb.green.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/42.Green.Green.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2117,7 +2201,9 @@
                 "audio": [
                     "assets/43.ceb.isa.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/43.Isa.One.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2146,7 +2232,9 @@
                 "audio": [
                     "assets/44.ceb.duha.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/44.Duha.Two.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2175,7 +2263,9 @@
                 "audio": [
                     "assets/45.ceb.tulo.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/45.Tulo.Three.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2204,7 +2294,9 @@
                 "audio": [
                     "assets/46.ceb.upat.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/46.Upat.Four.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -2233,7 +2325,9 @@
                 "audio": [
                     "assets/47.ceb.lima.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/47.Lima.Five.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2263,7 +2357,9 @@
                 "audio": [
                     "assets/48.ceb.siya.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/48.Siya.Him_her.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2293,7 +2389,9 @@
                 "audio": [
                     "assets/49.ceb.sila.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/49.Sila.They_them.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2322,7 +2420,9 @@
                 "audio": [
                     "assets/50.ceb.bag.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/50.Bag.Bag.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2351,7 +2451,9 @@
                 "audio": [
                     "assets/51.ceb.karton.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/51.Karton.Box.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2380,7 +2482,9 @@
                 "audio": [
                     "assets/52.ceb.gawas.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/52.Gawas.Out.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2409,7 +2513,9 @@
                 "audio": [
                     "assets/53.ceb.sulod.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/53.Sulod.In.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2438,7 +2544,9 @@
                 "audio": [
                     "assets/54.ceb.ibabaw.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/54.Ibabaw.On top.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2467,7 +2575,9 @@
                 "audio": [
                     "assets/55.ceb.ilalom.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/55.Ilalom.Under.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2496,7 +2606,9 @@
                 "audio": [
                     "assets/56.ceb.kilid.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/56.Kilid.Next to.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -2525,7 +2637,9 @@
                 "audio": [
                     "assets/57.ceb.gikan.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/57.Gikan.From.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2553,7 +2667,9 @@
                     "Sakit"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/58.Sakit.Pain.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2580,7 +2696,9 @@
                     "Hikap"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/59.Hikap.Touch.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2607,7 +2725,9 @@
                     "Higda"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/60.Higda.Lie down.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2634,7 +2754,9 @@
                     "Akong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/61.Ako.My.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2664,7 +2786,9 @@
                 "audio": [
                     "assets/62.ceb.iyang.hisher.opus"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/62.Iya.HisHers.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2691,7 +2815,9 @@
                     "Ilang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/63.Ilang.Their.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2723,7 +2849,9 @@
                     "assets/64.ceb.imo.your.opus",
                     "assets/64.ceb.imong.your.opus"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/64.Imo.Your.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2750,7 +2878,9 @@
                     "Tudlo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/65.Tudlo.Finger.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2777,7 +2907,9 @@
                     "Ulo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/66.Ulo.Head.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2804,7 +2936,9 @@
                     "Abaga"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/67.Abaga.Shoulders.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2831,7 +2965,9 @@
                     "Tuhod"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/68.Tuhod.Knee.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2858,7 +2994,9 @@
                     "Tiil"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/69.Tiil.Foot.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2885,7 +3023,9 @@
                     "Tudlo sa Tiil"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/70.Tudlo sa Tiil.Toes.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2912,7 +3052,9 @@
                     "Kamot"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/71.Kamot.Hands.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2939,7 +3081,9 @@
                     "Dako"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/72.Dako.Big.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2966,7 +3110,9 @@
                     "Gamay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/73.Gamay.Small.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -2993,7 +3139,9 @@
                     "Wala"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/74.Wala.Left.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -3020,7 +3168,9 @@
                     "Tuo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/75.Tuo.Right.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -3047,7 +3197,9 @@
                     "Taas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/76.Taas.Up.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -3074,7 +3226,9 @@
                     "Ubos"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/77.Ubos.Below.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3101,7 +3255,9 @@
                     "Adto"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/78.Adto.Go.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3128,7 +3284,9 @@
                     "Tulog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/79.Tulog.Sleep.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3155,7 +3313,9 @@
                     "Balay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/80.Balay.House.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3182,7 +3342,9 @@
                     "Kwarto"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/81.Kwarto.Room.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3209,7 +3371,9 @@
                     "Sala"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/82.Sala.Living room.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3236,7 +3400,9 @@
                     "Bangko"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/83.Bangko.Chair.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3263,7 +3429,9 @@
                     "Higdaanan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/84.Higdaanan.Sleeping place.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3290,7 +3458,9 @@
                     "Tuluganan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/85.Tuluganan.Sleeping room.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3317,7 +3487,9 @@
                     "Katre"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/86.Katre.Bed frame.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3344,7 +3516,9 @@
                     "Babaye"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/87.Babaye.Female.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3371,7 +3545,9 @@
                     "Lalaki"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/88.Lalaki.Male.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3398,7 +3574,9 @@
                     "Cr"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/89.Cr.Toilet room.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -3425,7 +3603,9 @@
                     "Kato"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/90.Kato.That, far.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3452,7 +3632,9 @@
                     "Dagan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/91.Dagan.Run.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3479,7 +3661,9 @@
                     "Hunong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/92.Hunong.Stop.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3506,7 +3690,9 @@
                     "Padulong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/93.Padulong.Direction.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3533,7 +3719,9 @@
                     "Lakaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/94.Lakaw.Walk.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3562,7 +3750,9 @@
                     "Dinhi"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/95.Diri.Here.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3589,7 +3779,9 @@
                     "Didto"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/96.Didto.Over there.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3618,7 +3810,9 @@
                     "Dinha"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/97.Diha.There.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3645,7 +3839,9 @@
                     "Siyudad"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/98.Siyudad.City.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3672,7 +3868,9 @@
                     "Lungsod"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/99.Lungsod.Town.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3699,7 +3897,9 @@
                     "Barangay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/100.Barangay.Barangay.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3726,7 +3926,9 @@
                     "Eskwela-han"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/101.Eskwelahan.School.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3753,7 +3955,9 @@
                     "Merkado"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/102.Merkado.Market.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3780,7 +3984,9 @@
                     "Tinda-han"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/103.Tindahan.Store.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3807,7 +4013,9 @@
                     "Ospital"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/104.Ospital.Hospital.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3834,7 +4042,9 @@
                     "Munisipyo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/105.Munisipyo.Govt HQ.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3861,7 +4071,9 @@
                     "Simba-han"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/106.Simbahan.Church.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3888,7 +4100,9 @@
                     "Banko"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/107.Banko.Bank.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3915,7 +4129,9 @@
                     "Duol"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/108.Duol.Near.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3942,7 +4158,9 @@
                     "Layo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/109.Layo.Far.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -3969,7 +4187,9 @@
                     "Atubangan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/110.Atubangan.Front of.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -3996,7 +4216,9 @@
                     "Kinsa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/111.Kinsa.Who.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4023,7 +4245,9 @@
                     "Dili"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/112.Dili.Not.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4050,7 +4274,9 @@
                     "Piyong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/113.Piyong.Close eyes.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4078,7 +4304,9 @@
                     "Bukha"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/114.Bukha.Open eyes.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4105,7 +4333,9 @@
                     "Sirado"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/115.Sirado.Close.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4132,7 +4362,9 @@
                     "Ngisi"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/116.Ngisi.Smile.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4159,7 +4391,9 @@
                     "Mata"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/117.Mata.Eye.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4186,7 +4420,9 @@
                     "Kilay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/118.Kilay.Eyebrow.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4213,7 +4449,9 @@
                     "Ilong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/119.Ilong.Nose.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4240,7 +4478,9 @@
                     "Dalunggan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/120.Dalunggan.Ear.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4267,7 +4507,9 @@
                     "Baba"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/121.Baba.Mouth.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4294,7 +4536,9 @@
                     "Ngipon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/122.Ngipon.Teeth.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4321,7 +4565,9 @@
                     "Agtang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/123.Agtang.Forehead.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4348,7 +4594,9 @@
                     "Suwang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/124.Suwang.Chin.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4375,7 +4623,9 @@
                     "Aping"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/125.Aping.Cheeks.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4402,7 +4652,9 @@
                     "Buhok"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/126.Buhok.Hair.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4429,7 +4681,9 @@
                     "Gwapa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/127.Gwapa.Beautiful.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4456,7 +4710,9 @@
                     "Pangit"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/128.Pangit.Ugly.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4484,7 +4740,9 @@
                     "Sa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/129.Sa.To.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4511,7 +4769,9 @@
                     "O"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/130.O.Or.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4538,7 +4798,9 @@
                     "Diba"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/131.Diba.Right.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4565,7 +4827,9 @@
                     "Mao jud"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/132.Mao jud.Thats Right.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -4592,7 +4856,9 @@
                     "Gwapo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/133.Gwapo.Handsome.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4619,7 +4885,9 @@
                     "Mi"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/134.Kami.We.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4646,7 +4914,9 @@
                     "Mo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/135.Kamo.You all.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4673,7 +4943,9 @@
                     "Ta"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/136.Kita.We.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4700,7 +4972,9 @@
                     "Inahan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/137.Inahan.Mother.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4727,7 +5001,9 @@
                     "Amahan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/138.Amahan.Father.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4754,7 +5030,9 @@
                     "Igsoon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/139.Igsoon.Sibling.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4781,7 +5059,9 @@
                     "Ig-agaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/140.Ig-agaw.Cousin.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4809,7 +5089,9 @@
                     "Anak"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/141.Anak.SonDaughter.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4836,7 +5118,9 @@
                     "Lolo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/142.Lolo.Grandfather.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4863,7 +5147,9 @@
                     "Lola"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/143.Lola.Grandmother.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -4890,7 +5176,9 @@
                     "Tawo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/144.Tawo.People.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -4918,7 +5206,9 @@
                     "Sakay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/145.Sakay.Ride.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -4945,7 +5235,9 @@
                     "Biyahe"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/146.Biyahe.Travel.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -4972,7 +5264,9 @@
                     "Naog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/147.Naog.Debark.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -5000,7 +5294,9 @@
                     "Dalan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/148.Dalan.Road.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -5027,7 +5323,9 @@
                     "Sakyanan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/149.Sakyanan.Car.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -5056,7 +5354,9 @@
                     "jeepney"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/150.Jeepney.Jeep.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -5083,7 +5383,9 @@
                     "Sikad"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/151.Sikad.Rickshaw.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -5110,7 +5412,9 @@
                     "Bilding"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/152.Bilding.Building.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -5137,7 +5441,9 @@
                     "Lang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/153.Lang.Just.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -5164,7 +5470,9 @@
                     "Tunga"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/154.Tunga.Center.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -5191,7 +5499,9 @@
                     "Likod"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/155.Likod.Behind.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5218,7 +5528,9 @@
                     "Ihap"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/156.Ihap.Count.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5246,7 +5558,9 @@
                     "Kita"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/157.Kita.See.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5273,7 +5587,9 @@
                     "Simhot"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/158.Simhot.Smell.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5300,7 +5616,9 @@
                     "Dungog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/159.Dungog.Hear.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5328,7 +5646,9 @@
                     "Sulti"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/160.Sulti.Say_speak.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5357,7 +5677,9 @@
                 "audio": [
                     "assets/161.ceb.inyong.yoursecondpersonplural.opus"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/161.Inyo.Yours.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5384,7 +5706,9 @@
                     "Taas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/162.Taas.Long.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5411,7 +5735,9 @@
                     "Mubo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/163.Mubo.Short.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5438,7 +5764,9 @@
                     "Taman"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/164.Taman.Until.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5465,7 +5793,9 @@
                     "Unom"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/165.Unom.Six.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5492,7 +5822,9 @@
                     "Pito"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/166.Pito.Seven.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5519,7 +5851,9 @@
                     "Walo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/167.Walo.Eight.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5546,7 +5880,9 @@
                     "Siyam"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/168.Siyam.Nine.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -5573,7 +5909,9 @@
                     "Pulo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/169.Pulo.Ten.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5600,7 +5938,9 @@
                     "Tilaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/170.Tilaw.Taste.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5627,7 +5967,9 @@
                     "Kaon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/171.Kaon.Eat.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5654,7 +5996,9 @@
                     "Inom"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/172.Inom.Drink.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5681,7 +6025,9 @@
                     "Na"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/173.Na.Already.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5709,7 +6055,9 @@
                     "Kan-anan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/174.Kan-anan.Eating place.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5736,7 +6084,9 @@
                     "Kusina"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/175.Kusina.Kitchen.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5763,7 +6113,9 @@
                     "Pagkaon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/176.Pagkaon.Food.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5790,7 +6142,9 @@
                     "Plato"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/177.Plato.Plate.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5817,7 +6171,9 @@
                     "Kutsara"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/178.Kutsara.Spoon.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5844,7 +6200,9 @@
                     "Tinidor"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/179.Tinidor.Fork.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5871,7 +6229,9 @@
                     "Baso"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/180.Baso.Glass.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5898,7 +6258,9 @@
                     "Tubig"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/181.Tubig.Water.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5925,7 +6287,9 @@
                     "Lami"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/182.Lami.Delicious.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5952,7 +6316,9 @@
                     "Gamay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/183.Gamay.Few.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -5979,7 +6345,9 @@
                     "Daghan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/184.Daghan.Many.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -6006,7 +6374,9 @@
                     "kay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/185.Kay.Is.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -6035,7 +6405,9 @@
                     "naa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/186.Naa.There is.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6062,7 +6434,9 @@
                     "Bayad"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/187.Bayad.Pay.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6089,7 +6463,9 @@
                     "Palit"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/188.Palit.Buy.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6116,7 +6492,9 @@
                     "Buok"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/189.Buok.Piece.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6143,7 +6521,9 @@
                     "Bayad"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/190.Bayad.Payment.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6170,7 +6550,9 @@
                     "Prutas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/191.Prutas.Fruits.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6197,7 +6579,9 @@
                     "Utan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/192.Utan.Vegetables.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6224,7 +6608,9 @@
                     "Karne"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/193.Karne.Meat.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6251,7 +6637,9 @@
                     "Manok"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/194.Manok.Chicken.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6278,7 +6666,9 @@
                     "Mga baligya"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/195.Mga baligya.Goods for sale.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6305,7 +6695,9 @@
                     "Bugas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/196.Bugas.Rice.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6332,7 +6724,9 @@
                     "Kwarta"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/197.Kwarta.Money.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6359,7 +6753,9 @@
                     "Mahal"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/198.Mahal.Expensive.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6386,7 +6782,9 @@
                     "Barato"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/199.Barato.Cheap.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -6413,7 +6811,9 @@
                     "Ayo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/200.Ayo.Anyone there.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -6440,7 +6840,9 @@
                     "Dayon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/201.Dayon.Come in.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6467,7 +6869,9 @@
                     "Abri"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/202.Abri.Open.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6494,7 +6898,9 @@
                     "Pila"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/203.Pila.How many.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6521,7 +6927,9 @@
                     "Palihog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/204.Palihog.Please.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -6548,7 +6956,9 @@
                     "Plite"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/205.Plite.Fare.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -6575,7 +6985,9 @@
                     "lami-a oy"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/206.lamia oy.Yummy.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -6602,7 +7014,9 @@
                     "Hapit"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": null,
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -6663,7 +7077,9 @@
                 "audio": [
                     "assets/10.ceb.sulat.m4a"
                 ],
-                "hasAudio": true
+                "hasAudio": true,
+                "printImagePath": "assets/1.Asa.Where.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6690,7 +7106,9 @@
                     "Unsa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/2.Unsa.What.png",
+                "hasGif": true
             },
             {
                 "lesson": 1,
@@ -6717,7 +7135,9 @@
                     "Oo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/3.Oo.Yes.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6744,7 +7164,9 @@
                     "Dili"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/4.Dili.No.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6771,7 +7193,9 @@
                     "Istorya"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/5.Istorya.Tell.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6798,7 +7222,9 @@
                     "Tan-aw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/6.Tanawa.Look.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6825,7 +7251,9 @@
                     "Paminaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/7.Paminaw.Listen.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6852,7 +7280,9 @@
                     "I-tudlo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/8.Itudlo.Point.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6879,7 +7309,9 @@
                     "Basa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/9.Basa.Read.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6906,7 +7338,9 @@
                     "Sulat"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/10.Sulat.Write.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6933,7 +7367,9 @@
                     "Nag-tudlo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/11.Nagtudlo.Teach.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6962,7 +7398,9 @@
                     "ko"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/12.Ako.Me.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -6990,7 +7428,9 @@
                     "ka"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/13.Ikaw.You.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7018,7 +7458,9 @@
                     "ni"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/14.Kini.This.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7046,7 +7488,9 @@
                     "na"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/15.Kana.That.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7073,7 +7517,9 @@
                     "Bolpen"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/16.Bolpen.Pen.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7100,7 +7546,9 @@
                     "Lapis"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/17.Lapis.Pencil.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7127,7 +7575,9 @@
                     "Libro"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/18.Libro.Book.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7154,7 +7604,9 @@
                     "Papel"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/19.Papel.Paper.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7181,7 +7633,9 @@
                     "Ngalan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/20.Ngalan.Name.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7209,7 +7663,9 @@
                     "a"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/21.Mestro.Teacher.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7236,7 +7692,9 @@
                     "Estudyante"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/22.Estudyante.Student.png",
+                "hasGif": false
             },
             {
                 "lesson": 1,
@@ -7263,7 +7721,9 @@
                     "Maayong Adlaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/23.Maayong Adlaw.Good Day.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7290,7 +7750,9 @@
                     "Tabang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/24.Tabang.Help.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7317,7 +7779,9 @@
                     "Nga"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/25.Nga.Linker.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7344,7 +7808,9 @@
                     "Ka"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/26.Ka.Counter marker.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7371,7 +7837,9 @@
                     "Mga"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/27.Mga.Plural marker.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7398,7 +7866,9 @@
                     "Ang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/28.Ang.The.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7426,7 +7896,9 @@
                     "Og"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/29.Og.And.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7455,7 +7927,9 @@
                     "Sa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/30.Sa.In.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7482,7 +7956,9 @@
                     "Si"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/31.Si.Name marker.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7509,7 +7985,9 @@
                     "Lingkod"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/32.Lingkod.Sit.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7536,7 +8014,9 @@
                     "Tindog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/33.Tindog.Stand.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7563,7 +8043,9 @@
                     "I-butang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/34.Ibutang.Put.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7590,7 +8072,9 @@
                     "Kuha"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/35.Kuha.Get.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7617,7 +8101,9 @@
                     "Lamesa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/36.Lamesa.Table.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7644,7 +8130,9 @@
                     "Lingkuranan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/37.Lingkuranan.Chair.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7671,7 +8159,9 @@
                     "Mga butang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/38.Mga butang.Things.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7698,7 +8188,9 @@
                     "Itom"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/39.Itom.Black.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7725,7 +8217,9 @@
                     "Puti"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/40.Puti.White.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7752,7 +8246,9 @@
                     "Pula"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/41.Pula.Red.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7779,7 +8275,9 @@
                     "Green"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/42.Green.Green.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7806,7 +8304,9 @@
                     "Isa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/43.Isa.One.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7833,7 +8333,9 @@
                     "Duha"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/44.Duha.Two.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7860,7 +8362,9 @@
                     "Tulo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/45.Tulo.Three.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7887,7 +8391,9 @@
                     "Upat"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/46.Upat.Four.png",
+                "hasGif": false
             },
             {
                 "lesson": 2,
@@ -7914,7 +8420,9 @@
                     "Lima"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/47.Lima.Five.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -7942,7 +8450,9 @@
                     "Siya"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/48.Siya.Him_her.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -7970,7 +8480,9 @@
                     "Sila"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/49.Sila.They_them.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -7997,7 +8509,9 @@
                     "Bag"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/50.Bag.Bag.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -8024,7 +8538,9 @@
                     "Karton"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/51.Karton.Box.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -8051,7 +8567,9 @@
                     "Gawas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/52.Gawas.Out.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -8078,7 +8596,9 @@
                     "Sulod"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/53.Sulod.In.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -8105,7 +8625,9 @@
                     "Ibabaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/54.Ibabaw.On top.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -8132,7 +8654,9 @@
                     "Ilalom"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/55.Ilalom.Under.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -8159,7 +8683,9 @@
                     "Kilid"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/56.Kilid.Next to.png",
+                "hasGif": false
             },
             {
                 "lesson": 3,
@@ -8186,7 +8712,9 @@
                     "Gikan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/57.Gikan.From.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8214,7 +8742,9 @@
                     "Sakit"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/58.Sakit.Pain.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8241,7 +8771,9 @@
                     "Hikap"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/59.Hikap.Touch.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8268,7 +8800,9 @@
                     "Higda"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/60.Higda.Lie down.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8295,7 +8829,9 @@
                     "Akong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/61.Ako.My.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8323,7 +8859,9 @@
                     "Iyang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/62.Iya.HisHers.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8350,7 +8888,9 @@
                     "Ilang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/63.Ilang.Their.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8378,7 +8918,9 @@
                     "Imong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/64.Imo.Your.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8405,7 +8947,9 @@
                     "Tudlo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/65.Tudlo.Finger.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8432,7 +8976,9 @@
                     "Ulo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/66.Ulo.Head.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8459,7 +9005,9 @@
                     "Abaga"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/67.Abaga.Shoulders.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8486,7 +9034,9 @@
                     "Tuhod"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/68.Tuhod.Knee.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8513,7 +9063,9 @@
                     "Tiil"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/69.Tiil.Foot.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8540,7 +9092,9 @@
                     "Tudlo sa Tiil"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/70.Tudlo sa Tiil.Toes.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8567,7 +9121,9 @@
                     "Kamot"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/71.Kamot.Hands.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8594,7 +9150,9 @@
                     "Dako"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/72.Dako.Big.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8621,7 +9179,9 @@
                     "Gamay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/73.Gamay.Small.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8648,7 +9208,9 @@
                     "Wala"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/74.Wala.Left.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8675,7 +9237,9 @@
                     "Tuo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/75.Tuo.Right.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8702,7 +9266,9 @@
                     "Taas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/76.Taas.Up.png",
+                "hasGif": false
             },
             {
                 "lesson": 5,
@@ -8729,7 +9295,9 @@
                     "Ubos"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/77.Ubos.Below.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8756,7 +9324,9 @@
                     "Adto"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/78.Adto.Go.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8783,7 +9353,9 @@
                     "Tulog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/79.Tulog.Sleep.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8810,7 +9382,9 @@
                     "Balay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/80.Balay.House.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8837,7 +9411,9 @@
                     "Kwarto"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/81.Kwarto.Room.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8864,7 +9440,9 @@
                     "Sala"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/82.Sala.Living room.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8891,7 +9469,9 @@
                     "Bangko"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/83.Bangko.Chair.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8918,7 +9498,9 @@
                     "Higdaanan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/84.Higdaanan.Sleeping place.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8945,7 +9527,9 @@
                     "Tuluganan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/85.Tuluganan.Sleeping room.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8972,7 +9556,9 @@
                     "Katre"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/86.Katre.Bed frame.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -8999,7 +9585,9 @@
                     "Babaye"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/87.Babaye.Female.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -9026,7 +9614,9 @@
                     "Lalaki"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/88.Lalaki.Male.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -9053,7 +9643,9 @@
                     "Cr"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/89.Cr.Toilet room.png",
+                "hasGif": false
             },
             {
                 "lesson": 6,
@@ -9080,7 +9672,9 @@
                     "Kato"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/90.Kato.That, far.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9107,7 +9701,9 @@
                     "Dagan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/91.Dagan.Run.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9134,7 +9730,9 @@
                     "Hunong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/92.Hunong.Stop.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9161,7 +9759,9 @@
                     "Padulong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/93.Padulong.Direction.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9188,7 +9788,9 @@
                     "Lakaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/94.Lakaw.Walk.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9217,7 +9819,9 @@
                     "Dinhi"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/95.Diri.Here.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9244,7 +9848,9 @@
                     "Didto"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/96.Didto.Over there.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9272,7 +9878,9 @@
                     "Dinha"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/97.Diha.There.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9299,7 +9907,9 @@
                     "Siyudad"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/98.Siyudad.City.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9326,7 +9936,9 @@
                     "Lungsod"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/99.Lungsod.Town.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9353,7 +9965,9 @@
                     "Barangay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/100.Barangay.Barangay.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9380,7 +9994,9 @@
                     "Eskwela-han"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/101.Eskwelahan.School.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9407,7 +10023,9 @@
                     "Merkado"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/102.Merkado.Market.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9434,7 +10052,9 @@
                     "Tinda-han"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/103.Tindahan.Store.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9461,7 +10081,9 @@
                     "Ospital"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/104.Ospital.Hospital.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9488,7 +10110,9 @@
                     "Munisipyo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/105.Munisipyo.Govt HQ.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9515,7 +10139,9 @@
                     "Simba-han"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/106.Simbahan.Church.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9542,7 +10168,9 @@
                     "Banko"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/107.Banko.Bank.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9569,7 +10197,9 @@
                     "Duol"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/108.Duol.Near.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9596,7 +10226,9 @@
                     "Layo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/109.Layo.Far.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -9623,7 +10255,9 @@
                     "Atubangan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/110.Atubangan.Front of.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9650,7 +10284,9 @@
                     "Kinsa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/111.Kinsa.Who.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9677,7 +10313,9 @@
                     "Dili"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/112.Dili.Not.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9704,7 +10342,9 @@
                     "Piyong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/113.Piyong.Close eyes.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9732,7 +10372,9 @@
                     "Bukha"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/114.Bukha.Open eyes.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9759,7 +10401,9 @@
                     "Sirado"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/115.Sirado.Close.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9786,7 +10430,9 @@
                     "Ngisi"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/116.Ngisi.Smile.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9813,7 +10459,9 @@
                     "Mata"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/117.Mata.Eye.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9840,7 +10488,9 @@
                     "Kilay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/118.Kilay.Eyebrow.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9867,7 +10517,9 @@
                     "Ilong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/119.Ilong.Nose.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9894,7 +10546,9 @@
                     "Dalunggan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/120.Dalunggan.Ear.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9921,7 +10575,9 @@
                     "Baba"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/121.Baba.Mouth.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9948,7 +10604,9 @@
                     "Ngipon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/122.Ngipon.Teeth.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -9975,7 +10633,9 @@
                     "Agtang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/123.Agtang.Forehead.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10002,7 +10662,9 @@
                     "Suwang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/124.Suwang.Chin.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10029,7 +10691,9 @@
                     "Aping"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/125.Aping.Cheeks.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10056,7 +10720,9 @@
                     "Buhok"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/126.Buhok.Hair.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10083,7 +10749,9 @@
                     "Gwapa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/127.Gwapa.Beautiful.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10110,7 +10778,9 @@
                     "Pangit"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/128.Pangit.Ugly.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10138,7 +10808,9 @@
                     "Sa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/129.Sa.To.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10165,7 +10837,9 @@
                     "O"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/130.O.Or.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10192,7 +10866,9 @@
                     "Diba"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/131.Diba.Right.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10219,7 +10895,9 @@
                     "Mao jud"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/132.Mao jud.Thats Right.png",
+                "hasGif": false
             },
             {
                 "lesson": 9,
@@ -10246,7 +10924,9 @@
                     "Gwapo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/133.Gwapo.Handsome.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10273,7 +10953,9 @@
                     "Mi"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/134.Kami.We.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10300,7 +10982,9 @@
                     "Mo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/135.Kamo.You all.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10327,7 +11011,9 @@
                     "Ta"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/136.Kita.We.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10354,7 +11040,9 @@
                     "Inahan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/137.Inahan.Mother.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10381,7 +11069,9 @@
                     "Amahan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/138.Amahan.Father.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10408,7 +11098,9 @@
                     "Igsoon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/139.Igsoon.Sibling.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10435,7 +11127,9 @@
                     "Ig-agaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/140.Ig-agaw.Cousin.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10463,7 +11157,9 @@
                     "Anak"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/141.Anak.SonDaughter.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10490,7 +11186,9 @@
                     "Lolo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/142.Lolo.Grandfather.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10517,7 +11215,9 @@
                     "Lola"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/143.Lola.Grandmother.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -10544,7 +11244,9 @@
                     "Tawo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/144.Tawo.People.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10572,7 +11274,9 @@
                     "Sakay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/145.Sakay.Ride.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10599,7 +11303,9 @@
                     "Biyahe"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/146.Biyahe.Travel.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10626,7 +11332,9 @@
                     "Naog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/147.Naog.Debark.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10654,7 +11362,9 @@
                     "Dalan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/148.Dalan.Road.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10681,7 +11391,9 @@
                     "Sakyanan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/149.Sakyanan.Car.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10709,7 +11421,9 @@
                     "jeepney"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/150.Jeepney.Jeep.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10736,7 +11450,9 @@
                     "Sikad"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/151.Sikad.Rickshaw.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10763,7 +11479,9 @@
                     "Bilding"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/152.Bilding.Building.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10790,7 +11508,9 @@
                     "Lang"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/153.Lang.Just.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10817,7 +11537,9 @@
                     "Tunga"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/154.Tunga.Center.png",
+                "hasGif": false
             },
             {
                 "lesson": 11,
@@ -10844,7 +11566,9 @@
                     "Likod"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/155.Likod.Behind.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -10871,7 +11595,9 @@
                     "Ihap"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/156.Ihap.Count.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -10900,7 +11626,9 @@
                     "Kita"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/157.Kita.See.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -10927,7 +11655,9 @@
                     "Simhot"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/158.Simhot.Smell.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -10954,7 +11684,9 @@
                     "Dungog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/159.Dungog.Hear.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -10983,7 +11715,9 @@
                     "Sulti"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/160.Sulti.Say_speak.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11012,7 +11746,9 @@
                     "Inyong"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/161.Inyo.Yours.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11039,7 +11775,9 @@
                     "Taas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/162.Taas.Long.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11066,7 +11804,9 @@
                     "Mubo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/163.Mubo.Short.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11093,7 +11833,9 @@
                     "Taman"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/164.Taman.Until.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11120,7 +11862,9 @@
                     "Unom"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/165.Unom.Six.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11147,7 +11891,9 @@
                     "Pito"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/166.Pito.Seven.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11174,7 +11920,9 @@
                     "Walo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/167.Walo.Eight.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11201,7 +11949,9 @@
                     "Siyam"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/168.Siyam.Nine.png",
+                "hasGif": false
             },
             {
                 "lesson": 13,
@@ -11228,7 +11978,9 @@
                     "Pulo"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/169.Pulo.Ten.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11255,7 +12007,9 @@
                     "Tilaw"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/170.Tilaw.Taste.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11282,7 +12036,9 @@
                     "Kaon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/171.Kaon.Eat.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11309,7 +12065,9 @@
                     "Inom"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/172.Inom.Drink.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11336,7 +12094,9 @@
                     "Na"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/173.Na.Already.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11364,7 +12124,9 @@
                     "Kan-anan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/174.Kan-anan.Eating place.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11391,7 +12153,9 @@
                     "Kusina"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/175.Kusina.Kitchen.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11418,7 +12182,9 @@
                     "Pagkaon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/176.Pagkaon.Food.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11445,7 +12211,9 @@
                     "Plato"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/177.Plato.Plate.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11472,7 +12240,9 @@
                     "Kutsara"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/178.Kutsara.Spoon.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11499,7 +12269,9 @@
                     "Tinidor"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/179.Tinidor.Fork.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11526,7 +12298,9 @@
                     "Baso"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/180.Baso.Glass.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11553,7 +12327,9 @@
                     "Tubig"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/181.Tubig.Water.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11580,7 +12356,9 @@
                     "Lami"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/182.Lami.Delicious.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11607,7 +12385,9 @@
                     "Gamay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/183.Gamay.Few.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11634,7 +12414,9 @@
                     "Daghan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/184.Daghan.Many.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11661,7 +12443,9 @@
                     "kay"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/185.Kay.Is.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -11690,7 +12474,9 @@
                     "naa"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/186.Naa.There is.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11717,7 +12503,9 @@
                     "Bayad"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/187.Bayad.Pay.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11744,7 +12532,9 @@
                     "Palit"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/188.Palit.Buy.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11771,7 +12561,9 @@
                     "Buok"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/189.Buok.Piece.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11798,7 +12590,9 @@
                     "Bayad"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/190.Bayad.Payment.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11825,7 +12619,9 @@
                     "Prutas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/191.Prutas.Fruits.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11852,7 +12648,9 @@
                     "Utan"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/192.Utan.Vegetables.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11879,7 +12677,9 @@
                     "Karne"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/193.Karne.Meat.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11906,7 +12706,9 @@
                     "Manok"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/194.Manok.Chicken.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11933,7 +12735,9 @@
                     "Mga baligya"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/195.Mga baligya.Goods for sale.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11960,7 +12764,9 @@
                     "Bugas"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/196.Bugas.Rice.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -11987,7 +12793,9 @@
                     "Kwarta"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/197.Kwarta.Money.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -12014,7 +12822,9 @@
                     "Mahal"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/198.Mahal.Expensive.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -12041,7 +12851,9 @@
                     "Barato"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/199.Barato.Cheap.png",
+                "hasGif": false
             },
             {
                 "lesson": 10,
@@ -12068,7 +12880,9 @@
                     "Dayon"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/201.Dayon.Come in.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -12095,7 +12909,9 @@
                     "Abri"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/202.Abri.Open.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -12122,7 +12938,9 @@
                     "Pila"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/203.Pila.How many.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -12149,7 +12967,9 @@
                     "Palihog"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/204.Palihog.Please.png",
+                "hasGif": false
             },
             {
                 "lesson": 15,
@@ -12176,7 +12996,9 @@
                     "Plite"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/205.Plite.Fare.png",
+                "hasGif": false
             },
             {
                 "lesson": 14,
@@ -12203,7 +13025,9 @@
                     "lami-a oy"
                 ],
                 "audio": [],
-                "hasAudio": false
+                "hasAudio": false,
+                "printImagePath": "assets/206.lamia oy.Yummy.png",
+                "hasGif": false
             },
             {
                 "lesson": 7,
@@ -18406,17 +19230,122 @@
             }
         ]
     },
+    "sentenceWords": {
+        "ceb": {
+            "1": {
+                "Q&A": [
+                    "asa",
+                    "unsa",
+                    "oo",
+                    "dili"
+                ],
+                "Verb": [
+                    "Istorya",
+                    "tan-aw",
+                    "paminaw",
+                    "i-tudlo",
+                    "nag-tudlo",
+                    "basa",
+                    "sulat"
+                ],
+                "Function Words": [
+                    "ang",
+                    "og",
+                    "sa",
+                    "Si"
+                ],
+                "Pronoun": [
+                    "ako / ko",
+                    "ikaw / ka",
+                    "kini / ni",
+                    "kana / na"
+                ],
+                "Noun": [
+                    "bolpen",
+                    "lapis",
+                    "libro",
+                    "papel",
+                    "ngalan",
+                    "Mestro / Mestra",
+                    "Estudyante"
+                ]
+            },
+            "2": {
+                "Q&A": [
+                    "asa",
+                    "unsa",
+                    "oo",
+                    "dili"
+                ],
+                "Verb": [
+                    "lingkod",
+                    "tindog",
+                    "i-butang",
+                    "kuha",
+                    "Istorya",
+                    "tan-aw",
+                    "paminaw",
+                    "i-tudlo",
+                    "nag-tudlo",
+                    "basa",
+                    "sulat"
+                ],
+                "Function Words": [
+                    "ang",
+                    "og",
+                    "sa",
+                    "nga",
+                    "ka",
+                    "mga",
+                    "Si"
+                ],
+                "Pronoun": [
+                    "ako / ko",
+                    "ikaw / ka",
+                    "kini / ni",
+                    "kana / na"
+                ],
+                "Noun": [
+                    "lamesa",
+                    "lingkuranan",
+                    "bolpen",
+                    "lapis",
+                    "libro",
+                    "papel",
+                    "ngalan",
+                    "Mestro / Mestra",
+                    "Estudyante"
+                ],
+                "Adjective": [
+                    "itom",
+                    "puti",
+                    "pula",
+                    "green"
+                ],
+                "Numbers": [
+                    "isa",
+                    "duha",
+                    "tulo",
+                    "upat",
+                    "lima"
+                ],
+                "Special": [
+                    "tabang"
+                ]
+            }
+        }
+    },
     "stats": {
         "totalPng": 414,
         "totalGif": 2,
         "totalAudio": 58,
         "totalCards": 625,
-        "cardsWithAudio": 59,
+        "cardsWithAudio": 61,
         "totalImages": 206,
         "languageStats": {
             "ceb": {
                 "totalCards": 208,
-                "cardsWithAudio": 58,
+                "cardsWithAudio": 60,
                 "lessons": [
                     1,
                     2,
