@@ -410,7 +410,8 @@ class SentenceBuilderModule extends LearningModule {
      * Find a card in manifest by word (handles slash-separated variants)
      */
     findCardByWord(word) {
-        const allCards = this.assets.getCards({ lesson: this.assets.currentLesson });
+        // Search ALL cards - sentence builder words can reference cards from any lesson
+        const allCards = this.assets.getCards({});
 
         // Normalize function: lowercase, collapse spaces around slashes, trim
         const normalize = (str) => {
