@@ -157,6 +157,10 @@ class GrammarModule extends LearningModule {
         const contentEl = document.getElementById('grammarContent');
         if (!contentEl) return;
 
+        // Fix encoding issues from Word's "Web Page, Filtered" export
+        // Word uses Windows-1252 encoding which can cause issues with smart quotes
+        htmlContent = this.fixEncoding(htmlContent);
+
         // Extract the body content from the HTML
         // This handles both full HTML documents and body-only content
         let bodyContent = htmlContent;
@@ -308,6 +312,67 @@ class GrammarModule extends LearningModule {
         } else {
             document.exitFullscreen();
         }
+    }
+
+    /**
+     * Fix encoding issues from Word's "Web Page, Filtered" export
+     * Word uses Windows-1252 encoding which causes smart quotes to display as �
+     * This method replaces corrupted characters with their proper equivalents
+     */
+    fixEncoding(html) {
+        // Common Windows-1252 to UTF-8 encoding issues
+        // These appear when Windows-1252 encoded files are read as UTF-8
+        const replacements = [
+            // Smart quotes (most common issue)
+            [/\u0093/g, '"'],      // Left double quote
+            [/\u0094/g, '"'],      // Right double quote
+            [/\u0091/g, "'"],      // Left single quote
+            [/\u0092/g, "'"],      // Right single quote
+            [/\u0085/g, '...'],    // Ellipsis
+            [/\u0096/g, '–'],      // En dash
+            [/\u0097/g, '—'],      // Em dash
+
+            // Replacement character (appears when encoding fails)
+            [/\ufffd/g, ''],       // Remove replacement characters
+
+            // Windows-1252 bytes misread as UTF-8 (shows as Â followed by special char)
+            [/Â\u0093/g, '"'],
+            [/Â\u0094/g, '"'],
+            [/Â\u0091/g, "'"],
+            [/Â\u0092/g, "'"],
+            [/Â·/g, '·'],          // Middle dot
+            [/Â©/g, '©'],          // Copyright
+            [/Â®/g, '®'],          // Registered
+            [/Â°/g, '°'],          // Degree
+            [/Â±/g, '±'],          // Plus-minus
+            [/Â²/g, '²'],          // Superscript 2
+            [/Â³/g, '³'],          // Superscript 3
+            [/Â¼/g, '¼'],          // 1/4
+            [/Â½/g, '½'],          // 1/2
+            [/Â¾/g, '¾'],          // 3/4
+
+            // Common corrupted sequences from Word
+            [/â€œ/g, '"'],         // Left double quote (UTF-8 bytes as Windows-1252)
+            [/â€/g, '"'],         // Right double quote
+            [/â€˜/g, "'"],         // Left single quote
+            [/â€™/g, "'"],         // Right single quote (apostrophe)
+            [/â€"/g, '–'],         // En dash
+            [/â€"/g, '—'],         // Em dash
+            [/â€¦/g, '...'],       // Ellipsis
+            [/Ã¢â‚¬Å"/g, '"'],     // More corrupted left quote
+            [/Ã¢â‚¬/g, '"'],      // More corrupted right quote
+            [/Ã¢â‚¬â„¢/g, "'"],    // Corrupted apostrophe
+
+            // Fix double-encoded characters
+            [/&amp;/g, '&'],       // Already escaped ampersand
+        ];
+
+        let fixed = html;
+        for (const [pattern, replacement] of replacements) {
+            fixed = fixed.replace(pattern, replacement);
+        }
+
+        return fixed;
     }
 
     destroy() {
