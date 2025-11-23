@@ -41,6 +41,12 @@ try {
         case 'uploadSentenceWords':
             handleSentenceWordsUpload();
             break;
+        case 'previewSentenceWords':
+            previewSentenceWordsUpload();
+            break;
+        case 'confirmSentenceWords':
+            confirmSentenceWordsUpload();
+            break;
         case 'uploadMedia':
             handleMediaUpload();
             break;
@@ -252,6 +258,357 @@ function validateSentenceWordsCSV($filePath, $trigraph, $manifest) {
         'valid' => empty($errors),
         'errors' => $errors
     ];
+}
+
+/**
+ * Preview Sentence Words Upload - validates and returns detailed results with suggestions
+ */
+function previewSentenceWordsUpload() {
+    global $assetsDir;
+
+    try {
+        // Load existing manifest
+        $manifestPath = $assetsDir . '/manifest.json';
+        if (!file_exists($manifestPath)) {
+            throw new Exception('Manifest not found. Please upload Word Lists first.');
+        }
+        $manifest = json_decode(file_get_contents($manifestPath), true);
+        if (!$manifest || !isset($manifest['cards'])) {
+            throw new Exception('Invalid manifest format.');
+        }
+
+        $results = [];
+
+        // Process each language file
+        foreach (['ceb' => 'Cebuano', 'mrw' => 'Maranao', 'sin' => 'Sinama'] as $trig => $name) {
+            $field = 'sentenceFile_' . $trig;
+            if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
+                $tmpPath = $_FILES[$field]['tmp_name'];
+
+                // Store file temporarily for later confirmation
+                $tempStorePath = sys_get_temp_dir() . '/sentence_words_' . $trig . '_' . session_id() . '.csv';
+                copy($tmpPath, $tempStorePath);
+
+                // Get detailed validation with suggestions
+                $validation = getDetailedWordValidation($tmpPath, $trig, $manifest);
+                $results[$trig] = [
+                    'language' => $name,
+                    'trigraph' => $trig,
+                    'tempFile' => $tempStorePath,
+                    'words' => $validation['words'],
+                    'stats' => $validation['stats'],
+                    'allCards' => getCardsForSuggestions($manifest, $trig)
+                ];
+            }
+        }
+
+        if (empty($results)) {
+            throw new Exception('No sentence word files received');
+        }
+
+        echo json_encode([
+            'success' => true,
+            'preview' => true,
+            'results' => $results
+        ]);
+
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+/**
+ * Confirm Sentence Words Upload - saves files with user-corrected mappings
+ */
+function confirmSentenceWordsUpload() {
+    global $assetsDir;
+
+    try {
+        // Get corrections from POST data
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input || !isset($input['corrections'])) {
+            throw new Exception('No correction data received');
+        }
+
+        $corrections = $input['corrections'];
+        $uploaded = false;
+
+        foreach ($corrections as $trig => $langData) {
+            $tempFile = $langData['tempFile'] ?? null;
+            $wordCorrections = $langData['corrections'] ?? [];
+
+            if (!$tempFile || !file_exists($tempFile)) {
+                continue;
+            }
+
+            // Read the original CSV
+            $csvContent = file_get_contents($tempFile);
+
+            // Apply corrections to the CSV content
+            foreach ($wordCorrections as $original => $corrected) {
+                if ($corrected && $corrected !== $original) {
+                    // Replace the word in CSV (case-insensitive)
+                    $csvContent = preg_replace(
+                        '/\b' . preg_quote($original, '/') . '\b/i',
+                        $corrected,
+                        $csvContent
+                    );
+                }
+            }
+
+            // Save the corrected file
+            $target = $assetsDir . '/Sentence_Words_' . $trig . '.csv';
+            file_put_contents($target, $csvContent);
+
+            // Clean up temp file
+            @unlink($tempFile);
+
+            $uploaded = true;
+        }
+
+        if (!$uploaded) {
+            throw new Exception('No files were saved');
+        }
+
+        // Re-scan to update manifest
+        scanAssets();
+
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+/**
+ * Get detailed validation results with suggestions for unmatched words
+ */
+function getDetailedWordValidation($filePath, $trigraph, $manifest) {
+    $words = [];
+    $stats = ['total' => 0, 'matched' => 0, 'unmatched' => 0];
+
+    if (!file_exists($filePath)) {
+        return ['words' => [], 'stats' => $stats];
+    }
+
+    $file = fopen($filePath, 'r');
+    if (!$file) {
+        return ['words' => [], 'stats' => $stats];
+    }
+
+    // Read headers
+    $headers = fgetcsv($file);
+    if (!$headers || count($headers) < 2) {
+        fclose($file);
+        return ['words' => [], 'stats' => $stats];
+    }
+
+    // Build card lookup from manifest
+    $cards = $manifest['cards'][$trigraph] ?? [];
+    $cardLookup = buildCardLookup($cards);
+
+    // Process each row
+    $rowNum = 1;
+    while (($row = fgetcsv($file)) !== false) {
+        $rowNum++;
+        $lesson = trim($row[0] ?? '');
+
+        // Check each column (except Lesson #)
+        for ($i = 1; $i < count($row); $i++) {
+            $cellValue = trim($row[$i] ?? '');
+            if (empty($cellValue)) continue;
+
+            $colName = $headers[$i] ?? "Column $i";
+
+            // Split comma-separated words
+            $cellWords = array_map('trim', explode(',', $cellValue));
+
+            foreach ($cellWords as $word) {
+                if (empty($word)) continue;
+
+                $stats['total']++;
+
+                // Try to find matching card
+                $matchResult = findMatchingCard($word, $cardLookup, $cards);
+
+                $wordEntry = [
+                    'original' => $word,
+                    'wordType' => $colName,
+                    'lesson' => $lesson,
+                    'row' => $rowNum,
+                    'matched' => $matchResult['matched'],
+                    'cardNum' => $matchResult['cardNum'],
+                    'cardWord' => $matchResult['cardWord'],
+                    'suggestions' => []
+                ];
+
+                if ($matchResult['matched']) {
+                    $stats['matched']++;
+                } else {
+                    $stats['unmatched']++;
+                    // Get fuzzy match suggestions
+                    $wordEntry['suggestions'] = getSuggestions($word, $cards, 5);
+                }
+
+                $words[] = $wordEntry;
+            }
+        }
+    }
+
+    fclose($file);
+
+    return ['words' => $words, 'stats' => $stats];
+}
+
+/**
+ * Build a lookup table for quick word matching
+ */
+function buildCardLookup($cards) {
+    $lookup = [];
+
+    foreach ($cards as $card) {
+        $word = strtolower(trim($card['word'] ?? ''));
+        if (!$word) continue;
+
+        // Normalize: remove spaces around slashes
+        $normalized = preg_replace('/\s*\/\s*/', '/', $word);
+        $lookup[$normalized] = $card;
+
+        // Also add individual variants
+        $variants = explode('/', $normalized);
+        foreach ($variants as $v) {
+            $v = trim($v);
+            if ($v && !isset($lookup[$v])) {
+                $lookup[$v] = $card;
+            }
+        }
+    }
+
+    return $lookup;
+}
+
+/**
+ * Find matching card for a word
+ */
+function findMatchingCard($word, $cardLookup, $cards) {
+    // Normalize the search word
+    $normalized = strtolower(trim($word));
+    $normalized = preg_replace('/\s*\/\s*/', '/', $normalized);
+
+    // Direct lookup
+    if (isset($cardLookup[$normalized])) {
+        $card = $cardLookup[$normalized];
+        return [
+            'matched' => true,
+            'cardNum' => $card['cardNum'] ?? null,
+            'cardWord' => $card['word'] ?? ''
+        ];
+    }
+
+    // Check individual variants
+    $variants = explode('/', $normalized);
+    foreach ($variants as $v) {
+        $v = trim($v);
+        if ($v && isset($cardLookup[$v])) {
+            $card = $cardLookup[$v];
+            return [
+                'matched' => true,
+                'cardNum' => $card['cardNum'] ?? null,
+                'cardWord' => $card['word'] ?? ''
+            ];
+        }
+    }
+
+    return ['matched' => false, 'cardNum' => null, 'cardWord' => ''];
+}
+
+/**
+ * Get fuzzy match suggestions for an unmatched word
+ */
+function getSuggestions($word, $cards, $limit = 5) {
+    $suggestions = [];
+    $normalized = strtolower(trim(preg_replace('/\s*\/\s*/', '/', $word)));
+
+    foreach ($cards as $card) {
+        $cardWord = strtolower(trim($card['word'] ?? ''));
+        if (!$cardWord) continue;
+
+        $cardNormalized = preg_replace('/\s*\/\s*/', '/', $cardWord);
+
+        // Calculate similarity for the full word
+        $similarity = calculateSimilarity($normalized, $cardNormalized);
+
+        // Also check variants
+        $cardVariants = explode('/', $cardNormalized);
+        $searchVariants = explode('/', $normalized);
+
+        foreach ($searchVariants as $sv) {
+            foreach ($cardVariants as $cv) {
+                $varSim = calculateSimilarity(trim($sv), trim($cv));
+                if ($varSim > $similarity) {
+                    $similarity = $varSim;
+                }
+            }
+        }
+
+        if ($similarity > 0.3) { // Minimum threshold
+            $suggestions[] = [
+                'cardNum' => $card['cardNum'] ?? null,
+                'word' => $card['word'] ?? '',
+                'english' => $card['english'] ?? '',
+                'similarity' => round($similarity * 100)
+            ];
+        }
+    }
+
+    // Sort by similarity descending
+    usort($suggestions, function($a, $b) {
+        return $b['similarity'] - $a['similarity'];
+    });
+
+    return array_slice($suggestions, 0, $limit);
+}
+
+/**
+ * Calculate similarity between two strings (0-1)
+ */
+function calculateSimilarity($str1, $str2) {
+    if ($str1 === $str2) return 1.0;
+    if (empty($str1) || empty($str2)) return 0.0;
+
+    $len1 = strlen($str1);
+    $len2 = strlen($str2);
+    $maxLen = max($len1, $len2);
+
+    if ($maxLen === 0) return 1.0;
+
+    $distance = levenshtein($str1, $str2);
+    return 1 - ($distance / $maxLen);
+}
+
+/**
+ * Get simplified card list for frontend suggestions dropdown
+ */
+function getCardsForSuggestions($manifest, $trigraph) {
+    $cards = $manifest['cards'][$trigraph] ?? [];
+    $simplified = [];
+
+    foreach ($cards as $card) {
+        $simplified[] = [
+            'cardNum' => $card['cardNum'] ?? null,
+            'word' => $card['word'] ?? '',
+            'english' => $card['english'] ?? '',
+            'lesson' => $card['lesson'] ?? null
+        ];
+    }
+
+    // Sort by lesson, then word
+    usort($simplified, function($a, $b) {
+        if ($a['lesson'] !== $b['lesson']) {
+            return ($a['lesson'] ?? 0) - ($b['lesson'] ?? 0);
+        }
+        return strcasecmp($a['word'] ?? '', $b['word'] ?? '');
+    });
+
+    return $simplified;
 }
 
 // ------------------------------------------------
