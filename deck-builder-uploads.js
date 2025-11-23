@@ -452,7 +452,7 @@ DeckBuilderModule.prototype.updateSentenceWordsButton = function() {
 DeckBuilderModule.prototype.uploadSentenceWords = async function() {
     const uploadBtn = document.getElementById('uploadSentenceWordsBtn');
     uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading & Validating...';
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating...';
 
     try {
         const formData = new FormData();
@@ -463,7 +463,7 @@ DeckBuilderModule.prototype.uploadSentenceWords = async function() {
         }
 
         const timestamp = new Date().getTime();
-        const response = await fetch(`scan-assets.php?action=uploadSentenceWords&_=${timestamp}`, {
+        const response = await fetch(`scan-assets.php?action=previewSentenceWords&_=${timestamp}`, {
             method: 'POST',
             body: formData,
             cache: 'no-store',
@@ -472,50 +472,428 @@ DeckBuilderModule.prototype.uploadSentenceWords = async function() {
 
         const result = await response.json();
 
-        if (result.success) {
-            toastManager.show('Sentence words uploaded successfully!', 'success', 5000);
-
-            // Reload manifest
-            await this.assets.loadManifest();
-            this.loadCardsForLanguage(this.currentTrigraph);
-            this.filterAndRenderCards();
-        } else if (result.validationErrors) {
-            // Show validation errors
-            let errorMsg = 'Validation errors:\n';
-            for (const [lang, errors] of Object.entries(result.validationErrors)) {
-                errorMsg += `\n${lang}:\n`;
-                errors.slice(0, 5).forEach(err => {
-                    errorMsg += `  - ${err}\n`;
-                });
-                if (errors.length > 5) {
-                    errorMsg += `  ...and ${errors.length - 5} more errors\n`;
-                }
-            }
-            toastManager.show('Upload failed - some words not found in manifest', 'error', 10000);
-            console.error(errorMsg);
-            alert(errorMsg);
+        if (result.success && result.preview) {
+            // Show preview modal with validation results
+            this.showSentenceWordsPreview(result.results);
         } else {
-            toastManager.show(`Upload failed: ${result.error || 'Unknown error'}`, 'error', 5000);
+            toastManager.show(`Validation failed: ${result.error || 'Unknown error'}`, 'error', 5000);
         }
     } catch (err) {
         toastManager.show(`Error: ${err.message}`, 'error', 5000);
     } finally {
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Sentence Words';
-
-        // Clear file inputs
-        document.querySelectorAll('#sentenceWordFileInputs .sentence-file-row').forEach(row => {
-            const status = row.querySelector('.file-status');
-            const input = row.querySelector('input[type="file"]');
-            if (status) {
-                status.textContent = 'No file selected';
-                status.style.color = 'var(--text-secondary)';
-            }
-            if (input) input.value = '';
-        });
-        this.sentenceWordFiles = {};
-        this.updateSentenceWordsButton();
     }
+};
+
+/**
+ * Show sentence words preview modal with validation results
+ */
+DeckBuilderModule.prototype.showSentenceWordsPreview = function(results) {
+    // Store results for later confirmation
+    this.sentenceWordsPreviewData = results;
+    this.sentenceWordsCorrections = {};
+
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('sentenceWordsPreviewModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'sentenceWordsPreviewModal';
+        modal.className = 'modal sentence-preview-modal';
+        document.body.appendChild(modal);
+    }
+
+    // Build modal content
+    let languageTabs = '';
+    let languagePanels = '';
+    let firstTrig = null;
+
+    for (const [trig, data] of Object.entries(results)) {
+        if (!firstTrig) firstTrig = trig;
+
+        const hasErrors = data.stats.unmatched > 0;
+        const tabClass = hasErrors ? 'has-errors' : '';
+
+        languageTabs += `
+            <button class="preview-tab ${trig === firstTrig ? 'active' : ''} ${tabClass}" data-trig="${trig}">
+                ${data.language}
+                <span class="tab-stats">
+                    ${hasErrors ? `<span class="error-count">${data.stats.unmatched}</span>` : '<i class="fas fa-check"></i>'}
+                </span>
+            </button>
+        `;
+
+        languagePanels += `
+            <div class="preview-panel ${trig === firstTrig ? 'active' : ''}" data-trig="${trig}">
+                ${this.renderPreviewTable(trig, data)}
+            </div>
+        `;
+
+        // Initialize corrections for this language
+        this.sentenceWordsCorrections[trig] = {
+            tempFile: data.tempFile,
+            corrections: {}
+        };
+    }
+
+    // Calculate totals
+    let totalWords = 0, totalMatched = 0, totalUnmatched = 0;
+    for (const data of Object.values(results)) {
+        totalWords += data.stats.total;
+        totalMatched += data.stats.matched;
+        totalUnmatched += data.stats.unmatched;
+    }
+
+    modal.innerHTML = `
+        <div class="modal-content preview-modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-csv"></i> Sentence Words Upload Preview</h2>
+                <button class="close-btn" id="closePreviewModal">&times;</button>
+            </div>
+
+            <div class="preview-summary">
+                <div class="summary-item">
+                    <span class="summary-value">${totalWords}</span>
+                    <span class="summary-label">Total Words</span>
+                </div>
+                <div class="summary-item success">
+                    <span class="summary-value">${totalMatched}</span>
+                    <span class="summary-label">Matched</span>
+                </div>
+                <div class="summary-item ${totalUnmatched > 0 ? 'error' : 'success'}">
+                    <span class="summary-value">${totalUnmatched}</span>
+                    <span class="summary-label">Unmatched</span>
+                </div>
+            </div>
+
+            ${totalUnmatched > 0 ? `
+                <div class="preview-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Some words were not found in the manifest. Please select the correct card for each unmatched word, or they will be skipped.</span>
+                </div>
+            ` : `
+                <div class="preview-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>All words matched successfully! Review and confirm to upload.</span>
+                </div>
+            `}
+
+            <div class="preview-tabs">
+                ${languageTabs}
+            </div>
+
+            <div class="preview-panels">
+                ${languagePanels}
+            </div>
+
+            <div class="modal-footer">
+                <button id="cancelPreviewBtn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button id="confirmUploadBtn" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Confirm Upload
+                </button>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+
+    // Setup event listeners
+    this.setupPreviewModalEvents(modal);
+};
+
+/**
+ * Render preview table for a language
+ */
+DeckBuilderModule.prototype.renderPreviewTable = function(trig, data) {
+    const { words, stats, allCards } = data;
+
+    // Group by matched/unmatched for better organization
+    const unmatchedWords = words.filter(w => !w.matched);
+    const matchedWords = words.filter(w => w.matched);
+
+    let html = `
+        <div class="preview-stats-bar">
+            <span><i class="fas fa-check-circle text-success"></i> ${stats.matched} matched</span>
+            <span><i class="fas fa-times-circle text-error"></i> ${stats.unmatched} unmatched</span>
+        </div>
+    `;
+
+    // Show unmatched words first (they need attention)
+    if (unmatchedWords.length > 0) {
+        html += `
+            <div class="preview-section unmatched-section">
+                <h4><i class="fas fa-exclamation-circle"></i> Unmatched Words - Select Correct Card</h4>
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Word in CSV</th>
+                            <th>Type</th>
+                            <th>Lesson</th>
+                            <th>Select Card</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        for (const word of unmatchedWords) {
+            const suggestionOptions = this.buildSuggestionOptions(word, allCards);
+            html += `
+                <tr class="unmatched-row" data-original="${this.escapeHtml(word.original)}">
+                    <td class="word-cell">
+                        <span class="original-word">${this.escapeHtml(word.original)}</span>
+                    </td>
+                    <td>${this.escapeHtml(word.wordType)}</td>
+                    <td>${word.lesson}</td>
+                    <td class="select-cell">
+                        <select class="card-select" data-trig="${trig}" data-original="${this.escapeHtml(word.original)}">
+                            <option value="">-- Skip this word --</option>
+                            ${suggestionOptions}
+                        </select>
+                    </td>
+                </tr>
+            `;
+        }
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Show matched words (collapsed by default)
+    if (matchedWords.length > 0) {
+        html += `
+            <div class="preview-section matched-section">
+                <h4 class="collapsible" data-collapsed="true">
+                    <i class="fas fa-chevron-right"></i>
+                    <i class="fas fa-check-circle text-success"></i>
+                    Matched Words (${matchedWords.length})
+                    <span class="collapse-hint">Click to expand</span>
+                </h4>
+                <div class="matched-content" style="display: none;">
+                    <table class="preview-table matched-table">
+                        <thead>
+                            <tr>
+                                <th>Word in CSV</th>
+                                <th>Type</th>
+                                <th>Matched Card</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        for (const word of matchedWords) {
+            html += `
+                <tr class="matched-row">
+                    <td>${this.escapeHtml(word.original)}</td>
+                    <td>${this.escapeHtml(word.wordType)}</td>
+                    <td>
+                        <span class="matched-card">
+                            <i class="fas fa-check"></i>
+                            #${word.cardNum}: ${this.escapeHtml(word.cardWord)}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    return html;
+};
+
+/**
+ * Build suggestion options HTML for dropdown
+ */
+DeckBuilderModule.prototype.buildSuggestionOptions = function(word, allCards) {
+    let html = '';
+
+    // Add suggestions first (with similarity scores)
+    if (word.suggestions && word.suggestions.length > 0) {
+        html += '<optgroup label="Suggestions">';
+        for (const sug of word.suggestions) {
+            html += `<option value="${this.escapeHtml(sug.word)}" data-card-num="${sug.cardNum}">
+                ${this.escapeHtml(sug.word)} (${sug.english}) - ${sug.similarity}% match
+            </option>`;
+        }
+        html += '</optgroup>';
+    }
+
+    // Add all cards as options
+    html += '<optgroup label="All Cards">';
+    for (const card of allCards) {
+        html += `<option value="${this.escapeHtml(card.word)}" data-card-num="${card.cardNum}">
+            L${card.lesson} #${card.cardNum}: ${this.escapeHtml(card.word)} (${this.escapeHtml(card.english)})
+        </option>`;
+    }
+    html += '</optgroup>';
+
+    return html;
+};
+
+/**
+ * Setup event listeners for preview modal
+ */
+DeckBuilderModule.prototype.setupPreviewModalEvents = function(modal) {
+    // Close button
+    modal.querySelector('#closePreviewModal').addEventListener('click', () => {
+        modal.classList.add('hidden');
+        this.clearSentenceWordInputs();
+    });
+
+    // Cancel button
+    modal.querySelector('#cancelPreviewBtn').addEventListener('click', () => {
+        modal.classList.add('hidden');
+        this.clearSentenceWordInputs();
+    });
+
+    // Confirm button
+    modal.querySelector('#confirmUploadBtn').addEventListener('click', () => {
+        this.confirmSentenceWordsUpload();
+    });
+
+    // Tab switching
+    modal.querySelectorAll('.preview-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const trig = tab.dataset.trig;
+
+            // Update active tab
+            modal.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Update active panel
+            modal.querySelectorAll('.preview-panel').forEach(p => p.classList.remove('active'));
+            modal.querySelector(`.preview-panel[data-trig="${trig}"]`).classList.add('active');
+        });
+    });
+
+    // Card selection dropdowns
+    modal.querySelectorAll('.card-select').forEach(select => {
+        select.addEventListener('change', (e) => {
+            const trig = e.target.dataset.trig;
+            const original = e.target.dataset.original;
+            const selected = e.target.value;
+
+            if (selected) {
+                this.sentenceWordsCorrections[trig].corrections[original] = selected;
+                e.target.closest('tr').classList.add('corrected');
+            } else {
+                delete this.sentenceWordsCorrections[trig].corrections[original];
+                e.target.closest('tr').classList.remove('corrected');
+            }
+        });
+    });
+
+    // Collapsible sections
+    modal.querySelectorAll('.collapsible').forEach(header => {
+        header.addEventListener('click', () => {
+            const isCollapsed = header.dataset.collapsed === 'true';
+            const content = header.nextElementSibling;
+
+            if (isCollapsed) {
+                content.style.display = 'block';
+                header.dataset.collapsed = 'false';
+                header.querySelector('.fas').classList.replace('fa-chevron-right', 'fa-chevron-down');
+            } else {
+                content.style.display = 'none';
+                header.dataset.collapsed = 'true';
+                header.querySelector('.fas').classList.replace('fa-chevron-down', 'fa-chevron-right');
+            }
+        });
+    });
+
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            this.clearSentenceWordInputs();
+        }
+    });
+};
+
+/**
+ * Confirm and upload sentence words with corrections
+ */
+DeckBuilderModule.prototype.confirmSentenceWordsUpload = async function() {
+    const modal = document.getElementById('sentenceWordsPreviewModal');
+    const confirmBtn = modal.querySelector('#confirmUploadBtn');
+
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+    try {
+        const timestamp = new Date().getTime();
+        const response = await fetch(`scan-assets.php?action=confirmSentenceWords&_=${timestamp}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            },
+            body: JSON.stringify({ corrections: this.sentenceWordsCorrections }),
+            cache: 'no-store'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            toastManager.show('Sentence words uploaded successfully!', 'success', 5000);
+            modal.classList.add('hidden');
+
+            // Reload manifest
+            await this.assets.loadManifest();
+            this.loadCardsForLanguage(this.currentTrigraph);
+            this.filterAndRenderCards();
+
+            // Clear inputs
+            this.clearSentenceWordInputs();
+        } else {
+            toastManager.show(`Upload failed: ${result.error || 'Unknown error'}`, 'error', 5000);
+        }
+    } catch (err) {
+        toastManager.show(`Error: ${err.message}`, 'error', 5000);
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Upload';
+    }
+};
+
+/**
+ * Clear sentence word file inputs
+ */
+DeckBuilderModule.prototype.clearSentenceWordInputs = function() {
+    document.querySelectorAll('#sentenceWordFileInputs .sentence-file-row').forEach(row => {
+        const status = row.querySelector('.file-status');
+        const input = row.querySelector('input[type="file"]');
+        if (status) {
+            status.textContent = 'No file selected';
+            status.style.color = 'var(--text-secondary)';
+        }
+        if (input) input.value = '';
+    });
+    this.sentenceWordFiles = {};
+    this.updateSentenceWordsButton();
+};
+
+/**
+ * HTML escape helper
+ */
+DeckBuilderModule.prototype.escapeHtml = function(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 };
 
 // =========================================
