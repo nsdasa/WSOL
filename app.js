@@ -1806,6 +1806,7 @@ async function init() {
     
     // Register modules (will be defined in separate module files)
     if (typeof FlashcardsModule !== 'undefined') {
+        router.register('grammar', GrammarModule);
         router.register('flashcards', FlashcardsModule);
         router.register('match', MatchExerciseModule);
         router.register('match-sound', MatchSoundModule);

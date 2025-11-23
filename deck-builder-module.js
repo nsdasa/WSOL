@@ -196,6 +196,67 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
+                <!-- Grammar Files Management Section (Admin only) -->
+                <div class="deck-section ${adminOnlyClass}" id="grammarManagementSection">
+                    <h3 class="section-title"><i class="fas fa-book-open"></i> Grammar Files Management</h3>
+                    <div class="section-card">
+                        <p class="section-description">
+                            Upload HTML grammar files for each lesson. Files can be exported from Word as "Web Page, Filtered" or converted using the <a href="converter/" target="_blank">Converter</a>.
+                        </p>
+
+                        <div class="csv-upload-section">
+                            <div class="grammar-upload-row">
+                                <div class="filter-group">
+                                    <label for="grammarLanguageSelect">
+                                        <i class="fas fa-language"></i> Language:
+                                    </label>
+                                    <select id="grammarLanguageSelect" class="select-control">
+                                        <option value="ceb">Cebuano</option>
+                                        <option value="mrw">Maranao</option>
+                                        <option value="sin">Sinama</option>
+                                    </select>
+                                </div>
+
+                                <div class="filter-group">
+                                    <label for="grammarLessonInput">
+                                        <i class="fas fa-bookmark"></i> Lesson:
+                                    </label>
+                                    <input type="number" id="grammarLessonInput" class="form-input" placeholder="Lesson #" min="1" style="width: 100px;">
+                                </div>
+                            </div>
+
+                            <div class="file-upload-container">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-file-code"></i> Grammar HTML File
+                                    <span class="file-hint">HTML/HTM file exported from Word or converted from DOCX</span>
+                                </label>
+                                <input type="file" id="grammarFileInput" accept=".html,.htm" class="file-input">
+                                <div class="file-status" id="grammarFileStatus">No file selected</div>
+                            </div>
+                        </div>
+
+                        <div class="section-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button id="uploadGrammarBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-cloud-upload-alt"></i> Upload Grammar File
+                            </button>
+                            <button id="grammarReportBtn" class="btn btn-secondary">
+                                <i class="fas fa-chart-bar"></i> Grammar Coverage Report
+                            </button>
+                        </div>
+
+                        <!-- Grammar Report Display Area -->
+                        <div id="grammarReportContainer" class="grammar-report-container hidden">
+                            <div class="grammar-report-header">
+                                <h4><i class="fas fa-chart-pie"></i> Grammar Coverage Report</h4>
+                                <button id="closeGrammarReport" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="grammarReportContent"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Legend -->
                 <div class="deck-legend">
                     <strong>Status Legend:</strong>
@@ -395,10 +456,11 @@ class DeckBuilderModule extends LearningModule {
         // Setup event listeners
         this.setupEventListeners();
 
-        // Setup CSV and Media upload (admin only)
+        // Setup CSV, Media, and Grammar upload (admin only)
         if (this.isAdmin) {
             this.setupCSVUpload();
             this.setupMediaUpload();
+            this.setupGrammarUpload();
         }
 
         // Initial render (will apply default sort)
@@ -3764,6 +3826,228 @@ class DeckBuilderModule extends LearningModule {
             }
             this.updateMediaUploadButton();
         }
+    }
+
+    // =========================================
+    // GRAMMAR FILES MANAGEMENT
+    // =========================================
+
+    setupGrammarUpload() {
+        this.grammarFile = null;
+
+        const grammarInput = document.getElementById('grammarFileInput');
+        const uploadBtn = document.getElementById('uploadGrammarBtn');
+        const reportBtn = document.getElementById('grammarReportBtn');
+        const lessonInput = document.getElementById('grammarLessonInput');
+        const closeReportBtn = document.getElementById('closeGrammarReport');
+
+        if (grammarInput) {
+            grammarInput.addEventListener('change', (e) => {
+                this.grammarFile = e.target.files[0] || null;
+                const status = document.getElementById('grammarFileStatus');
+                if (this.grammarFile) {
+                    status.textContent = this.grammarFile.name;
+                    status.style.color = 'var(--success)';
+                } else {
+                    status.textContent = 'No file selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                this.updateGrammarUploadButton();
+            });
+        }
+
+        if (lessonInput) {
+            lessonInput.addEventListener('input', () => {
+                this.updateGrammarUploadButton();
+            });
+        }
+
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => this.uploadGrammarFile());
+        }
+
+        if (reportBtn) {
+            reportBtn.addEventListener('click', () => this.showGrammarReport());
+        }
+
+        if (closeReportBtn) {
+            closeReportBtn.addEventListener('click', () => {
+                const container = document.getElementById('grammarReportContainer');
+                if (container) container.classList.add('hidden');
+            });
+        }
+    }
+
+    updateGrammarUploadButton() {
+        const uploadBtn = document.getElementById('uploadGrammarBtn');
+        const lessonInput = document.getElementById('grammarLessonInput');
+        const lesson = parseInt(lessonInput?.value || 0);
+
+        if (uploadBtn) {
+            uploadBtn.disabled = !this.grammarFile || lesson <= 0;
+        }
+    }
+
+    async uploadGrammarFile() {
+        const uploadBtn = document.getElementById('uploadGrammarBtn');
+        const languageSelect = document.getElementById('grammarLanguageSelect');
+        const lessonInput = document.getElementById('grammarLessonInput');
+
+        const language = languageSelect?.value || 'ceb';
+        const lesson = parseInt(lessonInput?.value || 0);
+
+        if (!this.grammarFile || lesson <= 0) {
+            toastManager.show('Please select a file and enter a lesson number', 'warning');
+            return;
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+        try {
+            const formData = new FormData();
+            formData.append('grammarFile', this.grammarFile);
+            formData.append('language', language);
+            formData.append('lesson', lesson);
+
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=uploadGrammar&_=${timestamp}`, {
+                method: 'POST',
+                body: formData,
+                cache: 'no-store'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                const langName = this.trigraphToLangName[language] || language;
+                toastManager.show(
+                    `Grammar uploaded for ${langName} Lesson ${lesson}!`,
+                    'success',
+                    5000
+                );
+
+                // Reset form
+                const grammarInput = document.getElementById('grammarFileInput');
+                if (grammarInput) grammarInput.value = '';
+                if (lessonInput) lessonInput.value = '';
+                this.grammarFile = null;
+
+                const status = document.getElementById('grammarFileStatus');
+                if (status) {
+                    status.textContent = 'No file selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+
+                // Reload manifest to pick up new grammar entry
+                await assetManager.loadManifest();
+            } else {
+                toastManager.show(`Upload failed: ${result.error || result.message}`, 'error', 5000);
+            }
+        } catch (err) {
+            toastManager.show(`Error: ${err.message}`, 'error', 5000);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Grammar File';
+            this.updateGrammarUploadButton();
+        }
+    }
+
+    async showGrammarReport() {
+        const reportBtn = document.getElementById('grammarReportBtn');
+        const container = document.getElementById('grammarReportContainer');
+        const content = document.getElementById('grammarReportContent');
+
+        if (!container || !content) return;
+
+        reportBtn.disabled = true;
+        reportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        content.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Generating report...</div>';
+        container.classList.remove('hidden');
+
+        try {
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=grammarReport&_=${timestamp}`, {
+                cache: 'no-store'
+            });
+
+            const report = await response.json();
+
+            if (report.success) {
+                content.innerHTML = this.renderGrammarReport(report);
+            } else {
+                content.innerHTML = `<div class="error-message">Failed to generate report: ${report.error || 'Unknown error'}</div>`;
+            }
+        } catch (err) {
+            content.innerHTML = `<div class="error-message">Error: ${err.message}</div>`;
+        } finally {
+            reportBtn.disabled = false;
+            reportBtn.innerHTML = '<i class="fas fa-chart-bar"></i> Grammar Coverage Report';
+        }
+    }
+
+    renderGrammarReport(report) {
+        let html = `
+            <div class="grammar-report-summary">
+                <div class="summary-stat">
+                    <span class="stat-value">${report.summary.totalGrammarFiles}</span>
+                    <span class="stat-label">Total Grammar Files</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-value">${report.summary.totalLessons}</span>
+                    <span class="stat-label">Total Lessons</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-value">${report.summary.overallCoverage}%</span>
+                    <span class="stat-label">Overall Coverage</span>
+                </div>
+            </div>
+            <div class="grammar-report-languages">
+        `;
+
+        for (const [trigraph, lang] of Object.entries(report.languages)) {
+            const coverageClass = lang.coverage >= 80 ? 'high' : (lang.coverage >= 50 ? 'medium' : 'low');
+
+            html += `
+                <div class="language-report-card">
+                    <div class="language-header">
+                        <h5>${lang.name}</h5>
+                        <span class="coverage-badge ${coverageClass}">${lang.coverage}% coverage</span>
+                    </div>
+                    <div class="language-stats">
+                        <span><strong>${lang.grammarCount}</strong> of <strong>${lang.totalLessons}</strong> lessons have grammar</span>
+                    </div>
+            `;
+
+            if (lang.lessonsWithGrammar.length > 0) {
+                html += `
+                    <div class="lessons-list">
+                        <span class="list-label"><i class="fas fa-check-circle" style="color: var(--success);"></i> Has Grammar:</span>
+                        <span class="lesson-numbers">${lang.lessonsWithGrammar.join(', ')}</span>
+                    </div>
+                `;
+            }
+
+            if (lang.lessonsWithoutGrammar.length > 0) {
+                html += `
+                    <div class="lessons-list missing">
+                        <span class="list-label"><i class="fas fa-times-circle" style="color: var(--error);"></i> Missing:</span>
+                        <span class="lesson-numbers">${lang.lessonsWithoutGrammar.join(', ')}</span>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+        }
+
+        html += `
+            </div>
+            <div class="report-footer">
+                <small>Report generated: ${new Date(report.generated).toLocaleString()}</small>
+            </div>
+        `;
+
+        return html;
     }
 
     destroy() {
