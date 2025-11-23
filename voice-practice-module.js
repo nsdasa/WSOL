@@ -1243,6 +1243,7 @@ class PronunciationAnalyzer {
     async analyzeEnhanced() {
         const processor = new EnhancedMFCCProcessor(this.audioContext);
         const stressDetector = new ProsodicStressDetector();
+        const voiceQualityAnalyzer = new SimpleVoiceQualityAnalyzer(this.audioContext.sampleRate);
 
         // Extract features using enhanced processor
         const nativePitch = processor.extractPitch(this.nativeBuffer);
@@ -1258,6 +1259,10 @@ class PronunciationAnalyzer {
         const nativeStresses = stressDetector.detect(nativePitch, nativeIntensity, this.audioContext.sampleRate);
         const userStresses = stressDetector.detect(userPitch, userIntensity, this.audioContext.sampleRate);
 
+        // Voice quality analysis (stability & clarity)
+        const nativeVQ = voiceQualityAnalyzer.analyze(nativePitch, nativeIntensity, this.nativeBuffer);
+        const userVQ = voiceQualityAnalyzer.analyze(userPitch, userIntensity, this.userBuffer);
+
         // Use enhanced MFCC comparison with deltas and Z-normalization
         const mfccComparison = compareMFCCsEnhanced(nativeMFCCResult, userMFCCResult, this.useDTW);
 
@@ -1268,37 +1273,42 @@ class PronunciationAnalyzer {
         // Stress position and pattern scoring
         const stressScores = StressScorer.score(nativeStresses, userStresses, this.nativeBuffer.duration);
 
-        const durationScore = this.compareDuration();
-        const spectralScore = this.compareSpectralFromFrames(nativeMFCCResult.frames, userMFCCResult.frames);
-        const qualityScore = this.assessQualityFromFrames(userMFCCResult.frames, userPitch);
+        // Voice quality scoring
+        const voiceQualityScore = scoreVoiceQuality(nativeVQ, userVQ);
 
-        // New weights with prosodic stress components
+        // Rhythm scoring (%V - vowel proportion)
+        const rhythmScore = scoreRhythm(nativePitch, userPitch, nativeIntensity, userIntensity);
+
+        const durationScore = this.compareDuration();
+
+        // Final weights optimized for Philippine languages (8 factors)
         const weights = {
-            pitch: 0.15,           // Pitch contour
-            mfcc: 0.30,            // Enhanced MFCC with deltas
-            stressPosition: 0.15, // Syllable timing alignment
+            mfcc: 0.25,            // Vowel quality (MFCC with deltas)
+            pitch: 0.18,           // Pitch/intonation contour
+            stressPosition: 0.12, // Syllable timing alignment
             stressPattern: 0.10,  // Prominence ordering
-            intensity: 0.10,      // Envelope comparison
-            duration: 0.10,       // Overall duration
-            spectral: 0.05,       // Spectral characteristics
-            quality: 0.05         // Recording quality
+            intensity: 0.10,      // Envelope/dynamics
+            duration: 0.10,       // Overall timing
+            voiceQuality: 0.08,   // Stability & clarity
+            rhythm: 0.07          // Vowel proportion (%V)
         };
 
         const overallScore = Math.round(
-            pitchComparison.score * weights.pitch +
             mfccComparison.score * weights.mfcc +
+            pitchComparison.score * weights.pitch +
             stressScores.position * weights.stressPosition +
             stressScores.pattern * weights.stressPattern +
             intensityComparison.score * weights.intensity +
             durationScore * weights.duration +
-            spectralScore * weights.spectral +
-            qualityScore * weights.quality
+            voiceQualityScore.score * weights.voiceQuality +
+            rhythmScore.score * weights.rhythm
         );
 
         debugLogger?.log(3, `Enhanced analysis complete. Score: ${overallScore}`);
-        debugLogger?.log(3, `  Pitch: ${pitchComparison.score}, MFCC: ${mfccComparison.score}`);
+        debugLogger?.log(3, `  MFCC: ${mfccComparison.score}, Pitch: ${pitchComparison.score}`);
         debugLogger?.log(3, `  Stress Position: ${stressScores.position}, Pattern: ${stressScores.pattern}`);
         debugLogger?.log(3, `  Intensity: ${intensityComparison.score}, Duration: ${durationScore}`);
+        debugLogger?.log(3, `  Voice Quality: ${voiceQualityScore.score}, Rhythm: ${rhythmScore.score}`);
         debugLogger?.log(3, `  Stresses: native=${nativeStresses.length}, user=${userStresses.length}`);
         debugLogger?.log(3, `  VAD trimmed native: ${nativeMFCCResult.vadInfo.trimmedDuration.toFixed(2)}s`);
         debugLogger?.log(3, `  VAD trimmed user: ${userMFCCResult.vadInfo.trimmedDuration.toFixed(2)}s`);
@@ -1317,6 +1327,10 @@ class PronunciationAnalyzer {
                 native: nativeStresses,
                 user: userStresses
             },
+            voiceQuality: {
+                native: nativeVQ,
+                user: userVQ
+            },
             vadInfo: {
                 native: nativeMFCCResult.vadInfo,
                 user: userMFCCResult.vadInfo
@@ -1324,7 +1338,9 @@ class PronunciationAnalyzer {
             mfccDetails: mfccComparison,
             pitchDetails: pitchComparison,
             intensityDetails: intensityComparison,
-            stressScores
+            stressScores,
+            voiceQualityScore,
+            rhythmScore
         };
     }
 
@@ -2469,6 +2485,179 @@ class StressScorer {
         const spearman = n >= 3 ? 1 - (6 * d2) / (n * (n * n - 1)) : 0.7;
         return Math.round(100 * Math.max(0, spearman));
     }
+}
+
+// =================================================================
+// SIMPLE VOICE QUALITY ANALYZER - Stability & Clarity metrics
+// =================================================================
+class SimpleVoiceQualityAnalyzer {
+    constructor(sampleRate) {
+        this.sampleRate = sampleRate;
+    }
+
+    analyze(pitchContour, intensityContour, audioBuffer) {
+        // 1. Pitch Stability (proxy for jitter)
+        const pitchStability = this.measurePitchStability(pitchContour);
+
+        // 2. Amplitude Stability (proxy for shimmer)
+        const ampStability = this.measureAmplitudeStability(intensityContour);
+
+        // 3. Spectral Tilt (proxy for H1-H2 breathiness)
+        const spectralTilt = this.measureSpectralTilt(audioBuffer);
+
+        // 4. Harmonicity (proxy for HNR/CPP)
+        const harmonicity = this.measureHarmonicity(pitchContour);
+
+        return { pitchStability, ampStability, spectralTilt, harmonicity };
+    }
+
+    measurePitchStability(pitchContour) {
+        // Get voiced frames only
+        const voicedPitches = pitchContour
+            .filter(p => p.isVoiced && p.pitch > 0)
+            .map(p => p.pitch);
+
+        if (voicedPitches.length < 5) return 100;
+
+        // Coefficient of variation (lower = more stable)
+        const mean = voicedPitches.reduce((a, b) => a + b, 0) / voicedPitches.length;
+        const variance = voicedPitches.reduce((s, v) => s + (v - mean) ** 2, 0) / voicedPitches.length;
+        const cv = Math.sqrt(variance) / mean;
+
+        // Convert to 0-100 score (cv of 0.05 = 100, cv of 0.3 = 0)
+        return Math.round(Math.max(0, Math.min(100, 100 - cv * 400)));
+    }
+
+    measureAmplitudeStability(intensityContour) {
+        // Use RMS values
+        const rmsValues = intensityContour
+            .map(i => i.rms || i.intensity)
+            .filter(r => r > 0.01);  // Ignore silence
+
+        if (rmsValues.length < 5) return 100;
+
+        // Frame-to-frame variation
+        let totalDiff = 0;
+        for (let i = 1; i < rmsValues.length; i++) {
+            totalDiff += Math.abs(rmsValues[i] - rmsValues[i - 1]);
+        }
+        const avgDiff = totalDiff / (rmsValues.length - 1);
+        const mean = rmsValues.reduce((a, b) => a + b, 0) / rmsValues.length;
+        const relativeVariation = avgDiff / mean;
+
+        // Convert to 0-100 (variation of 0.1 = 100, variation of 0.5 = 0)
+        return Math.round(Math.max(0, Math.min(100, 100 - relativeVariation * 250)));
+    }
+
+    measureSpectralTilt(audioBuffer) {
+        // Compare energy in low band vs high band
+        const data = audioBuffer.getChannelData(0);
+        const frameSize = Math.min(2048, data.length);
+
+        // Use middle of audio for measurement
+        const midPoint = Math.floor(data.length / 2);
+        const start = Math.max(0, midPoint - Math.floor(frameSize / 2));
+        const frame = data.slice(start, start + frameSize);
+
+        // Low band: smoothed signal energy
+        // High band: difference signal energy (high frequency content)
+        const smoothed = this.movingAverage(frame, 10);
+
+        let lowEnergy = 0, highEnergy = 0;
+        for (let i = 0; i < frame.length; i++) {
+            lowEnergy += smoothed[i] ** 2;
+            highEnergy += (frame[i] - smoothed[i]) ** 2;
+        }
+
+        // Ratio: higher = more low-frequency energy = clearer voice
+        const ratio = lowEnergy / (highEnergy + 1e-10);
+        const tiltScore = Math.min(100, ratio * 10);
+
+        return Math.round(Math.max(0, tiltScore));
+    }
+
+    measureHarmonicity(pitchContour) {
+        // Use pitch confidence as proxy for harmonicity
+        const voicedFrames = pitchContour.filter(p => p.isVoiced);
+
+        if (voicedFrames.length === 0) return 50;
+
+        // Average confidence of voiced frames
+        const avgConfidence = voicedFrames.reduce((s, p) => s + (p.confidence || 0.5), 0) / voicedFrames.length;
+
+        // Convert confidence (0.3-0.9) to score (0-100)
+        return Math.round(Math.max(0, Math.min(100, (avgConfidence - 0.3) * 166)));
+    }
+
+    movingAverage(arr, window) {
+        const result = new Array(arr.length);
+        const halfWin = Math.floor(window / 2);
+
+        for (let i = 0; i < arr.length; i++) {
+            let sum = 0, count = 0;
+            for (let j = Math.max(0, i - halfWin); j < Math.min(arr.length, i + halfWin + 1); j++) {
+                sum += arr[j];
+                count++;
+            }
+            result[i] = sum / count;
+        }
+        return result;
+    }
+}
+
+// =================================================================
+// VOICE QUALITY SCORING - Compare native vs user
+// =================================================================
+function scoreVoiceQuality(nativeVQ, userVQ) {
+    if (!nativeVQ || !userVQ) return { score: 75, details: {} };
+
+    const metrics = ['pitchStability', 'ampStability', 'spectralTilt', 'harmonicity'];
+
+    let totalPenalty = 0;
+    const details = {};
+
+    for (const metric of metrics) {
+        const nativeVal = nativeVQ[metric] || 75;
+        const userVal = userVQ[metric] || 75;
+
+        // Only penalize if user is worse than native
+        const diff = nativeVal - userVal;
+        details[metric] = { native: nativeVal, user: userVal, diff };
+
+        if (diff > 0) {
+            totalPenalty += diff * 0.25;  // Each metric contributes up to 25 points
+        }
+    }
+
+    const score = Math.round(Math.max(0, 100 - totalPenalty));
+
+    return { score, details };
+}
+
+// =================================================================
+// RHYTHM SCORING - Vowel proportion (%V)
+// =================================================================
+function scoreRhythm(nativePitch, userPitch, nativeIntensity, userIntensity) {
+    // Calculate %V (percentage of voiced frames) for each
+    const calcPercentV = (pitch, intensity) => {
+        if (!pitch || pitch.length === 0) return 50;
+
+        const voicedCount = pitch.filter(p => p.isVoiced).length;
+        return (voicedCount / pitch.length) * 100;
+    };
+
+    const nativePercentV = calcPercentV(nativePitch, nativeIntensity);
+    const userPercentV = calcPercentV(userPitch, userIntensity);
+
+    // Penalize difference in vowel proportion
+    const diff = Math.abs(nativePercentV - userPercentV);
+    const score = Math.round(Math.max(0, 100 - diff * 3));
+
+    return {
+        score,
+        nativePercentV: Math.round(nativePercentV),
+        userPercentV: Math.round(userPercentV)
+    };
 }
 
 // =================================================================
