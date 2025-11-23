@@ -90,14 +90,6 @@ class GrammarModule extends LearningModule {
 
         if (!contentEl) return;
 
-        // Show loading state
-        contentEl.innerHTML = `
-            <div class="grammar-loading">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading grammar content...</p>
-            </div>
-        `;
-
         const langTrigraph = this.assets.currentLanguage?.trigraph;
         const lesson = this.assets.currentLesson;
 
@@ -106,53 +98,63 @@ class GrammarModule extends LearningModule {
             return;
         }
 
-        // Try to load the HTML file
-        // Supports multiple naming conventions:
-        // - lesson-1.html, lesson-1.htm
-        // - Lesson 1.html, Lesson 1.htm
-        // - grammar-1.html, etc.
-        const possiblePaths = [
-            `assets/grammar/${langTrigraph}/lesson-${lesson}.html`,
-            `assets/grammar/${langTrigraph}/lesson-${lesson}.htm`,
-            `assets/grammar/${langTrigraph}/Lesson ${lesson}.html`,
-            `assets/grammar/${langTrigraph}/Lesson ${lesson}.htm`,
-            `assets/grammar/${langTrigraph}/Lesson${lesson}.html`,
-            `assets/grammar/${langTrigraph}/Lesson${lesson}.htm`,
-            `assets/grammar/${langTrigraph}/grammar-${lesson}.html`,
-            `assets/grammar/${langTrigraph}/grammar-${lesson}.htm`,
-            `assets/grammar/${langTrigraph}/${lesson}.html`,
-            `assets/grammar/${langTrigraph}/${lesson}.htm`
-        ];
+        // Check manifest for grammar file availability
+        const grammarInfo = this.assets.manifest?.grammar;
+        const langGrammar = grammarInfo?.[langTrigraph];
+        const grammarFile = langGrammar?.[lesson];
 
-        let htmlContent = null;
-        let loadedPath = null;
-
-        for (const path of possiblePaths) {
-            try {
-                const response = await fetch(path);
-                if (response.ok) {
-                    // Fetch as ArrayBuffer to handle encoding properly
-                    const buffer = await response.arrayBuffer();
-                    htmlContent = this.decodeWithCorrectEncoding(buffer);
-                    loadedPath = path;
-                    break;
-                }
-            } catch (e) {
-                // Continue to next path
+        if (!grammarFile) {
+            // No grammar file for this lesson - show message immediately (no searching)
+            this.showNoGrammarState();
+            if (statusEl) {
+                statusEl.innerHTML = '';
             }
-        }
-
-        if (!htmlContent) {
-            this.showNoContentState(langTrigraph, lesson);
             return;
         }
 
-        // Process and display the HTML content
-        this.displayContent(htmlContent, loadedPath);
+        // Show loading state
+        contentEl.innerHTML = `
+            <div class="grammar-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading grammar content...</p>
+            </div>
+        `;
 
-        if (statusEl) {
-            statusEl.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success);"></i> Loaded`;
+        // Load the grammar file directly using the filename from manifest
+        const filePath = `assets/grammar/${langTrigraph}/${grammarFile}`;
+
+        try {
+            const response = await fetch(filePath);
+            if (response.ok) {
+                // Fetch as ArrayBuffer to handle encoding properly
+                const buffer = await response.arrayBuffer();
+                const htmlContent = this.decodeWithCorrectEncoding(buffer);
+
+                // Process and display the HTML content
+                this.displayContent(htmlContent, filePath);
+
+                if (statusEl) {
+                    statusEl.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success);"></i> Loaded`;
+                }
+            } else {
+                // File listed in manifest but not found - show error
+                this.showEmptyState(`Grammar file not found: ${grammarFile}`);
+            }
+        } catch (e) {
+            this.showEmptyState(`Error loading grammar: ${e.message}`);
         }
+    }
+
+    showNoGrammarState() {
+        const contentEl = document.getElementById('grammarContent');
+        if (!contentEl) return;
+
+        contentEl.innerHTML = `
+            <div class="grammar-empty">
+                <i class="fas fa-book-open"></i>
+                <h3>No Grammar Training for this Lesson</h3>
+            </div>
+        `;
     }
 
     displayContent(htmlContent, sourcePath) {

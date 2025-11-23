@@ -357,7 +357,7 @@ function handleGrammarUpload() {
 }
 
 // Helper function to update manifest with grammar data
-function updateManifestGrammar($language, $lesson) {
+function updateManifestGrammar($language, $lesson, $filename = null) {
     global $manifestPath;
 
     if (!file_exists($manifestPath)) {
@@ -374,16 +374,19 @@ function updateManifestGrammar($language, $lesson) {
         $manifest['grammar'] = [];
     }
 
-    // Initialize language grammar array if it doesn't exist
+    // Initialize language grammar object if it doesn't exist
     if (!isset($manifest['grammar'][$language])) {
-        $manifest['grammar'][$language] = [];
+        $manifest['grammar'][$language] = new stdClass();  // Empty object for JSON
     }
 
-    // Add lesson to grammar list (avoid duplicates)
-    if (!in_array($lesson, $manifest['grammar'][$language])) {
-        $manifest['grammar'][$language][] = $lesson;
-        sort($manifest['grammar'][$language]); // Keep sorted
+    // Convert to array if needed (for manipulation)
+    if (!is_array($manifest['grammar'][$language])) {
+        $manifest['grammar'][$language] = (array)$manifest['grammar'][$language];
     }
+
+    // Add lesson => filename mapping
+    $filename = $filename ?? 'lesson-' . $lesson . '.html';
+    $manifest['grammar'][$language][$lesson] = $filename;
 
     // Update lastUpdated timestamp
     $manifest['lastUpdated'] = date('c');
@@ -417,6 +420,9 @@ function generateGrammarReport() {
         'sin' => 'Sinama'
     ];
 
+    // Initialize grammar section in manifest for syncing
+    $grammarManifest = [];
+
     // Scan grammar directories
     $grammarBase = $assetsDir . '/grammar';
 
@@ -426,6 +432,7 @@ function generateGrammarReport() {
             'trigraph' => $trigraph,
             'lessonsWithGrammar' => [],
             'lessonsWithoutGrammar' => [],
+            'grammarFiles' => [],  // Store filename mapping
             'totalLessons' => 0,
             'grammarCount' => 0,
             'coverage' => 0
@@ -442,24 +449,33 @@ function generateGrammarReport() {
         // Scan for grammar files
         $grammarDir = $grammarBase . '/' . $trigraph;
         $foundLessons = [];
+        $grammarFiles = [];  // lesson => filename mapping
 
         if (is_dir($grammarDir)) {
             $files = scandir($grammarDir);
             foreach ($files as $file) {
                 // Match lesson-N.html or lesson-N.htm
                 if (preg_match('/^lesson-(\d+)\.html?$/i', $file, $matches)) {
-                    $foundLessons[] = intval($matches[1]);
+                    $lessonNum = intval($matches[1]);
+                    $foundLessons[] = $lessonNum;
+                    $grammarFiles[$lessonNum] = $file;
                 }
                 // Also match Lesson N.html format
                 elseif (preg_match('/^Lesson\s*(\d+)\.html?$/i', $file, $matches)) {
-                    $foundLessons[] = intval($matches[1]);
+                    $lessonNum = intval($matches[1]);
+                    $foundLessons[] = $lessonNum;
+                    $grammarFiles[$lessonNum] = $file;
                 }
             }
         }
 
         sort($foundLessons);
         $langReport['lessonsWithGrammar'] = $foundLessons;
+        $langReport['grammarFiles'] = $grammarFiles;
         $langReport['grammarCount'] = count($foundLessons);
+
+        // Build grammar manifest for this language
+        $grammarManifest[$trigraph] = $grammarFiles;
 
         // Find lessons without grammar
         if ($totalLessons > 0) {
@@ -472,6 +488,14 @@ function generateGrammarReport() {
         }
 
         $report['languages'][$trigraph] = $langReport;
+    }
+
+    // Sync grammar info to manifest
+    if ($manifest) {
+        $manifest['grammar'] = $grammarManifest;
+        $manifest['lastUpdated'] = date('c');
+        file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $report['manifestSynced'] = true;
     }
 
     // Calculate overall stats
