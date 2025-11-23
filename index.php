@@ -51,6 +51,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     <link rel="stylesheet" href="styles/modules/pdf-print.css?v=<?php echo cacheBust('styles/modules/pdf-print.css'); ?>">
     <link rel="stylesheet" href="styles/modules/deck-builder.css?v=<?php echo cacheBust('styles/modules/deck-builder.css'); ?>">
     <link rel="stylesheet" href="styles/modules/voice-practice.css?v=<?php echo cacheBust('styles/modules/voice-practice.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/sentence-builder.css?v=<?php echo cacheBust('styles/modules/sentence-builder.css'); ?>">
 
     <!-- Driver.js for onboarding tours -->
     <link rel="stylesheet" href="assets/vendor/driver.css?v=<?php echo cacheBust('assets/vendor/driver.css'); ?>"/>
@@ -118,6 +119,10 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
             <button class="nav-tab" data-module="quiz">
                 <i class="fas fa-question-circle"></i>
                 Unsa Ni?
+            </button>
+            <button class="nav-tab" data-module="sentence-builder">
+                <i class="fas fa-bars-staggered"></i>
+                Sentence Builder
             </button>
             <button class="nav-tab hidden" data-module="deck-builder" id="deckBuilderTab">
                 <i class="fas fa-edit"></i>
@@ -320,6 +325,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     <script src="admin-module.js?v=<?php echo cacheBust('admin-module.js'); ?>"></script>
     <script src="pdf-module.js?v=<?php echo cacheBust('pdf-module.js'); ?>"></script>
     <script src="deck-builder-module.js?v=<?php echo cacheBust('deck-builder-module.js'); ?>"></script>
+    <script src="sentence-builder-module.js?v=<?php echo cacheBust('sentence-builder-module.js'); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Driver.js for onboarding tours -->
