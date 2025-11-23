@@ -353,36 +353,79 @@ function convertAudio($inputPath, $outputPath, $options) {
 }
 
 function convertDocxToHtml($inputPath, $outputPath, $options) {
-    // Find pandoc
-    $pandocPath = trim(shell_exec('which pandoc 2>/dev/null'));
-    if (empty($pandocPath)) {
-        $pandocPath = 'pandoc'; // Try system PATH
-    }
+    // PHP-native DOCX to HTML converter (no Pandoc required)
+    // DOCX is a ZIP archive containing XML files
 
-    // Verify pandoc is available
-    $versionCheck = shell_exec($pandocPath . ' --version 2>&1');
-    if (empty($versionCheck) || strpos($versionCheck, 'pandoc') === false) {
-        throw new Exception('Pandoc is not installed on this server. Please install pandoc to enable DOCX to HTML conversion.');
+    if (!class_exists('ZipArchive')) {
+        throw new Exception('PHP ZipArchive extension is required for DOCX conversion.');
     }
 
     // Update output path to .html
     $outputPath = preg_replace('/\.[^.]+$/', '.html', $outputPath);
 
-    // Build Pandoc command for self-contained HTML
-    $args = [
-        escapeshellarg($pandocPath),
-        escapeshellarg($inputPath),
-        '-o', escapeshellarg($outputPath),
-        '--standalone',           // Complete HTML document
-        '--self-contained',       // Embed images as base64
-        '--metadata', 'title=""'  // Prevent "Untitled" title
-    ];
+    $zip = new ZipArchive();
+    if ($zip->open($inputPath) !== true) {
+        throw new Exception('Failed to open DOCX file. Make sure it is a valid Word document.');
+    }
 
-    // Optional: Add custom CSS styling
+    // Read the main document content
+    $documentXml = $zip->getFromName('word/document.xml');
+    if ($documentXml === false) {
+        $zip->close();
+        throw new Exception('Invalid DOCX file: missing document.xml');
+    }
+
+    // Read relationships to find images
+    $relsXml = $zip->getFromName('word/_rels/document.xml.rels');
+    $relationships = [];
+    if ($relsXml !== false) {
+        $relsDoc = new DOMDocument();
+        $relsDoc->loadXML($relsXml);
+        foreach ($relsDoc->getElementsByTagName('Relationship') as $rel) {
+            $id = $rel->getAttribute('Id');
+            $target = $rel->getAttribute('Target');
+            $relationships[$id] = $target;
+        }
+    }
+
+    // Parse the document XML
+    $doc = new DOMDocument();
+    $doc->loadXML($documentXml);
+
+    // Extract images and convert to base64
+    $images = [];
+    foreach ($relationships as $id => $target) {
+        if (strpos($target, 'media/') !== false) {
+            $imagePath = 'word/' . $target;
+            $imageData = $zip->getFromName($imagePath);
+            if ($imageData !== false) {
+                $ext = strtolower(pathinfo($target, PATHINFO_EXTENSION));
+                $mimeTypes = [
+                    'png' => 'image/png',
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'gif' => 'image/gif',
+                    'bmp' => 'image/bmp',
+                    'wmf' => 'image/x-wmf',
+                    'emf' => 'image/x-emf'
+                ];
+                $mime = $mimeTypes[$ext] ?? 'image/png';
+                $images[$id] = 'data:' . $mime . ';base64,' . base64_encode($imageData);
+            }
+        }
+    }
+
+    $zip->close();
+
+    // Convert DOCX XML to HTML
+    $html = convertDocxXmlToHtml($doc, $images);
+
+    // Add styling if requested
     $embedStyles = isset($options['embedStyles']) && $options['embedStyles'] === 'yes';
+    $css = '';
     if ($embedStyles) {
-        // Create inline CSS for better styling
-        $customCss = '
+        $css = '
+        <style>
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                 max-width: 800px;
@@ -391,42 +434,36 @@ function convertDocxToHtml($inputPath, $outputPath, $options) {
                 line-height: 1.6;
                 color: #333;
             }
-            h1, h2, h3, h4, h5, h6 { color: #111; margin-top: 1.5em; }
+            h1, h2, h3, h4, h5, h6 { color: #111; margin-top: 1.5em; margin-bottom: 0.5em; }
+            p { margin: 0 0 1em; }
             table { border-collapse: collapse; width: 100%; margin: 1em 0; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
             th { background: #f5f5f5; }
             img { max-width: 100%; height: auto; }
-            blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1em; color: #666; }
-            code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; }
-            pre { background: #f4f4f4; padding: 1em; overflow-x: auto; border-radius: 4px; }
-        ';
-
-        // Write temp CSS file
-        $cssPath = sys_get_temp_dir() . '/pandoc_style_' . uniqid() . '.css';
-        file_put_contents($cssPath, $customCss);
-
-        $args[] = '--css=' . escapeshellarg($cssPath);
+            ul, ol { margin: 0 0 1em; padding-left: 2em; }
+            li { margin-bottom: 0.5em; }
+            .bold { font-weight: bold; }
+            .italic { font-style: italic; }
+            .underline { text-decoration: underline; }
+        </style>';
     }
 
-    $command = implode(' ', $args) . ' 2>&1';
+    // Build complete HTML document
+    $fullHtml = '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grammar Document</title>
+    ' . $css . '
+</head>
+<body>
+' . $html . '
+</body>
+</html>';
 
-    // Log the command for debugging
-    error_log("Pandoc command: " . $command);
-
-    exec($command, $output, $returnCode);
-
-    // Clean up temp CSS if created
-    if (isset($cssPath) && file_exists($cssPath)) {
-        unlink($cssPath);
-    }
-
-    if ($returnCode !== 0 || !file_exists($outputPath)) {
-        $errorMsg = 'Pandoc exit code: ' . $returnCode . "\n" .
-                    'Command: ' . $command . "\n" .
-                    'Output: ' . implode("\n", $output);
-        error_log("DOCX conversion error: " . $errorMsg);
-        throw new Exception($errorMsg);
-    }
+    // Save to output file
+    file_put_contents($outputPath, $fullHtml);
 
     return [
         'success' => true,
@@ -434,6 +471,123 @@ function convertDocxToHtml($inputPath, $outputPath, $options) {
         'originalSize' => filesize($inputPath),
         'newSize' => filesize($outputPath)
     ];
+}
+
+/**
+ * Convert DOCX XML document to HTML
+ */
+function convertDocxXmlToHtml($doc, $images) {
+    $html = '';
+    $xpath = new DOMXPath($doc);
+
+    // Register namespaces
+    $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+    $xpath->registerNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
+    $xpath->registerNamespace('r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships');
+    $xpath->registerNamespace('wp', 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing');
+
+    // Get all paragraphs
+    $paragraphs = $xpath->query('//w:p');
+
+    $inList = false;
+    $listType = null;
+    $currentListLevel = -1;
+
+    foreach ($paragraphs as $para) {
+        $paraHtml = '';
+        $isHeading = false;
+        $headingLevel = 0;
+        $isListItem = false;
+        $listLevel = 0;
+
+        // Check for heading style
+        $pStyle = $xpath->query('.//w:pStyle/@w:val', $para);
+        if ($pStyle->length > 0) {
+            $style = $pStyle->item(0)->nodeValue;
+            if (preg_match('/Heading(\d)/', $style, $matches)) {
+                $isHeading = true;
+                $headingLevel = intval($matches[1]);
+            }
+        }
+
+        // Check for list (numbered or bullet)
+        $numPr = $xpath->query('.//w:numPr', $para);
+        if ($numPr->length > 0) {
+            $isListItem = true;
+            $ilvl = $xpath->query('.//w:ilvl/@w:val', $para);
+            $listLevel = $ilvl->length > 0 ? intval($ilvl->item(0)->nodeValue) : 0;
+        }
+
+        // Get all runs (text segments) in the paragraph
+        $runs = $xpath->query('.//w:r', $para);
+        foreach ($runs as $run) {
+            // Check for images
+            $drawings = $xpath->query('.//a:blip/@r:embed', $run);
+            if ($drawings->length > 0) {
+                $imageId = $drawings->item(0)->nodeValue;
+                if (isset($images[$imageId])) {
+                    $paraHtml .= '<img src="' . $images[$imageId] . '" alt="Image">';
+                }
+                continue;
+            }
+
+            // Get text content
+            $texts = $xpath->query('.//w:t', $run);
+            $textContent = '';
+            foreach ($texts as $text) {
+                $textContent .= $text->textContent;
+            }
+
+            if (empty($textContent)) continue;
+
+            // Check for formatting
+            $isBold = $xpath->query('.//w:b', $run)->length > 0;
+            $isItalic = $xpath->query('.//w:i', $run)->length > 0;
+            $isUnderline = $xpath->query('.//w:u', $run)->length > 0;
+
+            // Apply formatting
+            $formattedText = htmlspecialchars($textContent, ENT_QUOTES, 'UTF-8');
+            if ($isBold) $formattedText = '<strong>' . $formattedText . '</strong>';
+            if ($isItalic) $formattedText = '<em>' . $formattedText . '</em>';
+            if ($isUnderline) $formattedText = '<u>' . $formattedText . '</u>';
+
+            $paraHtml .= $formattedText;
+        }
+
+        // Skip empty paragraphs (but allow ones with images)
+        if (empty(trim(strip_tags($paraHtml))) && strpos($paraHtml, '<img') === false) {
+            continue;
+        }
+
+        // Handle lists
+        if ($isListItem) {
+            if (!$inList) {
+                $html .= '<ul>';
+                $inList = true;
+            }
+            $html .= '<li>' . $paraHtml . '</li>';
+        } else {
+            // Close any open list
+            if ($inList) {
+                $html .= '</ul>';
+                $inList = false;
+            }
+
+            // Output paragraph or heading
+            if ($isHeading && $headingLevel >= 1 && $headingLevel <= 6) {
+                $html .= "<h{$headingLevel}>" . $paraHtml . "</h{$headingLevel}>\n";
+            } else {
+                $html .= '<p>' . $paraHtml . "</p>\n";
+            }
+        }
+    }
+
+    // Close any remaining list
+    if ($inList) {
+        $html .= '</ul>';
+    }
+
+    return $html;
 }
 
 function convertWithFFmpeg($inputPath, $outputPath, $inputExt, $maxSize, $outputFormat, $crf, $fps) {
@@ -1114,8 +1268,8 @@ if (!$authenticated) {
                     <p class="help-text">Ready for Grammar module</p>
                 </div>
             </div>
-            <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; font-size: 13px; color: #92400e;">
-                <strong>Note:</strong> Requires Pandoc installed on server. Converts Word documents to self-contained HTML with all images embedded.
+            <div style="margin-top: 15px; padding: 12px; background: #d1fae5; border-radius: 6px; font-size: 13px; color: #065f46;">
+                <strong>Note:</strong> Uses native PHP conversion (no external dependencies). Converts Word documents to self-contained HTML with all images embedded as base64.
             </div>
         </div>
     </div>
