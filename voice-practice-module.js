@@ -24,7 +24,9 @@ class VoicePracticeManager {
         this.currentCard = null;
         this.useDTW = true;
         this.applyFilter = true;
-        
+        this.sideBySideMode = false;
+        this.currentVizType = 'waveform';
+
         // Initialize audio context on first user interaction
         this.audioContextInitialized = false;
     }
@@ -182,15 +184,76 @@ class VoicePracticeManager {
                             </div>
                             <div class="vp-feedback" id="vpFeedback">Analyzing...</div>
                         </div>
-                        
-                        <div class="vp-viz-tabs">
-                            <button class="vp-viz-tab active" data-viz="waveform">Waveform</button>
-                            <button class="vp-viz-tab" data-viz="pitch">Pitch Contour</button>
-                            <button class="vp-viz-tab" data-viz="intensity">Intensity</button>
+
+                        <div class="vp-score-breakdown" id="vpScoreBreakdown">
+                            <div class="vp-breakdown-header">Score Breakdown</div>
+                            <div class="vp-breakdown-grid">
+                                <div class="vp-breakdown-item" data-factor="mfcc">
+                                    <span class="vp-breakdown-label">Vowel Quality</span>
+                                    <div class="vp-breakdown-bar"><div class="vp-breakdown-fill" id="vpBarMfcc"></div></div>
+                                    <span class="vp-breakdown-value" id="vpValMfcc">--</span>
+                                </div>
+                                <div class="vp-breakdown-item" data-factor="pitch">
+                                    <span class="vp-breakdown-label">Pitch/Intonation</span>
+                                    <div class="vp-breakdown-bar"><div class="vp-breakdown-fill" id="vpBarPitch"></div></div>
+                                    <span class="vp-breakdown-value" id="vpValPitch">--</span>
+                                </div>
+                                <div class="vp-breakdown-item" data-factor="stressPos">
+                                    <span class="vp-breakdown-label">Stress Timing</span>
+                                    <div class="vp-breakdown-bar"><div class="vp-breakdown-fill" id="vpBarStressPos"></div></div>
+                                    <span class="vp-breakdown-value" id="vpValStressPos">--</span>
+                                </div>
+                                <div class="vp-breakdown-item" data-factor="stressPat">
+                                    <span class="vp-breakdown-label">Stress Pattern</span>
+                                    <div class="vp-breakdown-bar"><div class="vp-breakdown-fill" id="vpBarStressPat"></div></div>
+                                    <span class="vp-breakdown-value" id="vpValStressPat">--</span>
+                                </div>
+                                <div class="vp-breakdown-item" data-factor="intensity">
+                                    <span class="vp-breakdown-label">Dynamics</span>
+                                    <div class="vp-breakdown-bar"><div class="vp-breakdown-fill" id="vpBarIntensity"></div></div>
+                                    <span class="vp-breakdown-value" id="vpValIntensity">--</span>
+                                </div>
+                                <div class="vp-breakdown-item" data-factor="duration">
+                                    <span class="vp-breakdown-label">Timing</span>
+                                    <div class="vp-breakdown-bar"><div class="vp-breakdown-fill" id="vpBarDuration"></div></div>
+                                    <span class="vp-breakdown-value" id="vpValDuration">--</span>
+                                </div>
+                                <div class="vp-breakdown-item" data-factor="voiceQuality">
+                                    <span class="vp-breakdown-label">Voice Quality</span>
+                                    <div class="vp-breakdown-bar"><div class="vp-breakdown-fill" id="vpBarVoiceQuality"></div></div>
+                                    <span class="vp-breakdown-value" id="vpValVoiceQuality">--</span>
+                                </div>
+                                <div class="vp-breakdown-item" data-factor="rhythm">
+                                    <span class="vp-breakdown-label">Rhythm</span>
+                                    <div class="vp-breakdown-bar"><div class="vp-breakdown-fill" id="vpBarRhythm"></div></div>
+                                    <span class="vp-breakdown-value" id="vpValRhythm">--</span>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="vp-canvas-container">
+
+                        <div class="vp-viz-controls">
+                            <div class="vp-viz-tabs">
+                                <button class="vp-viz-tab active" data-viz="waveform">Waveform</button>
+                                <button class="vp-viz-tab" data-viz="pitch">Pitch Contour</button>
+                                <button class="vp-viz-tab" data-viz="intensity">Intensity</button>
+                            </div>
+                            <button class="vp-layout-toggle" id="vpLayoutToggle" title="Toggle side-by-side view">
+                                <i class="fas fa-columns"></i>
+                            </button>
+                        </div>
+
+                        <div class="vp-canvas-container" id="vpCanvasContainer">
                             <canvas id="vpCanvas" width="800" height="300"></canvas>
+                        </div>
+                        <div class="vp-canvas-sidebyside hidden" id="vpCanvasSideBySide">
+                            <div class="vp-side-panel">
+                                <div class="vp-side-label"><i class="fas fa-volume-up"></i> Native</div>
+                                <canvas id="vpCanvasNative" width="380" height="250"></canvas>
+                            </div>
+                            <div class="vp-side-panel">
+                                <div class="vp-side-label"><i class="fas fa-microphone"></i> Yours</div>
+                                <canvas id="vpCanvasUser" width="380" height="250"></canvas>
+                            </div>
                         </div>
                         
                         <div class="vp-actions">
@@ -224,6 +287,25 @@ class VoicePracticeManager {
                     e.target.classList.add('active');
                     this.updateVisualization(e.target.dataset.viz);
                 });
+            });
+
+            // Layout toggle listener
+            document.getElementById('vpLayoutToggle').addEventListener('click', () => {
+                this.sideBySideMode = !this.sideBySideMode;
+                const overlayContainer = document.getElementById('vpCanvasContainer');
+                const sideBySideContainer = document.getElementById('vpCanvasSideBySide');
+                const toggleBtn = document.getElementById('vpLayoutToggle');
+
+                if (this.sideBySideMode) {
+                    overlayContainer.classList.add('hidden');
+                    sideBySideContainer.classList.remove('hidden');
+                    toggleBtn.classList.add('active');
+                } else {
+                    overlayContainer.classList.remove('hidden');
+                    sideBySideContainer.classList.add('hidden');
+                    toggleBtn.classList.remove('active');
+                }
+                this.updateVisualization(this.currentVizType || 'waveform');
             });
         }, 0);
         
@@ -606,10 +688,12 @@ class VoicePracticeManager {
             debugLogger?.log(3, `VAD Info - Native: ${results.vadInfo.native?.trimmedDuration?.toFixed(2)}s, User: ${results.vadInfo.user?.trimmedDuration?.toFixed(2)}s`);
         }
 
-        // Display score
+        // Display score and breakdown
         this.displayScore(results.score);
+        this.displayScoreBreakdown(results);
 
         // Draw initial visualization (waveform)
+        this.currentVizType = 'waveform';
         this.updateVisualization('waveform');
 
         // Auto-play sequence: native → user → native
@@ -697,28 +781,373 @@ class VoicePracticeManager {
             feedback.className = 'vp-feedback practice';
         }
     }
-    
+
+    displayScoreBreakdown(results) {
+        // Check if we have enhanced results (8-factor system)
+        const hasEnhancedResults = results.mfccDetails && results.pitchDetails && results.stressScores;
+
+        if (!hasEnhancedResults) {
+            // Hide breakdown for legacy analysis
+            const breakdownEl = document.getElementById('vpScoreBreakdown');
+            if (breakdownEl) breakdownEl.style.display = 'none';
+            return;
+        }
+
+        // Show breakdown panel
+        const breakdownEl = document.getElementById('vpScoreBreakdown');
+        if (breakdownEl) breakdownEl.style.display = 'block';
+
+        // Extract individual scores
+        const scores = {
+            mfcc: results.mfccDetails?.score || 0,
+            pitch: results.pitchDetails?.score || 0,
+            stressPos: results.stressScores?.position || 0,
+            stressPat: results.stressScores?.pattern || 0,
+            intensity: results.intensityDetails?.score || 0,
+            duration: this.analysisResults?.durationScore || this.calculateDurationScore(),
+            voiceQuality: results.voiceQualityScore?.score || 0,
+            rhythm: results.rhythmScore?.score || 0
+        };
+
+        // Color coding based on score
+        const getColor = (score) => {
+            if (score >= 85) return '#22c55e'; // green
+            if (score >= 70) return '#84cc16'; // lime
+            if (score >= 55) return '#eab308'; // yellow
+            if (score >= 40) return '#f97316'; // orange
+            return '#ef4444'; // red
+        };
+
+        // Update each breakdown bar with animation
+        Object.entries(scores).forEach(([key, score]) => {
+            const bar = document.getElementById(`vpBar${key.charAt(0).toUpperCase() + key.slice(1)}`);
+            const val = document.getElementById(`vpVal${key.charAt(0).toUpperCase() + key.slice(1)}`);
+
+            if (bar && val) {
+                // Animate bar width
+                setTimeout(() => {
+                    bar.style.width = `${Math.round(score)}%`;
+                    bar.style.backgroundColor = getColor(score);
+                }, 100);
+                val.textContent = Math.round(score);
+            }
+        });
+    }
+
+    calculateDurationScore() {
+        // Fallback duration score calculation
+        if (!this.nativeBuffer || !this.userBuffer) return 0;
+        const ratio = this.userBuffer.duration / this.nativeBuffer.duration;
+        const diff = Math.abs(1 - ratio);
+        return Math.max(0, 100 - diff * 200);
+    }
+
     updateVisualization(type) {
-        const canvas = document.getElementById('vpCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Clear canvas
-        ctx.fillStyle = '#1f2937';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+        this.currentVizType = type;
+
         if (!this.nativeBuffer || !this.userBuffer) return;
-        
+
+        if (this.sideBySideMode) {
+            // Side-by-side mode: draw on separate canvases
+            this.drawSideBySide(type);
+        } else {
+            // Overlay mode: draw on single canvas
+            const canvas = document.getElementById('vpCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            switch (type) {
+                case 'waveform':
+                    this.drawWaveform(ctx, canvas);
+                    break;
+                case 'pitch':
+                    this.drawPitch(ctx, canvas);
+                    break;
+                case 'intensity':
+                    this.drawIntensity(ctx, canvas);
+                    break;
+            }
+        }
+    }
+
+    drawSideBySide(type) {
+        const nativeCanvas = document.getElementById('vpCanvasNative');
+        const userCanvas = document.getElementById('vpCanvasUser');
+        const nativeCtx = nativeCanvas.getContext('2d');
+        const userCtx = userCanvas.getContext('2d');
+
+        // Clear both canvases
+        nativeCtx.fillStyle = '#1f2937';
+        nativeCtx.fillRect(0, 0, nativeCanvas.width, nativeCanvas.height);
+        userCtx.fillStyle = '#1f2937';
+        userCtx.fillRect(0, 0, userCanvas.width, userCanvas.height);
+
         switch (type) {
             case 'waveform':
-                this.drawWaveform(ctx, canvas);
+                this.drawWaveformSingle(nativeCtx, nativeCanvas, this.nativeBuffer, '#3b82f6', 'Native');
+                this.drawWaveformSingle(userCtx, userCanvas, this.userBuffer, '#22c55e', 'Yours');
                 break;
             case 'pitch':
-                this.drawPitch(ctx, canvas);
+                this.drawPitchSingle(nativeCtx, nativeCanvas, 'native');
+                this.drawPitchSingle(userCtx, userCanvas, 'user');
                 break;
             case 'intensity':
-                this.drawIntensity(ctx, canvas);
+                this.drawIntensitySingle(nativeCtx, nativeCanvas, 'native');
+                this.drawIntensitySingle(userCtx, userCanvas, 'user');
                 break;
         }
+    }
+
+    drawWaveformSingle(ctx, canvas, buffer, color, label) {
+        const data = buffer.getChannelData(0);
+        const width = canvas.width;
+        const height = canvas.height;
+        const padding = { left: 40, right: 10, top: 25, bottom: 30 };
+        const plotWidth = width - padding.left - padding.right;
+        const plotHeight = height - padding.top - padding.bottom;
+        const midY = padding.top + plotHeight / 2;
+
+        // Draw axes
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, padding.top);
+        ctx.lineTo(padding.left, height - padding.bottom);
+        ctx.moveTo(padding.left, midY);
+        ctx.lineTo(width - padding.right, midY);
+        ctx.stroke();
+
+        // Draw waveform envelope
+        const samplesPerPixel = data.length / plotWidth;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+
+        // Top envelope
+        for (let i = 0; i < plotWidth; i++) {
+            const startSample = Math.floor(i * samplesPerPixel);
+            const endSample = Math.floor((i + 1) * samplesPerPixel);
+            let max = 0;
+            for (let j = startSample; j < endSample && j < data.length; j++) {
+                if (data[j] > max) max = data[j];
+            }
+            const x = padding.left + i;
+            const y = midY - (max * plotHeight / 2);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+
+        // Bottom envelope (reverse)
+        for (let i = plotWidth - 1; i >= 0; i--) {
+            const startSample = Math.floor(i * samplesPerPixel);
+            const endSample = Math.floor((i + 1) * samplesPerPixel);
+            let min = 0;
+            for (let j = startSample; j < endSample && j < data.length; j++) {
+                if (data[j] < min) min = data[j];
+            }
+            const x = padding.left + i;
+            const y = midY - (min * plotHeight / 2);
+            ctx.lineTo(x, y);
+        }
+
+        ctx.closePath();
+        ctx.globalAlpha = 0.6;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // Time label
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${buffer.duration.toFixed(2)}s`, width / 2, height - 5);
+    }
+
+    drawPitchSingle(ctx, canvas, source) {
+        const pitchData = source === 'native'
+            ? this.analysisResults?.features?.nativePitch
+            : this.analysisResults?.features?.userPitch;
+
+        if (!pitchData || pitchData.length === 0) {
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('No pitch data', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+
+        const width = canvas.width;
+        const height = canvas.height;
+        const padding = { left: 40, right: 10, top: 25, bottom: 30 };
+        const plotWidth = width - padding.left - padding.right;
+        const plotHeight = height - padding.top - padding.bottom;
+
+        const color = source === 'native' ? '#3b82f6' : '#22c55e';
+
+        // Find pitch range (use both native and user for consistent scale)
+        const allPitches = [
+            ...(this.analysisResults?.features?.nativePitch || []),
+            ...(this.analysisResults?.features?.userPitch || [])
+        ].map(p => p.pitch).filter(p => p > 0);
+
+        if (allPitches.length === 0) return;
+
+        const minPitch = Math.min(...allPitches) * 0.9;
+        const maxPitch = Math.max(...allPitches) * 1.1;
+        const maxTime = Math.max(
+            pitchData[pitchData.length - 1]?.time || 0,
+            this.nativeBuffer.duration,
+            this.userBuffer.duration
+        );
+
+        // Draw axes
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, padding.top);
+        ctx.lineTo(padding.left, height - padding.bottom);
+        ctx.lineTo(width - padding.right, height - padding.bottom);
+        ctx.stroke();
+
+        // Draw pitch contour
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        let started = false;
+        for (let i = 0; i < pitchData.length; i++) {
+            if (pitchData[i].pitch > 0) {
+                const x = padding.left + (pitchData[i].time / maxTime) * plotWidth;
+                const y = height - padding.bottom - ((pitchData[i].pitch - minPitch) / (maxPitch - minPitch)) * plotHeight;
+                if (!started) {
+                    ctx.moveTo(x, y);
+                    started = true;
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+        }
+        ctx.stroke();
+
+        // Draw stress dots for this source
+        this.drawStressDotsSingle(ctx, canvas, source, minPitch, maxPitch, maxTime, padding, plotWidth, plotHeight);
+
+        // Y-axis labels
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${Math.round(maxPitch)}`, padding.left - 3, padding.top + 8);
+        ctx.fillText(`${Math.round(minPitch)}`, padding.left - 3, height - padding.bottom);
+    }
+
+    drawStressDotsSingle(ctx, canvas, source, minPitch, maxPitch, maxTime, padding, plotWidth, plotHeight) {
+        const stresses = source === 'native'
+            ? this.analysisResults?.stresses?.native
+            : this.analysisResults?.stresses?.user;
+
+        if (!stresses || stresses.length === 0) return;
+
+        const pitchData = source === 'native'
+            ? this.analysisResults?.features?.nativePitch
+            : this.analysisResults?.features?.userPitch;
+
+        const height = canvas.height;
+        const color = source === 'native' ? '#f59e0b' : '#ef4444';
+
+        stresses.forEach((stress, idx) => {
+            const x = padding.left + (stress.time / maxTime) * plotWidth;
+
+            // Find pitch at this time
+            let pitchAtTime = 0;
+            for (const p of pitchData) {
+                if (Math.abs(p.time - stress.time) < 0.02 && p.pitch > 0) {
+                    pitchAtTime = p.pitch;
+                    break;
+                }
+            }
+
+            if (pitchAtTime > 0) {
+                const y = height - padding.bottom - ((pitchAtTime - minPitch) / (maxPitch - minPitch)) * plotHeight;
+
+                // Draw stress dot
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Draw stress rank number
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 8px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(idx + 1, x, y + 3);
+            }
+        });
+    }
+
+    drawIntensitySingle(ctx, canvas, source) {
+        const intensityData = source === 'native'
+            ? this.analysisResults?.features?.nativeIntensity
+            : this.analysisResults?.features?.userIntensity;
+
+        if (!intensityData || intensityData.length === 0) {
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('No intensity data', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+
+        const width = canvas.width;
+        const height = canvas.height;
+        const padding = { left: 40, right: 10, top: 25, bottom: 30 };
+        const plotWidth = width - padding.left - padding.right;
+        const plotHeight = height - padding.top - padding.bottom;
+        const midY = padding.top + plotHeight / 2;
+
+        const color = source === 'native' ? '#3b82f6' : '#22c55e';
+
+        // Find max time
+        const maxTime = Math.max(
+            intensityData[intensityData.length - 1]?.time || 0,
+            this.nativeBuffer.duration,
+            this.userBuffer.duration
+        );
+
+        // Draw center line
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, midY);
+        ctx.lineTo(width - padding.right, midY);
+        ctx.stroke();
+
+        // Draw intensity envelope
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+
+        // Upper envelope
+        for (let i = 0; i < intensityData.length; i++) {
+            const x = padding.left + (intensityData[i].time / maxTime) * plotWidth;
+            const y = midY - (intensityData[i].value * plotHeight / 2);
+            if (i === 0) ctx.moveTo(x, midY);
+            ctx.lineTo(x, y);
+        }
+
+        // Lower envelope (mirror)
+        for (let i = intensityData.length - 1; i >= 0; i--) {
+            const x = padding.left + (intensityData[i].time / maxTime) * plotWidth;
+            const y = midY + (intensityData[i].value * plotHeight / 2);
+            ctx.lineTo(x, y);
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 1;
     }
     
     drawWaveform(ctx, canvas) {
@@ -987,30 +1416,103 @@ class VoicePracticeManager {
             }
         }
         ctx.stroke();
-        
+
+        // Draw stress dots overlay
+        this.drawStressDotsOverlay(ctx, canvas, minPitch, maxPitch, maxTime, padding, plotWidth, plotHeight);
+
         // Legend
         const legendX = padding.left + 10;
         const legendY = padding.top - 25;
-        
+
         ctx.fillStyle = nativeColor;
         ctx.fillRect(legendX, legendY, 12, 12);
         ctx.fillStyle = '#e5e7eb';
         ctx.font = '11px sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText('Native Speaker', legendX + 18, legendY + 10);
-        
+
         ctx.fillStyle = userColor;
         ctx.fillRect(legendX + 130, legendY, 12, 12);
         ctx.fillStyle = '#e5e7eb';
         ctx.fillText('Your Recording', legendX + 148, legendY + 10);
-        
+
+        // Stress dots legend
+        if (this.analysisResults?.stresses?.native?.length > 0 || this.analysisResults?.stresses?.user?.length > 0) {
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(legendX + 280, legendY + 6, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#e5e7eb';
+            ctx.fillText('Native Stress', legendX + 290, legendY + 10);
+
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(legendX + 400, legendY + 6, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#e5e7eb';
+            ctx.fillText('Your Stress', legendX + 410, legendY + 10);
+        }
+
         // Range indicator
         ctx.fillStyle = '#6b7280';
         ctx.font = '10px sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(`Range: ${Math.round(minPitch)}-${Math.round(maxPitch)} Hz`, width - padding.right, padding.top - 10);
     }
-    
+
+    drawStressDotsOverlay(ctx, canvas, minPitch, maxPitch, maxTime, padding, plotWidth, plotHeight) {
+        const nativeStresses = this.analysisResults?.stresses?.native || [];
+        const userStresses = this.analysisResults?.stresses?.user || [];
+        const nativePitch = this.analysisResults?.features?.nativePitch || [];
+        const userPitch = this.analysisResults?.features?.userPitch || [];
+        const height = canvas.height;
+
+        // Helper to draw stress dots for a source
+        const drawDots = (stresses, pitchData, color, yOffset) => {
+            stresses.forEach((stress, idx) => {
+                const x = padding.left + (stress.time / maxTime) * plotWidth;
+
+                // Find pitch at this time
+                let pitchAtTime = 0;
+                for (const p of pitchData) {
+                    if (Math.abs(p.time - stress.time) < 0.02 && p.pitch > 0) {
+                        pitchAtTime = p.pitch;
+                        break;
+                    }
+                }
+
+                if (pitchAtTime > 0) {
+                    const y = height - padding.bottom - ((pitchAtTime - minPitch) / (maxPitch - minPitch)) * plotHeight + yOffset;
+
+                    // Draw stress dot with glow effect
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 7, 0, 2 * Math.PI);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Draw stress rank number
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 9px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(idx + 1, x, y + 3);
+                }
+            });
+        };
+
+        // Draw native stresses (orange, slightly above pitch line)
+        drawDots(nativeStresses, nativePitch, '#f59e0b', -8);
+
+        // Draw user stresses (red, slightly below pitch line)
+        drawDots(userStresses, userPitch, '#ef4444', 8);
+    }
+
     drawIntensity(ctx, canvas) {
         if (!this.analysisResults || !this.analysisResults.features) {
             ctx.fillStyle = 'white';

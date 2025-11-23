@@ -424,3 +424,212 @@ body.mobile-tablet .vp-modal {
 .hidden {
     display: none !important;
 }
+
+/* =================================================================
+   SCORE BREAKDOWN PANEL
+   ================================================================= */
+
+.vp-score-breakdown {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.vp-breakdown-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vp-breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.vp-breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vp-breakdown-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    min-width: 85px;
+    white-space: nowrap;
+}
+
+.vp-breakdown-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-tertiary, #374151);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.vp-breakdown-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--primary);
+    border-radius: 4px;
+    transition: width 0.6s ease-out, background-color 0.3s;
+}
+
+.vp-breakdown-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 28px;
+    text-align: right;
+}
+
+/* =================================================================
+   VISUALIZATION CONTROLS (Tabs + Layout Toggle)
+   ================================================================= */
+
+.vp-viz-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.vp-viz-controls .vp-viz-tabs {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.vp-layout-toggle {
+    width: 40px;
+    height: 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vp-layout-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.vp-layout-toggle.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* =================================================================
+   SIDE-BY-SIDE CANVAS LAYOUT
+   ================================================================= */
+
+.vp-canvas-sidebyside {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.vp-side-panel {
+    flex: 1;
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.vp-side-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vp-side-label i {
+    font-size: 14px;
+}
+
+.vp-side-panel:first-child .vp-side-label {
+    color: #60a5fa;
+}
+
+.vp-side-panel:last-child .vp-side-label {
+    color: #34d399;
+}
+
+#vpCanvasNative,
+#vpCanvasUser {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+}
+
+/* =================================================================
+   MOBILE RESPONSIVE - SCORE BREAKDOWN
+   ================================================================= */
+
+body.mobile-phone .vp-breakdown-grid {
+    grid-template-columns: 1fr;
+}
+
+body.mobile-phone .vp-breakdown-label {
+    min-width: 75px;
+    font-size: 10px;
+}
+
+body.mobile-phone .vp-breakdown-value {
+    font-size: 11px;
+    min-width: 24px;
+}
+
+body.mobile-phone .vp-canvas-sidebyside {
+    flex-direction: column;
+}
+
+body.mobile-phone .vp-layout-toggle {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+}
+
+body.mobile-phone .vp-viz-controls .vp-viz-tabs {
+    flex: 1;
+    min-width: 0;
+}
+
+/* =================================================================
+   DARK MODE ADJUSTMENTS - NEW COMPONENTS
+   ================================================================= */
+
+[data-theme="dark"] .vp-score-breakdown {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .vp-breakdown-bar {
+    background: #0f172a;
+}
+
+[data-theme="dark"] .vp-side-panel {
+    background: #0f172a;
+}
+
+[data-theme="dark"] .vp-layout-toggle {
+    background: #1e293b;
+    border-color: #334155;
+}
