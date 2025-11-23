@@ -131,7 +131,9 @@ class GrammarModule extends LearningModule {
             try {
                 const response = await fetch(path);
                 if (response.ok) {
-                    htmlContent = await response.text();
+                    // Fetch as ArrayBuffer to handle encoding properly
+                    const buffer = await response.arrayBuffer();
+                    htmlContent = this.decodeWithCorrectEncoding(buffer);
                     loadedPath = path;
                     break;
                 }
@@ -315,6 +317,68 @@ class GrammarModule extends LearningModule {
     }
 
     /**
+     * Decode ArrayBuffer with correct encoding
+     * Word's "Web Page, Filtered" uses Windows-1252 encoding
+     * This method detects the charset and decodes accordingly
+     */
+    decodeWithCorrectEncoding(buffer) {
+        // First, try to peek at the content to find charset declaration
+        // Use a simple ASCII decode first (works for meta tags)
+        const uint8Array = new Uint8Array(buffer);
+        let peekContent = '';
+
+        // Read first 1024 bytes as ASCII to find meta charset
+        for (let i = 0; i < Math.min(1024, uint8Array.length); i++) {
+            peekContent += String.fromCharCode(uint8Array[i]);
+        }
+
+        // Look for charset declaration in meta tags
+        // <meta charset="windows-1252">
+        // <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+        const charsetMatch = peekContent.match(/charset=["']?([^"'\s>]+)/i);
+        let charset = charsetMatch ? charsetMatch[1].toLowerCase() : null;
+
+        // Word's "Web Page, Filtered" typically uses windows-1252
+        // Common aliases
+        if (charset === 'windows-1252' || charset === 'cp1252' || charset === 'iso-8859-1') {
+            charset = 'windows-1252';
+        }
+
+        // If no charset found, try to detect Windows-1252 by looking for its byte patterns
+        // Windows-1252 smart quotes are bytes 0x91-0x94, 0x96-0x97
+        if (!charset) {
+            for (let i = 0; i < uint8Array.length; i++) {
+                const byte = uint8Array[i];
+                // Check for Windows-1252 specific characters (0x80-0x9F range)
+                if (byte >= 0x91 && byte <= 0x94) {  // Smart quotes
+                    charset = 'windows-1252';
+                    break;
+                }
+                if (byte === 0x96 || byte === 0x97) {  // En/em dash
+                    charset = 'windows-1252';
+                    break;
+                }
+            }
+        }
+
+        // Default to windows-1252 for Word documents, UTF-8 otherwise
+        if (!charset) {
+            charset = 'utf-8';
+        }
+
+        // Decode with the detected charset
+        try {
+            const decoder = new TextDecoder(charset);
+            return decoder.decode(buffer);
+        } catch (e) {
+            // Fallback to UTF-8 if charset not supported
+            console.warn(`Charset ${charset} not supported, falling back to UTF-8`);
+            const decoder = new TextDecoder('utf-8');
+            return decoder.decode(buffer);
+        }
+    }
+
+    /**
      * Fix encoding issues from Word's "Web Page, Filtered" export
      * Word uses Windows-1252 encoding which causes smart quotes to display as �
      * This method replaces corrupted characters with their proper equivalents
@@ -332,8 +396,8 @@ class GrammarModule extends LearningModule {
             [/\u0096/g, '–'],      // En dash
             [/\u0097/g, '—'],      // Em dash
 
-            // Replacement character (appears when encoding fails)
-            [/\ufffd/g, ''],       // Remove replacement characters
+            // Note: Do NOT remove \ufffd (replacement character) - it deletes content
+            // Instead, we now handle encoding properly in decodeWithCorrectEncoding()
 
             // Windows-1252 bytes misread as UTF-8 (shows as Â followed by special char)
             [/Â\u0093/g, '"'],
