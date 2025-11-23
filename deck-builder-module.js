@@ -196,6 +196,32 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
+                <!-- Sentence Words Upload Section (Admin only) -->
+                <div class="deck-section ${adminOnlyClass}" id="sentenceWordsSection">
+                    <h3 class="section-title"><i class="fas fa-bars-staggered"></i> Sentence Builder Data</h3>
+                    <div class="section-card">
+                        <p class="section-description">
+                            Upload Sentence Words CSV files for the Sentence Builder module. Each language has its own file.
+                            Format: First column is "Lesson #", other columns are word types (Verb, Noun, etc.) containing comma-separated words.
+                        </p>
+
+                        <div class="csv-upload-section">
+                            <div id="sentenceWordFileInputs" class="language-uploads">
+                                <!-- Will be populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="section-actions">
+                            <button id="uploadSentenceWordsBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-upload"></i> Upload Sentence Words
+                            </button>
+                        </div>
+                        <p class="section-hint">
+                            <i class="fas fa-exclamation-triangle"></i> All words in the CSV must exist in the Word Lists. Invalid words will cause the upload to fail.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Legend -->
                 <div class="deck-legend">
                     <strong>Status Legend:</strong>
@@ -399,6 +425,7 @@ class DeckBuilderModule extends LearningModule {
         if (this.isAdmin) {
             this.setupCSVUpload();
             this.setupMediaUpload();
+            this.setupSentenceWordsUpload();
         }
 
         // Initial render (will apply default sort)
@@ -3763,6 +3790,147 @@ class DeckBuilderModule extends LearningModule {
                 audioStatus.style.color = 'var(--text-secondary)';
             }
             this.updateMediaUploadButton();
+        }
+    }
+
+    // =========================================
+    // SENTENCE WORDS UPLOAD
+    // =========================================
+
+    setupSentenceWordsUpload() {
+        this.sentenceWordFiles = {};
+
+        // Populate sentence word file inputs
+        const languages = this.assets.manifest?.languages || [
+            {trigraph: 'ceb', name: 'Cebuano'},
+            {trigraph: 'mrw', name: 'Maranao'},
+            {trigraph: 'sin', name: 'Sinama'}
+        ];
+        const targetLanguages = languages.filter(l => l.trigraph.toLowerCase() !== 'eng');
+
+        const sentenceFileInputsContainer = document.getElementById('sentenceWordFileInputs');
+        if (sentenceFileInputsContainer) {
+            sentenceFileInputsContainer.innerHTML = targetLanguages.map(lang => `
+                <div class="file-upload-container sentence-file-row" data-trigraph="${lang.trigraph}">
+                    <label class="file-upload-label">
+                        <i class="fas fa-file-csv"></i> ${lang.name}
+                        <span class="file-hint">Sentence_Words_${lang.trigraph}.csv</span>
+                    </label>
+                    <input type="file" name="sentenceFile_${lang.trigraph}" accept=".csv" class="file-input">
+                    <div class="file-status">No file selected</div>
+                </div>
+            `).join('');
+        }
+
+        // Sentence word file inputs
+        document.querySelectorAll('#sentenceWordFileInputs input[type="file"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                const row = e.target.closest('.sentence-file-row');
+                const status = row.querySelector('.file-status');
+                const trigraph = row.dataset.trigraph;
+
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.csv')) {
+                        toastManager.show('Please select a CSV file', 'error');
+                        input.value = '';
+                        delete this.sentenceWordFiles[trigraph];
+                        status.textContent = 'No file selected';
+                        status.style.color = 'var(--text-secondary)';
+                    } else {
+                        this.sentenceWordFiles[trigraph] = file;
+                        status.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        status.style.color = 'var(--success)';
+                    }
+                } else {
+                    delete this.sentenceWordFiles[trigraph];
+                    status.textContent = 'No file selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                this.updateSentenceWordsButton();
+            });
+        });
+
+        // Upload button
+        const uploadBtn = document.getElementById('uploadSentenceWordsBtn');
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => this.uploadSentenceWords());
+        }
+    }
+
+    updateSentenceWordsButton() {
+        const uploadBtn = document.getElementById('uploadSentenceWordsBtn');
+        if (uploadBtn) {
+            uploadBtn.disabled = Object.keys(this.sentenceWordFiles).length === 0;
+        }
+    }
+
+    async uploadSentenceWords() {
+        const uploadBtn = document.getElementById('uploadSentenceWordsBtn');
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading & Validating...';
+
+        try {
+            const formData = new FormData();
+
+            // Add sentence word files
+            for (const [trig, file] of Object.entries(this.sentenceWordFiles)) {
+                formData.append(`sentenceFile_${trig}`, file);
+            }
+
+            const timestamp = new Date().getTime();
+            const response = await fetch(`scan-assets.php?action=uploadSentenceWords&_=${timestamp}`, {
+                method: 'POST',
+                body: formData,
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                toastManager.show('Sentence words uploaded successfully!', 'success', 5000);
+
+                // Reload manifest
+                await this.assets.loadManifest();
+                this.loadCardsForLanguage(this.currentTrigraph);
+                this.filterAndRenderCards();
+            } else if (result.validationErrors) {
+                // Show validation errors
+                let errorMsg = 'Validation errors:\n';
+                for (const [lang, errors] of Object.entries(result.validationErrors)) {
+                    errorMsg += `\n${lang}:\n`;
+                    errors.slice(0, 5).forEach(err => {
+                        errorMsg += `  - ${err}\n`;
+                    });
+                    if (errors.length > 5) {
+                        errorMsg += `  ...and ${errors.length - 5} more errors\n`;
+                    }
+                }
+                toastManager.show('Upload failed - some words not found in manifest', 'error', 10000);
+                console.error(errorMsg);
+                alert(errorMsg);
+            } else {
+                toastManager.show(`Upload failed: ${result.error || 'Unknown error'}`, 'error', 5000);
+            }
+        } catch (err) {
+            toastManager.show(`Error: ${err.message}`, 'error', 5000);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Sentence Words';
+
+            // Clear file inputs
+            document.querySelectorAll('#sentenceWordFileInputs .sentence-file-row').forEach(row => {
+                const status = row.querySelector('.file-status');
+                const input = row.querySelector('input[type="file"]');
+                if (status) {
+                    status.textContent = 'No file selected';
+                    status.style.color = 'var(--text-secondary)';
+                }
+                if (input) input.value = '';
+            });
+            this.sentenceWordFiles = {};
+            this.updateSentenceWordsButton();
         }
     }
 

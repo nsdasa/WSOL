@@ -38,6 +38,9 @@ try {
         case 'upload':
             handleCSVUpload();
             break;
+        case 'uploadSentenceWords':
+            handleSentenceWordsUpload();
+            break;
         case 'uploadMedia':
             handleMediaUpload();
             break;
@@ -101,6 +104,148 @@ function handleCSVUpload() {
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
+}
+
+// ------------------------------------------------
+// 1b. SENTENCE WORDS CSV UPLOAD HANDLER
+// ------------------------------------------------
+function handleSentenceWordsUpload() {
+    global $assetsDir;
+
+    try {
+        $uploaded = false;
+        $validationErrors = [];
+
+        // Load existing manifest to validate words
+        $manifestPath = $assetsDir . '/manifest.json';
+        $manifest = null;
+        if (file_exists($manifestPath)) {
+            $manifest = json_decode(file_get_contents($manifestPath), true);
+        }
+
+        if (!$manifest || !isset($manifest['cards'])) {
+            throw new Exception('Manifest not found. Please upload Word Lists first before uploading Sentence Words.');
+        }
+
+        // Process sentence word files for each language
+        foreach (['ceb' => 'Cebuano', 'mrw' => 'Maranao', 'sin' => 'Sinama'] as $trig => $name) {
+            $field = 'sentenceFile_' . $trig;
+            if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
+                $tmpPath = $_FILES[$field]['tmp_name'];
+
+                // Validate the CSV before saving
+                $validation = validateSentenceWordsCSV($tmpPath, $trig, $manifest);
+
+                if (!$validation['valid']) {
+                    $validationErrors[$name] = $validation['errors'];
+                    continue;
+                }
+
+                // Save the file
+                $target = $assetsDir . '/Sentence_Words_' . $trig . '.csv';
+                move_uploaded_file($tmpPath, $target);
+                clearstatcache(true, $target);
+                $uploaded = true;
+            }
+        }
+
+        if (!empty($validationErrors)) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Validation failed for some files',
+                'validationErrors' => $validationErrors
+            ]);
+            return;
+        }
+
+        if (!$uploaded) {
+            throw new Exception('No sentence word files received');
+        }
+
+        // Re-scan to update manifest with sentence words
+        scanAssets();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+/**
+ * Validate Sentence Words CSV - ensures all words exist in manifest
+ */
+function validateSentenceWordsCSV($filePath, $trigraph, $manifest) {
+    $errors = [];
+
+    if (!file_exists($filePath)) {
+        return ['valid' => false, 'errors' => ['File not found']];
+    }
+
+    $file = fopen($filePath, 'r');
+    if (!$file) {
+        return ['valid' => false, 'errors' => ['Could not open file']];
+    }
+
+    // Read headers
+    $headers = fgetcsv($file);
+    if (!$headers || count($headers) < 2) {
+        fclose($file);
+        return ['valid' => false, 'errors' => ['Invalid CSV format - missing headers']];
+    }
+
+    // First column should be "Lesson #" or similar
+    $lessonColIndex = 0;
+
+    // Build list of valid words from manifest
+    $validWords = [];
+    if (isset($manifest['cards'][$trigraph])) {
+        foreach ($manifest['cards'][$trigraph] as $card) {
+            $word = strtolower(trim($card['word'] ?? ''));
+            if ($word) {
+                $validWords[$word] = true;
+                // Also add variants (slash-separated)
+                $variants = explode('/', $word);
+                foreach ($variants as $v) {
+                    $validWords[strtolower(trim($v))] = true;
+                }
+            }
+        }
+    }
+
+    // Process each row
+    $rowNum = 1;
+    while (($row = fgetcsv($file)) !== false) {
+        $rowNum++;
+
+        // Check each column (except Lesson #)
+        for ($i = 1; $i < count($row); $i++) {
+            $cellValue = trim($row[$i] ?? '');
+            if (empty($cellValue)) continue;
+
+            // Split comma-separated words
+            $words = array_map('trim', explode(',', $cellValue));
+
+            foreach ($words as $word) {
+                if (empty($word)) continue;
+
+                // Handle slash-separated variants (use first word for lookup)
+                $wordToCheck = strtolower(trim(explode('/', $word)[0]));
+
+                // Remove any spaces within the word for matching
+                $wordToCheck = preg_replace('/\s+/', '', $wordToCheck);
+
+                if (!isset($validWords[$wordToCheck])) {
+                    $colName = $headers[$i] ?? "Column $i";
+                    $errors[] = "Row $rowNum, $colName: Word '$word' not found in manifest";
+                }
+            }
+        }
+    }
+
+    fclose($file);
+
+    return [
+        'valid' => empty($errors),
+        'errors' => $errors
+    ];
 }
 
 // ------------------------------------------------
@@ -589,12 +734,16 @@ function scanAssets() {
         $stats['cardsWithAudio'] += $langStats['cardsWithAudio'];
     }
 
+    // Load sentence words for each language
+    $sentenceWords = loadAllSentenceWords($assetsDir, $languages);
+
     $manifest = [
         'version' => '4.0',
         'lastUpdated' => date('c'),
         'languages' => $languages,
         'images' => $images,
         'cards' => $finalCards,
+        'sentenceWords' => $sentenceWords,
         'stats' => $stats
     ];
 
@@ -730,6 +879,83 @@ function extractAudioInfo($filename) {
         return [(int)$m[1], $m[2], $m[3]];  // [cardNum, trigraph, wordVariant]
     }
     return [null, null, null];
+}
+
+/**
+ * Load all sentence words CSV files for each language
+ */
+function loadAllSentenceWords($assetsDir, $languages) {
+    $sentenceWords = [];
+
+    foreach ($languages as $lang) {
+        $trig = $lang['trigraph'];
+        if ($trig === 'eng') continue; // Skip English
+
+        $csvPath = $assetsDir . '/Sentence_Words_' . $trig . '.csv';
+        if (file_exists($csvPath)) {
+            $sentenceWords[$trig] = loadSentenceWordsCSV($csvPath);
+        }
+    }
+
+    return $sentenceWords;
+}
+
+/**
+ * Load and parse a single Sentence Words CSV file
+ * Format: Lesson #, WordType1, WordType2, ... (columns are dynamic)
+ * Each cell contains comma-separated words
+ */
+function loadSentenceWordsCSV($path) {
+    $result = [];
+
+    if (!file_exists($path)) return $result;
+
+    $file = fopen($path, 'r');
+    if (!$file) return $result;
+
+    // Read headers - first row defines word types
+    $headers = fgetcsv($file);
+    if (!$headers || count($headers) < 2) {
+        fclose($file);
+        return $result;
+    }
+
+    // First column is "Lesson #", rest are word types
+    $wordTypes = [];
+    for ($i = 1; $i < count($headers); $i++) {
+        $wordTypes[$i] = trim($headers[$i]);
+    }
+
+    // Process each row (each row is a lesson)
+    while (($row = fgetcsv($file)) !== false) {
+        if (count($row) < 2) continue;
+
+        $lesson = trim($row[0]);
+        if (empty($lesson) || !is_numeric($lesson)) continue;
+
+        $lessonNum = (int)$lesson;
+        $result[$lessonNum] = [];
+
+        // Process each word type column
+        for ($i = 1; $i < count($row); $i++) {
+            $wordType = $wordTypes[$i] ?? null;
+            if (!$wordType) continue;
+
+            $cellValue = trim($row[$i] ?? '');
+            if (empty($cellValue)) continue;
+
+            // Split comma-separated words and clean them
+            $words = array_map('trim', explode(',', $cellValue));
+            $words = array_filter($words, function($w) { return !empty($w); });
+
+            if (!empty($words)) {
+                $result[$lessonNum][$wordType] = array_values($words);
+            }
+        }
+    }
+
+    fclose($file);
+    return $result;
 }
 
 // ------------------------------------------------

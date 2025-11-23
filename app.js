@@ -1810,6 +1810,7 @@ async function init() {
         router.register('match', MatchExerciseModule);
         router.register('match-sound', MatchSoundModule);
         router.register('quiz', UnsaNiQuizModule);
+        router.register('sentence-builder', SentenceBuilderModule);
         router.register('pdf', PDFPrintModule);
         router.register('deck-builder', DeckBuilderModule);
         router.register('admin', AdminModule);

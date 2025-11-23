@@ -1,0 +1,554 @@
+/* =================================================================
+   SENTENCE BUILDER MODULE STYLES
+   Version 1.0 - November 2025
+   ================================================================= */
+
+.module-sentence-builder {
+    animation: fadeIn 0.3s ease;
+}
+
+.module-sentence-builder h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.module-sentence-builder h1 i {
+    color: var(--primary);
+}
+
+.module-sentence-builder .controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    justify-content: center;
+}
+
+/* =================================================================
+   SENTENCE AREA - Middle 50% of screen
+   ================================================================= */
+
+.sentence-area {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 24px 0;
+    min-height: 300px;
+}
+
+#sentenceRow {
+    width: 50%;
+    min-width: 400px;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.sentence-frame-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: nowrap;
+}
+
+/* =================================================================
+   SENTENCE FRAMES - 160x160px like match-sound
+   ================================================================= */
+
+.sentence-frame {
+    width: 160px;
+    height: 160px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    perspective: 1000px;
+}
+
+.sentence-frame:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Empty frame styling */
+.sentence-frame.empty-frame {
+    border-style: dashed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sentence-frame.empty-frame:hover {
+    background: var(--bg-secondary);
+}
+
+.add-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.add-card-content i {
+    font-size: 32px;
+    color: var(--primary);
+}
+
+.add-card-content span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* =================================================================
+   FRAME CARD (has content)
+   ================================================================= */
+
+.sentence-frame.has-card {
+    border-style: solid;
+}
+
+.frame-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+}
+
+.sentence-frame.flipped .frame-card {
+    transform: rotateY(180deg);
+}
+
+.frame-card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.frame-card-front {
+    background: var(--bg-primary);
+}
+
+.frame-card-front img,
+.frame-card-front video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.frame-card-back {
+    background: var(--bg-secondary);
+    transform: rotateY(180deg);
+    flex-direction: column;
+    padding: 12px;
+    text-align: center;
+}
+
+.frame-word {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.frame-english {
+    font-size: 14px;
+    color: var(--text-secondary);
+    word-break: break-word;
+}
+
+/* Speaker icon on frames */
+.frame-speaker {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.frame-speaker:hover {
+    transform: scale(1.1);
+    background: var(--primary-dark);
+}
+
+.frame-speaker i {
+    color: white;
+    font-size: 14px;
+}
+
+/* Delete button on frames */
+.frame-delete {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    background: var(--error);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+    opacity: 0;
+}
+
+.sentence-frame:hover .frame-delete {
+    opacity: 1;
+}
+
+.frame-delete:hover {
+    transform: scale(1.1);
+    background: #c0392b;
+}
+
+.frame-delete i {
+    color: white;
+    font-size: 12px;
+}
+
+/* =================================================================
+   WORD TYPE MODAL
+   ================================================================= */
+
+.word-type-modal {
+    max-width: 600px;
+}
+
+.word-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    padding: 8px;
+}
+
+.word-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.word-type-btn:hover {
+    border-color: var(--primary);
+    background: var(--bg-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.word-type-btn i {
+    font-size: 24px;
+    color: var(--primary);
+}
+
+.word-type-btn span {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.word-type-btn .word-count {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+/* =================================================================
+   CARD SELECTOR MODAL
+   ================================================================= */
+
+.card-selector-modal {
+    max-width: 900px;
+    max-height: 80vh;
+}
+
+.card-selector-modal .modal-body {
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.card-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    padding: 8px;
+}
+
+/* Selector card - 160x160 with flip and select button */
+.selector-card {
+    width: 160px;
+    height: 200px;
+    position: relative;
+    perspective: 1000px;
+}
+
+.selector-card-inner {
+    width: 160px;
+    height: 160px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+}
+
+.selector-card.flipped .selector-card-inner {
+    transform: rotateY(180deg);
+}
+
+.selector-card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+}
+
+.selector-card-front img,
+.selector-card-front video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.selector-card-back {
+    transform: rotateY(180deg);
+    flex-direction: column;
+    padding: 12px;
+    text-align: center;
+    background: var(--bg-secondary);
+}
+
+.selector-word {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.selector-english {
+    font-size: 13px;
+    color: var(--text-secondary);
+    word-break: break-word;
+}
+
+/* Speaker icon on selector cards */
+.selector-speaker {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.selector-speaker:hover {
+    transform: scale(1.1);
+    background: var(--primary-dark);
+}
+
+.selector-speaker i {
+    color: white;
+    font-size: 12px;
+}
+
+/* Select button below card */
+.selector-select-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.selector-select-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.selector-card:hover .selector-card-inner {
+    border-color: var(--primary);
+}
+
+.selector-card:hover .selector-card-face {
+    border-color: var(--primary);
+}
+
+/* No image placeholder */
+.no-image {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: center;
+}
+
+/* =================================================================
+   MOBILE RESPONSIVE
+   ================================================================= */
+
+body.mobile-phone .module-sentence-builder h1 {
+    font-size: 18px;
+}
+
+body.mobile-phone #sentenceRow {
+    width: 90%;
+    min-width: unset;
+}
+
+body.mobile-phone .sentence-frame {
+    width: 120px;
+    height: 120px;
+}
+
+body.mobile-phone .frame-word {
+    font-size: 14px;
+}
+
+body.mobile-phone .frame-english {
+    font-size: 12px;
+}
+
+body.mobile-phone .frame-speaker {
+    width: 28px;
+    height: 28px;
+}
+
+body.mobile-phone .frame-speaker i {
+    font-size: 12px;
+}
+
+body.mobile-phone .word-type-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+body.mobile-phone .card-selector-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+body.mobile-phone .selector-card {
+    width: 140px;
+    height: 180px;
+}
+
+body.mobile-phone .selector-card-inner {
+    width: 140px;
+    height: 140px;
+}
+
+body.mobile-phone .controls {
+    flex-wrap: wrap;
+}
+
+/* Tablet responsive */
+body.mobile-tablet #sentenceRow {
+    width: 70%;
+}
+
+body.mobile-tablet .sentence-frame {
+    width: 140px;
+    height: 140px;
+}
+
+@media (max-width: 768px) {
+    #sentenceRow {
+        width: 80%;
+    }
+
+    .sentence-frame {
+        width: 130px;
+        height: 130px;
+    }
+
+    .card-selector-modal {
+        max-width: 95%;
+    }
+
+    .word-type-modal {
+        max-width: 95%;
+    }
+}
+
+/* =================================================================
+   ANIMATIONS
+   ================================================================= */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sentence-frame {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Pulse animation for empty frames */
+.sentence-frame.empty-frame .add-card-content i {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
