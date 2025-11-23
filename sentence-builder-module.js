@@ -411,7 +411,8 @@ class SentenceBuilderModule extends LearningModule {
      */
     findCardByWord(word) {
         // Search ALL cards - sentence builder words can reference cards from any lesson
-        const allCards = this.assets.getCards({});
+        // Must pass lesson: null to bypass default currentLesson filtering in getCards()
+        const allCards = this.assets.getCards({ lesson: null });
 
         // Normalize function: lowercase, collapse spaces around slashes, trim
         const normalize = (str) => {
