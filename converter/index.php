@@ -188,6 +188,9 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fi
                 if ($ext === 'png') {
                     // PNG to WebP using GD
                     $result = convertPngToWebp($inputPath, $outputPath, $_POST);
+                } elseif ($ext === 'docx') {
+                    // DOCX to HTML using Pandoc
+                    $result = convertDocxToHtml($inputPath, $outputPath, $_POST);
                 } elseif (in_array($ext, $audioExts)) {
                     // Audio conversion
                     $result = convertAudio($inputPath, $outputPath, $_POST);
@@ -200,7 +203,12 @@ if ($authenticated && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fi
                     $result['serverFile'] = basename($result['outputPath']);
                     $result['downloadUrl'] = '?download=1&file=' . urlencode($result['serverFile']);
                     $result['originalName'] = $file['name'];
-                    $result['newName'] = $basename . '.' . $outputFormat;
+                    // Determine output extension based on input type
+                    if ($ext === 'docx') {
+                        $result['newName'] = $basename . '.html';
+                    } else {
+                        $result['newName'] = $basename . '.' . $outputFormat;
+                    }
                 }
             } catch (Exception $e) {
                 $result = ['success' => false, 'error' => $e->getMessage()];
@@ -336,6 +344,90 @@ function convertAudio($inputPath, $outputPath, $options) {
         throw new Exception($errorMsg);
     }
     
+    return [
+        'success' => true,
+        'outputPath' => $outputPath,
+        'originalSize' => filesize($inputPath),
+        'newSize' => filesize($outputPath)
+    ];
+}
+
+function convertDocxToHtml($inputPath, $outputPath, $options) {
+    // Find pandoc
+    $pandocPath = trim(shell_exec('which pandoc 2>/dev/null'));
+    if (empty($pandocPath)) {
+        $pandocPath = 'pandoc'; // Try system PATH
+    }
+
+    // Verify pandoc is available
+    $versionCheck = shell_exec($pandocPath . ' --version 2>&1');
+    if (empty($versionCheck) || strpos($versionCheck, 'pandoc') === false) {
+        throw new Exception('Pandoc is not installed on this server. Please install pandoc to enable DOCX to HTML conversion.');
+    }
+
+    // Update output path to .html
+    $outputPath = preg_replace('/\.[^.]+$/', '.html', $outputPath);
+
+    // Build Pandoc command for self-contained HTML
+    $args = [
+        escapeshellarg($pandocPath),
+        escapeshellarg($inputPath),
+        '-o', escapeshellarg($outputPath),
+        '--standalone',           // Complete HTML document
+        '--self-contained',       // Embed images as base64
+        '--metadata', 'title=""'  // Prevent "Untitled" title
+    ];
+
+    // Optional: Add custom CSS styling
+    $embedStyles = isset($options['embedStyles']) && $options['embedStyles'] === 'yes';
+    if ($embedStyles) {
+        // Create inline CSS for better styling
+        $customCss = '
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                line-height: 1.6;
+                color: #333;
+            }
+            h1, h2, h3, h4, h5, h6 { color: #111; margin-top: 1.5em; }
+            table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background: #f5f5f5; }
+            img { max-width: 100%; height: auto; }
+            blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1em; color: #666; }
+            code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; }
+            pre { background: #f4f4f4; padding: 1em; overflow-x: auto; border-radius: 4px; }
+        ';
+
+        // Write temp CSS file
+        $cssPath = sys_get_temp_dir() . '/pandoc_style_' . uniqid() . '.css';
+        file_put_contents($cssPath, $customCss);
+
+        $args[] = '--css=' . escapeshellarg($cssPath);
+    }
+
+    $command = implode(' ', $args) . ' 2>&1';
+
+    // Log the command for debugging
+    error_log("Pandoc command: " . $command);
+
+    exec($command, $output, $returnCode);
+
+    // Clean up temp CSS if created
+    if (isset($cssPath) && file_exists($cssPath)) {
+        unlink($cssPath);
+    }
+
+    if ($returnCode !== 0 || !file_exists($outputPath)) {
+        $errorMsg = 'Pandoc exit code: ' . $returnCode . "\n" .
+                    'Command: ' . $command . "\n" .
+                    'Output: ' . implode("\n", $output);
+        error_log("DOCX conversion error: " . $errorMsg);
+        throw new Exception($errorMsg);
+    }
+
     return [
         'success' => true,
         'outputPath' => $outputPath,
@@ -866,7 +958,7 @@ if (!$authenticated) {
     <div class="header">
         <a href="?logout" class="logout-btn">Logout</a>
         <h1>Media Converter</h1>
-        <p class="subtitle">PNG to WebP | GIF/MP4 to WebM/MP4 | Audio to Opus/M4A</p>
+        <p class="subtitle">PNG to WebP | GIF/MP4 to WebM/MP4 | Audio to Opus/M4A | DOCX to HTML</p>
         <p class="school">Bob and Mariel Ward School of Filipino Languages</p>
     </div>
 
@@ -882,6 +974,7 @@ if (!$authenticated) {
             <button class="tab" data-tab="gif">GIF to Video</button>
             <button class="tab" data-tab="mp4">MP4 Compress</button>
             <button class="tab" data-tab="audio">Audio Compress</button>
+            <button class="tab" data-tab="docx">DOCX to HTML</button>
         </div>
 
         <div class="tab-content active" id="tab-png">
@@ -1001,16 +1094,40 @@ if (!$authenticated) {
                 </div>
             </div>
         </div>
+
+        <div class="tab-content" id="tab-docx">
+            <div class="options">
+                <div class="option">
+                    <label>Add Styling</label>
+                    <select id="docxEmbedStyles">
+                        <option value="yes" selected>Yes - Clean readable styles</option>
+                        <option value="no">No - Minimal HTML</option>
+                    </select>
+                    <p class="help-text">Adds CSS for fonts, tables, and layout</p>
+                </div>
+                <div class="option">
+                    <label>Output</label>
+                    <div style="padding: 8px; background: #f0f9ff; border-radius: 4px; font-size: 13px;">
+                        <strong>Single-file HTML</strong><br>
+                        Images embedded as base64
+                    </div>
+                    <p class="help-text">Ready for Grammar module</p>
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 6px; font-size: 13px; color: #92400e;">
+                <strong>Note:</strong> Requires Pandoc installed on server. Converts Word documents to self-contained HTML with all images embedded.
+            </div>
+        </div>
     </div>
 
     <div class="panel">
         <h2>Upload Files</h2>
         <div class="upload-area" id="uploadArea">
-            <input type="file" id="fileInput" multiple accept=".png,.gif,.mp4,.webm,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma" style="display: none;">
+            <input type="file" id="fileInput" multiple accept=".png,.gif,.mp4,.webm,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.docx" style="display: none;">
             <div class="upload-icon" style="font-size: 48px; font-weight: bold;">^</div>
             <p class="upload-text">
                 <strong>Click to browse</strong> or drag and drop<br>
-                PNG, GIF, MP4, WebM, MP3, WAV, M4A files
+                PNG, GIF, MP4, WebM, MP3, WAV, M4A, DOCX files
             </p>
         </div>
     </div>
@@ -1115,7 +1232,7 @@ if (!$authenticated) {
         clearBtn.addEventListener('click', clearAll);
 
         function handleFiles(e) {
-            const validExts = ['png', 'gif', 'mp4', 'webm', 'mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+            const validExts = ['png', 'gif', 'mp4', 'webm', 'mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma', 'docx'];
             const newFiles = Array.from(e.target.files).filter(file => {
                 const ext = file.name.toLowerCase().split('.').pop();
                 return validExts.includes(ext);
@@ -1148,7 +1265,8 @@ if (!$authenticated) {
                     png: '[IMG]',
                     gif: '[VID]',
                     mp4: '[VID]',
-                    webm: '[VID]'
+                    webm: '[VID]',
+                    docx: '[DOC]'
                 };
 
                 // Set icon for audio files
@@ -1246,6 +1364,9 @@ if (!$authenticated) {
                 formData.append('resolution', document.getElementById('pngResolution').value);
                 formData.append('quality', document.getElementById('pngQuality').value);
                 formData.append('outputFormat', 'webp');
+            } else if (ext === 'docx') {
+                formData.append('embedStyles', document.getElementById('docxEmbedStyles').value);
+                formData.append('outputFormat', 'html');
             } else if (audioExts.includes(ext)) {
                 formData.append('outputFormat', document.getElementById('audioOutputFormat').value);
                 formData.append('bitrate', document.getElementById('audioBitrate').value);
