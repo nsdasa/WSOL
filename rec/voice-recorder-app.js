@@ -643,28 +643,60 @@ class VoiceRecorderApp {
         const analyser = this.audioRecorder.analyser;
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
+
+        // Enhanced silence detection parameters
+        const silenceThreshold = 10;      // Frequency average threshold
+        const silenceDuration = 300;      // ms of silence to trigger stop
+        const minSpeechTime = 200;        // Minimum speech before allowing silence stop
+        const maxRecordTime = 30000;      // Maximum recording time (30s safety)
+
         let silenceStart = null;
-        
+        let speechDetected = false;
+        let speechStartTime = null;
+        const recordingStartTime = Date.now();
+
         const checkSilence = () => {
             if (!this.audioRecorder || !this.audioRecorder.isRecording) return;
-            
+
             analyser.getByteFrequencyData(dataArray);
             const average = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
-            
-            if (average < 10) {
+
+            const now = Date.now();
+            const elapsed = now - recordingStartTime;
+
+            if (average >= silenceThreshold) {
+                // Sound detected
+                silenceStart = null;
+                if (!speechDetected) {
+                    speechDetected = true;
+                    speechStartTime = now;
+                }
+            } else {
+                // Silence detected
                 if (!silenceStart) {
-                    silenceStart = Date.now();
-                } else if (Date.now() - silenceStart > 300) {
+                    silenceStart = now;
+                }
+
+                // Only stop if we've had minimum speech time
+                const silenceTime = now - silenceStart;
+                const speechTime = speechDetected ? (silenceStart - speechStartTime) : 0;
+
+                if (speechDetected && speechTime >= minSpeechTime && silenceTime > silenceDuration) {
                     this.stopRecording();
                     return;
                 }
-            } else {
-                silenceStart = null;
             }
-            
+
+            // Safety timeout - prevent infinite recordings
+            if (elapsed >= maxRecordTime) {
+                console.log(`Max recording time reached (${maxRecordTime}ms)`);
+                this.stopRecording();
+                return;
+            }
+
             requestAnimationFrame(checkSilence);
         };
-        
+
         requestAnimationFrame(checkSilence);
     }
     

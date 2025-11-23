@@ -331,23 +331,61 @@ class VoicePracticeManager {
         document.getElementById('vpStart').style.display = 'none';
         document.getElementById('vpResults').style.display = 'none';
         document.getElementById('vpCountdown').style.display = 'block';
-        
+
         // Play native audio first
         await this.playNative();
-        
-        // Countdown 3, 2, 1 (600ms each)
+
+        // Pre-initialize microphone during countdown for faster start
+        let stream;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
+        } catch (err) {
+            debugLogger?.log(1, `Microphone access failed: ${err.message}`);
+            toastManager?.show('Failed to access microphone', 'error');
+            document.getElementById('vpCountdown').style.display = 'none';
+            document.getElementById('vpStart').style.display = 'block';
+            return;
+        }
+
+        // Set up recorder
+        this.recordedChunks = [];
+        this.mediaRecorder = new MediaRecorder(stream);
+        this.mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                this.recordedChunks.push(e.data);
+            }
+        };
+
+        // Countdown 3, 2, 1 with early recording start
+        // Timeline: 0ms→"3", 600ms→"2", 1200ms→"1", 1600ms→start recording, 1800ms→show "Recording"
         for (let i = 3; i >= 1; i--) {
             document.getElementById('vpCountdownNum').textContent = i;
             document.getElementById('vpCountdownText').textContent = i === 1 ? 'Speak now!' : 'Get ready...';
-            await this.delay(600);
+
+            if (i === 1) {
+                // Start recording 200ms before countdown ends (at 1600ms)
+                await this.delay(400);
+                this.mediaRecorder.start(100);
+                this.isRecording = true;
+                debugLogger?.log(3, 'Recording started (early, 200ms before UI)');
+                await this.delay(200);
+            } else {
+                await this.delay(600);
+            }
         }
-        
-        // Show recording state
+
+        // Show recording state (recording already started 200ms ago)
         document.getElementById('vpCountdown').style.display = 'none';
         document.getElementById('vpRecording').style.display = 'block';
         document.getElementById('vpSayWord').textContent = this.currentCard.word;
-        
-        // Reset recording indicator UI (in case it was changed to "Processing...")
+
+        // Reset recording indicator UI
         const recordingIndicator = document.querySelector('#vpRecording .vp-recording-indicator span');
         const pulseDot = document.querySelector('#vpRecording .vp-pulse-dot');
         if (recordingIndicator) {
@@ -357,76 +395,59 @@ class VoicePracticeManager {
             pulseDot.style.animation = '';
             pulseDot.style.background = '';
         }
-        
-        // Start recording with silence detection
-        await this.startRecording();
+
+        // Start silence detection with delay (500ms after "Recording" shown)
+        await this.startSilenceDetection(stream);
     }
-    
-    async startRecording() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true
-                }
-            });
-            
-            this.recordedChunks = [];
-            this.mediaRecorder = new MediaRecorder(stream);
-            
-            this.mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    this.recordedChunks.push(e.data);
-                }
-            };
-            
-            // Set up silence detection using AnalyserNode
-            const analyserContext = new (window.AudioContext || window.webkitAudioContext)();
-            const source = analyserContext.createMediaStreamSource(stream);
-            const analyser = analyserContext.createAnalyser();
-            analyser.fftSize = 512;
-            analyser.smoothingTimeConstant = 0.1;
-            source.connect(analyser);
-            
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            
-            // Silence detection parameters
-            const silenceThreshold = 15; // RMS threshold for silence
-            const silenceDuration = 100; // ms of silence to trigger stop
-            const maxRecordTime = 5000; // Maximum recording time (safety)
-            const minSpeechTime = 200; // Minimum speech before allowing silence stop
-            
-            let silenceStart = null;
-            let speechDetected = false;
-            let speechStartTime = null;
-            let recordingStartTime = Date.now();
-            
-            this.mediaRecorder.start(100);
-            this.isRecording = true;
-            debugLogger?.log(3, 'Recording started with silence detection');
-            
-            // Monitor for silence
-            const checkSilence = () => {
-                if (!this.isRecording) {
-                    analyserContext.close();
-                    return;
-                }
-                
-                analyser.getByteTimeDomainData(dataArray);
-                
-                // Calculate RMS
-                let sum = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    const value = (dataArray[i] - 128) / 128;
-                    sum += value * value;
-                }
-                const rms = Math.sqrt(sum / bufferLength) * 100;
-                
-                const now = Date.now();
-                const elapsed = now - recordingStartTime;
-                
+
+    async startSilenceDetection(stream) {
+        // Set up silence detection using AnalyserNode
+        const analyserContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = analyserContext.createMediaStreamSource(stream);
+        const analyser = analyserContext.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.1;
+        source.connect(analyser);
+
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        // Silence detection parameters
+        const silenceThreshold = 15;
+        const silenceDuration = 150;      // ms of silence to trigger stop
+        const maxRecordTime = 5000;       // Maximum recording time (safety)
+        const minSpeechTime = 200;        // Minimum speech before allowing silence stop
+        const detectionDelay = 500;       // Delay before starting silence detection
+
+        let silenceStart = null;
+        let speechDetected = false;
+        let speechStartTime = null;
+        let recordingStartTime = Date.now();
+        let detectionStartTime = Date.now() + detectionDelay;
+
+        debugLogger?.log(3, `Silence detection will start in ${detectionDelay}ms`);
+
+        const checkSilence = () => {
+            if (!this.isRecording) {
+                analyserContext.close();
+                return;
+            }
+
+            analyser.getByteTimeDomainData(dataArray);
+
+            // Calculate RMS
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                const value = (dataArray[i] - 128) / 128;
+                sum += value * value;
+            }
+            const rms = Math.sqrt(sum / bufferLength) * 100;
+
+            const now = Date.now();
+            const elapsed = now - recordingStartTime;
+
+            // Only process silence detection after delay period
+            if (now >= detectionStartTime) {
                 if (rms > silenceThreshold) {
                     // Sound detected
                     silenceStart = null;
@@ -440,11 +461,11 @@ class VoicePracticeManager {
                     if (silenceStart === null) {
                         silenceStart = now;
                     }
-                    
+
                     // Check if we should stop
                     const silenceTime = now - silenceStart;
                     const speechTime = speechDetected ? (silenceStart - speechStartTime) : 0;
-                    
+
                     if (speechDetected && speechTime >= minSpeechTime && silenceTime >= silenceDuration) {
                         debugLogger?.log(3, `Stopping: ${silenceTime}ms silence after ${speechTime}ms speech`);
                         this.stopRecording();
@@ -452,27 +473,24 @@ class VoicePracticeManager {
                         return;
                     }
                 }
-                
-                // Safety timeout
-                if (elapsed >= maxRecordTime) {
-                    debugLogger?.log(3, `Max recording time reached (${maxRecordTime}ms)`);
-                    this.stopRecording();
-                    analyserContext.close();
-                    return;
-                }
-                
-                // Continue monitoring
-                requestAnimationFrame(checkSilence);
-            };
-            
-            // Start monitoring
-            checkSilence();
-            
-        } catch (err) {
-            debugLogger?.log(1, `Recording failed: ${err.message}`);
-            toastManager?.show('Failed to access microphone', 'error');
-        }
+            }
+
+            // Safety timeout
+            if (elapsed >= maxRecordTime) {
+                debugLogger?.log(3, `Max recording time reached (${maxRecordTime}ms)`);
+                this.stopRecording();
+                analyserContext.close();
+                return;
+            }
+
+            // Continue monitoring
+            requestAnimationFrame(checkSilence);
+        };
+
+        // Start monitoring
+        checkSilence();
     }
+
     
     async stopRecording() {
         if (!this.mediaRecorder || !this.isRecording) return;
