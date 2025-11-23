@@ -305,6 +305,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
     <script src="app.js?v=<?php echo cacheBust('app.js'); ?>"></script>
     <script src="auth-manager.js?v=<?php echo cacheBust('auth-manager.js'); ?>"></script>
+    <script src="assets/vendor/meyda.min.js?v=<?php echo cacheBust('assets/vendor/meyda.min.js'); ?>"></script>
     <script src="voice-practice-module.js?v=<?php echo cacheBust('voice-practice-module.js'); ?>"></script>
     <script src="flashcards-module.js?v=<?php echo cacheBust('flashcards-module.js'); ?>"></script>
     <script src="match-module.js?v=<?php echo cacheBust('match-module.js'); ?>"></script>
