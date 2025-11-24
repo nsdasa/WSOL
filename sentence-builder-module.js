@@ -67,6 +67,7 @@ class SentenceBuilderModule extends LearningModule {
             <div id="cardSelectorModal" class="modal hidden">
                 <div class="modal-content card-selector-modal">
                     <div class="modal-header">
+                        <button id="backToWordTypes" class="back-btn"><i class="fas fa-arrow-left"></i> Back</button>
                         <h2><i class="fas fa-image"></i> Select Card: <span id="selectedWordType"></span></h2>
                         <button id="closeCardSelectorModal" class="close-btn">&times;</button>
                     </div>
@@ -172,6 +173,12 @@ class SentenceBuilderModule extends LearningModule {
         // Modal close buttons
         document.getElementById('closeWordTypeModal').addEventListener('click', () => this.hideWordTypeModal());
         document.getElementById('closeCardSelectorModal').addEventListener('click', () => this.hideCardSelectorModal());
+
+        // Back button - return to word type selection
+        document.getElementById('backToWordTypes').addEventListener('click', () => {
+            this.hideCardSelectorModal();
+            this.showWordTypeModal();
+        });
 
         // Close modals on background click
         document.getElementById('wordTypeModal').addEventListener('click', (e) => {
@@ -354,12 +361,19 @@ class SentenceBuilderModule extends LearningModule {
         grid.innerHTML = '';
 
         this.availableWordTypes.forEach(wordType => {
+            const words = this.wordsByType[wordType] || [];
+            const wordCount = words.length;
+
+            // Create preview of first few words (truncate to fit box)
+            const previewWords = words.slice(0, 8).join(', ');
+            const preview = previewWords.length > 60 ? previewWords.substring(0, 57) + '...' : previewWords;
+
             const btn = document.createElement('button');
             btn.className = 'word-type-btn';
             btn.innerHTML = `
-                <i class="fas fa-tag"></i>
-                <span>${wordType}</span>
-                <span class="word-count">${this.wordsByType[wordType].length} words</span>
+                <span class="word-type-name">${wordType}</span>
+                <span class="word-count">${wordCount} word${wordCount !== 1 ? 's' : ''}</span>
+                <span class="word-preview">${preview}</span>
             `;
             btn.addEventListener('click', () => {
                 this.hideWordTypeModal();
@@ -388,14 +402,20 @@ class SentenceBuilderModule extends LearningModule {
 
         const words = this.wordsByType[wordType] || [];
 
+        // Debug: log available cards
+        const allCards = this.assets.getCards({ lesson: null });
+        console.log(`[SentenceBuilder] showCardSelectorModal: wordType="${wordType}", words=${JSON.stringify(words)}, totalCards=${allCards.length}`);
+
         words.forEach(word => {
             // Find the card in manifest that matches this word
             const card = this.findCardByWord(word);
             if (!card) {
+                console.warn(`[SentenceBuilder] Card not found for word: "${word}"`);
                 debugLogger?.log(2, `Card not found for word: ${word}`);
                 return;
             }
 
+            console.log(`[SentenceBuilder] Found card for "${word}": card #${card.cardNum} "${card.word}"`);
             const cardEl = this.createSelectorCard(card);
             cardEl.addEventListener('click', () => {
                 this.selectCard(card);
@@ -411,7 +431,8 @@ class SentenceBuilderModule extends LearningModule {
      */
     findCardByWord(word) {
         // Search ALL cards - sentence builder words can reference cards from any lesson
-        const allCards = this.assets.getCards({});
+        // Must pass lesson: null to bypass default currentLesson filtering in getCards()
+        const allCards = this.assets.getCards({ lesson: null });
 
         // Normalize function: lowercase, collapse spaces around slashes, trim
         const normalize = (str) => {
