@@ -6,6 +6,15 @@
 
 require_once '../config.php';
 enforceHttps();
+
+// Cache buster function for local files
+function localCacheBust($file) {
+    $fullPath = __DIR__ . '/' . $file;
+    if (file_exists($fullPath)) {
+        return filemtime($fullPath);
+    }
+    return time();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,9 +24,9 @@ enforceHttps();
     <title>Professional Pronunciation Analyzer</title>
 
     <!-- CSS Modules -->
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/controls.css">
-    <link rel="stylesheet" href="css/results.css">
+    <link rel="stylesheet" href="css/main.css?v=<?php echo localCacheBust('css/main.css'); ?>">
+    <link rel="stylesheet" href="css/controls.css?v=<?php echo localCacheBust('css/controls.css'); ?>">
+    <link rel="stylesheet" href="css/results.css?v=<?php echo localCacheBust('css/results.css'); ?>">
 </head>
 <body>
     <div class="container">
@@ -645,6 +654,6 @@ enforceHttps();
     </div>
 
     <!-- JavaScript Modules -->
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/main.js?v=<?php echo localCacheBust('js/main.js'); ?>"></script>
 </body>
 </html>

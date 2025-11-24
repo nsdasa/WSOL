@@ -63,9 +63,18 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// Cache buster function
+// Cache buster function for parent directory files
 function cacheBust($file) {
     $fullPath = __DIR__ . '/../' . $file;
+    if (file_exists($fullPath)) {
+        return filemtime($fullPath);
+    }
+    return time();
+}
+
+// Cache buster function for local files (in rec directory)
+function localCacheBust($file) {
+    $fullPath = __DIR__ . '/' . $file;
     if (file_exists($fullPath)) {
         return filemtime($fullPath);
     }
@@ -81,7 +90,7 @@ function cacheBust($file) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../styles/core.css?v=<?php echo cacheBust('styles/core.css'); ?>">
     <link rel="stylesheet" href="../styles/theme.css?v=<?php echo cacheBust('styles/theme.css'); ?>">
-    <link rel="stylesheet" href="voice-recorder.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="voice-recorder.css?v=<?php echo localCacheBust('voice-recorder.css'); ?>">
 
     <!-- Driver.js for onboarding tours -->
     <link rel="stylesheet" href="../assets/vendor/driver.css?v=<?php echo cacheBust('assets/vendor/driver.css'); ?>"/>
@@ -369,11 +378,11 @@ function cacheBust($file) {
         </div>
     </div>
 
-    <script src="voice-recorder-app.js?v=<?php echo time(); ?>"></script>
+    <script src="voice-recorder-app.js?v=<?php echo localCacheBust('voice-recorder-app.js'); ?>"></script>
 
     <!-- Driver.js for onboarding tours -->
     <script src="../assets/vendor/driver.js?v=<?php echo cacheBust('assets/vendor/driver.js'); ?>"></script>
-    <script src="../tour-guide.js?v=<?php echo time(); ?>"></script>
+    <script src="../tour-guide.js?v=<?php echo cacheBust('tour-guide.js'); ?>"></script>
     <?php endif; ?>
 </body>
 </html>
