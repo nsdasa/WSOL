@@ -20,12 +20,18 @@ class VoiceRecorderApp {
         this.audioRecorder = null;
         this.editedCards = new Map(); // Track edited cards for saving
 
+        // Microphone management
+        this.availableMics = [];
+        this.selectedMicId = localStorage.getItem('selectedMicId') || null;
+        this.micPermissionGranted = false;
+
         this.init();
     }
-    
+
     async init() {
         this.setupEventListeners();
         this.setupThemeToggle();
+        this.setupMicSelector();
         this.updateTranslationSelectorVisibility();
         await this.loadCards();
     }
@@ -152,7 +158,234 @@ class VoiceRecorderApp {
         const icon = document.querySelector('#themeToggle i');
         icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
     }
-    
+
+    // ==================== MICROPHONE MANAGEMENT ====================
+
+    /**
+     * Setup microphone selector UI and device change listeners
+     */
+    async setupMicSelector() {
+        const micSelector = document.getElementById('micSelector');
+        const refreshBtn = document.getElementById('refreshMicsBtn');
+
+        if (!micSelector) return;
+
+        // Setup refresh button
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.refreshMicList());
+        }
+
+        // Setup mic selection change handler
+        micSelector.addEventListener('change', (e) => {
+            this.selectedMicId = e.target.value || null;
+            if (this.selectedMicId) {
+                localStorage.setItem('selectedMicId', this.selectedMicId);
+            } else {
+                localStorage.removeItem('selectedMicId');
+            }
+            this.updateMicStatus();
+        });
+
+        // Listen for device changes (mic connected/disconnected)
+        if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+            navigator.mediaDevices.addEventListener('devicechange', () => {
+                console.log('Device change detected');
+                this.refreshMicList();
+            });
+        }
+
+        // Initial load of microphones
+        await this.refreshMicList();
+    }
+
+    /**
+     * Refresh the list of available microphones
+     */
+    async refreshMicList() {
+        const micSelector = document.getElementById('micSelector');
+        const refreshBtn = document.getElementById('refreshMicsBtn');
+
+        if (!micSelector) return;
+
+        // Show loading state
+        micSelector.innerHTML = '<option value="">Checking microphones...</option>';
+        if (refreshBtn) {
+            refreshBtn.querySelector('i').classList.add('fa-spin');
+        }
+
+        try {
+            // First, request permission if not already granted
+            if (!this.micPermissionGranted) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    // Stop the stream immediately - we just needed permission
+                    stream.getTracks().forEach(track => track.stop());
+                    this.micPermissionGranted = true;
+                } catch (err) {
+                    console.error('Microphone permission denied:', err);
+                    this.updateMicStatus('denied');
+                    micSelector.innerHTML = '<option value="">Permission denied</option>';
+                    return;
+                }
+            }
+
+            // Now enumerate devices
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            this.availableMics = devices.filter(device => device.kind === 'audioinput');
+
+            // Sort mics: prioritize external mics (USB, Bluetooth, etc.)
+            this.availableMics.sort((a, b) => {
+                const aLabel = a.label.toLowerCase();
+                const bLabel = b.label.toLowerCase();
+
+                // Prioritize external mics
+                const aIsExternal = this.isExternalMic(aLabel);
+                const bIsExternal = this.isExternalMic(bLabel);
+
+                if (aIsExternal && !bIsExternal) return -1;
+                if (!aIsExternal && bIsExternal) return 1;
+                return 0;
+            });
+
+            // Populate dropdown
+            micSelector.innerHTML = '';
+
+            if (this.availableMics.length === 0) {
+                micSelector.innerHTML = '<option value="">No microphones found</option>';
+                this.updateMicStatus('none');
+                return;
+            }
+
+            // Add "Auto" option that prioritizes external mics
+            const autoOption = document.createElement('option');
+            autoOption.value = '';
+            autoOption.textContent = 'Auto (prefer external mic)';
+            micSelector.appendChild(autoOption);
+
+            // Add each microphone
+            this.availableMics.forEach((mic, index) => {
+                const option = document.createElement('option');
+                option.value = mic.deviceId;
+
+                // Create a friendly label
+                let label = mic.label || `Microphone ${index + 1}`;
+
+                // Add indicator for external mics
+                if (this.isExternalMic(label.toLowerCase())) {
+                    label = `★ ${label}`;
+                }
+
+                option.textContent = label;
+                micSelector.appendChild(option);
+            });
+
+            // Restore saved selection if it still exists
+            if (this.selectedMicId) {
+                const savedMicExists = this.availableMics.some(m => m.deviceId === this.selectedMicId);
+                if (savedMicExists) {
+                    micSelector.value = this.selectedMicId;
+                } else {
+                    // Saved mic no longer available, clear selection
+                    this.selectedMicId = null;
+                    localStorage.removeItem('selectedMicId');
+                }
+            }
+
+            this.updateMicStatus('ready');
+
+        } catch (err) {
+            console.error('Error enumerating devices:', err);
+            micSelector.innerHTML = '<option value="">Error loading mics</option>';
+            this.updateMicStatus('error');
+        } finally {
+            if (refreshBtn) {
+                refreshBtn.querySelector('i').classList.remove('fa-spin');
+            }
+        }
+    }
+
+    /**
+     * Check if a microphone label indicates an external mic
+     */
+    isExternalMic(label) {
+        const externalKeywords = [
+            'usb', 'bluetooth', 'bt', 'wireless', 'external',
+            'headset', 'headphone', 'airpod', 'yeti', 'blue',
+            'rode', 'shure', 'audio-technica', 'samson', 'fifine',
+            'hyperx', 'razer', 'logitech', 'jabra', 'plantronics'
+        ];
+        return externalKeywords.some(keyword => label.includes(keyword));
+    }
+
+    /**
+     * Update the mic status indicator
+     */
+    updateMicStatus(status = 'ready') {
+        const statusContainer = document.getElementById('micStatus');
+        if (!statusContainer) return;
+
+        const iconEl = statusContainer.querySelector('.mic-status-icon i');
+        const textEl = statusContainer.querySelector('.mic-status-text');
+
+        // Remove all status classes
+        statusContainer.classList.remove('status-ready', 'status-denied', 'status-error', 'status-none');
+
+        switch (status) {
+            case 'ready':
+                statusContainer.classList.add('status-ready');
+                iconEl.className = 'fas fa-check-circle';
+                const selectedMic = this.availableMics.find(m => m.deviceId === this.selectedMicId);
+                if (selectedMic) {
+                    textEl.textContent = 'Selected: ' + (selectedMic.label || 'Unknown').substring(0, 30);
+                } else {
+                    textEl.textContent = `${this.availableMics.length} mic${this.availableMics.length !== 1 ? 's' : ''} available`;
+                }
+                break;
+            case 'denied':
+                statusContainer.classList.add('status-denied');
+                iconEl.className = 'fas fa-exclamation-circle';
+                textEl.textContent = 'Microphone access denied';
+                break;
+            case 'error':
+                statusContainer.classList.add('status-error');
+                iconEl.className = 'fas fa-times-circle';
+                textEl.textContent = 'Error accessing microphones';
+                break;
+            case 'none':
+                statusContainer.classList.add('status-none');
+                iconEl.className = 'fas fa-microphone-slash';
+                textEl.textContent = 'No microphones found';
+                break;
+            default:
+                textEl.textContent = 'Checking...';
+        }
+    }
+
+    /**
+     * Get the preferred microphone device ID for recording
+     * Returns the selected mic, or auto-selects best available
+     */
+    getPreferredMicId() {
+        // If user has selected a specific mic, use it
+        if (this.selectedMicId) {
+            const exists = this.availableMics.some(m => m.deviceId === this.selectedMicId);
+            if (exists) return this.selectedMicId;
+        }
+
+        // Auto-select: prefer external mic
+        const externalMic = this.availableMics.find(m => this.isExternalMic(m.label.toLowerCase()));
+        if (externalMic) return externalMic.deviceId;
+
+        // Fall back to first available mic
+        if (this.availableMics.length > 0) {
+            return this.availableMics[0].deviceId;
+        }
+
+        return null;
+    }
+
+    // ==================== END MICROPHONE MANAGEMENT ====================
+
     async loadCards() {
         const tbody = document.getElementById('cardsTableBody');
         tbody.innerHTML = `
@@ -527,7 +760,20 @@ class VoiceRecorderApp {
     // Recording functionality
     async startRecording() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Build audio constraints with selected microphone
+            const audioConstraints = { audio: true };
+            const preferredMicId = this.getPreferredMicId();
+
+            if (preferredMicId) {
+                audioConstraints.audio = {
+                    deviceId: { exact: preferredMicId }
+                };
+                console.log('Using microphone:', preferredMicId);
+            } else {
+                console.log('Using default microphone');
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
             
             this.audioRecorder = {
                 mediaRecorder: null,
