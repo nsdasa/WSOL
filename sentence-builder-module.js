@@ -14,6 +14,7 @@ class SentenceBuilderModule extends LearningModule {
         this.frameSize = 160; // Match-sound module size
         this.maxFramesPerRow = 4; // Will be calculated based on screen
         this.selectedFrameIndex = null; // Frame being edited
+        this.sortableInstances = []; // SortableJS instances for each row
     }
 
     async render() {
@@ -210,30 +211,51 @@ class SentenceBuilderModule extends LearningModule {
         const sentenceRow = document.getElementById('sentenceRow');
         sentenceRow.innerHTML = '';
 
-        // Create rows as needed
-        let currentRow = document.createElement('div');
-        currentRow.className = 'sentence-frame-row';
-        sentenceRow.appendChild(currentRow);
+        // Destroy existing Sortable instances
+        this.sortableInstances.forEach(instance => instance.destroy());
+        this.sortableInstances = [];
 
-        let framesInCurrentRow = 0;
-
+        // Use flat structure with flexbox wrap for drag and drop support
         this.sentenceFrames.forEach((card, index) => {
-            // Check if we need a new row
-            if (framesInCurrentRow >= this.maxFramesPerRow) {
-                currentRow = document.createElement('div');
-                currentRow.className = 'sentence-frame-row';
-                sentenceRow.appendChild(currentRow);
-                framesInCurrentRow = 0;
-            }
-
             const frame = this.createFrame(card, index);
-            currentRow.appendChild(frame);
-            framesInCurrentRow++;
+            sentenceRow.appendChild(frame);
         });
+
+        // Initialize SortableJS for drag and drop reordering
+        if (typeof Sortable !== 'undefined') {
+            const sortable = new Sortable(sentenceRow, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                dragClass: 'sortable-drag',
+                handle: '.frame-card', // Only drag by the card, not buttons
+                filter: '.frame-edit, .frame-delete, .frame-speaker, .empty-frame', // Don't drag empty frames or by buttons
+                preventOnFilter: false,
+                onEnd: (evt) => this.onSortEnd(evt)
+            });
+            this.sortableInstances.push(sortable);
+        }
 
         // Update play button state
         const hasCards = this.sentenceFrames.some(card => card !== null);
         document.getElementById('playSentenceBtn').disabled = !hasCards;
+    }
+
+    /**
+     * Handle drag and drop reorder completion
+     */
+    onSortEnd(evt) {
+        const oldIndex = evt.oldIndex;
+        const newIndex = evt.newIndex;
+
+        if (oldIndex === newIndex) return;
+
+        // Reorder the sentenceFrames array
+        const [movedCard] = this.sentenceFrames.splice(oldIndex, 1);
+        this.sentenceFrames.splice(newIndex, 0, movedCard);
+
+        // Re-render to update data-index attributes
+        this.renderSentenceFrames();
     }
 
     /**
@@ -284,6 +306,16 @@ class SentenceBuilderModule extends LearningModule {
                 });
                 front.appendChild(speaker);
             }
+
+            // Edit button on front (to change card)
+            const editBtn = document.createElement('div');
+            editBtn.className = 'frame-edit';
+            editBtn.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.editFrame(index);
+            });
+            front.appendChild(editBtn);
 
             // Delete button on front
             const deleteBtn = document.createElement('div');
@@ -614,6 +646,14 @@ class SentenceBuilderModule extends LearningModule {
      */
     hideCardSelectorModal() {
         document.getElementById('cardSelectorModal').classList.add('hidden');
+    }
+
+    /**
+     * Edit/change a card in an existing frame
+     */
+    editFrame(index) {
+        this.selectedFrameIndex = index;
+        this.showWordTypeModal();
     }
 
     /**

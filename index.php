@@ -327,6 +327,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     <script src="deck-builder-module.js?v=<?php echo cacheBust('deck-builder-module.js'); ?>"></script>
     <script src="deck-builder-audio.js?v=<?php echo cacheBust('deck-builder-audio.js'); ?>"></script>
     <script src="deck-builder-uploads.js?v=<?php echo cacheBust('deck-builder-uploads.js'); ?>"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="sentence-builder-module.js?v=<?php echo cacheBust('sentence-builder-module.js'); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
