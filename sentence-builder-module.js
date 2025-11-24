@@ -233,6 +233,9 @@ class SentenceBuilderModule extends LearningModule {
                 handle: '.frame-card', // Only drag by the card, not buttons
                 filter: '.frame-edit, .frame-delete, .frame-speaker, .empty-frame', // Don't drag empty frames or by buttons
                 preventOnFilter: false,
+                delay: 200, // Require 200ms hold before drag starts
+                delayOnTouchOnly: true, // Only apply delay on touch devices (not mouse)
+                touchStartThreshold: 5, // Pixels of movement before drag cancels tap
                 onEnd: (evt) => this.onSortEnd(evt)
             });
             this.sortableInstances.push(sortable);
