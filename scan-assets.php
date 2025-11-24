@@ -3,6 +3,9 @@
 // Generates complete manifest.json + detailed scan-report.html with full formatting
 // Includes proper audio linking and comprehensive per-card breakdown
 
+require_once 'config.php';
+enforceHttps();
+
 // Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Don't display in HTML

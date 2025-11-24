@@ -4,8 +4,10 @@
  * Retrieves a saved tour draft
  */
 
-session_start();
 require_once 'config.php';
+enforceHttps();
+
+session_start();
 
 header('Content-Type: application/json');
 

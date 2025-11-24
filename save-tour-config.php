@@ -5,8 +5,10 @@
  */
 
 // Require authentication
-session_start();
 require_once 'config.php';
+enforceHttps();
+
+session_start();
 
 // Check if user is logged in as admin
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {

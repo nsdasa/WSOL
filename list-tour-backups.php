@@ -4,8 +4,10 @@
  * Returns all available tour config backups
  */
 
-session_start();
 require_once 'config.php';
+enforceHttps();
+
+session_start();
 
 header('Content-Type: application/json');
 

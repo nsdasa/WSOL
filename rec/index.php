@@ -2,13 +2,15 @@
 /**
  * Voice Recorder - Standalone Audio Recording Tool
  * Bob and Mariel Ward School of Filipino Languages
- * 
+ *
  * Separate application for voice recording only
  * Access: /rec/
  */
 
-session_start();
 require_once '../config.php';
+enforceHttps();
+
+session_start();
 
 // Get voice recorder password from users.json (dynamic) or fallback to config.php constant
 function getVoiceRecorderPassword() {

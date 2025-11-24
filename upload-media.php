@@ -4,6 +4,9 @@
  * Receives images (PNG/GIF/JPEG/WebP) and videos (MP4/WebM) and saves to assets folder
  */
 
+require_once 'config.php';
+enforceHttps();
+
 header('Content-Type: application/json');
 
 // Enable CORS if needed

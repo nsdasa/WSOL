@@ -1,3 +1,12 @@
+<?php
+/**
+ * Professional Pronunciation Analyzer
+ * Bob and Mariel Ward School of Filipino Languages
+ */
+
+require_once '../config.php';
+enforceHttps();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,11 +1,38 @@
 # =================================================================
-# .htaccess - Server-Level Cache Prevention Configuration
+# .htaccess - Server-Level Configuration
 # Bob and Mariel Ward School of Filipino Languages
 # =================================================================
 
-# Enable rewrite engine (if needed)
+# =================================================================
+# FORCE HTTPS - Server Level Enforcement
+# =================================================================
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Force HTTPS (handles both direct requests and requests behind proxy)
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# =================================================================
+# SECURITY HEADERS - HSTS and Other Security Headers
+# =================================================================
+<IfModule mod_headers.c>
+    # HTTP Strict Transport Security (HSTS) - Force HTTPS for 1 year
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+    # Prevent MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Clickjacking protection
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # XSS Protection
+    Header always set X-XSS-Protection "1; mode=block"
+
+    # Referrer Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
 # =================================================================
