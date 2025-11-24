@@ -15,7 +15,13 @@ async function loadTourConfig() {
     if (toursLoaded) return tours;
 
     try {
-        const response = await fetch('tour-config.json?v=' + Date.now());
+        const response = await fetch('tour-config.json?v=' + Date.now(), {
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
         if (!response.ok) {
             throw new Error('Failed to load tour config');
         }
@@ -59,7 +65,13 @@ async function loadTourConfigRec() {
     if (toursLoaded) return tours;
 
     try {
-        const response = await fetch('../tour-config.json?v=' + Date.now());
+        const response = await fetch('../tour-config.json?v=' + Date.now(), {
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
         if (!response.ok) {
             throw new Error('Failed to load tour config');
         }

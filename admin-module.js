@@ -447,7 +447,13 @@ class AdminModule extends LearningModule {
         `;
 
         try {
-            const response = await fetch('users.php?action=list&_=' + Date.now());
+            const response = await fetch('users.php?action=list&_=' + Date.now(), {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
             const result = await response.json();
 
             if (result.success) {
@@ -783,7 +789,13 @@ class AdminModule extends LearningModule {
 
         // Load the tour configuration
         try {
-            const response = await fetch('tour-config.json?v=' + Date.now());
+            const response = await fetch('tour-config.json?v=' + Date.now(), {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
             if (!response.ok) throw new Error('Failed to load config');
             this.tourConfig = await response.json();
             this.renderTourEditor();
@@ -809,7 +821,13 @@ class AdminModule extends LearningModule {
         if (resetBtn) {
             resetBtn.addEventListener('click', async () => {
                 if (confirm('Discard all changes and reload from saved configuration?')) {
-                    const response = await fetch('tour-config.json?v=' + Date.now());
+                    const response = await fetch('tour-config.json?v=' + Date.now(), {
+                        cache: 'no-store',
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
+                        }
+                    });
                     this.tourConfig = await response.json();
                     this.tourConfigModified = false;
                     this.renderTourEditor();

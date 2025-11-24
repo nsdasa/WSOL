@@ -7,12 +7,19 @@ enforceHttps();
 header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
+// Get manifest version for cache busting (only re-download when file changes)
+$manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
+    ? filemtime(__DIR__ . '/assets/manifest.json')
+    : time();
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <!-- Bob and Mariel Ward School of Filipino Languages - Version 4.2 - Advanced Filter - November 2025 -->
 <head>
     <meta charset="UTF-8">
+    <!-- Manifest version for JavaScript cache busting -->
+    <script>window.MANIFEST_VERSION = <?php echo $manifestVersion; ?>;</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Prevent browser caching of this page -->

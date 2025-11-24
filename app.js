@@ -878,16 +878,15 @@ class AssetManager {
     
     async loadManifest() {
         try {
-            // Add timestamp to prevent URL-based caching
-            const timestamp = new Date().getTime();
-            
-            const response = await fetch(`assets/manifest.json?_=${timestamp}`, {
+            // Use file modification time for cache busting (from PHP)
+            // Falls back to timestamp if MANIFEST_VERSION not available
+            const version = window.MANIFEST_VERSION || new Date().getTime();
+
+            const response = await fetch(`assets/manifest.json?v=${version}`, {
                 method: 'GET',
-                cache: 'no-store', // Force no caching
+                cache: 'default', // Allow browser caching based on version
                 headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
+                    'Accept': 'application/json'
                 }
             });
             
