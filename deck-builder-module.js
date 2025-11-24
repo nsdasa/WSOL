@@ -535,6 +535,9 @@ class DeckBuilderModule extends LearningModule {
     }
     
     async init() {
+        // Store global reference for inline event handlers
+        window.deckBuilder = this;
+
         // Load cards for current language from v4.0 manifest structure
         this.loadCardsForLanguage(this.currentTrigraph);
 
