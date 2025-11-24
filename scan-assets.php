@@ -35,7 +35,12 @@ try {
         throw new Exception('Assets directory is not writable: ' . $assetsDir);
     }
 
-    $action = $_GET['action'] ?? 'scan';
+    // Check for JSON POST body first
+    $jsonInput = file_get_contents('php://input');
+    $jsonData = json_decode($jsonInput, true);
+
+    // Determine action from GET or JSON body
+    $action = $_GET['action'] ?? ($jsonData['action'] ?? 'scan');
 
     switch ($action) {
         case 'upload':
@@ -49,6 +54,9 @@ try {
             break;
         case 'confirmSentenceWords':
             confirmSentenceWordsUpload();
+            break;
+        case 'saveSentenceWords':
+            saveSentenceWords($jsonData);
             break;
         case 'uploadMedia':
             handleMediaUpload();
@@ -375,6 +383,76 @@ function confirmSentenceWordsUpload() {
 
         // Re-scan to update manifest
         scanAssets();
+
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+/**
+ * Save sentence words from the manual editor
+ */
+function saveSentenceWords($data) {
+    global $assetsDir;
+
+    try {
+        $language = $data['language'] ?? null;
+        $lesson = $data['lesson'] ?? null;
+        $wordTypes = $data['wordTypes'] ?? null;
+
+        if (!$language || !$lesson || !is_array($wordTypes)) {
+            throw new Exception('Missing required fields: language, lesson, wordTypes');
+        }
+
+        // Load existing manifest
+        $manifestPath = $assetsDir . '/manifest.json';
+        if (!file_exists($manifestPath)) {
+            throw new Exception('Manifest not found.');
+        }
+
+        $manifest = json_decode(file_get_contents($manifestPath), true);
+        if (!$manifest) {
+            throw new Exception('Invalid manifest format.');
+        }
+
+        // Initialize sentenceWords if not exists
+        if (!isset($manifest['sentenceWords'])) {
+            $manifest['sentenceWords'] = [];
+        }
+        if (!isset($manifest['sentenceWords'][$language])) {
+            $manifest['sentenceWords'][$language] = [];
+        }
+
+        // Clean up empty word types
+        $cleanedWordTypes = [];
+        foreach ($wordTypes as $type => $words) {
+            if (is_array($words) && count($words) > 0) {
+                $cleanedWordTypes[$type] = array_values($words); // Ensure sequential array
+            }
+        }
+
+        // Update the specific lesson
+        if (empty($cleanedWordTypes)) {
+            // If all word types are empty, remove the lesson entry
+            unset($manifest['sentenceWords'][$language][$lesson]);
+            // Clean up empty language entry
+            if (empty($manifest['sentenceWords'][$language])) {
+                unset($manifest['sentenceWords'][$language]);
+            }
+        } else {
+            $manifest['sentenceWords'][$language][$lesson] = $cleanedWordTypes;
+        }
+
+        // Save manifest
+        $jsonOptions = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        if (file_put_contents($manifestPath, json_encode($manifest, $jsonOptions)) === false) {
+            throw new Exception('Failed to save manifest.');
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Sentence words saved for {$language} lesson {$lesson}"
+        ]);
 
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);

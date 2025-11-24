@@ -1117,3 +1117,349 @@ DeckBuilderModule.prototype.renderGrammarReport = function(report) {
 
     return html;
 };
+
+
+// =========================================
+// SENTENCE WORDS EDITOR
+// =========================================
+
+DeckBuilderModule.prototype.setupSentenceWordsEditor = function() {
+    // Tab switching
+    document.querySelectorAll('.sw-tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tab = e.currentTarget.dataset.tab;
+            document.querySelectorAll('.sw-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.sw-tab-content').forEach(c => c.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            document.getElementById(tab === 'upload' ? 'swUploadTab' : 'swEditorTab').classList.add('active');
+
+            if (tab === 'editor') {
+                this.initSentenceWordsEditor();
+            }
+        });
+    });
+
+    // Initialize editor state
+    this.swEditorData = null;
+    this.swEditorDirty = false;
+};
+
+DeckBuilderModule.prototype.initSentenceWordsEditor = function() {
+    const langSelect = document.getElementById('swEditorLanguage');
+    const lessonSelect = document.getElementById('swEditorLesson');
+
+    // Populate language dropdown
+    const languages = this.assets.manifest?.languages || [];
+    const targetLanguages = languages.filter(l => l.trigraph.toLowerCase() !== 'eng');
+
+    langSelect.innerHTML = '<option value="">Select Language</option>' +
+        targetLanguages.map(l => `<option value="${l.trigraph}">${l.name}</option>`).join('');
+
+    // Language change handler
+    langSelect.addEventListener('change', () => {
+        this.swEditorDirty = false;
+        this.populateLessonDropdown();
+    });
+
+    // Lesson change handler
+    lessonSelect.addEventListener('change', () => {
+        this.loadSentenceWordsForEditor();
+    });
+
+    // Add Word Type button
+    document.getElementById('swAddWordType').addEventListener('click', () => {
+        this.addNewWordType();
+    });
+
+    // Save Changes button
+    document.getElementById('swSaveChanges').addEventListener('click', () => {
+        this.saveSentenceWordsChanges();
+    });
+};
+
+DeckBuilderModule.prototype.populateLessonDropdown = function() {
+    const langSelect = document.getElementById('swEditorLanguage');
+    const lessonSelect = document.getElementById('swEditorLesson');
+    const lang = langSelect.value;
+
+    if (!lang) {
+        lessonSelect.innerHTML = '<option value="">Select Lesson</option>';
+        lessonSelect.disabled = true;
+        document.getElementById('swEditorContent').innerHTML = `
+            <div class="sw-editor-empty">
+                <i class="fas fa-hand-pointer"></i>
+                <p>Select a language and lesson to edit sentence words</p>
+            </div>`;
+        return;
+    }
+
+    // Get max lesson from cards
+    const cards = this.assets.manifest?.cards?.[lang] || [];
+    const maxLesson = Math.max(...cards.map(c => c.lesson || 1), 1);
+
+    lessonSelect.innerHTML = '<option value="">Select Lesson</option>' +
+        Array.from({length: maxLesson}, (_, i) => `<option value="${i + 1}">Lesson ${i + 1}</option>`).join('');
+    lessonSelect.disabled = false;
+};
+
+DeckBuilderModule.prototype.loadSentenceWordsForEditor = function() {
+    const lang = document.getElementById('swEditorLanguage').value;
+    const lesson = document.getElementById('swEditorLesson').value;
+
+    if (!lang || !lesson) {
+        document.getElementById('swAddWordType').disabled = true;
+        document.getElementById('swSaveChanges').disabled = true;
+        return;
+    }
+
+    document.getElementById('swAddWordType').disabled = false;
+
+    // Get sentence words from manifest
+    const sentenceWords = this.assets.manifest?.sentenceWords?.[lang]?.[lesson] || {};
+
+    // Deep clone for editing
+    this.swEditorData = JSON.parse(JSON.stringify(sentenceWords));
+    this.swEditorDirty = false;
+
+    this.renderSentenceWordsEditor();
+};
+
+DeckBuilderModule.prototype.renderSentenceWordsEditor = function() {
+    const container = document.getElementById('swEditorContent');
+    const lang = document.getElementById('swEditorLanguage').value;
+
+    if (!this.swEditorData || Object.keys(this.swEditorData).length === 0) {
+        container.innerHTML = `
+            <div class="sw-editor-empty">
+                <i class="fas fa-inbox"></i>
+                <p>No sentence words defined for this lesson yet.</p>
+                <p>Click "Add Word Type" to create a new category.</p>
+            </div>`;
+        return;
+    }
+
+    let html = '';
+
+    for (const [wordType, words] of Object.entries(this.swEditorData)) {
+        const wordCount = words.length;
+        html += `
+            <div class="sw-word-type-section" data-type="${wordType}">
+                <div class="sw-type-header">
+                    <button class="sw-collapse-btn" onclick="this.closest('.sw-word-type-section').classList.toggle('collapsed')">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <span class="sw-type-name">${wordType}</span>
+                    <span class="sw-type-count">(${wordCount} word${wordCount !== 1 ? 's' : ''})</span>
+                    <button class="sw-type-delete" title="Delete word type" onclick="deckBuilder.deleteWordType('${wordType}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="sw-type-body">
+                    <div class="sw-word-chips">`;
+
+        for (const word of words) {
+            const cardMatch = this.findCardForWord(word, lang);
+            const validClass = cardMatch ? 'valid' : 'invalid';
+            html += `
+                        <div class="sw-word-chip ${validClass}" 
+                             data-word="${word}" 
+                             data-type="${wordType}"
+                             onmouseenter="deckBuilder.showWordPreview(event, '${word.replace(/'/g, "\\'")}', '${lang}')"
+                             onmouseleave="deckBuilder.hideWordPreview()">
+                            <span class="sw-chip-text" onclick="deckBuilder.editWord('${wordType}', '${word.replace(/'/g, "\\'")}')">${word}</span>
+                            <button class="sw-chip-delete" onclick="deckBuilder.deleteWord('${wordType}', '${word.replace(/'/g, "\\'")}')">&times;</button>
+                        </div>`;
+        }
+
+        html += `
+                        <button class="sw-add-word-btn" onclick="deckBuilder.addWordToType('${wordType}')">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    container.innerHTML = html;
+    this.updateSaveButtonState();
+};
+
+DeckBuilderModule.prototype.findCardForWord = function(word, lang) {
+    const cards = this.assets.manifest?.cards?.[lang] || [];
+    const normalize = (str) => (str || '').toLowerCase().trim().replace(/\s*\/\s*/g, '/');
+    const searchWord = normalize(word);
+    const searchVariants = searchWord.split('/').map(v => v.trim()).filter(v => v);
+
+    for (const card of cards) {
+        const cardWord = normalize(card.word);
+        const cardVariants = cardWord.split('/').map(v => v.trim()).filter(v => v);
+
+        if (cardWord === searchWord) return card;
+        for (const sv of searchVariants) {
+            if (cardVariants.includes(sv)) return card;
+        }
+        if (card.acceptableAnswers) {
+            for (const ans of card.acceptableAnswers) {
+                if (normalize(ans) === searchWord) return card;
+            }
+        }
+    }
+    return null;
+};
+
+DeckBuilderModule.prototype.addWordToType = function(wordType) {
+    const word = prompt(`Add new word to "${wordType}":`);
+    if (!word || !word.trim()) return;
+
+    const trimmedWord = word.trim();
+    if (!this.swEditorData[wordType]) {
+        this.swEditorData[wordType] = [];
+    }
+
+    if (this.swEditorData[wordType].includes(trimmedWord)) {
+        toastManager?.show('Word already exists in this category', 'error');
+        return;
+    }
+
+    this.swEditorData[wordType].push(trimmedWord);
+    this.swEditorDirty = true;
+    this.renderSentenceWordsEditor();
+    toastManager?.show(`Added "${trimmedWord}" to ${wordType}`, 'success');
+};
+
+DeckBuilderModule.prototype.editWord = function(wordType, oldWord) {
+    const newWord = prompt(`Edit word:`, oldWord);
+    if (!newWord || !newWord.trim() || newWord.trim() === oldWord) return;
+
+    const trimmedWord = newWord.trim();
+    const index = this.swEditorData[wordType].indexOf(oldWord);
+    if (index > -1) {
+        this.swEditorData[wordType][index] = trimmedWord;
+        this.swEditorDirty = true;
+        this.renderSentenceWordsEditor();
+        toastManager?.show(`Updated word to "${trimmedWord}"`, 'success');
+    }
+};
+
+DeckBuilderModule.prototype.deleteWord = function(wordType, word) {
+    if (!confirm(`Delete "${word}" from ${wordType}?`)) return;
+
+    const index = this.swEditorData[wordType].indexOf(word);
+    if (index > -1) {
+        this.swEditorData[wordType].splice(index, 1);
+        this.swEditorDirty = true;
+        this.renderSentenceWordsEditor();
+        toastManager?.show(`Deleted "${word}"`, 'success');
+    }
+};
+
+DeckBuilderModule.prototype.addNewWordType = function() {
+    const typeName = prompt('Enter new word type name (e.g., Adjective, Adverb):');
+    if (!typeName || !typeName.trim()) return;
+
+    const trimmedType = typeName.trim();
+    if (this.swEditorData[trimmedType]) {
+        toastManager?.show('Word type already exists', 'error');
+        return;
+    }
+
+    this.swEditorData[trimmedType] = [];
+    this.swEditorDirty = true;
+    this.renderSentenceWordsEditor();
+    toastManager?.show(`Added word type "${trimmedType}"`, 'success');
+};
+
+DeckBuilderModule.prototype.deleteWordType = function(wordType) {
+    const wordCount = this.swEditorData[wordType]?.length || 0;
+    if (!confirm(`Delete word type "${wordType}" and its ${wordCount} word(s)?`)) return;
+
+    delete this.swEditorData[wordType];
+    this.swEditorDirty = true;
+    this.renderSentenceWordsEditor();
+    toastManager?.show(`Deleted word type "${wordType}"`, 'success');
+};
+
+DeckBuilderModule.prototype.showWordPreview = function(event, word, lang) {
+    const card = this.findCardForWord(word, lang);
+    const preview = document.getElementById('swCardPreview');
+
+    if (!card) {
+        preview.classList.add('hidden');
+        return;
+    }
+
+    const imageContainer = preview.querySelector('.sw-preview-image');
+    const wordEl = preview.querySelector('.sw-preview-word');
+    const englishEl = preview.querySelector('.sw-preview-english');
+
+    // Set image
+    if (card.printImagePath) {
+        imageContainer.innerHTML = `<img src="${card.printImagePath}" alt="${card.word}">`;
+    } else {
+        imageContainer.innerHTML = '<i class="fas fa-image" style="font-size: 40px; color: var(--text-secondary);"></i>';
+    }
+
+    wordEl.textContent = card.word;
+    englishEl.textContent = card.english || '';
+
+    // Position near cursor
+    const rect = event.target.getBoundingClientRect();
+    preview.style.left = rect.left + 'px';
+    preview.style.top = (rect.bottom + 8) + 'px';
+    preview.classList.remove('hidden');
+};
+
+DeckBuilderModule.prototype.hideWordPreview = function() {
+    document.getElementById('swCardPreview').classList.add('hidden');
+};
+
+DeckBuilderModule.prototype.updateSaveButtonState = function() {
+    const saveBtn = document.getElementById('swSaveChanges');
+    saveBtn.disabled = !this.swEditorDirty;
+};
+
+DeckBuilderModule.prototype.saveSentenceWordsChanges = async function() {
+    const lang = document.getElementById('swEditorLanguage').value;
+    const lesson = document.getElementById('swEditorLesson').value;
+
+    if (!lang || !lesson) {
+        toastManager?.show('Please select language and lesson', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('scan-assets.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'saveSentenceWords',
+                language: lang,
+                lesson: lesson,
+                wordTypes: this.swEditorData
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update local manifest
+            if (!this.assets.manifest.sentenceWords) {
+                this.assets.manifest.sentenceWords = {};
+            }
+            if (!this.assets.manifest.sentenceWords[lang]) {
+                this.assets.manifest.sentenceWords[lang] = {};
+            }
+            this.assets.manifest.sentenceWords[lang][lesson] = this.swEditorData;
+
+            this.swEditorDirty = false;
+            this.updateSaveButtonState();
+            toastManager?.show('Sentence words saved successfully', 'success');
+        } else {
+            toastManager?.show(result.error || 'Failed to save', 'error');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        toastManager?.show('Failed to save changes', 'error');
+    }
+};
+

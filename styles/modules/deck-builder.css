@@ -2736,3 +2736,315 @@ body.mobile-phone .deck-section .language-uploads {
 [data-theme="dark"] .unmatched-row.corrected {
     background: rgba(16, 185, 129, 0.15);
 }
+/* =================================================================
+   SENTENCE WORDS EDITOR STYLES
+   ================================================================= */
+
+/* Tab Navigation */
+.sentence-words-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0;
+}
+
+.sw-tab-btn {
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: -2px;
+}
+
+.sw-tab-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.sw-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: transparent;
+}
+
+.sw-tab-content {
+    display: none;
+}
+
+.sw-tab-content.active {
+    display: block;
+}
+
+/* Editor Controls */
+.sw-editor-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.sw-editor-selects {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.sw-editor-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Editor Content */
+.sw-editor-content {
+    min-height: 200px;
+}
+
+.sw-editor-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--text-secondary);
+    text-align: center;
+    gap: 12px;
+}
+
+.sw-editor-empty i {
+    font-size: 48px;
+    opacity: 0.5;
+}
+
+/* Word Type Sections */
+.sw-word-type-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.sw-type-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sw-collapse-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+}
+
+.sw-word-type-section.collapsed .sw-collapse-btn i {
+    transform: rotate(-90deg);
+}
+
+.sw-word-type-section.collapsed .sw-type-body {
+    display: none;
+}
+
+.sw-type-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.sw-type-count {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.sw-type-delete {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.sw-type-delete:hover {
+    color: var(--error);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.sw-type-body {
+    padding: 16px;
+}
+
+/* Word Chips */
+.sw-word-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.sw-word-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px 6px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.sw-word-chip.valid {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.sw-word-chip.invalid {
+    border-color: var(--error);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.sw-word-chip:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.sw-chip-text {
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.sw-chip-text:hover {
+    background: var(--bg-secondary);
+}
+
+.sw-chip-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.sw-chip-delete:hover {
+    color: var(--error);
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.sw-add-word-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px dashed var(--border-color);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.sw-add-word-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+/* Card Preview Tooltip */
+.sw-card-preview {
+    position: fixed;
+    z-index: 1000;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    max-width: 280px;
+    pointer-events: none;
+}
+
+.sw-card-preview.hidden {
+    display: none;
+}
+
+.sw-preview-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sw-preview-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sw-preview-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sw-preview-word {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.sw-preview-english {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .sw-editor-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sw-editor-selects {
+        flex-direction: column;
+    }
+
+    .sw-editor-actions {
+        justify-content: flex-end;
+    }
+
+    .sw-tab-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+}

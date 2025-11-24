@@ -199,26 +199,90 @@ class DeckBuilderModule extends LearningModule {
                 <!-- Sentence Words Upload Section (Admin only) -->
                 <div class="deck-section ${adminOnlyClass}" id="sentenceWordsSection">
                     <h3 class="section-title"><i class="fas fa-bars-staggered"></i> Sentence Builder Data</h3>
-                    <div class="section-card">
-                        <p class="section-description">
-                            Upload Sentence Words CSV files for the Sentence Builder module. Each language has its own file.
-                            Format: First column is "Lesson #", other columns are word types (Verb, Noun, etc.) containing comma-separated words.
-                        </p>
 
-                        <div class="csv-upload-section">
-                            <div id="sentenceWordFileInputs" class="language-uploads">
-                                <!-- Will be populated dynamically -->
+                    <!-- Tab Navigation -->
+                    <div class="sentence-words-tabs">
+                        <button class="sw-tab-btn active" data-tab="upload">
+                            <i class="fas fa-upload"></i> Upload CSV
+                        </button>
+                        <button class="sw-tab-btn" data-tab="editor">
+                            <i class="fas fa-edit"></i> Edit Words
+                        </button>
+                    </div>
+
+                    <!-- Upload Tab Content -->
+                    <div class="sw-tab-content active" id="swUploadTab">
+                        <div class="section-card">
+                            <p class="section-description">
+                                Upload Sentence Words CSV files for the Sentence Builder module. Each language has its own file.
+                                Format: First column is "Lesson #", other columns are word types (Verb, Noun, etc.) containing comma-separated words.
+                            </p>
+
+                            <div class="csv-upload-section">
+                                <div id="sentenceWordFileInputs" class="language-uploads">
+                                    <!-- Will be populated dynamically -->
+                                </div>
+                            </div>
+
+                            <div class="section-actions">
+                                <button id="uploadSentenceWordsBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-upload"></i> Upload Sentence Words
+                                </button>
+                            </div>
+                            <p class="section-hint">
+                                <i class="fas fa-exclamation-triangle"></i> All words in the CSV must exist in the Word Lists. Invalid words will cause the upload to fail.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Editor Tab Content -->
+                    <div class="sw-tab-content" id="swEditorTab">
+                        <div class="section-card">
+                            <div class="sw-editor-controls">
+                                <div class="sw-editor-selects">
+                                    <div class="filter-group">
+                                        <label for="swEditorLanguage">
+                                            <i class="fas fa-language"></i> Language:
+                                        </label>
+                                        <select id="swEditorLanguage" class="select-control">
+                                            <option value="">Select Language</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label for="swEditorLesson">
+                                            <i class="fas fa-bookmark"></i> Lesson:
+                                        </label>
+                                        <select id="swEditorLesson" class="select-control">
+                                            <option value="">Select Lesson</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="sw-editor-actions">
+                                    <button id="swAddWordType" class="btn btn-secondary" disabled>
+                                        <i class="fas fa-plus"></i> Add Word Type
+                                    </button>
+                                    <button id="swSaveChanges" class="btn btn-primary" disabled>
+                                        <i class="fas fa-save"></i> Save Changes
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="swEditorContent" class="sw-editor-content">
+                                <div class="sw-editor-empty">
+                                    <i class="fas fa-hand-pointer"></i>
+                                    <p>Select a language and lesson to edit sentence words</p>
+                                </div>
+                            </div>
+
+                            <!-- Card Preview Tooltip -->
+                            <div id="swCardPreview" class="sw-card-preview hidden">
+                                <div class="sw-preview-image"></div>
+                                <div class="sw-preview-info">
+                                    <div class="sw-preview-word"></div>
+                                    <div class="sw-preview-english"></div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="section-actions">
-                            <button id="uploadSentenceWordsBtn" class="btn btn-primary" disabled>
-                                <i class="fas fa-upload"></i> Upload Sentence Words
-                            </button>
-                        </div>
-                        <p class="section-hint">
-                            <i class="fas fa-exclamation-triangle"></i> All words in the CSV must exist in the Word Lists. Invalid words will cause the upload to fail.
-                        </p>
                     </div>
                 </div>
 
@@ -487,6 +551,7 @@ class DeckBuilderModule extends LearningModule {
             this.setupCSVUpload();
             this.setupMediaUpload();
             this.setupSentenceWordsUpload();
+            this.setupSentenceWordsEditor();
             this.setupGrammarUpload();
         }
 
