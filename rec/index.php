@@ -279,6 +279,25 @@ function cacheBust($file) {
                 
                 <!-- Record Tab -->
                 <div class="tab-content" id="recordTab">
+                    <!-- Microphone Selector -->
+                    <div class="mic-selector-container">
+                        <div class="mic-selector-header">
+                            <label for="micSelector">
+                                <i class="fas fa-microphone-alt"></i> Microphone:
+                            </label>
+                            <button id="refreshMicsBtn" class="btn btn-sm btn-icon" title="Refresh microphones">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <select id="micSelector" class="form-input mic-dropdown">
+                            <option value="">Loading microphones...</option>
+                        </select>
+                        <div id="micStatus" class="mic-status">
+                            <span class="mic-status-icon"><i class="fas fa-circle"></i></span>
+                            <span class="mic-status-text">Checking...</span>
+                        </div>
+                    </div>
+
                     <div class="record-container">
                         <!-- Recording View -->
                         <div id="recordView" class="record-view">
