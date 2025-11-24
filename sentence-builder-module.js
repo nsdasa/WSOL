@@ -209,6 +209,8 @@ class SentenceBuilderModule extends LearningModule {
      */
     renderSentenceFrames() {
         const sentenceRow = document.getElementById('sentenceRow');
+        if (!sentenceRow) return; // Guard against calling when module not active
+
         sentenceRow.innerHTML = '';
 
         // Destroy existing Sortable instances
