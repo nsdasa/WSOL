@@ -4,6 +4,9 @@
  * Receives audio blob from recording and saves to assets folder
  */
 
+require_once 'config.php';
+enforceHttps();
+
 header('Content-Type: application/json');
 
 // Enable CORS if needed

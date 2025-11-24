@@ -1,12 +1,7 @@
 <?php
-// Force HTTPS if not already using it
-if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
-    if (!empty($_SERVER['HTTP_HOST']) && !empty($_SERVER['REQUEST_URI'])) {
-        $redirectUrl = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        header('Location: ' . $redirectUrl, true, 301);
-        exit;
-    }
-}
+// Include config and enforce HTTPS
+require_once __DIR__ . '/config.php';
+enforceHttps();
 
 // Prevent caching of the HTML page itself
 header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');

@@ -2,6 +2,9 @@
 // rename-asset.php - Renames asset files with COMPLETE CACHE PREVENTION
 // Called by Deck Builder when user wants to rename files to match naming conventions
 
+require_once 'config.php';
+enforceHttps();
+
 // =================================================================
 // CRITICAL: PREVENT ALL CACHING
 // =================================================================

@@ -4,6 +4,9 @@
  * Preserves all asset links and only updates card data
  */
 
+require_once 'config.php';
+enforceHttps();
+
 header('Content-Type: application/json');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 

@@ -2,6 +2,9 @@
 // list-assets.php - FULLY WORKING v4.0 - November 18, 2025
 // Now correctly returns .m4a and .mp3 as type: "audio"
 
+require_once 'config.php';
+enforceHttps();
+
 header('Content-Type: application/json');
 header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
 header('Pragma: no-cache');

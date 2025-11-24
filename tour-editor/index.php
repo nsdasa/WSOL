@@ -7,8 +7,10 @@
  * Access: /tour-editor/
  */
 
-session_start();
 require_once '../config.php';
+enforceHttps();
+
+session_start();
 
 // Check if logged in
 $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
