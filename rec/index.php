@@ -10,6 +10,23 @@
 session_start();
 require_once '../config.php';
 
+// Get voice recorder password from users.json (dynamic) or fallback to config.php constant
+function getVoiceRecorderPassword() {
+    $usersFile = __DIR__ . '/../users.json';
+    if (file_exists($usersFile)) {
+        $data = json_decode(file_get_contents($usersFile), true);
+        if ($data && isset($data['users'])) {
+            foreach ($data['users'] as $user) {
+                if (isset($user['role']) && $user['role'] === 'voice-recorder') {
+                    return $user['password'];
+                }
+            }
+        }
+    }
+    // Fallback to config constant if users.json not found
+    return defined('VOICE_RECORDER_PASSWORD') ? VOICE_RECORDER_PASSWORD : null;
+}
+
 // Check if logged in
 $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 $userRole = $_SESSION['user_role'] ?? null;
@@ -21,8 +38,9 @@ $hasAccess = $isLoggedIn && ($userRole === 'voice-recorder' || $userRole === 'ad
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
     $password = $_POST['password'] ?? '';
     
-    // Check voice recorder password (or admin for testing)
-    if ($password === VOICE_RECORDER_PASSWORD || $password === ADMIN_PASSWORD) {
+    // Check voice recorder password from users.json (or admin for testing)
+    $voiceRecorderPwd = getVoiceRecorderPassword();
+    if ($password === $voiceRecorderPwd || $password === ADMIN_PASSWORD) {
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['user_role'] = ($password === ADMIN_PASSWORD) ? 'admin' : 'voice-recorder';
         $_SESSION['login_time'] = time();
