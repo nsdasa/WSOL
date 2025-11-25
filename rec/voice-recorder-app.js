@@ -711,7 +711,7 @@ class VoiceRecorderApp {
         this.displayServerFiles(filtered);
     }
     
-    selectServerFile(filename, filepath) {
+    async selectServerFile(filename, filepath) {
         const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
         if (!card) return;
 
@@ -729,12 +729,12 @@ class VoiceRecorderApp {
         card.audio[this.currentVariantIndex] = filepath;
         card.hasAudio = true;
 
-        // Mark card as edited for saving to manifest
-        this.markCardAsEdited(card);
-
         this.closeFileModal();
+
+        // Immediately save to manifest
+        await this.saveCardToManifest(card);
+
         this.filterCards();
-        this.showToast(`Audio linked: ${filename}`, 'success');
 
         // Clear current card tracking
         this.currentCardId = null;
@@ -1496,13 +1496,11 @@ class VoiceRecorderApp {
                     console.log('Card audio after update:', card.audio);
                     console.log('Card hasAudio:', card.hasAudio);
 
-                    // Mark card as edited for saving to manifest
-                    this.markCardAsEdited(card);
-                    console.log('Edited cards count:', this.editedCards.size);
+                    // Immediately save to manifest
+                    await this.saveCardToManifest(card);
                 }
 
                 this.filterCards();
-                this.showToast(`Audio saved: ${filename}`, 'success');
             } else {
                 this.showToast(`Upload failed: ${result.error}`, 'error');
             }
@@ -1569,6 +1567,50 @@ class VoiceRecorderApp {
             saveBtn.disabled = true;
             saveBtn.innerHTML = `<i class="fas fa-save"></i> Save Changes`;
             console.log('Save button disabled');
+        }
+    }
+
+    /**
+     * Save a single card to the manifest immediately (no confirmation)
+     */
+    async saveCardToManifest(card) {
+        try {
+            const cardId = card.cardNum || card.wordNum;
+
+            // Update the card in allCards array
+            const index = this.allCards.findIndex(c => (c.cardNum || c.wordNum) === cardId);
+            if (index !== -1) {
+                this.allCards[index] = card;
+            }
+
+            // Save to server using save-deck.php
+            this.showToast('Saving to manifest...', 'info');
+
+            const response = await fetch('../save-deck.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    trigraph: this.currentLanguage,
+                    languageName: this.languageNames[this.currentLanguage],
+                    cards: this.allCards
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showToast(`✓ Saved to manifest`, 'success');
+                // Clear from edited cards map since it's now saved
+                this.editedCards.delete(cardId);
+                this.updateSaveButton();
+            } else {
+                throw new Error(result.error || 'Save failed');
+            }
+        } catch (err) {
+            console.error('Save error:', err);
+            this.showToast(`Save failed: ${err.message}`, 'error');
         }
     }
 
