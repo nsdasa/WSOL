@@ -775,8 +775,9 @@ DeckBuilderModule.prototype.saveRecordedAudio = function(cardId, audioLang, clos
                     card.audio.push(null);
                 }
 
-                // Set audio at variant index
-                card.audio[variantIndex] = `assets/${finalFilename}`;
+                // Set audio at variant index - use path from server response
+                // Server returns path like: assets/audio/ceb/filename.m4a
+                card.audio[variantIndex] = result.path;
                 card.hasAudio = card.audio.some(p => p !== null && p !== undefined && p !== '');
 
                 // Mark as edited

@@ -56,8 +56,16 @@ if (!in_array($ext, $allowedExtensions)) {
     exit;
 }
 
-// Define upload directory
-$uploadDir = __DIR__ . '/assets/';
+// Extract language from filename (format: cardNum.lang.word.ext)
+// Example: "123.ceb.tilaw.m4a" -> lang = "ceb"
+$parts = explode('.', $filename);
+$lang = 'ceb'; // Default to Cebuano
+if (count($parts) >= 2 && in_array($parts[1], ['ceb', 'mrw', 'sin'])) {
+    $lang = $parts[1];
+}
+
+// Define upload directory: /assets/audio/{lang}/
+$uploadDir = __DIR__ . '/assets/audio/' . $lang . '/';
 
 // Create directory if it doesn't exist
 if (!is_dir($uploadDir)) {
@@ -88,7 +96,8 @@ if ($fileExists && !$confirmOverwrite) {
 
 // If file exists and user confirmed, backup the old file
 if ($fileExists && $confirmOverwrite) {
-    $oldDir = __DIR__ . '/assets/old/';
+    // Backup directory: /assets/audio/old/
+    $oldDir = __DIR__ . '/assets/audio/old/';
 
     // Create old directory if it doesn't exist
     if (!is_dir($oldDir)) {
@@ -124,7 +133,7 @@ if (move_uploaded_file($_FILES['audio']['tmp_name'], $targetPath)) {
     $response = [
         'success' => true,
         'filename' => $filename,
-        'path' => 'assets/' . $filename,
+        'path' => 'assets/audio/' . $lang . '/' . $filename,
         'size' => filesize($targetPath)
     ];
 

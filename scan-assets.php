@@ -1160,14 +1160,47 @@ function scanAssets() {
     // Track file associations for detailed report
     $fileAssociations = [];
 
-    // Scan directory once
+    // Scan directory - check both old root location and new subdirectories
+    // This provides backward compatibility during migration
+
+    // 1. Scan root assets directory (old structure - for backward compatibility)
     $allFiles = scandir($assetsDir);
     foreach ($allFiles as $f) {
         if ($f === '.' || $f === '..' || is_dir("$assetsDir/$f")) continue;
         $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-        if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $pngFiles[] = $f;
-        elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $gifFiles[] = $f;
-        elseif (in_array($ext, ['mp3','m4a'])) $audioFiles[] = $f;
+        if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $pngFiles[] = ['file' => $f, 'subdir' => ''];
+        elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $gifFiles[] = ['file' => $f, 'subdir' => ''];
+        elseif (in_array($ext, ['mp3','m4a'])) $audioFiles[] = ['file' => $f, 'subdir' => ''];
+    }
+
+    // 2. Scan /assets/pics/ directory (new structure)
+    $picsDir = $assetsDir . '/pics';
+    if (is_dir($picsDir)) {
+        $picFiles = scandir($picsDir);
+        foreach ($picFiles as $f) {
+            if ($f === '.' || $f === '..') continue;
+            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+            if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $pngFiles[] = ['file' => $f, 'subdir' => 'pics/'];
+            elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $gifFiles[] = ['file' => $f, 'subdir' => 'pics/'];
+        }
+    }
+
+    // 3. Scan /assets/audio/{lang}/ directories (new structure)
+    $audioDir = $assetsDir . '/audio';
+    if (is_dir($audioDir)) {
+        foreach (['ceb', 'mrw', 'sin'] as $lang) {
+            $langAudioDir = $audioDir . '/' . $lang;
+            if (is_dir($langAudioDir)) {
+                $langAudioFiles = scandir($langAudioDir);
+                foreach ($langAudioFiles as $f) {
+                    if ($f === '.' || $f === '..') continue;
+                    $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                    if (in_array($ext, ['mp3','m4a'])) {
+                        $audioFiles[] = ['file' => $f, 'subdir' => 'audio/' . $lang . '/'];
+                    }
+                }
+            }
+        }
     }
 
     // Load every language's word list
@@ -1208,10 +1241,12 @@ function scanAssets() {
     }
 
     // Link image files (PNG, JPG, JPEG, WebP)
-    foreach ($pngFiles as $f) {
+    foreach ($pngFiles as $fileInfo) {
+        $f = $fileInfo['file'];
+        $subdir = $fileInfo['subdir'];
         $num = extractWordNum($f);
         if ($num && isset($cardsMaster[$num])) {
-            $path = "assets/$f";
+            $path = "assets/" . $subdir . $f;
             $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
 
             // Store the first image file as the default printImagePath
@@ -1229,11 +1264,13 @@ function scanAssets() {
     }
 
     // Link animation/video files (GIF, MP4, WebM)
-    foreach ($gifFiles as $f) {
+    foreach ($gifFiles as $fileInfo) {
+        $f = $fileInfo['file'];
+        $subdir = $fileInfo['subdir'];
         $num = extractWordNum($f);
         if ($num && isset($cardsMaster[$num])) {
             $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-            $path = "assets/$f";
+            $path = "assets/" . $subdir . $f;
 
             // Set hasGif flag if any animation file exists
             if (!$cardsMaster[$num]['hasGif']) {
@@ -1250,10 +1287,12 @@ function scanAssets() {
     }
 
     // Link Audio
-    foreach ($audioFiles as $f) {
+    foreach ($audioFiles as $fileInfo) {
+        $f = $fileInfo['file'];
+        $subdir = $fileInfo['subdir'];
         list($num, $trig, $wordVariant) = extractAudioInfo($f);
         if ($num && $trig && isset($cardsMaster[$num])) {
-            $path = "assets/$f";
+            $path = "assets/" . $subdir . $f;
 
             // Initialize audio arrays if not set
             if (!isset($cardsMaster[$num]['audio'][$trig])) {

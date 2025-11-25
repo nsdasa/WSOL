@@ -1,2 +1,6 @@
-# Audio file backups
+# Media files (user-generated content) - new structure
+/assets/pics/
+/assets/audio/
+
+# Legacy backup directory (kept for backward compatibility)
 /assets/old/

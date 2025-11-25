@@ -84,14 +84,14 @@ if ($isVideo) {
     $fileType = $imageInfo['mime'];
 }
 
-// Define upload directory
-$uploadDir = __DIR__ . '/assets/';
+// Define upload directory: /assets/pics/
+$uploadDir = __DIR__ . '/assets/pics/';
 
 // Create directory if it doesn't exist
 if (!is_dir($uploadDir)) {
     if (!mkdir($uploadDir, 0755, true)) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Could not create assets directory']);
+        echo json_encode(['success' => false, 'error' => 'Could not create pics directory']);
         exit;
     }
 }
@@ -107,7 +107,7 @@ if (move_uploaded_file($_FILES['media']['tmp_name'], $targetPath)) {
     echo json_encode([
         'success' => true,
         'filename' => $filename,
-        'path' => 'assets/' . $filename,
+        'path' => 'assets/pics/' . $filename,
         'size' => filesize($targetPath),
         'type' => $fileType
     ]);

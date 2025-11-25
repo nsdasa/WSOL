@@ -30,38 +30,59 @@ $files = [];
 
 try {
     clearstatcache(true, $assetsDir);
-    $entries = scandir($assetsDir);
 
-    if ($entries === false) {
-        throw new Exception('Failed to scan assets directory');
+    // Helper function to scan a directory and add files
+    $scanDirectory = function($dir, $relativePath = '') use (&$files, $filterType) {
+        $entries = scandir($dir);
+        if ($entries === false) return;
+
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') continue;
+
+            $fullPath = $dir . '/' . $entry;
+            clearstatcache(true, $fullPath);
+            if (!is_file($fullPath)) continue;
+
+            $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+
+            $fileType = null;
+            if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $fileType = 'png';
+            elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $fileType = 'gif';
+            elseif (in_array($ext, ['mp3', 'm4a', 'wav', 'ogg'])) $fileType = 'audio';
+            elseif ($ext === 'csv') $fileType = 'csv';
+            elseif ($ext === 'json') $fileType = 'json';
+
+            if ($fileType === null) continue;
+            if ($filterType !== 'all' && $fileType !== $filterType) continue;
+
+            $files[] = [
+                'name' => $entry,
+                'path' => 'assets/' . $relativePath . $entry,
+                'type' => $fileType,
+                'size' => filesize($fullPath),
+                'modified' => filemtime($fullPath)
+            ];
+        }
+    };
+
+    // 1. Scan root assets directory (for backward compatibility)
+    $scanDirectory($assetsDir, '');
+
+    // 2. Scan /assets/pics/ directory
+    $picsDir = $assetsDir . '/pics';
+    if (is_dir($picsDir)) {
+        $scanDirectory($picsDir, 'pics/');
     }
 
-    foreach ($entries as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
-
-        $fullPath = $assetsDir . '/' . $entry;
-        clearstatcache(true, $fullPath);
-        if (!is_file($fullPath)) continue;
-
-        $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
-
-        $fileType = null;
-        if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $fileType = 'png';
-        elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $fileType = 'gif';
-        elseif (in_array($ext, ['mp3', 'm4a', 'wav', 'ogg'])) $fileType = 'audio'; // ? FIXED
-        elseif ($ext === 'csv') $fileType = 'csv';
-        elseif ($ext === 'json') $fileType = 'json';
-
-        if ($fileType === null) continue;
-        if ($filterType !== 'all' && $fileType !== $filterType) continue;
-
-        $files[] = [
-            'name' => $entry,
-            'path' => 'assets/' . $entry,
-            'type' => $fileType,
-            'size' => filesize($fullPath),
-            'modified' => filemtime($fullPath)
-        ];
+    // 3. Scan /assets/audio/{lang}/ directories
+    $audioDir = $assetsDir . '/audio';
+    if (is_dir($audioDir)) {
+        foreach (['ceb', 'mrw', 'sin'] as $lang) {
+            $langDir = $audioDir . '/' . $lang;
+            if (is_dir($langDir)) {
+                $scanDirectory($langDir, 'audio/' . $lang . '/');
+            }
+        }
     }
 
     usort($files, function($a, $b) {
