@@ -68,17 +68,70 @@ if (!is_dir($uploadDir)) {
 // Full path for the file
 $targetPath = $uploadDir . $filename;
 
+// Check if file already exists
+$fileExists = file_exists($targetPath);
+$confirmOverwrite = isset($_POST['confirmOverwrite']) && $_POST['confirmOverwrite'] === 'true';
+
+// If file exists and user hasn't confirmed overwrite, ask for confirmation
+if ($fileExists && !$confirmOverwrite) {
+    echo json_encode([
+        'success' => false,
+        'fileExists' => true,
+        'filename' => $filename,
+        'message' => 'File already exists. Overwrite?'
+    ]);
+    exit;
+}
+
+// If file exists and user confirmed, backup the old file
+if ($fileExists && $confirmOverwrite) {
+    $oldDir = __DIR__ . '/assets/old/';
+
+    // Create old directory if it doesn't exist
+    if (!is_dir($oldDir)) {
+        if (!mkdir($oldDir, 0755, true)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Could not create backup directory']);
+            exit;
+        }
+    }
+
+    // Get file creation time
+    $fileCreationTime = filectime($targetPath);
+    $dateStr = date('Y-m-d-His', $fileCreationTime);
+
+    // Generate backup filename: original.2025-11-25-123456.ext
+    $pathInfo = pathinfo($filename);
+    $backupFilename = $pathInfo['filename'] . '.' . $dateStr . '.' . $pathInfo['extension'];
+    $backupPath = $oldDir . $backupFilename;
+
+    // Move old file to backup location
+    if (!rename($targetPath, $backupPath)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Failed to backup old file']);
+        exit;
+    }
+}
+
 // Move uploaded file
 if (move_uploaded_file($_FILES['audio']['tmp_name'], $targetPath)) {
     // Set proper permissions
     chmod($targetPath, 0644);
-    
-    echo json_encode([
+
+    $response = [
         'success' => true,
         'filename' => $filename,
         'path' => 'assets/' . $filename,
         'size' => filesize($targetPath)
-    ]);
+    ];
+
+    // If we backed up a file, include that info
+    if ($fileExists && $confirmOverwrite && isset($backupFilename)) {
+        $response['backedUp'] = true;
+        $response['backupFile'] = $backupFilename;
+    }
+
+    echo json_encode($response);
 } else {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Failed to save file']);
