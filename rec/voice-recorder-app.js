@@ -1447,71 +1447,116 @@ class VoiceRecorderApp {
                 blobToUpload = await this.encodeAudioBuffer(this.audioRecorder.audioBuffer, selectedFormat);
             }
 
-            this.showToast('Uploading...', 'warning');
+            // Attempt upload (may require confirmation if file exists)
+            await this.uploadAudioFile(filename, blobToUpload, fileToUpload, false);
 
-            const formData = new FormData();
-
-            if (blobToUpload) {
-                formData.append('audio', blobToUpload, filename);
-            } else if (fileToUpload) {
-                formData.append('audio', fileToUpload, filename);
-            }
-
-            formData.append('filename', filename);
-
-            console.log('Uploading audio:', filename, 'Format:', selectedFormat, 'Blob size:', blobToUpload?.size || fileToUpload?.size);
-
-            const response = await fetch('../upload-audio.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            console.log('Upload response status:', response.status);
-            const result = await response.json();
-            console.log('Upload result:', result);
-
-            if (result.success) {
-                console.log('Finding card with ID:', this.currentCardId);
-                const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
-                console.log('Found card:', card);
-                console.log('Current variant index:', this.currentVariantIndex);
-                console.log('Card audio before update:', card?.audio);
-
-                if (card) {
-                    // Handle multi-variant audio (audio as array)
-                    // Ensure audio is array
-                    if (!Array.isArray(card.audio)) {
-                        card.audio = card.audio ? [card.audio] : [];
-                    }
-
-                    // Pad array with nulls if needed to reach variant index
-                    while (card.audio.length <= this.currentVariantIndex) {
-                        card.audio.push(null);
-                    }
-
-                    // Set audio at the correct variant index
-                    card.audio[this.currentVariantIndex] = result.path;
-                    card.hasAudio = true;
-
-                    console.log('Card audio after update:', card.audio);
-                    console.log('Card hasAudio:', card.hasAudio);
-
-                    // Immediately save to manifest
-                    await this.saveCardToManifest(card);
-                }
-
-                this.filterCards();
-            } else {
-                this.showToast(`Upload failed: ${result.error}`, 'error');
-            }
         } catch (err) {
             this.showToast(`Upload error: ${err.message}`, 'error');
-        } finally {
             // Clear currentCardId after upload completes (success or failure)
             this.currentCardId = null;
             this.currentVariantIndex = 0;
             this.currentVariant = null;
         }
+    }
+
+    /**
+     * Upload audio file with optional overwrite confirmation
+     */
+    async uploadAudioFile(filename, blobToUpload, fileToUpload, confirmOverwrite = false) {
+        this.showToast('Uploading...', 'warning');
+
+        const formData = new FormData();
+
+        if (blobToUpload) {
+            formData.append('audio', blobToUpload, filename);
+        } else if (fileToUpload) {
+            formData.append('audio', fileToUpload, filename);
+        }
+
+        formData.append('filename', filename);
+
+        // Add confirmOverwrite flag if this is a retry
+        if (confirmOverwrite) {
+            formData.append('confirmOverwrite', 'true');
+        }
+
+        console.log('Uploading audio:', filename, 'Confirm overwrite:', confirmOverwrite, 'Blob size:', blobToUpload?.size || fileToUpload?.size);
+
+        const response = await fetch('../upload-audio.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        console.log('Upload response status:', response.status);
+        const result = await response.json();
+        console.log('Upload result:', result);
+
+        // If file exists and user hasn't confirmed, ask for confirmation
+        if (!result.success && result.fileExists) {
+            const userConfirmed = confirm(
+                `⚠️ Audio file already exists for this word.\n\n` +
+                `Replace "${filename}"?\n\n` +
+                `The old recording will be backed up to /assets/old/`
+            );
+
+            if (userConfirmed) {
+                // Retry upload with confirmation flag
+                return await this.uploadAudioFile(filename, blobToUpload, fileToUpload, true);
+            } else {
+                // User cancelled - don't save
+                this.showToast('Upload cancelled', 'warning');
+                this.currentCardId = null;
+                this.currentVariantIndex = 0;
+                this.currentVariant = null;
+                return;
+            }
+        }
+
+        // Handle upload result
+        if (result.success) {
+            console.log('Finding card with ID:', this.currentCardId);
+            const card = this.allCards.find(c => (c.cardNum || c.wordNum) === this.currentCardId);
+            console.log('Found card:', card);
+            console.log('Current variant index:', this.currentVariantIndex);
+            console.log('Card audio before update:', card?.audio);
+
+            if (card) {
+                // Handle multi-variant audio (audio as array)
+                // Ensure audio is array
+                if (!Array.isArray(card.audio)) {
+                    card.audio = card.audio ? [card.audio] : [];
+                }
+
+                // Pad array with nulls if needed to reach variant index
+                while (card.audio.length <= this.currentVariantIndex) {
+                    card.audio.push(null);
+                }
+
+                // Set audio at the correct variant index
+                card.audio[this.currentVariantIndex] = result.path;
+                card.hasAudio = true;
+
+                console.log('Card audio after update:', card.audio);
+                console.log('Card hasAudio:', card.hasAudio);
+
+                // Show backup message if old file was backed up
+                if (result.backedUp && result.backupFile) {
+                    this.showToast(`✓ Old recording backed up as ${result.backupFile}`, 'info');
+                }
+
+                // Immediately save to manifest
+                await this.saveCardToManifest(card);
+            }
+
+            this.filterCards();
+        } else {
+            this.showToast(`Upload failed: ${result.error}`, 'error');
+        }
+
+        // Clear currentCardId after upload completes
+        this.currentCardId = null;
+        this.currentVariantIndex = 0;
+        this.currentVariant = null;
     }
     
     cleanupRecorder() {
