@@ -1737,6 +1737,9 @@ async function init() {
     // Initialize authentication manager
     authManager = new AuthManager();
     await authManager.init();
+
+    // Expose authManager to window for modules that need it
+    window.authManager = authManager;
     
     // Initialize device detector early
     deviceDetector = new DeviceDetector();
