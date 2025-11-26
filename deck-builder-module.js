@@ -366,6 +366,14 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
+                <!-- Card Data Section (Collapsible) -->
+                <div class="deck-section collapsible" id="cardDataSection" data-section="cardData">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-table"></i> Card Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+
                 <!-- Legend -->
                 <div class="deck-legend">
                     <strong>Status Legend:</strong>
@@ -424,27 +432,24 @@ class DeckBuilderModule extends LearningModule {
                     <table class="deck-table" id="deckTable">
                         <thead>
                             <tr>
-                                <th style="width: 80px;" class="sortable-header" data-sort="lesson">
-                                    Lesson <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th style="width: 60px;">Type</th>
-                                <th style="width: 80px;" class="sortable-header" data-sort="cardNum">
+                                <th style="width: 70px;">Actions</th>
+                                <th style="width: 50px;">Type</th>
+                                <th style="width: 60px;" class="sortable-header" data-sort="cardNum">
                                     Card # <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th style="width: 200px;" class="sortable-header" data-sort="word" id="langHeader">
+                                <th class="sortable-header word-column" data-sort="word" id="langHeader">
                                     Cebuano <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th style="width: 200px;" class="sortable-header" data-sort="english">
+                                <th class="sortable-header word-column" data-sort="english">
                                     English <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th style="width: 100px;">Categories</th>
-                                <th style="width: 120px;">Picture (PNG)</th>
-                                <th style="width: 120px;">Animated (GIF)</th>
-                                <th style="width: 100px;">Audio</th>
-                                <th style="width: 120px;" class="sortable-header" data-sort="status">
+                                <th style="width: 85px;">Categories</th>
+                                <th style="width: 140px;">Picture (PNG)</th>
+                                <th style="width: 90px;">Animated (GIF)</th>
+                                <th style="width: 140px;">Audio</th>
+                                <th style="width: 100px;" class="sortable-header" data-sort="status">
                                     Status <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th style="width: 100px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="deckTableBody">
@@ -458,6 +463,9 @@ class DeckBuilderModule extends LearningModule {
                     <button id="addCardBtnBottom" class="btn btn-success">
                         <i class="fas fa-plus"></i> Add New Card
                     </button>
+                </div>
+
+                    </div>
                 </div>
 
                 <!-- Empty State -->
@@ -989,10 +997,95 @@ class DeckBuilderModule extends LearningModule {
         const tbody = document.getElementById('deckTableBody');
         tbody.innerHTML = '';
 
+        // Group cards by lesson
+        const lessonGroups = new Map();
         this.filteredCards.forEach(card => {
-            const row = this.createCardRow(card);
-            tbody.appendChild(row);
+            const lesson = card.lesson || 0;
+            if (!lessonGroups.has(lesson)) {
+                lessonGroups.set(lesson, []);
+            }
+            lessonGroups.get(lesson).push(card);
         });
+
+        // Sort lessons numerically
+        const sortedLessons = Array.from(lessonGroups.keys()).sort((a, b) => a - b);
+
+        // Load collapsed state from localStorage
+        const storageKey = 'deckBuilder_collapsedLessons';
+        let collapsedLessons = {};
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                collapsedLessons = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.warn('Could not load collapsed lessons state:', e);
+        }
+
+        // Render each lesson group
+        sortedLessons.forEach(lesson => {
+            const cards = lessonGroups.get(lesson);
+            const isCollapsed = collapsedLessons[lesson] !== false; // Default to collapsed
+
+            // Create lesson header row
+            const headerRow = document.createElement('tr');
+            headerRow.className = `lesson-header-row ${isCollapsed ? 'collapsed' : ''}`;
+            headerRow.dataset.lesson = lesson;
+
+            const headerCell = document.createElement('td');
+            headerCell.colSpan = 10; // Number of columns
+            headerCell.className = 'lesson-header-cell';
+            headerCell.innerHTML = `
+                <div class="lesson-header">
+                    <i class="fas fa-chevron-right lesson-chevron"></i>
+                    <span class="lesson-title">Lesson ${lesson}</span>
+                    <span class="lesson-count">${cards.length} card${cards.length !== 1 ? 's' : ''}</span>
+                </div>
+            `;
+
+            // Add click handler for expand/collapse
+            headerCell.addEventListener('click', () => {
+                this.toggleLessonGroup(lesson, headerRow, storageKey);
+            });
+
+            headerRow.appendChild(headerCell);
+            tbody.appendChild(headerRow);
+
+            // Create card rows for this lesson
+            cards.forEach(card => {
+                const row = this.createCardRow(card);
+                row.classList.add('lesson-card-row');
+                row.dataset.lesson = lesson;
+                if (isCollapsed) {
+                    row.classList.add('hidden');
+                }
+                tbody.appendChild(row);
+            });
+        });
+    }
+
+    toggleLessonGroup(lesson, headerRow, storageKey) {
+        const isCollapsed = headerRow.classList.toggle('collapsed');
+        const tbody = document.getElementById('deckTableBody');
+
+        // Toggle visibility of card rows for this lesson
+        const cardRows = tbody.querySelectorAll(`.lesson-card-row[data-lesson="${lesson}"]`);
+        cardRows.forEach(row => {
+            row.classList.toggle('hidden', isCollapsed);
+        });
+
+        // Save state to localStorage
+        try {
+            let collapsedLessons = {};
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                collapsedLessons = JSON.parse(saved);
+            }
+            collapsedLessons[lesson] = isCollapsed;
+            localStorage.setItem(storageKey, JSON.stringify(collapsedLessons));
+        } catch (e) {
+            console.warn('Could not save collapsed lessons state:', e);
+        }
     }
 
     createCardRow(card) {
@@ -1000,10 +1093,10 @@ class DeckBuilderModule extends LearningModule {
         // Support both cardNum (v4.0) and wordNum (v3.x)
         const cardId = parseInt(card.cardNum || card.wordNum) || 0;
         row.dataset.cardId = cardId;
-        
+
         const isNewCard = cardId >= this.nextNewCardId - 1000;
         const isEdited = this.editedCards.has(cardId);
-        
+
         if (isNewCard || isEdited) {
             row.classList.add('edited-row');
         }
@@ -1012,11 +1105,23 @@ class DeckBuilderModule extends LearningModule {
         const disabledAttr = this.isAdmin ? '' : 'disabled';
         const readonlyClass = this.isAdmin ? '' : 'readonly-field';
 
-        // Lesson
-        const lessonCell = document.createElement('td');
-        lessonCell.innerHTML = `<input type="number" class="cell-input ${readonlyClass}" value="${card.lesson || ''}" 
-            data-field="lesson" data-card-id="${cardId}" min="1" max="100" ${disabledAttr}>`;
-        row.appendChild(lessonCell);
+        // Actions (moved to first column)
+        const actionsCell = document.createElement('td');
+        if (this.isAdmin) {
+            actionsCell.innerHTML = `
+                <div class="actions-cell">
+                    <button class="btn-icon add-below-btn" data-card-id="${cardId}" title="Add Card Below">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="btn-icon delete-card-btn" data-card-id="${cardId}" title="Delete Card">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            actionsCell.innerHTML = `<span class="text-muted">-</span>`;
+        }
+        row.appendChild(actionsCell);
 
         // Type
         const typeCell = document.createElement('td');
@@ -1030,7 +1135,7 @@ class DeckBuilderModule extends LearningModule {
 
         // Card # - NOW EDITABLE
         const cardNumCell = document.createElement('td');
-        cardNumCell.innerHTML = `<input type="number" class="cell-input card-num-input ${readonlyClass}" value="${cardId}" 
+        cardNumCell.innerHTML = `<input type="number" class="cell-input card-num-input ${readonlyClass}" value="${cardId}"
             data-field="cardNum" data-card-id="${cardId}" data-original-id="${cardId}" min="1" ${disabledAttr}>`;
         row.appendChild(cardNumCell);
 
@@ -1038,9 +1143,10 @@ class DeckBuilderModule extends LearningModule {
         const langWord = this.getCardWord(card);
         const hasWordNote = !!(card.wordNote && card.wordNote.trim());
         const langCell = document.createElement('td');
+        langCell.className = 'word-column';
         langCell.innerHTML = `
             <div class="word-cell-container">
-                <input type="text" class="cell-input word-input ${readonlyClass}" value="${langWord}" 
+                <input type="text" class="cell-input word-input ${readonlyClass}" value="${langWord}"
                     data-field="word" data-card-id="${cardId}" ${disabledAttr}>
                 <button class="notes-btn ${hasWordNote ? 'has-note' : ''} ${this.isAdmin ? '' : 'hidden'}" data-card-id="${cardId}" data-note-type="word" title="${hasWordNote ? 'Edit note' : 'Add note'}">
                     <i class="fas fa-sticky-note"></i>
@@ -1054,9 +1160,10 @@ class DeckBuilderModule extends LearningModule {
         const engWord = this.getCardEnglish(card);
         const hasEngNote = !!(card.englishNote && card.englishNote.trim());
         const engCell = document.createElement('td');
+        engCell.className = 'word-column';
         engCell.innerHTML = `
             <div class="word-cell-container">
-                <input type="text" class="cell-input word-input ${readonlyClass}" value="${engWord}" 
+                <input type="text" class="cell-input word-input ${readonlyClass}" value="${engWord}"
                     data-field="english" data-card-id="${cardId}" ${disabledAttr}>
                 <button class="notes-btn ${hasEngNote ? 'has-note' : ''} ${this.isAdmin ? '' : 'hidden'}" data-card-id="${cardId}" data-note-type="english" title="${hasEngNote ? 'Edit note' : 'Add note'}">
                     <i class="fas fa-sticky-note"></i>
@@ -1094,24 +1201,6 @@ class DeckBuilderModule extends LearningModule {
         const statusCell = document.createElement('td');
         statusCell.innerHTML = `<span class="status ${this.getStatusClass(card)}">${this.getStatusText(card)}</span>`;
         row.appendChild(statusCell);
-
-        // Actions - hide for voice recorder
-        const actionsCell = document.createElement('td');
-        if (this.isAdmin) {
-            actionsCell.innerHTML = `
-                <div style="display: flex; gap: 4px; justify-content: center;">
-                    <button class="btn-icon add-below-btn" data-card-id="${cardId}" title="Add Card Below" style="color: var(--success);">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button class="btn-icon delete-card-btn" data-card-id="${cardId}" title="Delete Card">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            `;
-        } else {
-            actionsCell.innerHTML = `<span class="text-muted">-</span>`;
-        }
-        row.appendChild(actionsCell);
 
         // Attach event listeners
         this.attachRowEventListeners(row, card);
