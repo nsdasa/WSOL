@@ -9,6 +9,7 @@ class AuthManager {
         this.checkingAuth = false;
         this.timeoutMinutes = 30;
         this.role = null; // 'admin', 'deck-manager', 'editor', or 'voice-recorder'
+        this.language = null; // Language restriction: 'ceb', 'mrw', 'sin', or null (all languages)
     }
     
     async init() {
@@ -57,17 +58,19 @@ class AuthManager {
         try {
             const response = await fetch('auth.php?action=check');
             const result = await response.json();
-            
+
             this.authenticated = result.authenticated || false;
-            
+
             if (this.authenticated) {
                 this.timeoutMinutes = result.timeout_minutes || 30;
                 this.role = result.role || 'admin';
+                this.language = result.language || null; // Language restriction
                 this.addLogoutButton();
             } else {
                 this.role = null;
+                this.language = null;
             }
-            
+
             return this.authenticated;
         } catch (err) {
             debugLogger?.log(1, `Auth check error: ${err.message}`);
@@ -183,6 +186,7 @@ class AuthManager {
                 this.authenticated = true;
                 this.timeoutMinutes = result.timeout_minutes || 30;
                 this.role = result.role || 'admin';
+                this.language = result.language || null; // Language restriction
 
                 // Hide modal
                 document.getElementById('loginModal').classList.add('hidden');
@@ -203,8 +207,9 @@ class AuthManager {
                                    this.role === 'deck-manager' ? 'Deck Manager' :
                                    this.role === 'editor' ? 'Editor' :
                                    'Voice Recorder';
-                toastManager?.show(`Login successful! Role: ${roleDisplay}`, 'success');
-                debugLogger?.log(2, `Authenticated as ${this.role}`);
+                const langDisplay = this.language ? ` (${this.getLanguageName(this.language)})` : '';
+                toastManager?.show(`Login successful! Role: ${roleDisplay}${langDisplay}`, 'success');
+                debugLogger?.log(2, `Authenticated as ${this.role}${this.language ? ' for ' + this.language : ''}`);
             } else {
                 errorDiv.textContent = result.error || 'Login failed';
                 errorDiv.classList.remove('hidden');
@@ -238,6 +243,7 @@ class AuthManager {
 
             this.authenticated = false;
             this.role = null;
+            this.language = null;
             this.removeLogoutButton();
             this.showLoginButton();
 
@@ -480,5 +486,41 @@ class AuthManager {
         if (deckBuilderTab) {
             deckBuilderTab.classList.add('hidden');
         }
+    }
+
+    /**
+     * Get the display name for a language trigraph
+     */
+    getLanguageName(trigraph) {
+        const names = {
+            'ceb': 'Cebuano',
+            'mrw': 'Maranao',
+            'sin': 'Sinama'
+        };
+        return names[trigraph] || trigraph;
+    }
+
+    /**
+     * Check if user is restricted to a specific language
+     * Returns the language trigraph if restricted, null if no restriction
+     */
+    getLanguageRestriction() {
+        // Admin and Deck Manager have no language restriction
+        if (this.role === 'admin' || this.role === 'deck-manager') {
+            return null;
+        }
+        // Editor and Voice Recorder are restricted to their assigned language
+        return this.language;
+    }
+
+    /**
+     * Check if user can access a specific language
+     */
+    canAccessLanguage(trigraph) {
+        const restriction = this.getLanguageRestriction();
+        // No restriction means access to all languages
+        if (restriction === null) return true;
+        // Otherwise, check if it matches the user's assigned language
+        return restriction === trigraph;
     }
 }

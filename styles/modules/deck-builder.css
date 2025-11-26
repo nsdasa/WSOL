@@ -2048,6 +2048,24 @@
     opacity: 0.5;
 }
 
+/* Language restriction lock indicator */
+.language-locked-hint {
+    margin-left: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.language-locked-hint i {
+    opacity: 0.7;
+}
+
+/* Disabled select styling */
+select.select-control:disabled {
+    background-color: var(--bg-secondary);
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
 /* =================================================================
    DECK BUILDER - CSV & MEDIA UPLOAD SECTIONS
    ================================================================= */

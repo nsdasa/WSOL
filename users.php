@@ -114,6 +114,7 @@ function listUsers() {
             'id' => $user['id'],
             'username' => $user['username'],
             'role' => $user['role'],
+            'language' => $user['language'] ?? null,
             'created' => $user['created'] ?? null,
             'lastModified' => $user['lastModified'] ?? null
         ];
@@ -132,6 +133,7 @@ function addUser() {
     $username = trim($input['username'] ?? '');
     $password = $input['password'] ?? '';
     $role = $input['role'] ?? '';
+    $language = $input['language'] ?? null; // Language restriction (null = all languages)
 
     // Validate inputs
     if (empty($username)) {
@@ -160,6 +162,19 @@ function addUser() {
         return;
     }
 
+    // Validate language if provided (only for editor and voice-recorder)
+    $validLanguages = ['ceb', 'mrw', 'sin', null];
+    if ($language !== null && !in_array($language, $validLanguages)) {
+        echo json_encode(['success' => false, 'error' => 'Invalid language. Must be: ceb, mrw, or sin']);
+        return;
+    }
+
+    // Language is required for editor and voice-recorder roles
+    if (in_array($role, ['editor', 'voice-recorder']) && empty($language)) {
+        echo json_encode(['success' => false, 'error' => 'Language is required for Editor and Voice Recorder roles']);
+        return;
+    }
+
     $data = loadUsers();
 
     // Check if username already exists
@@ -176,6 +191,7 @@ function addUser() {
         'username' => $username,
         'password' => $password,
         'role' => $role,
+        'language' => $language,
         'created' => date('c'),
         'lastModified' => date('c')
     ];
@@ -190,7 +206,8 @@ function addUser() {
             'user' => [
                 'id' => $newUser['id'],
                 'username' => $newUser['username'],
-                'role' => $newUser['role']
+                'role' => $newUser['role'],
+                'language' => $newUser['language']
             ]
         ]);
     } else {
@@ -206,6 +223,7 @@ function editUser() {
     $username = isset($input['username']) ? trim($input['username']) : null;
     $password = $input['password'] ?? null;
     $role = $input['role'] ?? null;
+    $language = array_key_exists('language', $input) ? $input['language'] : 'UNCHANGED';
 
     if ($id <= 0) {
         echo json_encode(['success' => false, 'error' => 'Invalid user ID']);
@@ -265,6 +283,26 @@ function editUser() {
         $data['users'][$userIndex]['role'] = $role;
     }
 
+    // Update language if provided (use final role for validation)
+    if ($language !== 'UNCHANGED') {
+        $validLanguages = ['ceb', 'mrw', 'sin', null];
+        if ($language !== null && !in_array($language, $validLanguages)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid language. Must be: ceb, mrw, or sin']);
+            return;
+        }
+
+        // Get the final role (updated or existing)
+        $finalRole = $role ?? $data['users'][$userIndex]['role'];
+
+        // Language is required for editor and voice-recorder roles
+        if (in_array($finalRole, ['editor', 'voice-recorder']) && empty($language)) {
+            echo json_encode(['success' => false, 'error' => 'Language is required for Editor and Voice Recorder roles']);
+            return;
+        }
+
+        $data['users'][$userIndex]['language'] = $language;
+    }
+
     $data['users'][$userIndex]['lastModified'] = date('c');
 
     if (saveUsers($data)) {
@@ -274,7 +312,8 @@ function editUser() {
             'user' => [
                 'id' => $data['users'][$userIndex]['id'],
                 'username' => $data['users'][$userIndex]['username'],
-                'role' => $data['users'][$userIndex]['role']
+                'role' => $data['users'][$userIndex]['role'],
+                'language' => $data['users'][$userIndex]['language'] ?? null
             ]
         ]);
     } else {

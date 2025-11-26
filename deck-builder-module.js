@@ -53,6 +53,12 @@ class DeckBuilderModule extends LearningModule {
         this.isEditor = this.userRole === 'editor';
         this.isRecorder = this.userRole === 'voice-recorder';
 
+        // Language restriction (null = no restriction, otherwise trigraph like 'ceb')
+        this.languageRestriction = window.authManager?.getLanguageRestriction?.() || null;
+        this.restrictedLanguageName = this.languageRestriction
+            ? (window.authManager?.getLanguageName?.(this.languageRestriction) || this.languageRestriction)
+            : null;
+
         // Permission flags
         this.canEditCards = this.isAdmin || this.isDeckManager || this.isEditor; // Can add/delete/edit cards
         this.canAccessToolSections = this.isAdmin || this.isDeckManager; // Can see CSV, Media, Sentence, Grammar sections
@@ -61,14 +67,16 @@ class DeckBuilderModule extends LearningModule {
         const toolSectionsClass = this.canAccessToolSections ? '' : 'hidden'; // For tool sections
         const editButtonsClass = this.canEditCards ? '' : 'hidden'; // For add/delete/save buttons
 
-        // Role indicator badge
+        // Role indicator badge (include language if restricted)
         let roleIndicator = '';
         if (this.isDeckManager) {
             roleIndicator = '<span class="role-badge deck-manager"><i class="fas fa-user-tie"></i> Deck Manager</span>';
         } else if (this.isEditor) {
-            roleIndicator = '<span class="role-badge editor"><i class="fas fa-edit"></i> Editor Mode</span>';
+            const langSuffix = this.restrictedLanguageName ? ` - ${this.restrictedLanguageName}` : '';
+            roleIndicator = `<span class="role-badge editor"><i class="fas fa-edit"></i> Editor${langSuffix}</span>`;
         } else if (this.isRecorder) {
-            roleIndicator = '<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Voice Recorder Mode</span>';
+            const langSuffix = this.restrictedLanguageName ? ` - ${this.restrictedLanguageName}` : '';
+            roleIndicator = `<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Recorder${langSuffix}</span>`;
         }
         
         this.container.innerHTML = `
@@ -409,11 +417,12 @@ class DeckBuilderModule extends LearningModule {
                         <label for="languageFilter">
                             <i class="fas fa-language"></i> Language:
                         </label>
-                        <select id="languageFilter" class="select-control">
-                            <option value="ceb">Cebuano</option>
-                            <option value="mrw">Maranao</option>
-                            <option value="sin">Sinama</option>
+                        <select id="languageFilter" class="select-control" ${this.languageRestriction ? 'disabled' : ''}>
+                            <option value="ceb" ${this.languageRestriction === 'ceb' ? 'selected' : ''}>Cebuano</option>
+                            <option value="mrw" ${this.languageRestriction === 'mrw' ? 'selected' : ''}>Maranao</option>
+                            <option value="sin" ${this.languageRestriction === 'sin' ? 'selected' : ''}>Sinama</option>
                         </select>
+                        ${this.languageRestriction ? '<span class="language-locked-hint" title="Language restricted based on your role"><i class="fas fa-lock"></i></span>' : ''}
                     </div>
 
                     <div class="filter-group">
@@ -583,6 +592,11 @@ class DeckBuilderModule extends LearningModule {
         // Store global reference for inline event handlers
         window.deckBuilder = this;
 
+        // If language restricted, force currentTrigraph to restricted language
+        if (this.languageRestriction) {
+            this.currentTrigraph = this.languageRestriction;
+        }
+
         // Load cards for current language from v4.0 manifest structure
         this.loadCardsForLanguage(this.currentTrigraph);
 
@@ -597,8 +611,8 @@ class DeckBuilderModule extends LearningModule {
         // Setup collapsible sections
         this.setupCollapsibleSections();
 
-        // Setup CSV, Media, and Grammar upload (admin only)
-        if (this.isAdmin) {
+        // Setup CSV, Media, and Grammar upload (admin and deck-manager)
+        if (this.canAccessToolSections) {
             this.setupCSVUpload();
             this.setupMediaUpload();
             this.setupSentenceWordsUpload();
