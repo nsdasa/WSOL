@@ -174,6 +174,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
                     <select id="loginRole" class="form-input">
                         <option value="admin">Admin</option>
                         <option value="deck-manager">Deck Manager</option>
+                        <option value="editor">Editor</option>
                         <option value="voice-recorder">Voice Recorder</option>
                     </select>
                 </div>

@@ -2009,6 +2009,11 @@
     color: white;
 }
 
+.role-badge.editor {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
 .role-badge i {
     font-size: 10px;
 }

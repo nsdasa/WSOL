@@ -8,7 +8,7 @@ class AuthManager {
         this.authenticated = false;
         this.checkingAuth = false;
         this.timeoutMinutes = 30;
-        this.role = null; // 'admin', 'deck-manager', or 'voice-recorder'
+        this.role = null; // 'admin', 'deck-manager', 'editor', or 'voice-recorder'
     }
     
     async init() {
@@ -201,6 +201,7 @@ class AuthManager {
 
                 const roleDisplay = this.role === 'admin' ? 'Admin' :
                                    this.role === 'deck-manager' ? 'Deck Manager' :
+                                   this.role === 'editor' ? 'Editor' :
                                    'Voice Recorder';
                 toastManager?.show(`Login successful! Role: ${roleDisplay}`, 'success');
                 debugLogger?.log(2, `Authenticated as ${this.role}`);
@@ -344,6 +345,13 @@ class AuthManager {
     }
 
     /**
+     * Check if current user is editor
+     */
+    isEditor() {
+        return this.authenticated && this.role === 'editor';
+    }
+
+    /**
      * Check if current user is voice recorder
      */
     isVoiceRecorder() {
@@ -352,15 +360,18 @@ class AuthManager {
 
     /**
      * Check if user has permission for a specific action
-     * Voice Recorder can only: filter, view, record/upload audio
-     * Deck Manager has full deck builder access
-     * Admin can do everything
+     * Roles hierarchy: admin > deck-manager > editor > voice-recorder
+     *
+     * Admin: Everything (all modules, all features)
+     * Deck Manager: Full deck builder (all sections + table with CRUD), no admin module
+     * Editor: Table only with full CRUD (no tool sections like CSV, Media, Sentence, Grammar)
+     * Voice Recorder: Table only, limited columns, read-only (can only record/upload audio)
      */
     hasPermission(action) {
         if (!this.authenticated) return false;
         if (this.role === 'admin') return true;
 
-        // Deck Manager has full deck builder permissions
+        // Deck Manager has full deck builder permissions (all sections + table CRUD)
         if (this.role === 'deck-manager') {
             const deckManagerAllowed = [
                 'view',
@@ -372,18 +383,41 @@ class AuthManager {
                 'create',
                 'delete',
                 'save',
-                'export'
+                'export',
+                'csv-tools',
+                'media-tools',
+                'sentence-tools',
+                'grammar-tools'
             ];
             return deckManagerAllowed.includes(action);
         }
 
-        // Voice Recorder permissions (limited)
+        // Editor: Table only with full CRUD (no tool sections)
+        if (this.role === 'editor') {
+            const editorAllowed = [
+                'view',
+                'filter',
+                'audio-upload',
+                'audio-record',
+                'audio-select',
+                'edit',
+                'create',
+                'delete',
+                'save',
+                'export'
+                // Note: NO csv-tools, media-tools, sentence-tools, grammar-tools
+            ];
+            return editorAllowed.includes(action);
+        }
+
+        // Voice Recorder: limited view, can only record/upload audio
         const voiceRecorderAllowed = [
             'view',
             'filter',
             'audio-upload',
             'audio-record',
             'audio-select'
+            // Note: NO edit, create, delete, save permissions
         ];
 
         return voiceRecorderAllowed.includes(action);
@@ -393,7 +427,8 @@ class AuthManager {
      * Update UI elements based on user role
      * Shows/hides admin and deck-builder tabs based on authentication and role
      * - Admin: sees both Admin and Deck Builder tabs
-     * - Deck Manager: sees only Deck Builder tab
+     * - Deck Manager: sees only Deck Builder tab (full functionality)
+     * - Editor: sees only Deck Builder tab (table only with CRUD)
      * - Voice Recorder: sees only Deck Builder tab (limited functionality)
      * - Not authenticated: sees neither tab
      */
@@ -421,8 +456,8 @@ class AuthManager {
             if (deckBuilderTab) {
                 deckBuilderTab.classList.remove('hidden');
             }
-        } else if (this.role === 'deck-manager' || this.role === 'voice-recorder') {
-            // Deck Manager and Voice Recorder see only Deck Builder tab
+        } else if (this.role === 'deck-manager' || this.role === 'editor' || this.role === 'voice-recorder') {
+            // Deck Manager, Editor, and Voice Recorder see only Deck Builder tab
             if (adminTab) {
                 adminTab.classList.add('hidden');
             }

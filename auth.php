@@ -73,7 +73,8 @@ function handleLogin() {
     $selectedRole = $_POST['role'] ?? '';
 
     // Validate the selected role
-    $validRoles = ['admin', 'deck-manager', 'voice-recorder'];
+    // Roles hierarchy: admin > deck-manager > editor > voice-recorder
+    $validRoles = ['admin', 'deck-manager', 'editor', 'voice-recorder'];
 
     if (!in_array($selectedRole, $validRoles)) {
         echo json_encode([
@@ -97,6 +98,9 @@ function handleLogin() {
                 break;
             case 'deck-manager':
                 $passwordMatches = ($password === DECK_MANAGER_PASSWORD);
+                break;
+            case 'editor':
+                $passwordMatches = ($password === EDITOR_PASSWORD);
                 break;
             case 'voice-recorder':
                 $passwordMatches = ($password === VOICE_RECORDER_PASSWORD);

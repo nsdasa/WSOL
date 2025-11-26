@@ -10,6 +10,9 @@ define('ADMIN_PASSWORD', 'WSOL10:15');
 // Deck Manager password (full access to Deck Builder, no Admin access)
 define('DECK_MANAGER_PASSWORD', 'deck123');
 
+// Editor password (table only with full CRUD, no tool sections)
+define('EDITOR_PASSWORD', 'edit123');
+
 // Voice Recorder password (can only filter and record audio)
 define('VOICE_RECORDER_PASSWORD', 'voice123');
 

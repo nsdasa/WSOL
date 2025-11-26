@@ -154,9 +154,9 @@ function addUser() {
         return;
     }
 
-    $validRoles = ['admin', 'deck-manager', 'voice-recorder'];
+    $validRoles = ['admin', 'deck-manager', 'editor', 'voice-recorder'];
     if (!in_array($role, $validRoles)) {
-        echo json_encode(['success' => false, 'error' => 'Invalid role. Must be: admin, deck-manager, or voice-recorder']);
+        echo json_encode(['success' => false, 'error' => 'Invalid role. Must be: admin, deck-manager, editor, or voice-recorder']);
         return;
     }
 
@@ -257,7 +257,7 @@ function editUser() {
 
     // Update role if provided
     if ($role !== null) {
-        $validRoles = ['admin', 'deck-manager', 'voice-recorder'];
+        $validRoles = ['admin', 'deck-manager', 'editor', 'voice-recorder'];
         if (!in_array($role, $validRoles)) {
             echo json_encode(['success' => false, 'error' => 'Invalid role']);
             return;
