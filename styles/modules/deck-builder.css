@@ -183,13 +183,59 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow-x: auto;
     max-height: 600px;
-    overflow-y: auto;
+    /* Force scrollbars to always show */
+    overflow: scroll;
+    /* Firefox scrollbar styling */
+    scrollbar-width: auto;
+    scrollbar-color: #888 #f1f1f1;
+}
+
+/* Custom scrollbar styling - thicker and always visible */
+.deck-table-container::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+}
+
+.deck-table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 7px;
+}
+
+.deck-table-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 7px;
+    border: 2px solid #f1f1f1;
+}
+
+.deck-table-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.deck-table-container::-webkit-scrollbar-corner {
+    background: #f1f1f1;
 }
 
 [data-theme="dark"] .deck-table-container {
     background: var(--bg-primary);
+    scrollbar-color: #666 var(--bg-secondary);
+}
+
+[data-theme="dark"] .deck-table-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .deck-table-container::-webkit-scrollbar-thumb {
+    background: #666;
+    border-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .deck-table-container::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+
+[data-theme="dark"] .deck-table-container::-webkit-scrollbar-corner {
+    background: var(--bg-secondary);
 }
 
 /* Deck Table */
