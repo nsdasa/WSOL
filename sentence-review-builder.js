@@ -226,6 +226,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                 // Count words with and without pictures
                 const withPic = sentence.words.filter(w => w.imagePath).length;
                 const withoutPic = sentence.words.filter(w => !w.imagePath).length;
+                const needsRes = sentence.words.filter(w => w.needsResolution).length;
 
                 html += `
                     <div class="sr-preview-sentence">
@@ -236,9 +237,12 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
                 sentence.words.forEach(word => {
                     if (word.imagePath) {
+                        const needsResClass = word.needsResolution ? ' needs-resolution' : '';
+                        const resTitle = word.needsResolution ? ' ⚠️ Auto-assigned via root - needs review' : '';
                         html += `
-                            <div class="sr-preview-word has-pic" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}">
+                            <div class="sr-preview-word has-pic${needsResClass}" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}${resTitle}">
                                 <img src="${word.imagePath}" alt="${word.word}">
+                                ${word.needsResolution ? '<span class="resolution-flag" title="Needs review">⚠️</span>' : ''}
                             </div>
                         `;
                     } else {
@@ -255,6 +259,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                         <div class="sr-preview-stats">
                             <span class="stat-good">${withPic} with pictures</span>
                             ${withoutPic > 0 ? `<span class="stat-warn">${withoutPic} without pictures</span>` : ''}
+                            ${needsRes > 0 ? `<span class="stat-resolution">⚠️ ${needsRes} need review</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -440,10 +445,13 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
         words.forEach((word, wordIndex) => {
             if (word.imagePath) {
+                const needsResClass = word.needsResolution ? ' needs-resolution' : '';
+                const resTitle = word.needsResolution ? ' ⚠️ Auto-assigned via root - needs review' : '';
                 html += `
-                    <div class="sr-word-pic" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" data-word="${wordIndex}">
-                        <img src="${word.imagePath}" alt="${word.word}" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}">
+                    <div class="sr-word-pic${needsResClass}" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" data-word="${wordIndex}">
+                        <img src="${word.imagePath}" alt="${word.word}" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}${resTitle}">
                         <span class="word-label">${word.word}</span>
+                        ${word.needsResolution ? '<span class="resolution-flag" title="Auto-assigned via root - click to review">⚠️</span>' : ''}
                         <button class="sr-change-pic-btn" title="Change picture">
                             <i class="fas fa-exchange-alt"></i>
                         </button>
