@@ -18917,6 +18917,11 @@
             }
         }
     },
+    "lessonMeta": {
+        "ceb": {},
+        "mrw": {},
+        "sin": {}
+    },
     "stats": {
         "totalCards": 625,
         "cardsWithAudio": 264,

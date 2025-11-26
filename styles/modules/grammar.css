@@ -364,6 +364,54 @@
     background: var(--bg-secondary);
 }
 
+/* Review Lesson Styles */
+.review-grammar-notice {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+.review-grammar-notice i {
+    font-size: 1.1rem;
+}
+
+[data-theme="dark"] .review-grammar-notice {
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+}
+
+.grammar-lesson-section {
+    margin: 20px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.grammar-lesson-header {
+    background: var(--bg-secondary);
+    margin: 0;
+    padding: 16px 20px;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.grammar-lesson-header i {
+    color: var(--primary);
+}
+
+.grammar-lesson-content {
+    padding: 20px;
+}
+
 /* Print styles */
 @media print {
     .grammar-toolbar {
