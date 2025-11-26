@@ -280,16 +280,32 @@ class PDFPrintModule extends LearningModule {
     
     updateCardPreview() {
         const allCards = this.assets.cards || [];
-        
+
         let filteredCards = [];
-        
+
         if (this.filterType === 'lesson') {
             const lessonFrom = parseInt(document.getElementById('lessonFromFilter').value);
             const lessonTo = parseInt(document.getElementById('lessonToFilter').value);
             const minLesson = Math.min(lessonFrom, lessonTo);
             const maxLesson = Math.max(lessonFrom, lessonTo);
-            
-            filteredCards = allCards.filter(c => c.lesson >= minLesson && c.lesson <= maxLesson);
+
+            // Build set of lessons to include, expanding review lessons to their reviewed lessons
+            const trigraph = this.assets.currentLanguage?.trigraph?.toLowerCase();
+            const lessonMeta = this.assets.manifest?.lessonMeta?.[trigraph] || {};
+            const lessonsToInclude = new Set();
+
+            for (let lesson = minLesson; lesson <= maxLesson; lesson++) {
+                const meta = lessonMeta[lesson];
+                if (meta?.type === 'review' && meta?.reviewsLessons?.length > 0) {
+                    // Review lesson: include all reviewed lessons
+                    meta.reviewsLessons.forEach(l => lessonsToInclude.add(l));
+                } else {
+                    // Regular lesson: include directly
+                    lessonsToInclude.add(lesson);
+                }
+            }
+
+            filteredCards = allCards.filter(c => lessonsToInclude.has(c.lesson));
         } else {
             const grammarType = document.getElementById('grammarFilter').value;
             if (grammarType) {
