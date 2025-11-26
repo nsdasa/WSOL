@@ -401,6 +401,35 @@
     color: var(--warning);
 }
 
+.sr-preview-stats .stat-resolution {
+    color: var(--danger, #e53935);
+    font-weight: 500;
+}
+
+/* Needs Resolution Flag */
+.sr-preview-word.needs-resolution,
+.sr-word-pic.needs-resolution {
+    box-shadow: 0 0 0 3px var(--warning);
+    position: relative;
+}
+
+.sr-preview-word .resolution-flag,
+.sr-word-pic .resolution-flag {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 0.7rem;
+    background: var(--warning);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    cursor: help;
+}
+
 .sr-preview-actions {
     display: flex;
     gap: 12px;

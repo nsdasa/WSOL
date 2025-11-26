@@ -541,7 +541,8 @@ class SentenceReviewParser {
                 word: word,
                 root: root,
                 cardNum: cardInfo?.cardNum || null,
-                imagePath: cardInfo?.imagePath || null
+                imagePath: cardInfo?.imagePath || null,
+                needsResolution: cardInfo?.needsResolution || false
             });
         }
 
@@ -553,7 +554,7 @@ class SentenceReviewParser {
      * @param {string} word - The word to find
      * @param {string|null} root - Optional root word hint
      * @param {Array} allCards - All cards to search
-     * @returns {Object|null} Card info or null
+     * @returns {Object|null} Card info with needsResolution flag, or null
      */
     static findCardForWord(word, root, allCards) {
         const normalize = (str) => (str || '').toLowerCase().trim();
@@ -566,33 +567,35 @@ class SentenceReviewParser {
             const variants = cardWord.split('/').map(v => v.trim());
 
             if (cardWord === searchWord || variants.includes(searchWord)) {
-                return { cardNum: card.cardNum, imagePath: card.imagePath };
+                return { cardNum: card.cardNum, imagePath: card.printImagePath, needsResolution: false };
             }
 
             // Check acceptableAnswers
             if (card.acceptableAnswers) {
                 for (const answer of card.acceptableAnswers) {
                     if (normalize(answer) === searchWord) {
-                        return { cardNum: card.cardNum, imagePath: card.imagePath };
+                        return { cardNum: card.cardNum, imagePath: card.printImagePath, needsResolution: false };
                     }
                 }
             }
         }
 
-        // Try root word if provided
+        // Try root word if provided - FLAG FOR RESOLUTION since word wasn't found directly
         if (searchRoot) {
             for (const card of allCards) {
                 const cardWord = normalize(card.word);
                 const variants = cardWord.split('/').map(v => v.trim());
 
                 if (cardWord === searchRoot || variants.includes(searchRoot)) {
-                    return { cardNum: card.cardNum, imagePath: card.imagePath };
+                    // Word not found in cards AND was auto-assigned via root - needs resolution
+                    return { cardNum: card.cardNum, imagePath: card.printImagePath, needsResolution: true };
                 }
 
                 if (card.acceptableAnswers) {
                     for (const answer of card.acceptableAnswers) {
                         if (normalize(answer) === searchRoot) {
-                            return { cardNum: card.cardNum, imagePath: card.imagePath };
+                            // Word not found in cards AND was auto-assigned via root - needs resolution
+                            return { cardNum: card.cardNum, imagePath: card.printImagePath, needsResolution: true };
                         }
                     }
                 }
