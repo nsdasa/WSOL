@@ -553,8 +553,11 @@ class VoiceRecorderApp {
     
     updateStats() {
         const total = this.filteredCards.length;
-        const withAudio = this.filteredCards.filter(c => !!c.audio).length;
-        
+        // Check for actual audio paths, not just truthy arrays (empty arrays [] are truthy)
+        const withAudio = this.filteredCards.filter(c =>
+            Array.isArray(c.audio) ? c.audio.some(a => a && a.trim()) : !!c.audio
+        ).length;
+
         document.getElementById('cardCount').textContent = `${total} cards`;
         document.getElementById('audioCount').textContent = `${withAudio} with audio`;
     }

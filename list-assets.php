@@ -48,7 +48,7 @@ try {
         $fileType = null;
         if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp'])) $fileType = 'png';
         elseif (in_array($ext, ['gif', 'mp4', 'webm'])) $fileType = 'gif';
-        elseif (in_array($ext, ['mp3', 'm4a', 'wav', 'ogg'])) $fileType = 'audio'; // ? FIXED
+        elseif (in_array($ext, ['mp3', 'm4a', 'wav', 'ogg', 'opus', 'webm'])) $fileType = 'audio';
         elseif ($ext === 'csv') $fileType = 'csv';
         elseif ($ext === 'json') $fileType = 'json';
 
