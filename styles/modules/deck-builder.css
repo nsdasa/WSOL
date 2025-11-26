@@ -1933,8 +1933,57 @@
     gap: 10px;
 }
 
+/* Collapsible section styles */
+.deck-section.collapsible .section-title {
+    cursor: pointer;
+    user-select: none;
+    padding: 12px 16px;
+    margin: 0 -16px 16px -16px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.deck-section.collapsible .section-title:hover {
+    background-color: var(--bg-secondary);
+}
+
+.deck-section.collapsible .section-title:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
 .deck-section .section-title i {
     color: var(--primary);
+}
+
+/* Chevron icon for collapsible sections */
+.deck-section .section-chevron {
+    margin-left: auto;
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.deck-section.collapsed .section-chevron {
+    transform: rotate(-90deg);
+}
+
+/* Section content wrapper for collapse animation */
+.deck-section .section-content {
+    overflow: hidden;
+    max-height: 2000px;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.deck-section.collapsed .section-content {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Remove bottom margin when collapsed */
+.deck-section.collapsed .section-title {
+    margin-bottom: 0;
 }
 
 .deck-section .section-card {
