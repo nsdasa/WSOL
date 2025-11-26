@@ -1,0 +1,399 @@
+/**
+ * Teacher's Guide Module Styles
+ * Styles for displaying teacher's guide HTML content
+ */
+
+/* Module container */
+.module-teacher-guide {
+    max-width: 95%;
+    width: 95%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header */
+.teacher-guide-header {
+    margin-bottom: 20px;
+}
+
+.teacher-guide-header h1 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.teacher-guide-header h1 i {
+    color: var(--primary);
+}
+
+/* Toolbar */
+.teacher-guide-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.toolbar-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.teacher-guide-status {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toolbar-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Content area */
+.teacher-guide-content {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    min-height: 400px;
+    overflow: hidden;
+}
+
+/* Loading state */
+.teacher-guide-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.teacher-guide-loading i {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    color: var(--primary);
+}
+
+/* Empty state - simple message when no guide available */
+.teacher-guide-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.teacher-guide-empty i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.teacher-guide-empty h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+/* Empty state with instructions */
+.teacher-guide-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.teacher-guide-empty-state i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.teacher-guide-empty-state h3 {
+    margin: 0 0 12px;
+    color: var(--text-primary);
+}
+
+.teacher-guide-empty-state p {
+    margin: 0 0 8px;
+    max-width: 500px;
+}
+
+.teacher-guide-help {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: left;
+    max-width: 500px;
+}
+
+.teacher-guide-help p {
+    margin: 0 0 12px;
+}
+
+.teacher-guide-help ol {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.teacher-guide-help li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.teacher-guide-help code {
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85em;
+    color: var(--primary);
+}
+
+.teacher-guide-help a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.teacher-guide-help a:hover {
+    text-decoration: underline;
+}
+
+/* Document container - applies styling to loaded HTML */
+.teacher-guide-document {
+    padding: 30px 40px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+/* Typography in document */
+.teacher-guide-document h1,
+.teacher-guide-document h2,
+.teacher-guide-document h3,
+.teacher-guide-document h4,
+.teacher-guide-document h5,
+.teacher-guide-document h6 {
+    color: var(--text-primary);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    line-height: 1.3;
+}
+
+.teacher-guide-document h1 { font-size: 1.75rem; }
+.teacher-guide-document h2 { font-size: 1.5rem; }
+.teacher-guide-document h3 { font-size: 1.25rem; }
+.teacher-guide-document h4 { font-size: 1.1rem; }
+
+.teacher-guide-document p {
+    margin: 0 0 1em;
+}
+
+.teacher-guide-document ul,
+.teacher-guide-document ol {
+    margin: 0 0 1em;
+    padding-left: 2em;
+}
+
+.teacher-guide-document li {
+    margin-bottom: 0.5em;
+}
+
+/* Tables */
+.teacher-guide-document table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    background: var(--bg-primary);
+}
+
+.teacher-guide-document th,
+.teacher-guide-document td {
+    border: 1px solid var(--border-color);
+    padding: 10px 12px;
+    text-align: left;
+}
+
+.teacher-guide-document th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+}
+
+.teacher-guide-document tr:nth-child(even) {
+    background: var(--bg-secondary);
+}
+
+/* Images */
+.teacher-guide-document img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 1em 0;
+}
+
+/* Blockquotes */
+.teacher-guide-document blockquote {
+    border-left: 4px solid var(--primary);
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    background: var(--bg-secondary);
+    border-radius: 0 8px 8px 0;
+}
+
+/* Code blocks */
+.teacher-guide-document code {
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+}
+
+.teacher-guide-document pre {
+    background: var(--bg-tertiary);
+    padding: 1em;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1em 0;
+}
+
+.teacher-guide-document pre code {
+    background: none;
+    padding: 0;
+}
+
+/* Links */
+.teacher-guide-document a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.teacher-guide-document a:hover {
+    text-decoration: underline;
+}
+
+/* Horizontal rules */
+.teacher-guide-document hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 2em 0;
+}
+
+/* Fullscreen mode */
+.teacher-guide-content:fullscreen {
+    background: var(--bg-primary);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.teacher-guide-content:fullscreen .teacher-guide-document {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Word-specific class overrides */
+/* Reset some common Word-generated styles */
+.teacher-guide-document .MsoNormal,
+.teacher-guide-document .MsoBodyText,
+.teacher-guide-document .MsoTitle {
+    margin: 0 0 1em;
+    line-height: 1.7;
+}
+
+/* Fix Word table styling */
+.teacher-guide-document .MsoTableGrid {
+    border-collapse: collapse;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .module-teacher-guide {
+        padding: 12px;
+    }
+
+    .teacher-guide-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .teacher-guide-toolbar {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .toolbar-info {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .toolbar-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .teacher-guide-document {
+        padding: 20px;
+    }
+
+    .teacher-guide-help {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .teacher-guide-document {
+        padding: 15px;
+        font-size: 0.95rem;
+    }
+
+    .teacher-guide-document h1 { font-size: 1.5rem; }
+    .teacher-guide-document h2 { font-size: 1.3rem; }
+    .teacher-guide-document h3 { font-size: 1.1rem; }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .teacher-guide-document {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .teacher-guide-document img {
+    opacity: 0.9;
+}
+
+[data-theme="dark"] .teacher-guide-document table {
+    background: var(--bg-secondary);
+}
+
+/* Print styles */
+@media print {
+    .teacher-guide-toolbar {
+        display: none;
+    }
+
+    .teacher-guide-content {
+        border: none;
+        box-shadow: none;
+    }
+
+    .teacher-guide-document {
+        padding: 0;
+    }
+}

@@ -1120,6 +1120,229 @@ DeckBuilderModule.prototype.renderGrammarReport = function(report) {
 
 
 // =========================================
+// TEACHER'S GUIDE FILES MANAGEMENT
+// =========================================
+
+DeckBuilderModule.prototype.setupTeacherGuideUpload = function() {
+    this.teacherGuideFile = null;
+
+    const teacherGuideInput = document.getElementById('teacherGuideFileInput');
+    const uploadBtn = document.getElementById('uploadTeacherGuideBtn');
+    const reportBtn = document.getElementById('teacherGuideReportBtn');
+    const lessonInput = document.getElementById('teacherGuideLessonInput');
+    const closeReportBtn = document.getElementById('closeTeacherGuideReport');
+
+    if (teacherGuideInput) {
+        teacherGuideInput.addEventListener('change', (e) => {
+            this.teacherGuideFile = e.target.files[0] || null;
+            const status = document.getElementById('teacherGuideFileStatus');
+            if (this.teacherGuideFile) {
+                status.textContent = this.teacherGuideFile.name;
+                status.style.color = 'var(--success)';
+            } else {
+                status.textContent = 'No file selected';
+                status.style.color = 'var(--text-secondary)';
+            }
+            this.updateTeacherGuideUploadButton();
+        });
+    }
+
+    if (lessonInput) {
+        lessonInput.addEventListener('input', () => {
+            this.updateTeacherGuideUploadButton();
+        });
+    }
+
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', () => this.uploadTeacherGuideFile());
+    }
+
+    if (reportBtn) {
+        reportBtn.addEventListener('click', () => this.showTeacherGuideReport());
+    }
+
+    if (closeReportBtn) {
+        closeReportBtn.addEventListener('click', () => {
+            const container = document.getElementById('teacherGuideReportContainer');
+            if (container) container.classList.add('hidden');
+        });
+    }
+};
+
+DeckBuilderModule.prototype.updateTeacherGuideUploadButton = function() {
+    const uploadBtn = document.getElementById('uploadTeacherGuideBtn');
+    const lessonInput = document.getElementById('teacherGuideLessonInput');
+    const lesson = parseInt(lessonInput?.value || 0);
+
+    if (uploadBtn) {
+        uploadBtn.disabled = !this.teacherGuideFile || lesson <= 0;
+    }
+};
+
+DeckBuilderModule.prototype.uploadTeacherGuideFile = async function() {
+    const uploadBtn = document.getElementById('uploadTeacherGuideBtn');
+    const languageSelect = document.getElementById('teacherGuideLanguageSelect');
+    const lessonInput = document.getElementById('teacherGuideLessonInput');
+
+    const language = languageSelect?.value || 'ceb';
+    const lesson = parseInt(lessonInput?.value || 0);
+
+    if (!this.teacherGuideFile || lesson <= 0) {
+        toastManager.show('Please select a file and enter a lesson number', 'warning');
+        return;
+    }
+
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+    try {
+        const formData = new FormData();
+        formData.append('teacherGuideFile', this.teacherGuideFile);
+        formData.append('language', language);
+        formData.append('lesson', lesson);
+
+        const timestamp = new Date().getTime();
+        const response = await fetch(`scan-assets.php?action=uploadTeacherGuide&_=${timestamp}`, {
+            method: 'POST',
+            body: formData,
+            cache: 'no-store'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            const langName = this.trigraphToLangName[language] || language;
+            toastManager.show(
+                `Teacher's guide uploaded for ${langName} Lesson ${lesson}!`,
+                'success',
+                5000
+            );
+
+            // Reset form
+            const teacherGuideInput = document.getElementById('teacherGuideFileInput');
+            if (teacherGuideInput) teacherGuideInput.value = '';
+            if (lessonInput) lessonInput.value = '';
+            this.teacherGuideFile = null;
+
+            const status = document.getElementById('teacherGuideFileStatus');
+            if (status) {
+                status.textContent = 'No file selected';
+                status.style.color = 'var(--text-secondary)';
+            }
+
+            // Reload manifest to pick up new teacher's guide entry
+            await assetManager.loadManifest();
+        } else {
+            toastManager.show(`Upload failed: ${result.error || result.message}`, 'error', 5000);
+        }
+    } catch (err) {
+        toastManager.show(`Error: ${err.message}`, 'error', 5000);
+    } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Upload Teacher\'s Guide File';
+        this.updateTeacherGuideUploadButton();
+    }
+};
+
+DeckBuilderModule.prototype.showTeacherGuideReport = async function() {
+    const reportBtn = document.getElementById('teacherGuideReportBtn');
+    const container = document.getElementById('teacherGuideReportContainer');
+    const content = document.getElementById('teacherGuideReportContent');
+
+    if (!container || !content) return;
+
+    reportBtn.disabled = true;
+    reportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    content.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Generating report...</div>';
+    container.classList.remove('hidden');
+
+    try {
+        const timestamp = new Date().getTime();
+        const response = await fetch(`scan-assets.php?action=teacherGuideReport&_=${timestamp}`, {
+            cache: 'no-store'
+        });
+
+        const report = await response.json();
+
+        if (report.success) {
+            content.innerHTML = this.renderTeacherGuideReport(report);
+        } else {
+            content.innerHTML = `<div class="error-message">Failed to generate report: ${report.error || 'Unknown error'}</div>`;
+        }
+    } catch (err) {
+        content.innerHTML = `<div class="error-message">Error: ${err.message}</div>`;
+    } finally {
+        reportBtn.disabled = false;
+        reportBtn.innerHTML = '<i class="fas fa-chart-bar"></i> Teacher\'s Guide Coverage Report';
+    }
+};
+
+DeckBuilderModule.prototype.renderTeacherGuideReport = function(report) {
+    let html = `
+        <div class="grammar-report-summary">
+            <div class="summary-stat">
+                <span class="stat-value">${report.summary.totalGuideFiles}</span>
+                <span class="stat-label">Total Guide Files</span>
+            </div>
+            <div class="summary-stat">
+                <span class="stat-value">${report.summary.totalLessons}</span>
+                <span class="stat-label">Total Lessons</span>
+            </div>
+            <div class="summary-stat">
+                <span class="stat-value">${report.summary.overallCoverage}%</span>
+                <span class="stat-label">Overall Coverage</span>
+            </div>
+        </div>
+        <div class="grammar-report-languages">
+    `;
+
+    for (const [trigraph, lang] of Object.entries(report.languages)) {
+        const coverageClass = lang.coverage >= 80 ? 'high' : (lang.coverage >= 50 ? 'medium' : 'low');
+
+        html += `
+            <div class="language-report-card">
+                <div class="language-header">
+                    <h5>${lang.name}</h5>
+                    <span class="coverage-badge ${coverageClass}">${lang.coverage}% coverage</span>
+                </div>
+                <div class="language-stats">
+                    <span><strong>${lang.guideCount}</strong> of <strong>${lang.totalLessons}</strong> lessons have teacher's guide</span>
+                </div>
+        `;
+
+        if (lang.lessonsWithGuide.length > 0) {
+            html += `
+                <div class="lessons-list">
+                    <span class="list-label"><i class="fas fa-check-circle" style="color: var(--success);"></i> Has Guide:</span>
+                    <span class="lesson-numbers">${lang.lessonsWithGuide.join(', ')}</span>
+                </div>
+            `;
+        }
+
+        if (lang.lessonsWithoutGuide.length > 0) {
+            html += `
+                <div class="lessons-list missing">
+                    <span class="list-label"><i class="fas fa-times-circle" style="color: var(--error);"></i> Missing:</span>
+                    <span class="lesson-numbers">${lang.lessonsWithoutGuide.join(', ')}</span>
+                </div>
+            `;
+        }
+
+        html += `</div>`;
+    }
+
+    html += `
+        </div>
+        <div class="report-footer">
+            <small>Report generated: ${new Date(report.generated).toLocaleString()}</small>
+        </div>
+    `;
+
+    return html;
+};
+
+
+// =========================================
 // SENTENCE WORDS EDITOR
 // =========================================
 
