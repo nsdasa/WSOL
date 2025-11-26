@@ -1118,6 +1118,17 @@ class DeckBuilderModule extends LearningModule {
             lessonGroups.get(lesson).push(card);
         });
 
+        // Get lessonMeta for review lessons
+        const lessonMeta = this.assets?.manifest?.lessonMeta?.[this.currentTrigraph] || {};
+
+        // Add review lessons (which have no cards) to lessonGroups
+        Object.keys(lessonMeta).forEach(lessonNum => {
+            const num = parseInt(lessonNum);
+            if (lessonMeta[lessonNum].type === 'review' && !lessonGroups.has(num)) {
+                lessonGroups.set(num, []);
+            }
+        });
+
         // Sort lessons numerically
         const sortedLessons = Array.from(lessonGroups.keys()).sort((a, b) => a - b);
 
@@ -1138,41 +1149,76 @@ class DeckBuilderModule extends LearningModule {
             const cards = lessonGroups.get(lesson);
             const isCollapsed = collapsedLessons[lesson] !== false; // Default to collapsed
 
+            // Check if this is a review lesson
+            const meta = lessonMeta[lesson] || {};
+            const isReviewLesson = meta.type === 'review';
+            const reviewsLessons = meta.reviewsLessons || [];
+
             // Create lesson header row
             const headerRow = document.createElement('tr');
-            headerRow.className = `lesson-header-row ${isCollapsed ? 'collapsed' : ''}`;
+            headerRow.className = `lesson-header-row ${isCollapsed ? 'collapsed' : ''} ${isReviewLesson ? 'review-lesson' : ''}`;
             headerRow.dataset.lesson = lesson;
 
             const headerCell = document.createElement('td');
             // Dynamic colspan: recorder has 4 columns, others have 10
             headerCell.colSpan = this.isRecorder ? 4 : 10;
             headerCell.className = 'lesson-header-cell';
+
+            // Build lesson info display
+            let lessonInfo = '';
+            if (isReviewLesson) {
+                lessonInfo = `<span class="lesson-review-badge"><i class="fas fa-redo"></i> Review</span>
+                    <span class="lesson-reviews">Reviews: ${reviewsLessons.join(', ') || 'None'}</span>`;
+            } else {
+                lessonInfo = `<span class="lesson-count">${cards.length} card${cards.length !== 1 ? 's' : ''}</span>`;
+            }
+
+            // Add lesson button only for users who can edit cards
+            const addLessonBtn = this.canEditCards ? `
+                <button class="btn-icon add-lesson-btn" data-after-lesson="${lesson}" title="Add Lesson After ${lesson}">
+                    <i class="fas fa-plus-circle"></i>
+                </button>` : '';
+
             headerCell.innerHTML = `
                 <div class="lesson-header">
                     <i class="fas fa-chevron-right lesson-chevron"></i>
                     <span class="lesson-title">Lesson ${lesson}</span>
-                    <span class="lesson-count">${cards.length} card${cards.length !== 1 ? 's' : ''}</span>
+                    ${lessonInfo}
+                    ${addLessonBtn}
                 </div>
             `;
 
-            // Add click handler for expand/collapse
-            headerCell.addEventListener('click', () => {
-                this.toggleLessonGroup(lesson, headerRow, storageKey);
+            // Add click handler for expand/collapse (but not on the add button)
+            headerCell.addEventListener('click', (e) => {
+                if (!e.target.closest('.add-lesson-btn')) {
+                    this.toggleLessonGroup(lesson, headerRow, storageKey);
+                }
             });
+
+            // Add click handler for add lesson button
+            const addBtn = headerCell.querySelector('.add-lesson-btn');
+            if (addBtn) {
+                addBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.showAddLessonModal(lesson + 1);
+                });
+            }
 
             headerRow.appendChild(headerCell);
             tbody.appendChild(headerRow);
 
-            // Create card rows for this lesson
-            cards.forEach(card => {
-                const row = this.createCardRow(card);
-                row.classList.add('lesson-card-row');
-                row.dataset.lesson = lesson;
-                if (isCollapsed) {
-                    row.classList.add('hidden');
-                }
-                tbody.appendChild(row);
-            });
+            // Create card rows for this lesson (only if not a review lesson)
+            if (!isReviewLesson) {
+                cards.forEach(card => {
+                    const row = this.createCardRow(card);
+                    row.classList.add('lesson-card-row');
+                    row.dataset.lesson = lesson;
+                    if (isCollapsed) {
+                        row.classList.add('hidden');
+                    }
+                    tbody.appendChild(row);
+                });
+            }
         });
     }
 
@@ -2538,6 +2584,207 @@ class DeckBuilderModule extends LearningModule {
         toastManager.show(`File uploaded! Remember to save changes.`, 'success');
     }
 
+    // ============================================
+    // LESSON MANAGEMENT - Add/Edit Review Lessons
+    // ============================================
+
+    showAddLessonModal(suggestedLessonNum = null) {
+        // Get all existing lessons (from cards and from lessonMeta)
+        const existingLessons = this.getAllExistingLessons();
+
+        // Calculate suggested lesson number if not provided
+        if (suggestedLessonNum === null) {
+            suggestedLessonNum = existingLessons.length > 0 ? Math.max(...existingLessons) + 1 : 1;
+        }
+
+        // Get regular lessons only (for review checkboxes)
+        const lessonMeta = this.assets?.manifest?.lessonMeta?.[this.currentTrigraph] || {};
+        const regularLessons = existingLessons.filter(lesson => {
+            const meta = lessonMeta[lesson];
+            return !meta || meta.type !== 'review';
+        });
+
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'file-selection-modal add-lesson-modal';
+        modal.innerHTML = `
+            <div class="file-selection-content" style="max-width: 500px;">
+                <div class="file-selection-header">
+                    <h3>
+                        <i class="fas fa-plus-circle"></i>
+                        Add New Lesson
+                    </h3>
+                    <button class="close-modal-btn" id="closeAddLessonModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="file-selection-body" style="padding: 20px;">
+                    <div class="form-group">
+                        <label for="newLessonNumber">Lesson Number:</label>
+                        <input type="number" id="newLessonNumber" class="form-input"
+                            value="${suggestedLessonNum}" min="1" style="width: 100px;">
+                        <span id="lessonNumError" class="error-text" style="display: none; color: #ef4444; margin-left: 10px;"></span>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Lesson Type:</label>
+                        <div class="lesson-type-options" style="display: flex; gap: 20px; margin-top: 10px;">
+                            <label class="radio-option" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="radio" name="lessonType" value="regular" checked>
+                                <span><i class="fas fa-book"></i> Regular Lesson</span>
+                            </label>
+                            <label class="radio-option" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="radio" name="lessonType" value="review">
+                                <span><i class="fas fa-redo"></i> Review Lesson</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="reviewLessonsSection" class="form-group" style="margin-top: 20px; display: none;">
+                        <label>Select Lessons to Review:</label>
+                        <div class="review-lessons-checkboxes" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; max-height: 200px; overflow-y: auto; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            ${regularLessons.length > 0 ? regularLessons.map(lesson => `
+                                <label class="checkbox-option" style="display: flex; align-items: center; gap: 6px; cursor: pointer; min-width: 80px;">
+                                    <input type="checkbox" name="reviewLesson" value="${lesson}">
+                                    <span>Lesson ${lesson}</span>
+                                </label>
+                            `).join('') : '<span class="text-muted">No regular lessons available</span>'}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="file-selection-footer" style="padding: 15px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+                    <button id="cancelAddLesson" class="btn btn-secondary">Cancel</button>
+                    <button id="confirmAddLesson" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Lesson
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Get references
+        const lessonNumInput = modal.querySelector('#newLessonNumber');
+        const lessonNumError = modal.querySelector('#lessonNumError');
+        const lessonTypeRadios = modal.querySelectorAll('input[name="lessonType"]');
+        const reviewSection = modal.querySelector('#reviewLessonsSection');
+        const confirmBtn = modal.querySelector('#confirmAddLesson');
+
+        // Show/hide review lessons section based on type
+        lessonTypeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                reviewSection.style.display = radio.value === 'review' && radio.checked ? 'block' : 'none';
+            });
+        });
+
+        // Validate lesson number on change
+        lessonNumInput.addEventListener('input', () => {
+            const num = parseInt(lessonNumInput.value);
+            if (existingLessons.includes(num)) {
+                lessonNumError.textContent = `Lesson ${num} already exists`;
+                lessonNumError.style.display = 'inline';
+                confirmBtn.disabled = true;
+            } else if (num < 1) {
+                lessonNumError.textContent = 'Must be at least 1';
+                lessonNumError.style.display = 'inline';
+                confirmBtn.disabled = true;
+            } else {
+                lessonNumError.style.display = 'none';
+                confirmBtn.disabled = false;
+            }
+        });
+
+        // Close modal handlers
+        const closeModal = () => {
+            modal.remove();
+        };
+
+        modal.querySelector('#closeAddLessonModal').addEventListener('click', closeModal);
+        modal.querySelector('#cancelAddLesson').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Confirm add lesson
+        confirmBtn.addEventListener('click', () => {
+            const lessonNum = parseInt(lessonNumInput.value);
+            const lessonType = modal.querySelector('input[name="lessonType"]:checked').value;
+
+            // Get selected review lessons if review type
+            let reviewsLessons = [];
+            if (lessonType === 'review') {
+                const checkedBoxes = modal.querySelectorAll('input[name="reviewLesson"]:checked');
+                reviewsLessons = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+            }
+
+            // Validate
+            if (existingLessons.includes(lessonNum)) {
+                toastManager.show(`Lesson ${lessonNum} already exists`, 'error');
+                return;
+            }
+
+            if (lessonType === 'review' && reviewsLessons.length === 0) {
+                toastManager.show('Please select at least one lesson to review', 'error');
+                return;
+            }
+
+            // Add the lesson
+            this.addLesson(lessonNum, lessonType, reviewsLessons);
+            closeModal();
+        });
+    }
+
+    getAllExistingLessons() {
+        // Get lessons from cards
+        const cardLessons = new Set();
+        this.allCards.forEach(card => {
+            if (card.lesson) cardLessons.add(card.lesson);
+        });
+        this.newCards.forEach(card => {
+            if (card.lesson) cardLessons.add(card.lesson);
+        });
+
+        // Get lessons from lessonMeta (includes review lessons)
+        const lessonMeta = this.assets?.manifest?.lessonMeta?.[this.currentTrigraph] || {};
+        Object.keys(lessonMeta).forEach(key => {
+            cardLessons.add(parseInt(key));
+        });
+
+        return Array.from(cardLessons).sort((a, b) => a - b);
+    }
+
+    addLesson(lessonNum, lessonType, reviewsLessons = []) {
+        // Initialize lessonMeta in manifest if not exists
+        if (!this.assets.manifest.lessonMeta) {
+            this.assets.manifest.lessonMeta = {};
+        }
+        if (!this.assets.manifest.lessonMeta[this.currentTrigraph]) {
+            this.assets.manifest.lessonMeta[this.currentTrigraph] = {};
+        }
+
+        // Add the lesson metadata
+        this.assets.manifest.lessonMeta[this.currentTrigraph][lessonNum] = {
+            type: lessonType,
+            ...(lessonType === 'review' ? { reviewsLessons: reviewsLessons } : {})
+        };
+
+        // Track this as an edit
+        this.lessonMetaEdited = true;
+
+        if (lessonType === 'regular') {
+            // For regular lessons, add a new card
+            this.addNewCard(lessonNum);
+            toastManager.show(`Lesson ${lessonNum} created with a new card. Fill in the details and save.`, 'success');
+        } else {
+            // For review lessons, just refresh the table
+            this.filterAndRenderCards();
+            this.updateUnsavedIndicator();
+            toastManager.show(`Review lesson ${lessonNum} created (reviews: ${reviewsLessons.join(', ')}). Save to persist.`, 'success');
+        }
+    }
+
     addNewCard(lessonNum = null, insertAfterCardId = null) {
         // Find the highest card number - filter out any invalid values and ensure numbers
         const allCardNums = [
@@ -2640,12 +2887,24 @@ class DeckBuilderModule extends LearningModule {
     }
 
     async saveChanges() {
-        if (this.editedCards.size === 0 && this.deletedCards.size === 0) {
+        const hasCardChanges = this.editedCards.size > 0 || this.deletedCards.size > 0;
+        const hasLessonMetaChanges = this.lessonMetaEdited || false;
+
+        if (!hasCardChanges && !hasLessonMetaChanges) {
             toastManager.show('No changes to save', 'warning');
             return;
         }
 
-        if (!confirm(`Save ${this.editedCards.size} edited/new cards and delete ${this.deletedCards.size} cards?`)) {
+        let confirmMsg = '';
+        if (hasCardChanges) {
+            confirmMsg = `Save ${this.editedCards.size} edited/new cards and delete ${this.deletedCards.size} cards`;
+        }
+        if (hasLessonMetaChanges) {
+            confirmMsg += (confirmMsg ? ', plus ' : 'Save ') + 'lesson metadata changes';
+        }
+        confirmMsg += '?';
+
+        if (!confirm(confirmMsg)) {
             return;
         }
 
@@ -2669,18 +2928,26 @@ class DeckBuilderModule extends LearningModule {
             });
 
             // Save to server
-            toastManager.show('Saving changes to CSV file...', 'info');
+            toastManager.show('Saving changes...', 'info');
+
+            // Build payload with lessonMeta if it has changes
+            const payload = {
+                trigraph: this.currentTrigraph,
+                languageName: this.currentLanguageName,
+                cards: this.allCards
+            };
+
+            // Include lessonMeta if there are changes
+            if (hasLessonMetaChanges) {
+                payload.lessonMeta = this.assets.manifest.lessonMeta?.[this.currentTrigraph] || {};
+            }
 
             const response = await fetch('save-deck.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    trigraph: this.currentTrigraph,
-                    languageName: this.currentLanguageName,
-                    cards: this.allCards
-                })
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
@@ -2698,6 +2965,7 @@ class DeckBuilderModule extends LearningModule {
             this.editedCards.clear();
             this.deletedCards.clear();
             this.newCards = [];
+            this.lessonMetaEdited = false;
 
             // Re-render
             this.filterAndRenderCards();
@@ -2798,11 +3066,13 @@ class DeckBuilderModule extends LearningModule {
 
     updateUnsavedIndicator() {
         const unsavedCount = this.editedCards.size + this.deletedCards.size;
+        const hasLessonMetaChanges = this.lessonMetaEdited || false;
         const indicator = document.getElementById('unsavedCount');
         const saveBtn = document.getElementById('saveChangesBtn');
 
-        if (unsavedCount > 0) {
-            indicator.textContent = `${unsavedCount} unsaved`;
+        if (unsavedCount > 0 || hasLessonMetaChanges) {
+            const totalChanges = unsavedCount + (hasLessonMetaChanges ? 1 : 0);
+            indicator.textContent = `${totalChanges} unsaved`;
             indicator.classList.remove('hidden');
             saveBtn.disabled = false;
         } else {

@@ -128,20 +128,41 @@ class SentenceBuilderModule extends LearningModule {
         this.availableWordTypes = [];
         this.wordsByType = {};
 
-        // Check if sentenceWords exists in manifest
-        if (!manifest?.sentenceWords?.[trigraph]?.[lesson]) {
-            debugLogger?.log(2, `No sentence words found for ${trigraph} lesson ${lesson}`);
-            return;
+        // Check if this is a review lesson
+        const lessonMeta = manifest?.lessonMeta?.[trigraph]?.[lesson];
+        const isReviewLesson = lessonMeta?.type === 'review';
+        const lessonsToLoad = isReviewLesson && lessonMeta?.reviewsLessons?.length > 0
+            ? lessonMeta.reviewsLessons
+            : [lesson];
+
+        debugLogger?.log(2, `Loading sentence words for ${isReviewLesson ? 'review ' : ''}lesson ${lesson}${isReviewLesson ? ` (reviewing: ${lessonsToLoad.join(', ')})` : ''}`);
+
+        // Aggregate sentence words from all lessons to load
+        const aggregatedWordTypes = {};
+
+        for (const lessonNum of lessonsToLoad) {
+            const lessonData = manifest?.sentenceWords?.[trigraph]?.[lessonNum];
+            if (!lessonData) {
+                debugLogger?.log(2, `No sentence words found for ${trigraph} lesson ${lessonNum}`);
+                continue;
+            }
+
+            // Merge word types from this lesson
+            for (const [wordType, words] of Object.entries(lessonData)) {
+                if (words && words.length > 0) {
+                    if (!aggregatedWordTypes[wordType]) {
+                        aggregatedWordTypes[wordType] = new Set();
+                    }
+                    // Add all words to the set (deduplication)
+                    words.forEach(word => aggregatedWordTypes[wordType].add(word));
+                }
+            }
         }
 
-        const lessonData = manifest.sentenceWords[trigraph][lesson];
-
-        // Get all word types (columns) that have data
-        for (const [wordType, words] of Object.entries(lessonData)) {
-            if (words && words.length > 0) {
-                this.availableWordTypes.push(wordType);
-                this.wordsByType[wordType] = words;
-            }
+        // Convert sets to arrays
+        for (const [wordType, wordsSet] of Object.entries(aggregatedWordTypes)) {
+            this.availableWordTypes.push(wordType);
+            this.wordsByType[wordType] = Array.from(wordsSet);
         }
 
         debugLogger?.log(2, `Loaded ${this.availableWordTypes.length} word types for sentence builder`);

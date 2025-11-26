@@ -98,13 +98,28 @@ class GrammarModule extends LearningModule {
             return;
         }
 
+        // Check if this is a review lesson
+        const lessonMeta = this.assets.manifest?.lessonMeta?.[langTrigraph]?.[lesson];
+        const isReviewLesson = lessonMeta?.type === 'review';
+        const lessonsToLoad = isReviewLesson && lessonMeta?.reviewsLessons?.length > 0
+            ? lessonMeta.reviewsLessons
+            : [lesson];
+
         // Check manifest for grammar file availability
         const grammarInfo = this.assets.manifest?.grammar;
         const langGrammar = grammarInfo?.[langTrigraph];
-        const grammarFile = langGrammar?.[lesson];
 
-        if (!grammarFile) {
-            // No grammar file for this lesson - show message immediately (no searching)
+        // Get grammar files for all lessons to load
+        const grammarFiles = [];
+        for (const lessonNum of lessonsToLoad) {
+            const grammarFile = langGrammar?.[lessonNum];
+            if (grammarFile) {
+                grammarFiles.push({ lesson: lessonNum, file: grammarFile });
+            }
+        }
+
+        if (grammarFiles.length === 0) {
+            // No grammar files for this lesson - show message immediately (no searching)
             this.showNoGrammarState();
             if (statusEl) {
                 statusEl.innerHTML = '';
@@ -116,33 +131,131 @@ class GrammarModule extends LearningModule {
         contentEl.innerHTML = `
             <div class="grammar-loading">
                 <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading grammar content...</p>
+                <p>Loading grammar content${isReviewLesson ? ` for ${grammarFiles.length} lessons...` : '...'}</p>
             </div>
         `;
 
-        // Load the grammar file directly using the filename from manifest
-        const filePath = `assets/grammar/${langTrigraph}/${grammarFile}`;
-
         try {
-            const response = await fetch(filePath);
-            if (response.ok) {
-                // Fetch as ArrayBuffer to handle encoding properly
-                const buffer = await response.arrayBuffer();
-                const htmlContent = this.decodeWithCorrectEncoding(buffer);
+            // Load all grammar files
+            const loadedContent = [];
 
-                // Process and display the HTML content
-                this.displayContent(htmlContent, filePath);
-
-                if (statusEl) {
-                    statusEl.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success);"></i> Loaded`;
+            for (const { lesson: lessonNum, file: grammarFile } of grammarFiles) {
+                const filePath = `assets/grammar/${langTrigraph}/${grammarFile}`;
+                try {
+                    const response = await fetch(filePath);
+                    if (response.ok) {
+                        // Fetch as ArrayBuffer to handle encoding properly
+                        const buffer = await response.arrayBuffer();
+                        const htmlContent = this.decodeWithCorrectEncoding(buffer);
+                        loadedContent.push({
+                            lesson: lessonNum,
+                            content: htmlContent,
+                            filePath: filePath
+                        });
+                    }
+                } catch (e) {
+                    debugLogger?.log(2, `Error loading grammar for lesson ${lessonNum}: ${e.message}`);
                 }
+            }
+
+            if (loadedContent.length === 0) {
+                this.showEmptyState('Could not load any grammar content.');
+                return;
+            }
+
+            // If single lesson, display normally
+            if (loadedContent.length === 1) {
+                this.displayContent(loadedContent[0].content, loadedContent[0].filePath);
             } else {
-                // File listed in manifest but not found - show error
-                this.showEmptyState(`Grammar file not found: ${grammarFile}`);
+                // Multiple lessons (review): combine with section headers
+                this.displayCombinedContent(loadedContent, isReviewLesson);
+            }
+
+            if (statusEl) {
+                const countText = loadedContent.length > 1 ? ` (${loadedContent.length} lessons)` : '';
+                statusEl.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success);"></i> Loaded${countText}`;
             }
         } catch (e) {
             this.showEmptyState(`Error loading grammar: ${e.message}`);
         }
+    }
+
+    /**
+     * Display combined grammar content from multiple lessons (for review lessons)
+     */
+    displayCombinedContent(loadedContent, isReviewLesson) {
+        const contentEl = document.getElementById('grammarContent');
+        if (!contentEl) return;
+
+        // Build combined HTML with section headers
+        let combinedHtml = `
+            <div class="review-grammar-notice">
+                <i class="fas fa-info-circle"></i>
+                <span>Review lesson: Showing grammar from lessons ${loadedContent.map(c => c.lesson).join(', ')}</span>
+            </div>
+        `;
+
+        for (const { lesson, content, filePath } of loadedContent) {
+            // Extract body content and process
+            const processedContent = this.processHtmlContent(content, filePath);
+
+            combinedHtml += `
+                <div class="grammar-lesson-section">
+                    <h2 class="grammar-lesson-header">
+                        <i class="fas fa-book"></i> Lesson ${lesson} Grammar
+                    </h2>
+                    <div class="grammar-lesson-content">
+                        ${processedContent}
+                    </div>
+                </div>
+            `;
+        }
+
+        contentEl.innerHTML = combinedHtml;
+    }
+
+    /**
+     * Process HTML content and return the processed body content
+     */
+    processHtmlContent(htmlContent, sourcePath) {
+        // Fix encoding issues from Word's "Web Page, Filtered" export
+        htmlContent = this.fixEncoding(htmlContent);
+
+        // Extract the body content from the HTML
+        let bodyContent = htmlContent;
+
+        // Try to extract body content from full HTML document
+        const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+        if (bodyMatch) {
+            bodyContent = bodyMatch[1];
+        }
+
+        // Fix relative image paths if needed
+        const basePath = sourcePath.substring(0, sourcePath.lastIndexOf('/') + 1);
+
+        // Replace relative src paths with absolute paths
+        bodyContent = bodyContent.replace(
+            /src="([^"]+)"/g,
+            (match, src) => {
+                if (src.startsWith('http') || src.startsWith('data:') || src.startsWith('/')) {
+                    return match;
+                }
+                return `src="${basePath}${src}"`;
+            }
+        );
+
+        // Also fix background-image URLs in inline styles
+        bodyContent = bodyContent.replace(
+            /url\(['"]?([^'")]+)['"]?\)/g,
+            (match, url) => {
+                if (url.startsWith('http') || url.startsWith('data:') || url.startsWith('/')) {
+                    return match;
+                }
+                return `url('${basePath}${url}')`;
+            }
+        );
+
+        return bodyContent;
     }
 
     showNoGrammarState() {

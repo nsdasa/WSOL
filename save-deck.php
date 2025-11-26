@@ -36,6 +36,7 @@ try {
 
     $trigraph = $data['trigraph'];
     $cards = $data['cards'];
+    $lessonMeta = isset($data['lessonMeta']) ? $data['lessonMeta'] : null;
 
     // Validate trigraph
     $allowedTrigraphs = ['ceb', 'mrw', 'sin', 'eng'];
@@ -131,6 +132,16 @@ try {
         }
     }
 
+    // Update lessonMeta if provided
+    if ($lessonMeta !== null) {
+        // Initialize lessonMeta section if not exists
+        if (!isset($manifest['lessonMeta'])) {
+            $manifest['lessonMeta'] = [];
+        }
+        // Update lessonMeta for this language
+        $manifest['lessonMeta'][$trigraph] = $lessonMeta;
+    }
+
     // Update timestamp
     $manifest['lastUpdated'] = date('c');
 
@@ -198,6 +209,16 @@ function calculateStats($manifest) {
 
                 if (isset($card['lesson']) && !in_array($card['lesson'], $langStats['lessons'])) {
                     $langStats['lessons'][] = $card['lesson'];
+                }
+            }
+
+            // Also include review lessons from lessonMeta
+            if (isset($manifest['lessonMeta'][$trigraph]) && is_array($manifest['lessonMeta'][$trigraph])) {
+                foreach ($manifest['lessonMeta'][$trigraph] as $lessonNum => $meta) {
+                    $lessonNum = (int)$lessonNum;
+                    if (!in_array($lessonNum, $langStats['lessons'])) {
+                        $langStats['lessons'][] = $lessonNum;
+                    }
                 }
             }
 

@@ -1622,6 +1622,17 @@ function scanAssets() {
                 $langStats['lessons'][] = $c['lesson'];
             }
         }
+        // Also include review lessons from lessonMeta
+        $existingLessonMeta = $existingManifest['lessonMeta'][$trig] ?? [];
+        if (!empty($existingLessonMeta) && is_array($existingLessonMeta)) {
+            foreach ($existingLessonMeta as $lessonNum => $meta) {
+                $lessonNum = (int)$lessonNum;
+                if (!in_array($lessonNum, $langStats['lessons'])) {
+                    $langStats['lessons'][] = $lessonNum;
+                }
+            }
+        }
+
         sort($langStats['lessons']);
         $stats['languageStats'][$trig] = $langStats;
         $stats['totalCards'] += $langStats['totalCards'];
@@ -1631,6 +1642,13 @@ function scanAssets() {
     // Load sentence words for each language
     $sentenceWords = loadAllSentenceWords($assetsDir, $languages);
 
+    // Preserve lessonMeta from existing manifest
+    $lessonMeta = $existingManifest['lessonMeta'] ?? [
+        'ceb' => [],
+        'mrw' => [],
+        'sin' => []
+    ];
+
     $manifest = [
         'version' => '4.0',
         'lastUpdated' => date('c'),
@@ -1638,6 +1656,7 @@ function scanAssets() {
         'images' => $images,
         'cards' => $finalCards,
         'sentenceWords' => $sentenceWords,
+        'lessonMeta' => $lessonMeta,
         'stats' => $stats
     ];
 

@@ -366,6 +366,63 @@
     margin-left: auto;
 }
 
+/* Review Lesson Styles */
+.lesson-header-row.review-lesson {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+}
+
+.lesson-header-row.review-lesson:hover {
+    background: linear-gradient(135deg, #9d72f7 0%, #b69df5 100%);
+}
+
+[data-theme="dark"] .lesson-header-row.review-lesson {
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+}
+
+[data-theme="dark"] .lesson-header-row.review-lesson:hover {
+    background: linear-gradient(135deg, #8b4cf7 0%, #9b6cf9 100%);
+}
+
+.lesson-review-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.lesson-review-badge i {
+    margin-right: 4px;
+}
+
+.lesson-reviews {
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* Add Lesson Button on Header */
+.add-lesson-btn {
+    margin-left: auto;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+}
+
+.add-lesson-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.add-lesson-btn i {
+    font-size: 14px;
+}
+
 /* Hidden card rows when lesson is collapsed */
 .lesson-card-row.hidden {
     display: none;

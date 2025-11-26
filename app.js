@@ -950,15 +950,26 @@ class AssetManager {
     populateLessonSelector() {
         const selector = document.getElementById('lessonSelect');
         if (!selector || this.lessons.length === 0) return;
-        
+
+        const trigraph = this.currentLanguage?.trigraph?.toLowerCase() || 'ceb';
+        const lessonMeta = this.manifest?.lessonMeta?.[trigraph] || {};
+
         selector.innerHTML = '<option value="">Select Lesson...</option>';
         this.lessons.forEach(lesson => {
             const option = document.createElement('option');
             option.value = lesson;
-            option.textContent = `Lesson ${lesson}`;
+
+            // Check if this is a review lesson and mark it
+            const meta = lessonMeta[lesson];
+            if (meta?.type === 'review') {
+                option.textContent = `Lesson ${lesson} (Review: ${meta.reviewsLessons?.join(', ') || 'N/A'})`;
+                option.className = 'review-lesson-option';
+            } else {
+                option.textContent = `Lesson ${lesson}`;
+            }
             selector.appendChild(option);
         });
-        
+
         // Auto-select first lesson if none selected
         if (!this.currentLesson && this.lessons.length > 0) {
             selector.value = this.lessons[0];
@@ -1038,7 +1049,7 @@ class AssetManager {
     
     getCards(filters = {}) {
         let filtered = [...this.cards];
-        
+
         // Check if advanced filter is active
         if (filterManager && filterManager.isActive()) {
             filtered = filterManager.getFilteredCards(this.cards);
@@ -1049,15 +1060,27 @@ class AssetManager {
             // Normal lesson filtering
             const lessonFilter = filters.lesson !== undefined ? filters.lesson : this.currentLesson;
             if (lessonFilter !== null && lessonFilter !== undefined) {
-                filtered = filtered.filter(card => card.lesson === lessonFilter);
+                // Check if this is a review lesson
+                const trigraph = this.currentLanguage?.trigraph?.toLowerCase() || 'ceb';
+                const lessonMeta = this.manifest?.lessonMeta?.[trigraph]?.[lessonFilter];
+
+                if (lessonMeta?.type === 'review' && lessonMeta?.reviewsLessons?.length > 0) {
+                    // Review lesson: get cards from all reviewed lessons
+                    const reviewedLessons = lessonMeta.reviewsLessons;
+                    filtered = filtered.filter(card => reviewedLessons.includes(card.lesson));
+                    debugLogger?.log(2, `Review lesson ${lessonFilter}: Loading cards from lessons ${reviewedLessons.join(', ')}`);
+                } else {
+                    // Regular lesson: filter by exact lesson number
+                    filtered = filtered.filter(card => card.lesson === lessonFilter);
+                }
             }
         }
-        
+
         // Filter by audio availability
         if (filters.hasAudio !== undefined) {
             filtered = filtered.filter(card => card.hasAudio === filters.hasAudio);
         }
-        
+
         // Filter by image availability
         if (filters.hasImage !== undefined) {
             filtered = filtered.filter(card => {
@@ -1065,19 +1088,37 @@ class AssetManager {
                 return hasImg === filters.hasImage;
             });
         }
-        
+
         // Filter by type (N = noun, V = verb, etc.)
         if (filters.type) {
             filtered = filtered.filter(card => card.type === filters.type);
         }
-        
+
         // Filter by category
         if (filters.category) {
             filtered = filtered.filter(card => card.category === filters.category);
         }
-        
+
         // Enrich cards to ensure consistent structure
         return filtered.map(card => this.enrichCard(card));
+    }
+
+    /**
+     * Check if a lesson is a review lesson
+     */
+    isReviewLesson(lessonNum) {
+        const trigraph = this.currentLanguage?.trigraph?.toLowerCase() || 'ceb';
+        const lessonMeta = this.manifest?.lessonMeta?.[trigraph]?.[lessonNum];
+        return lessonMeta?.type === 'review';
+    }
+
+    /**
+     * Get the lessons being reviewed by a review lesson
+     */
+    getReviewedLessons(lessonNum) {
+        const trigraph = this.currentLanguage?.trigraph?.toLowerCase() || 'ceb';
+        const lessonMeta = this.manifest?.lessonMeta?.[trigraph]?.[lessonNum];
+        return lessonMeta?.reviewsLessons || [];
     }
     
     enrichCard(card) {
