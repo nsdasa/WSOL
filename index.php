@@ -46,6 +46,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <link rel="stylesheet" href="styles/theme.css?v=<?php echo cacheBust('styles/theme.css'); ?>">
     <link rel="stylesheet" href="styles/modules/flashcards.css?v=<?php echo cacheBust('styles/modules/flashcards.css'); ?>">
     <link rel="stylesheet" href="styles/modules/grammar.css?v=<?php echo cacheBust('styles/modules/grammar.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/teacher-guide.css?v=<?php echo cacheBust('styles/modules/teacher-guide.css'); ?>">
     <link rel="stylesheet" href="styles/modules/match.css?v=<?php echo cacheBust('styles/modules/match.css'); ?>">
     <link rel="stylesheet" href="styles/modules/match-sound.css?v=<?php echo cacheBust('styles/modules/match-sound.css'); ?>">
     <link rel="stylesheet" href="styles/modules/quiz.css?v=<?php echo cacheBust('styles/modules/quiz.css'); ?>">
@@ -105,6 +106,10 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
             <button class="nav-tab" data-module="grammar">
                 <i class="fas fa-book-open"></i>
                 Grammar
+            </button>
+            <button class="nav-tab" data-module="teacher-guide">
+                <i class="fas fa-chalkboard-teacher"></i>
+                Teacher's Guide
             </button>
             <button class="nav-tab active" data-module="flashcards">
                 <i class="fas fa-layer-group"></i>
@@ -322,6 +327,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <script src="voice-practice-module.js?v=<?php echo cacheBust('voice-practice-module.js'); ?>"></script>
     <script src="flashcards-module.js?v=<?php echo cacheBust('flashcards-module.js'); ?>"></script>
     <script src="grammar-module.js?v=<?php echo cacheBust('grammar-module.js'); ?>"></script>
+    <script src="teacher-guide-module.js?v=<?php echo cacheBust('teacher-guide-module.js'); ?>"></script>
     <script src="match-module.js?v=<?php echo cacheBust('match-module.js'); ?>"></script>
     <script src="match-sound-module.js?v=<?php echo cacheBust('match-sound-module.js'); ?>"></script>
     <script src="quiz-module.js?v=<?php echo cacheBust('quiz-module.js'); ?>"></script>

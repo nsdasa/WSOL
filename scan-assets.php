@@ -67,6 +67,12 @@ try {
         case 'grammarReport':
             generateGrammarReport();
             break;
+        case 'uploadTeacherGuide':
+            handleTeacherGuideUpload();
+            break;
+        case 'teacherGuideReport':
+            generateTeacherGuideReport();
+            break;
         case 'detectConflicts':
             detectScanConflicts();
             break;
@@ -954,7 +960,229 @@ function generateGrammarReport() {
 }
 
 // ------------------------------------------------
-// 5. CONFLICT DETECTION
+// 5. TEACHER'S GUIDE UPLOAD HANDLER
+// ------------------------------------------------
+function handleTeacherGuideUpload() {
+    global $assetsDir, $manifestPath;
+
+    $language = $_POST['language'] ?? '';
+    $lesson = intval($_POST['lesson'] ?? 0);
+
+    if (empty($language) || $lesson <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Language and lesson number are required']);
+        return;
+    }
+
+    // Validate language trigraph
+    $validLanguages = ['ceb', 'mrw', 'sin'];
+    if (!in_array($language, $validLanguages)) {
+        echo json_encode(['success' => false, 'error' => 'Invalid language: ' . $language]);
+        return;
+    }
+
+    // Check for uploaded file
+    if (!isset($_FILES['teacherGuideFile']) || $_FILES['teacherGuideFile']['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode(['success' => false, 'error' => 'No teacher\'s guide file uploaded or upload error']);
+        return;
+    }
+
+    $file = $_FILES['teacherGuideFile'];
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+    // Validate file extension
+    if (!in_array($ext, ['html', 'htm'])) {
+        echo json_encode(['success' => false, 'error' => 'Invalid file type. Only HTML/HTM files allowed.']);
+        return;
+    }
+
+    // Create teacher-guide directory if it doesn't exist
+    $teacherGuideDir = $assetsDir . '/teacher-guide/' . $language;
+    if (!file_exists($teacherGuideDir)) {
+        mkdir($teacherGuideDir, 0755, true);
+    }
+
+    // Target filename: lesson-{n}.html
+    $targetFilename = 'lesson-' . $lesson . '.html';
+    $targetPath = $teacherGuideDir . '/' . $targetFilename;
+
+    // Move uploaded file
+    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+        // Update manifest with teacher's guide info
+        updateManifestTeacherGuide($language, $lesson);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Teacher\'s guide file uploaded successfully',
+            'path' => 'assets/teacher-guide/' . $language . '/' . $targetFilename,
+            'language' => $language,
+            'lesson' => $lesson
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Failed to save teacher\'s guide file']);
+    }
+}
+
+// Helper function to update manifest with teacher's guide data
+function updateManifestTeacherGuide($language, $lesson, $filename = null) {
+    global $manifestPath;
+
+    if (!file_exists($manifestPath)) {
+        return;
+    }
+
+    $manifest = json_decode(file_get_contents($manifestPath), true);
+    if (!$manifest) {
+        return;
+    }
+
+    // Initialize teacherGuide section if it doesn't exist
+    if (!isset($manifest['teacherGuide'])) {
+        $manifest['teacherGuide'] = [];
+    }
+
+    // Initialize language teacherGuide object if it doesn't exist
+    if (!isset($manifest['teacherGuide'][$language])) {
+        $manifest['teacherGuide'][$language] = new stdClass();  // Empty object for JSON
+    }
+
+    // Convert to array if needed (for manipulation)
+    if (!is_array($manifest['teacherGuide'][$language])) {
+        $manifest['teacherGuide'][$language] = (array)$manifest['teacherGuide'][$language];
+    }
+
+    // Add lesson => filename mapping
+    $filename = $filename ?? 'lesson-' . $lesson . '.html';
+    $manifest['teacherGuide'][$language][$lesson] = $filename;
+
+    // Update lastUpdated timestamp
+    $manifest['lastUpdated'] = date('c');
+
+    // Save manifest
+    file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+// ------------------------------------------------
+// 6. TEACHER'S GUIDE REPORT GENERATOR
+// ------------------------------------------------
+function generateTeacherGuideReport() {
+    global $assetsDir, $manifestPath;
+
+    $report = [
+        'success' => true,
+        'generated' => date('c'),
+        'languages' => []
+    ];
+
+    // Load manifest to get language info and total lessons
+    $manifest = null;
+    if (file_exists($manifestPath)) {
+        $manifest = json_decode(file_get_contents($manifestPath), true);
+    }
+
+    // Language info
+    $languageNames = [
+        'ceb' => 'Cebuano',
+        'mrw' => 'Maranao',
+        'sin' => 'Sinama'
+    ];
+
+    // Initialize teacherGuide section in manifest for syncing
+    $teacherGuideManifest = [];
+
+    // Scan teacher-guide directories
+    $teacherGuideBase = $assetsDir . '/teacher-guide';
+
+    foreach ($languageNames as $trigraph => $name) {
+        $langReport = [
+            'name' => $name,
+            'trigraph' => $trigraph,
+            'lessonsWithGuide' => [],
+            'lessonsWithoutGuide' => [],
+            'guideFiles' => [],  // Store filename mapping
+            'totalLessons' => 0,
+            'guideCount' => 0,
+            'coverage' => 0
+        ];
+
+        // Get total lessons for this language from manifest
+        $totalLessons = 0;
+        if ($manifest && isset($manifest['stats']['languageStats'][$trigraph]['lessons'])) {
+            $lessons = $manifest['stats']['languageStats'][$trigraph]['lessons'];
+            $totalLessons = is_array($lessons) ? max($lessons) : 0;
+        }
+        $langReport['totalLessons'] = $totalLessons;
+
+        // Scan for teacher's guide files
+        $teacherGuideDir = $teacherGuideBase . '/' . $trigraph;
+        $foundLessons = [];
+        $guideFiles = [];  // lesson => filename mapping
+
+        if (is_dir($teacherGuideDir)) {
+            $files = scandir($teacherGuideDir);
+            foreach ($files as $file) {
+                // Match lesson-N.html or lesson-N.htm
+                if (preg_match('/^lesson-(\d+)\.html?$/i', $file, $matches)) {
+                    $lessonNum = intval($matches[1]);
+                    $foundLessons[] = $lessonNum;
+                    $guideFiles[$lessonNum] = $file;
+                }
+                // Also match Lesson N.html format
+                elseif (preg_match('/^Lesson\s*(\d+)\.html?$/i', $file, $matches)) {
+                    $lessonNum = intval($matches[1]);
+                    $foundLessons[] = $lessonNum;
+                    $guideFiles[$lessonNum] = $file;
+                }
+            }
+        }
+
+        sort($foundLessons);
+        $langReport['lessonsWithGuide'] = $foundLessons;
+        $langReport['guideFiles'] = $guideFiles;
+        $langReport['guideCount'] = count($foundLessons);
+
+        // Build teacher's guide manifest for this language
+        $teacherGuideManifest[$trigraph] = $guideFiles;
+
+        // Find lessons without teacher's guide
+        if ($totalLessons > 0) {
+            for ($i = 1; $i <= $totalLessons; $i++) {
+                if (!in_array($i, $foundLessons)) {
+                    $langReport['lessonsWithoutGuide'][] = $i;
+                }
+            }
+            $langReport['coverage'] = round(($langReport['guideCount'] / $totalLessons) * 100, 1);
+        }
+
+        $report['languages'][$trigraph] = $langReport;
+    }
+
+    // Sync teacher's guide info to manifest
+    if ($manifest) {
+        $manifest['teacherGuide'] = $teacherGuideManifest;
+        $manifest['lastUpdated'] = date('c');
+        file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $report['manifestSynced'] = true;
+    }
+
+    // Calculate overall stats
+    $totalGuides = 0;
+    $totalLessons = 0;
+    foreach ($report['languages'] as $lang) {
+        $totalGuides += $lang['guideCount'];
+        $totalLessons += $lang['totalLessons'];
+    }
+
+    $report['summary'] = [
+        'totalGuideFiles' => $totalGuides,
+        'totalLessons' => $totalLessons,
+        'overallCoverage' => $totalLessons > 0 ? round(($totalGuides / $totalLessons) * 100, 1) : 0
+    ];
+
+    echo json_encode($report, JSON_PRETTY_PRINT);
+}
+
+// ------------------------------------------------
+// 7. CONFLICT DETECTION
 // ------------------------------------------------
 function detectScanConflicts() {
     global $assetsDir, $manifestPath;

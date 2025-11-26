@@ -392,6 +392,72 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
+                <!-- Teacher's Guide Files Management Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="teacherGuideManagementSection" data-section="teacherGuide">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-chalkboard-teacher"></i> Teacher's Guide Files Management
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
+                        <p class="section-description">
+                            Upload HTML teacher's guide files for each lesson. Files can be exported from Word as "Web Page, Filtered" or converted using the <a href="converter/" target="_blank">Converter</a>.
+                        </p>
+
+                        <div class="csv-upload-section">
+                            <div class="grammar-upload-row">
+                                <div class="filter-group">
+                                    <label for="teacherGuideLanguageSelect">
+                                        <i class="fas fa-language"></i> Language:
+                                    </label>
+                                    <select id="teacherGuideLanguageSelect" class="select-control">
+                                        <option value="ceb">Cebuano</option>
+                                        <option value="mrw">Maranao</option>
+                                        <option value="sin">Sinama</option>
+                                    </select>
+                                </div>
+
+                                <div class="filter-group">
+                                    <label for="teacherGuideLessonInput">
+                                        <i class="fas fa-bookmark"></i> Lesson:
+                                    </label>
+                                    <input type="number" id="teacherGuideLessonInput" class="form-input" placeholder="Lesson #" min="1" style="width: 100px;">
+                                </div>
+                            </div>
+
+                            <div class="file-upload-container">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-file-code"></i> Teacher's Guide HTML File
+                                    <span class="file-hint">HTML/HTM file exported from Word or converted from DOCX</span>
+                                </label>
+                                <input type="file" id="teacherGuideFileInput" accept=".html,.htm" class="file-input">
+                                <div class="file-status" id="teacherGuideFileStatus">No file selected</div>
+                            </div>
+                        </div>
+
+                        <div class="section-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button id="uploadTeacherGuideBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-cloud-upload-alt"></i> Upload Teacher's Guide File
+                            </button>
+                            <button id="teacherGuideReportBtn" class="btn btn-secondary">
+                                <i class="fas fa-chart-bar"></i> Teacher's Guide Coverage Report
+                            </button>
+                        </div>
+
+                        <!-- Teacher's Guide Report Display Area -->
+                        <div id="teacherGuideReportContainer" class="grammar-report-container hidden">
+                            <div class="grammar-report-header">
+                                <h4><i class="fas fa-chart-pie"></i> Teacher's Guide Coverage Report</h4>
+                                <button id="closeTeacherGuideReport" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="teacherGuideReportContent"></div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Card Data Section (Collapsible) -->
                 <div class="deck-section collapsible" id="cardDataSection" data-section="cardData">
                     <h3 class="section-title" role="button" tabindex="0">
@@ -611,13 +677,14 @@ class DeckBuilderModule extends LearningModule {
         // Setup collapsible sections
         this.setupCollapsibleSections();
 
-        // Setup CSV, Media, and Grammar upload (admin and deck-manager)
+        // Setup CSV, Media, Grammar and Teacher's Guide upload (admin and deck-manager)
         if (this.canAccessToolSections) {
             this.setupCSVUpload();
             this.setupMediaUpload();
             this.setupSentenceWordsUpload();
             this.setupSentenceWordsEditor();
             this.setupGrammarUpload();
+            this.setupTeacherGuideUpload();
         }
 
         // Initial render (will apply default sort)
