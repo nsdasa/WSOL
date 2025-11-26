@@ -20,7 +20,8 @@ class DeckBuilderModule extends LearningModule {
         this.deletedCards = new Set(); // Track deleted card IDs
         this.newCards = []; // Track new cards
         this.nextNewCardId = 10000; // Temporary IDs for new cards
-        
+        this.lessonMetaEdited = false; // Track lesson metadata changes
+
         // Role-based access
         this.userRole = null; // 'admin' or 'voice-recorder'
         this.isAdmin = false;
@@ -2930,17 +2931,14 @@ class DeckBuilderModule extends LearningModule {
             // Save to server
             toastManager.show('Saving changes...', 'info');
 
-            // Build payload with lessonMeta if it has changes
+            // Build payload - always include lessonMeta to ensure consistency
             const payload = {
                 trigraph: this.currentTrigraph,
                 languageName: this.currentLanguageName,
-                cards: this.allCards
+                cards: this.allCards,
+                // Always include lessonMeta to ensure review lessons are preserved/updated
+                lessonMeta: this.assets.manifest.lessonMeta?.[this.currentTrigraph] || {}
             };
-
-            // Include lessonMeta if there are changes
-            if (hasLessonMetaChanges) {
-                payload.lessonMeta = this.assets.manifest.lessonMeta?.[this.currentTrigraph] || {};
-            }
 
             const response = await fetch('save-deck.php', {
                 method: 'POST',
