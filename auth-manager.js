@@ -10,8 +10,10 @@ class AuthManager {
         this.timeoutMinutes = 30;
         this.role = null; // 'admin', 'deck-manager', 'editor', or 'voice-recorder'
         this.language = null; // Language restriction: 'ceb', 'mrw', 'sin', or null (all languages)
+        this.username = null; // Username of logged in user
+        this.users = []; // List of available users for login
     }
-    
+
     async init() {
         // Setup login modal handlers
         const loginModal = document.getElementById('loginModal');
@@ -41,6 +43,9 @@ class AuthManager {
             loginBtn.addEventListener('click', () => this.showLoginModalDirect());
         }
 
+        // Load users list for login dropdown
+        await this.loadUsers();
+
         // Check if already authenticated
         await this.checkSession();
 
@@ -53,6 +58,58 @@ class AuthManager {
             this.showLoginButton();
         }
     }
+
+    /**
+     * Load list of users for login dropdown
+     */
+    async loadUsers() {
+        try {
+            const response = await fetch('auth.php?action=listUsers');
+            const result = await response.json();
+
+            if (result.success && result.users) {
+                this.users = result.users;
+                this.populateUserDropdown();
+            }
+        } catch (err) {
+            debugLogger?.log(1, `Error loading users: ${err.message}`);
+        }
+    }
+
+    /**
+     * Populate the user dropdown in login modal
+     */
+    populateUserDropdown() {
+        const userSelect = document.getElementById('loginUser');
+        if (!userSelect) return;
+
+        userSelect.innerHTML = '<option value="">Select user...</option>';
+
+        for (const user of this.users) {
+            const option = document.createElement('option');
+            option.value = user.username;
+
+            // Format: "username (Role)" or "username (Role - Language)"
+            const roleName = this.getRoleDisplayName(user.role);
+            const langName = user.language ? ` - ${this.getLanguageName(user.language)}` : '';
+            option.textContent = `${user.username} (${roleName}${langName})`;
+
+            userSelect.appendChild(option);
+        }
+    }
+
+    /**
+     * Get display name for role
+     */
+    getRoleDisplayName(role) {
+        const names = {
+            'admin': 'Admin',
+            'deck-manager': 'Deck Manager',
+            'editor': 'Editor',
+            'voice-recorder': 'Voice Recorder'
+        };
+        return names[role] || role;
+    }
     
     async checkSession() {
         try {
@@ -64,10 +121,12 @@ class AuthManager {
             if (this.authenticated) {
                 this.timeoutMinutes = result.timeout_minutes || 30;
                 this.role = result.role || 'admin';
+                this.username = result.username || null;
                 this.language = result.language || null; // Language restriction
                 this.addLogoutButton();
             } else {
                 this.role = null;
+                this.username = null;
                 this.language = null;
             }
 
@@ -106,17 +165,17 @@ class AuthManager {
     showLoginModal(moduleName, resolve, reject) {
         const modal = document.getElementById('loginModal');
         const passwordInput = document.getElementById('adminPassword');
-        const roleSelect = document.getElementById('loginRole');
+        const userSelect = document.getElementById('loginUser');
         const errorDiv = document.getElementById('loginError');
 
         // Clear previous state
         passwordInput.value = '';
-        if (roleSelect) roleSelect.value = 'admin';
+        if (userSelect) userSelect.value = '';
         errorDiv.classList.add('hidden');
 
         // Show modal
         modal.classList.remove('hidden');
-        passwordInput.focus();
+        userSelect?.focus();
 
         // Store callbacks
         this.loginResolve = resolve;
@@ -132,17 +191,17 @@ class AuthManager {
     showLoginModalDirect() {
         const modal = document.getElementById('loginModal');
         const passwordInput = document.getElementById('adminPassword');
-        const roleSelect = document.getElementById('loginRole');
+        const userSelect = document.getElementById('loginUser');
         const errorDiv = document.getElementById('loginError');
 
         // Clear previous state
         passwordInput.value = '';
-        if (roleSelect) roleSelect.value = 'admin';
+        if (userSelect) userSelect.value = '';
         errorDiv.classList.add('hidden');
 
         // Show modal
         modal.classList.remove('hidden');
-        passwordInput.focus();
+        userSelect?.focus();
 
         // Clear any previous callbacks
         this.loginResolve = null;
@@ -150,15 +209,21 @@ class AuthManager {
         this.loginModuleName = null;
         this.isDirectLogin = true;
     }
-    
+
     async handleLogin() {
         const passwordInput = document.getElementById('adminPassword');
-        const roleSelect = document.getElementById('loginRole');
+        const userSelect = document.getElementById('loginUser');
         const errorDiv = document.getElementById('loginError');
         const submitBtn = document.getElementById('loginSubmitBtn');
 
         const password = passwordInput.value;
-        const selectedRole = roleSelect ? roleSelect.value : 'admin';
+        const selectedUsername = userSelect ? userSelect.value : '';
+
+        if (!selectedUsername) {
+            errorDiv.textContent = 'Please select a user';
+            errorDiv.classList.remove('hidden');
+            return;
+        }
 
         if (!password) {
             errorDiv.textContent = 'Please enter a password';
@@ -173,7 +238,7 @@ class AuthManager {
         try {
             const formData = new FormData();
             formData.append('password', password);
-            formData.append('role', selectedRole);
+            formData.append('username', selectedUsername);
 
             const response = await fetch('auth.php?action=login', {
                 method: 'POST',
@@ -186,6 +251,7 @@ class AuthManager {
                 this.authenticated = true;
                 this.timeoutMinutes = result.timeout_minutes || 30;
                 this.role = result.role || 'admin';
+                this.username = result.username;
                 this.language = result.language || null; // Language restriction
 
                 // Hide modal
@@ -203,13 +269,10 @@ class AuthManager {
                     this.loginResolve(true);
                 }
 
-                const roleDisplay = this.role === 'admin' ? 'Admin' :
-                                   this.role === 'deck-manager' ? 'Deck Manager' :
-                                   this.role === 'editor' ? 'Editor' :
-                                   'Voice Recorder';
+                const roleDisplay = this.getRoleDisplayName(this.role);
                 const langDisplay = this.language ? ` (${this.getLanguageName(this.language)})` : '';
-                toastManager?.show(`Login successful! Role: ${roleDisplay}${langDisplay}`, 'success');
-                debugLogger?.log(2, `Authenticated as ${this.role}${this.language ? ' for ' + this.language : ''}`);
+                toastManager?.show(`Welcome, ${this.username}! Role: ${roleDisplay}${langDisplay}`, 'success');
+                debugLogger?.log(2, `Authenticated as ${this.username} (${this.role})${this.language ? ' for ' + this.language : ''}`);
             } else {
                 errorDiv.textContent = result.error || 'Login failed';
                 errorDiv.classList.remove('hidden');
@@ -243,6 +306,7 @@ class AuthManager {
 
             this.authenticated = false;
             this.role = null;
+            this.username = null;
             this.language = null;
             this.removeLogoutButton();
             this.showLoginButton();

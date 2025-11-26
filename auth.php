@@ -34,6 +34,10 @@ switch ($action) {
         setSessionTimeout();
         break;
 
+    case 'listUsers':
+        listUsers();
+        break;
+
     default:
         echo json_encode(['success' => false, 'error' => 'Invalid action']);
 }
@@ -50,75 +54,113 @@ function loadUsers() {
     return $data['users'] ?? null;
 }
 
-// Find user by role and password in users.json
-function findUserByRoleAndPassword($role, $password) {
+// Find user by username in users.json
+function findUserByUsername($username) {
     $users = loadUsers();
 
     if ($users === null) {
-        // Fallback to hardcoded passwords
         return null;
     }
 
     foreach ($users as $user) {
-        if ($user['role'] === $role && $user['password'] === $password) {
+        if ($user['username'] === $username) {
             return $user;
         }
     }
 
-    return false; // User not found (different from null which means fallback)
+    return false; // User not found
 }
 
-function handleLogin() {
-    $password = $_POST['password'] ?? '';
-    $selectedRole = $_POST['role'] ?? '';
+// List users for login dropdown (without passwords)
+function listUsers() {
+    $users = loadUsers();
 
-    // Validate the selected role
-    // Roles hierarchy: admin > deck-manager > editor > voice-recorder
-    $validRoles = ['admin', 'deck-manager', 'editor', 'voice-recorder'];
-
-    if (!in_array($selectedRole, $validRoles)) {
+    if ($users === null) {
+        // Return fallback roles if users.json doesn't exist
         echo json_encode([
-            'success' => false,
-            'error' => 'Invalid role selected'
+            'success' => true,
+            'users' => [
+                ['username' => 'admin', 'role' => 'admin', 'language' => null],
+                ['username' => 'deck-manager', 'role' => 'deck-manager', 'language' => null],
+                ['username' => 'editor', 'role' => 'editor', 'language' => null],
+                ['username' => 'voice-recorder', 'role' => 'voice-recorder', 'language' => null]
+            ]
         ]);
         return;
     }
 
-    // Try to find user in users.json first
-    $user = findUserByRoleAndPassword($selectedRole, $password);
+    // Return users without passwords
+    $safeUsers = array_map(function($user) {
+        return [
+            'username' => $user['username'],
+            'role' => $user['role'],
+            'language' => $user['language'] ?? null
+        ];
+    }, $users);
+
+    echo json_encode([
+        'success' => true,
+        'users' => $safeUsers
+    ]);
+}
+
+function handleLogin() {
+    $password = $_POST['password'] ?? '';
+    $username = $_POST['username'] ?? '';
+
+    if (empty($username)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Please select a user'
+        ]);
+        return;
+    }
+
+    // Try to find user by username in users.json
+    $user = findUserByUsername($username);
 
     $passwordMatches = false;
-    $username = null;
+    $role = null;
+    $language = null;
 
     if ($user === null) {
         // Fallback to config.php passwords (users.json doesn't exist)
-        switch ($selectedRole) {
-            case 'admin':
-                $passwordMatches = ($password === ADMIN_PASSWORD);
-                break;
-            case 'deck-manager':
-                $passwordMatches = ($password === DECK_MANAGER_PASSWORD);
-                break;
-            case 'editor':
-                $passwordMatches = ($password === EDITOR_PASSWORD);
-                break;
-            case 'voice-recorder':
-                $passwordMatches = ($password === VOICE_RECORDER_PASSWORD);
-                break;
+        // In this case, username IS the role
+        $validRoles = ['admin', 'deck-manager', 'editor', 'voice-recorder'];
+        if (in_array($username, $validRoles)) {
+            switch ($username) {
+                case 'admin':
+                    $passwordMatches = ($password === ADMIN_PASSWORD);
+                    $role = 'admin';
+                    break;
+                case 'deck-manager':
+                    $passwordMatches = ($password === DECK_MANAGER_PASSWORD);
+                    $role = 'deck-manager';
+                    break;
+                case 'editor':
+                    $passwordMatches = ($password === EDITOR_PASSWORD);
+                    $role = 'editor';
+                    break;
+                case 'voice-recorder':
+                    $passwordMatches = ($password === VOICE_RECORDER_PASSWORD);
+                    $role = 'voice-recorder';
+                    break;
+            }
         }
     } elseif ($user !== false) {
-        // User found in users.json
-        $passwordMatches = true;
-        $username = $user['username'];
-        $language = $user['language'] ?? null;
+        // User found in users.json - verify password
+        if ($user['password'] === $password) {
+            $passwordMatches = true;
+            $role = $user['role'];
+            $language = $user['language'] ?? null;
+        }
     }
-    // If $user === false, password doesn't match any user with that role
 
     if ($passwordMatches) {
         $_SESSION['admin_logged_in'] = true;
-        $_SESSION['user_role'] = $selectedRole;
+        $_SESSION['user_role'] = $role;
         $_SESSION['username'] = $username;
-        $_SESSION['user_language'] = $language ?? null; // Language restriction (null = all languages)
+        $_SESSION['user_language'] = $language; // Language restriction (null = all languages)
         $_SESSION['login_time'] = time();
         $_SESSION['last_activity'] = time();
 
@@ -129,7 +171,7 @@ function handleLogin() {
 
         echo json_encode([
             'success' => true,
-            'role' => $selectedRole,
+            'role' => $role,
             'username' => $username,
             'language' => $_SESSION['user_language'],
             'timeout_minutes' => $_SESSION['timeout_minutes']
@@ -137,7 +179,7 @@ function handleLogin() {
     } else {
         echo json_encode([
             'success' => false,
-            'error' => 'Incorrect password for the selected role'
+            'error' => 'Incorrect password for user: ' . $username
         ]);
     }
 }
