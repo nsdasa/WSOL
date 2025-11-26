@@ -47,17 +47,29 @@ class DeckBuilderModule extends LearningModule {
     
     async render() {
         // Check user role - Roles: admin > deck-manager > editor > voice-recorder
-        this.userRole = window.authManager?.role || 'admin';
+        // IMPORTANT: Do NOT default to 'admin' - this is a security issue
+        this.userRole = window.authManager?.role || null;
+
+        // Debug logging for role verification
+        console.log('[DeckBuilder] render() - authManager exists:', !!window.authManager);
+        console.log('[DeckBuilder] render() - authManager.role:', window.authManager?.role);
+        console.log('[DeckBuilder] render() - authManager.language:', window.authManager?.language);
+        console.log('[DeckBuilder] render() - userRole set to:', this.userRole);
+
         this.isAdmin = this.userRole === 'admin';
         this.isDeckManager = this.userRole === 'deck-manager';
         this.isEditor = this.userRole === 'editor';
         this.isRecorder = this.userRole === 'voice-recorder';
+
+        console.log('[DeckBuilder] Role flags - isAdmin:', this.isAdmin, 'isDeckManager:', this.isDeckManager, 'isEditor:', this.isEditor, 'isRecorder:', this.isRecorder);
 
         // Language restriction (null = no restriction, otherwise trigraph like 'ceb')
         this.languageRestriction = window.authManager?.getLanguageRestriction?.() || null;
         this.restrictedLanguageName = this.languageRestriction
             ? (window.authManager?.getLanguageName?.(this.languageRestriction) || this.languageRestriction)
             : null;
+
+        console.log('[DeckBuilder] Language restriction:', this.languageRestriction, 'Name:', this.restrictedLanguageName);
 
         // Permission flags
         this.canEditCards = this.isAdmin || this.isDeckManager || this.isEditor; // Can add/delete/edit cards

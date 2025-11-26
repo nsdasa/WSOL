@@ -8,6 +8,8 @@
 require_once 'config.php';
 enforceHttps();
 
+// Use configured session name for consistency
+session_name(SESSION_NAME);
 session_start();
 
 header('Content-Type: application/json');
@@ -211,9 +213,11 @@ function checkSession() {
     // Update last activity
     $_SESSION['last_activity'] = time();
 
+    // Return actual role from session - DO NOT default to 'admin'
+    // If role is missing, return null and let client handle appropriately
     echo json_encode([
         'authenticated' => true,
-        'role' => $_SESSION['user_role'] ?? 'admin',
+        'role' => $_SESSION['user_role'] ?? null,
         'username' => $_SESSION['username'] ?? null,
         'language' => $_SESSION['user_language'] ?? null,
         'timeout_minutes' => $timeout_minutes,

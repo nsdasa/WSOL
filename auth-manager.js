@@ -120,9 +120,14 @@ class AuthManager {
 
             if (this.authenticated) {
                 this.timeoutMinutes = result.timeout_minutes || 30;
-                this.role = result.role || 'admin';
+                // IMPORTANT: Do NOT default to 'admin' - use actual role from server
+                this.role = result.role || null;
                 this.username = result.username || null;
                 this.language = result.language || null; // Language restriction
+
+                // Debug logging for role verification
+                console.log('[AuthManager] Session check - Role:', this.role, 'Language:', this.language, 'Username:', this.username);
+
                 this.addLogoutButton();
             } else {
                 this.role = null;
@@ -250,9 +255,13 @@ class AuthManager {
             if (result.success) {
                 this.authenticated = true;
                 this.timeoutMinutes = result.timeout_minutes || 30;
-                this.role = result.role || 'admin';
+                // IMPORTANT: Do NOT default to 'admin' - use actual role from server
+                this.role = result.role || null;
                 this.username = result.username;
                 this.language = result.language || null; // Language restriction
+
+                // Debug logging for role verification
+                console.log('[AuthManager] Login success - Role:', this.role, 'Language:', this.language, 'Username:', this.username);
 
                 // Hide modal
                 document.getElementById('loginModal').classList.add('hidden');
