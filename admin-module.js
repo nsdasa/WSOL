@@ -374,10 +374,10 @@ class AdminModule extends LearningModule {
         const sessionStatusText = document.getElementById('sessionStatusText');
         
         // Load current timeout value
-        if (authManager?.authenticated) {
-            if (timeoutInput) timeoutInput.value = authManager.timeoutMinutes || 30;
+        if (window.authManager?.authenticated) {
+            if (timeoutInput) timeoutInput.value = window.authManager.timeoutMinutes || 30;
             if (sessionStatusText) {
-                sessionStatusText.textContent = `Active - ${authManager.timeoutMinutes} minute timeout`;
+                sessionStatusText.textContent = `Active - ${window.authManager.timeoutMinutes} minute timeout`;
                 sessionStatusText.style.color = 'var(--success)';
             }
         } else if (sessionStatusText) {
@@ -395,15 +395,15 @@ class AdminModule extends LearningModule {
                     return;
                 }
                 
-                if (!authManager?.authenticated) {
+                if (!window.authManager?.authenticated) {
                     toastManager.show('You must be logged in to change this setting', 'warning');
                     return;
                 }
-                
+
                 saveTimeoutBtn.disabled = true;
                 saveTimeoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-                
-                const success = await authManager.setSessionTimeout(minutes);
+
+                const success = await window.authManager.setSessionTimeout(minutes);
                 
                 if (success && sessionStatusText) {
                     sessionStatusText.textContent = `Active - ${minutes} minute timeout`;
