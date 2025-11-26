@@ -19220,7 +19220,7 @@
                                     "words": [
                                         {"word": "Asa", "root": null, "cardNum": 1, "imagePath": "assets/1.Asa.Where.png"},
                                         {"word": "ang", "root": null, "cardNum": null, "imagePath": null},
-                                        {"word": "libro", "root": null, "cardNum": 35, "imagePath": "assets/35.Libro.Book.png"}
+                                        {"word": "libro", "root": null, "cardNum": 18, "imagePath": "assets/18.Libro.Book.png"}
                                     ]
                                 },
                                 {
@@ -19229,7 +19229,7 @@
                                     "english": "The book is on the table.",
                                     "words": [
                                         {"word": "Ang", "root": null, "cardNum": null, "imagePath": null},
-                                        {"word": "libro", "root": null, "cardNum": 35, "imagePath": "assets/35.Libro.Book.png"},
+                                        {"word": "libro", "root": null, "cardNum": 18, "imagePath": "assets/18.Libro.Book.png"},
                                         {"word": "sa", "root": null, "cardNum": 129, "imagePath": "assets/129.Sa.To.png"},
                                         {"word": "lamesa", "root": null, "cardNum": 36, "imagePath": "assets/36.Lamesa.Table.png"}
                                     ]

@@ -566,14 +566,14 @@ class SentenceReviewParser {
             const variants = cardWord.split('/').map(v => v.trim());
 
             if (cardWord === searchWord || variants.includes(searchWord)) {
-                return { cardNum: card.cardNum, imagePath: card.imagePath };
+                return { cardNum: card.cardNum, imagePath: card.printImagePath };
             }
 
             // Check acceptableAnswers
             if (card.acceptableAnswers) {
                 for (const answer of card.acceptableAnswers) {
                     if (normalize(answer) === searchWord) {
-                        return { cardNum: card.cardNum, imagePath: card.imagePath };
+                        return { cardNum: card.cardNum, imagePath: card.printImagePath };
                     }
                 }
             }
@@ -586,13 +586,13 @@ class SentenceReviewParser {
                 const variants = cardWord.split('/').map(v => v.trim());
 
                 if (cardWord === searchRoot || variants.includes(searchRoot)) {
-                    return { cardNum: card.cardNum, imagePath: card.imagePath };
+                    return { cardNum: card.cardNum, imagePath: card.printImagePath };
                 }
 
                 if (card.acceptableAnswers) {
                     for (const answer of card.acceptableAnswers) {
                         if (normalize(answer) === searchRoot) {
-                            return { cardNum: card.cardNum, imagePath: card.imagePath };
+                            return { cardNum: card.cardNum, imagePath: card.printImagePath };
                         }
                     }
                 }

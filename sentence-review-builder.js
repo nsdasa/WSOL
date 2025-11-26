@@ -763,8 +763,8 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             }
 
             grid.innerHTML = matchingCards.map(card => `
-                <div class="sr-pic-option" data-cardnum="${card.cardNum}" data-imagepath="${card.imagePath || ''}">
-                    ${card.imagePath ? `<img src="${card.imagePath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
+                <div class="sr-pic-option" data-cardnum="${card.cardNum}" data-imagepath="${card.printImagePath || ''}">
+                    ${card.printImagePath ? `<img src="${card.printImagePath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
                     <span class="card-word">${card.word}</span>
                     <span class="card-english">${card.english}</span>
                 </div>
