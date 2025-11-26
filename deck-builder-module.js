@@ -471,6 +471,80 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
+                <!-- Sentence Review Data Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="sentenceReviewSection" data-section="sentenceReview">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-images"></i> Sentence Review Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
+                            <p class="section-description">
+                                Create and edit sentence review lessons. Sentences are displayed as a row of pictures representing each word.
+                            </p>
+
+                            <!-- Import Text Section -->
+                            <div class="sr-builder-import">
+                                <h4><i class="fas fa-file-import"></i> Import from Text</h4>
+                                <textarea id="srImportText" class="sr-import-textarea" placeholder="Paste sentence text here...
+
+Example format:
+SEQUENCE 1: Finding the Book
+
+Asa ang libro? (Where is the book?)
+Ang libro sa lamesa. (The book is on the table.)
+Kuhaa {kuha} ang libro. (Get the book.)
+
+SEQUENCE 2: What Is This?
+
+Unsa kini? (What is this?)
+Kini ang bolpen. (This is the ballpen.)"></textarea>
+                                <div class="sr-import-actions">
+                                    <select id="srImportLesson" class="select-control">
+                                        <option value="">Select Target Lesson...</option>
+                                    </select>
+                                    <button id="srParseBtn" class="btn btn-primary">
+                                        <i class="fas fa-magic"></i> Parse & Preview
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Preview Section -->
+                            <div class="sr-builder-preview hidden" id="srPreviewSection">
+                                <h4><i class="fas fa-search"></i> Preview Parsed Data</h4>
+                                <div id="srPreviewContent"></div>
+                                <div class="sr-preview-actions">
+                                    <button id="srApplyParseBtn" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Apply to Lesson
+                                    </button>
+                                    <button id="srCancelParseBtn" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lessons List -->
+                            <div class="sr-builder-lessons">
+                                <h4>
+                                    <i class="fas fa-list"></i> Lessons with Sentence Review Data
+                                    <button id="srAddLessonBtn" class="btn btn-sm btn-success">
+                                        <i class="fas fa-plus"></i> Add Lesson
+                                    </button>
+                                </h4>
+                                <div id="srLessonsList" class="sr-lessons-list">
+                                    <!-- Lessons will be rendered here -->
+                                </div>
+                            </div>
+
+                            <div class="section-actions">
+                                <button id="srSaveAllBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save"></i> Save Sentence Review Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Card Data Section (Collapsible) -->
                 <div class="deck-section collapsible" id="cardDataSection" data-section="cardData">
                     <h3 class="section-title" role="button" tabindex="0">
@@ -698,6 +772,7 @@ class DeckBuilderModule extends LearningModule {
             this.setupSentenceWordsEditor();
             this.setupGrammarUpload();
             this.setupTeacherGuideUpload();
+            this.setupSentenceReviewBuilder();
         }
 
         // Initial render (will apply default sort)
@@ -933,6 +1008,8 @@ class DeckBuilderModule extends LearningModule {
             this.updateSortIcons();
             this.filterAndRenderCards();
             this.updateStats();
+            // Notify sentence review builder of language change
+            this.notifySentenceReviewBuilderLanguageChange(trigraph);
         });
 
         // Lesson range filters
