@@ -73,7 +73,8 @@ function handleLogin() {
     $selectedRole = $_POST['role'] ?? '';
 
     // Validate the selected role
-    $validRoles = ['admin', 'deck-manager', 'voice-recorder'];
+    // Roles hierarchy: admin > deck-manager > editor > voice-recorder
+    $validRoles = ['admin', 'deck-manager', 'editor', 'voice-recorder'];
 
     if (!in_array($selectedRole, $validRoles)) {
         echo json_encode([
@@ -98,6 +99,9 @@ function handleLogin() {
             case 'deck-manager':
                 $passwordMatches = ($password === DECK_MANAGER_PASSWORD);
                 break;
+            case 'editor':
+                $passwordMatches = ($password === EDITOR_PASSWORD);
+                break;
             case 'voice-recorder':
                 $passwordMatches = ($password === VOICE_RECORDER_PASSWORD);
                 break;
@@ -106,6 +110,7 @@ function handleLogin() {
         // User found in users.json
         $passwordMatches = true;
         $username = $user['username'];
+        $language = $user['language'] ?? null;
     }
     // If $user === false, password doesn't match any user with that role
 
@@ -113,6 +118,7 @@ function handleLogin() {
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['user_role'] = $selectedRole;
         $_SESSION['username'] = $username;
+        $_SESSION['user_language'] = $language ?? null; // Language restriction (null = all languages)
         $_SESSION['login_time'] = time();
         $_SESSION['last_activity'] = time();
 
@@ -125,6 +131,7 @@ function handleLogin() {
             'success' => true,
             'role' => $selectedRole,
             'username' => $username,
+            'language' => $_SESSION['user_language'],
             'timeout_minutes' => $_SESSION['timeout_minutes']
         ]);
     } else {
@@ -166,6 +173,7 @@ function checkSession() {
         'authenticated' => true,
         'role' => $_SESSION['user_role'] ?? 'admin',
         'username' => $_SESSION['username'] ?? null,
+        'language' => $_SESSION['user_language'] ?? null,
         'timeout_minutes' => $timeout_minutes,
         'time_remaining' => $timeout_seconds - (time() - $last_activity)
     ]);

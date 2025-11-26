@@ -492,7 +492,14 @@ class AdminModule extends LearningModule {
         const roleLabels = {
             'admin': { label: 'Admin', color: '#ef4444', icon: 'fa-user-shield' },
             'deck-manager': { label: 'Deck Manager', color: '#3b82f6', icon: 'fa-edit' },
+            'editor': { label: 'Editor', color: '#f59e0b', icon: 'fa-pen' },
             'voice-recorder': { label: 'Voice Recorder', color: '#10b981', icon: 'fa-microphone' }
+        };
+
+        const languageNames = {
+            'ceb': 'Cebuano',
+            'mrw': 'Maranao',
+            'sin': 'Sinama'
         };
 
         let html = '<div class="users-list">';
@@ -501,6 +508,13 @@ class AdminModule extends LearningModule {
             const roleInfo = roleLabels[user.role] || { label: user.role, color: '#6b7280', icon: 'fa-user' };
             const created = user.created ? new Date(user.created).toLocaleDateString() : 'N/A';
 
+            // Show language restriction for editor/voice-recorder
+            let languageTag = '';
+            if (['editor', 'voice-recorder'].includes(user.role) && user.language) {
+                const langName = languageNames[user.language] || user.language;
+                languageTag = `<span class="user-language-tag" style="display:inline-block;margin-left:8px;padding:2px 8px;border-radius:4px;font-size:11px;background:var(--primary);color:white;"><i class="fas fa-globe"></i> ${langName}</span>`;
+            }
+
             html += `
                 <div class="user-card" data-user-id="${user.id}">
                     <div class="user-card-main">
@@ -508,7 +522,7 @@ class AdminModule extends LearningModule {
                             <i class="fas ${roleInfo.icon}"></i>
                         </div>
                         <div class="user-info">
-                            <div class="user-name">${this.escapeHtml(user.username)}</div>
+                            <div class="user-name">${this.escapeHtml(user.username)}${languageTag}</div>
                             <div class="user-role" style="color:${roleInfo.color};">
                                 <i class="fas ${roleInfo.icon}"></i> ${roleInfo.label}
                             </div>
@@ -555,8 +569,21 @@ class AdminModule extends LearningModule {
         const roleOptions = [
             { value: 'admin', label: 'Admin - Full access to all features' },
             { value: 'deck-manager', label: 'Deck Manager - Full Deck Builder access' },
+            { value: 'editor', label: 'Editor - Table editing only (no tool sections)' },
             { value: 'voice-recorder', label: 'Voice Recorder - Audio recording only' }
         ];
+
+        const languageOptions = [
+            { value: '', label: 'All Languages (no restriction)' },
+            { value: 'ceb', label: 'Cebuano' },
+            { value: 'mrw', label: 'Maranao' },
+            { value: 'sin', label: 'Sinama' }
+        ];
+
+        // Determine if language field should be visible (only for editor/voice-recorder)
+        const currentRole = isEdit ? user.role : 'admin';
+        const showLanguage = ['editor', 'voice-recorder'].includes(currentRole);
+        const currentLanguage = isEdit ? (user.language || '') : '';
 
         const modal = document.createElement('div');
         modal.className = 'modal user-modal';
@@ -602,6 +629,21 @@ class AdminModule extends LearningModule {
                                 `).join('')}
                             </select>
                         </div>
+                        <div class="form-group language-field" style="margin-bottom:16px;${showLanguage ? '' : 'display:none;'}">
+                            <label class="form-label" style="display:block;margin-bottom:6px;font-weight:600;">
+                                <i class="fas fa-globe"></i> Language Restriction
+                            </label>
+                            <select id="userLanguage" class="form-input" style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:14px;">
+                                ${languageOptions.map(opt => `
+                                    <option value="${opt.value}" ${currentLanguage === opt.value ? 'selected' : ''}>
+                                        ${opt.label}
+                                    </option>
+                                `).join('')}
+                            </select>
+                            <p style="margin:6px 0 0;font-size:12px;color:var(--text-secondary);">
+                                Editor and Voice Recorder users must be assigned to a specific language.
+                            </p>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border-color);display:flex;justify-content:flex-end;gap:12px;">
@@ -626,6 +668,15 @@ class AdminModule extends LearningModule {
             toggleBtn.innerHTML = `<i class="fas fa-eye${isPassword ? '-slash' : ''}"></i>`;
         });
 
+        // Show/hide language field based on role selection
+        const roleSelect = modal.querySelector('#userRole');
+        const languageField = modal.querySelector('.language-field');
+        roleSelect.addEventListener('change', () => {
+            const selectedRole = roleSelect.value;
+            const needsLanguage = ['editor', 'voice-recorder'].includes(selectedRole);
+            languageField.style.display = needsLanguage ? '' : 'none';
+        });
+
         // Close modal handlers
         const closeModal = () => document.body.removeChild(modal);
 
@@ -640,6 +691,8 @@ class AdminModule extends LearningModule {
             const username = modal.querySelector('#userUsername').value.trim();
             const password = modal.querySelector('#userPassword').value;
             const role = modal.querySelector('#userRole').value;
+            const languageSelect = modal.querySelector('#userLanguage');
+            const language = languageSelect.value || null;
 
             // Validation
             if (username.length < 3) {
@@ -657,6 +710,12 @@ class AdminModule extends LearningModule {
                 return;
             }
 
+            // Language is required for editor and voice-recorder
+            if (['editor', 'voice-recorder'].includes(role) && !language) {
+                toastManager.show('Language is required for Editor and Voice Recorder roles', 'error');
+                return;
+            }
+
             const saveBtn = modal.querySelector('.save-btn');
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
@@ -664,8 +723,8 @@ class AdminModule extends LearningModule {
             try {
                 const action = isEdit ? 'edit' : 'add';
                 const payload = isEdit
-                    ? { id: user.id, username, role, ...(password ? { password } : {}) }
-                    : { username, password, role };
+                    ? { id: user.id, username, role, language, ...(password ? { password } : {}) }
+                    : { username, password, role, language };
 
                 const response = await fetch(`users.php?action=${action}`, {
                     method: 'POST',

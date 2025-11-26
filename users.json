@@ -5,25 +5,73 @@
             "username": "admin",
             "password": "WSOL10:15",
             "role": "admin",
+            "language": null,
             "created": "2025-01-01T00:00:00Z",
             "lastModified": "2025-01-01T00:00:00Z"
         },
         {
             "id": 2,
-            "username": "deckmanager",
+            "username": "Eunice",
             "password": "deck123",
             "role": "deck-manager",
+            "language": null,
             "created": "2025-01-01T00:00:00Z",
             "lastModified": "2025-01-01T00:00:00Z"
         },
         {
             "id": 3,
-            "username": "voicerecorder",
+            "username": "editor-ceb",
+            "password": "edit123",
+            "role": "editor",
+            "language": "ceb",
+            "created": "2025-01-01T00:00:00Z",
+            "lastModified": "2025-01-01T00:00:00Z"
+        },
+        {
+            "id": 4,
+            "username": "editor-mrw",
+            "password": "edit123",
+            "role": "editor",
+            "language": "mrw",
+            "created": "2025-01-01T00:00:00Z",
+            "lastModified": "2025-01-01T00:00:00Z"
+        },
+        {
+            "id": 5,
+            "username": "editor-sin",
+            "password": "edit123",
+            "role": "editor",
+            "language": "sin",
+            "created": "2025-01-01T00:00:00Z",
+            "lastModified": "2025-01-01T00:00:00Z"
+        },
+        {
+            "id": 6,
+            "username": "rec-ceb",
             "password": "voice123",
             "role": "voice-recorder",
+            "language": "ceb",
+            "created": "2025-01-01T00:00:00Z",
+            "lastModified": "2025-01-01T00:00:00Z"
+        },
+        {
+            "id": 7,
+            "username": "rec-mrw",
+            "password": "voice123",
+            "role": "voice-recorder",
+            "language": "mrw",
+            "created": "2025-01-01T00:00:00Z",
+            "lastModified": "2025-01-01T00:00:00Z"
+        },
+        {
+            "id": 8,
+            "username": "rec-sin",
+            "password": "voice123",
+            "role": "voice-recorder",
+            "language": "sin",
             "created": "2025-01-01T00:00:00Z",
             "lastModified": "2025-01-01T00:00:00Z"
         }
     ],
-    "nextId": 4
+    "nextId": 9
 }

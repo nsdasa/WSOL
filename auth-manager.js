@@ -8,7 +8,8 @@ class AuthManager {
         this.authenticated = false;
         this.checkingAuth = false;
         this.timeoutMinutes = 30;
-        this.role = null; // 'admin', 'deck-manager', or 'voice-recorder'
+        this.role = null; // 'admin', 'deck-manager', 'editor', or 'voice-recorder'
+        this.language = null; // Language restriction: 'ceb', 'mrw', 'sin', or null (all languages)
     }
     
     async init() {
@@ -57,17 +58,19 @@ class AuthManager {
         try {
             const response = await fetch('auth.php?action=check');
             const result = await response.json();
-            
+
             this.authenticated = result.authenticated || false;
-            
+
             if (this.authenticated) {
                 this.timeoutMinutes = result.timeout_minutes || 30;
                 this.role = result.role || 'admin';
+                this.language = result.language || null; // Language restriction
                 this.addLogoutButton();
             } else {
                 this.role = null;
+                this.language = null;
             }
-            
+
             return this.authenticated;
         } catch (err) {
             debugLogger?.log(1, `Auth check error: ${err.message}`);
@@ -183,6 +186,7 @@ class AuthManager {
                 this.authenticated = true;
                 this.timeoutMinutes = result.timeout_minutes || 30;
                 this.role = result.role || 'admin';
+                this.language = result.language || null; // Language restriction
 
                 // Hide modal
                 document.getElementById('loginModal').classList.add('hidden');
@@ -201,9 +205,11 @@ class AuthManager {
 
                 const roleDisplay = this.role === 'admin' ? 'Admin' :
                                    this.role === 'deck-manager' ? 'Deck Manager' :
+                                   this.role === 'editor' ? 'Editor' :
                                    'Voice Recorder';
-                toastManager?.show(`Login successful! Role: ${roleDisplay}`, 'success');
-                debugLogger?.log(2, `Authenticated as ${this.role}`);
+                const langDisplay = this.language ? ` (${this.getLanguageName(this.language)})` : '';
+                toastManager?.show(`Login successful! Role: ${roleDisplay}${langDisplay}`, 'success');
+                debugLogger?.log(2, `Authenticated as ${this.role}${this.language ? ' for ' + this.language : ''}`);
             } else {
                 errorDiv.textContent = result.error || 'Login failed';
                 errorDiv.classList.remove('hidden');
@@ -237,6 +243,7 @@ class AuthManager {
 
             this.authenticated = false;
             this.role = null;
+            this.language = null;
             this.removeLogoutButton();
             this.showLoginButton();
 
@@ -344,6 +351,13 @@ class AuthManager {
     }
 
     /**
+     * Check if current user is editor
+     */
+    isEditor() {
+        return this.authenticated && this.role === 'editor';
+    }
+
+    /**
      * Check if current user is voice recorder
      */
     isVoiceRecorder() {
@@ -352,15 +366,18 @@ class AuthManager {
 
     /**
      * Check if user has permission for a specific action
-     * Voice Recorder can only: filter, view, record/upload audio
-     * Deck Manager has full deck builder access
-     * Admin can do everything
+     * Roles hierarchy: admin > deck-manager > editor > voice-recorder
+     *
+     * Admin: Everything (all modules, all features)
+     * Deck Manager: Full deck builder (all sections + table with CRUD), no admin module
+     * Editor: Table only with full CRUD (no tool sections like CSV, Media, Sentence, Grammar)
+     * Voice Recorder: Table only, limited columns, read-only (can only record/upload audio)
      */
     hasPermission(action) {
         if (!this.authenticated) return false;
         if (this.role === 'admin') return true;
 
-        // Deck Manager has full deck builder permissions
+        // Deck Manager has full deck builder permissions (all sections + table CRUD)
         if (this.role === 'deck-manager') {
             const deckManagerAllowed = [
                 'view',
@@ -372,18 +389,41 @@ class AuthManager {
                 'create',
                 'delete',
                 'save',
-                'export'
+                'export',
+                'csv-tools',
+                'media-tools',
+                'sentence-tools',
+                'grammar-tools'
             ];
             return deckManagerAllowed.includes(action);
         }
 
-        // Voice Recorder permissions (limited)
+        // Editor: Table only with full CRUD (no tool sections)
+        if (this.role === 'editor') {
+            const editorAllowed = [
+                'view',
+                'filter',
+                'audio-upload',
+                'audio-record',
+                'audio-select',
+                'edit',
+                'create',
+                'delete',
+                'save',
+                'export'
+                // Note: NO csv-tools, media-tools, sentence-tools, grammar-tools
+            ];
+            return editorAllowed.includes(action);
+        }
+
+        // Voice Recorder: limited view, can only record/upload audio
         const voiceRecorderAllowed = [
             'view',
             'filter',
             'audio-upload',
             'audio-record',
             'audio-select'
+            // Note: NO edit, create, delete, save permissions
         ];
 
         return voiceRecorderAllowed.includes(action);
@@ -393,7 +433,8 @@ class AuthManager {
      * Update UI elements based on user role
      * Shows/hides admin and deck-builder tabs based on authentication and role
      * - Admin: sees both Admin and Deck Builder tabs
-     * - Deck Manager: sees only Deck Builder tab
+     * - Deck Manager: sees only Deck Builder tab (full functionality)
+     * - Editor: sees only Deck Builder tab (table only with CRUD)
      * - Voice Recorder: sees only Deck Builder tab (limited functionality)
      * - Not authenticated: sees neither tab
      */
@@ -421,8 +462,8 @@ class AuthManager {
             if (deckBuilderTab) {
                 deckBuilderTab.classList.remove('hidden');
             }
-        } else if (this.role === 'deck-manager' || this.role === 'voice-recorder') {
-            // Deck Manager and Voice Recorder see only Deck Builder tab
+        } else if (this.role === 'deck-manager' || this.role === 'editor' || this.role === 'voice-recorder') {
+            // Deck Manager, Editor, and Voice Recorder see only Deck Builder tab
             if (adminTab) {
                 adminTab.classList.add('hidden');
             }
@@ -445,5 +486,41 @@ class AuthManager {
         if (deckBuilderTab) {
             deckBuilderTab.classList.add('hidden');
         }
+    }
+
+    /**
+     * Get the display name for a language trigraph
+     */
+    getLanguageName(trigraph) {
+        const names = {
+            'ceb': 'Cebuano',
+            'mrw': 'Maranao',
+            'sin': 'Sinama'
+        };
+        return names[trigraph] || trigraph;
+    }
+
+    /**
+     * Check if user is restricted to a specific language
+     * Returns the language trigraph if restricted, null if no restriction
+     */
+    getLanguageRestriction() {
+        // Admin and Deck Manager have no language restriction
+        if (this.role === 'admin' || this.role === 'deck-manager') {
+            return null;
+        }
+        // Editor and Voice Recorder are restricted to their assigned language
+        return this.language;
+    }
+
+    /**
+     * Check if user can access a specific language
+     */
+    canAccessLanguage(trigraph) {
+        const restriction = this.getLanguageRestriction();
+        // No restriction means access to all languages
+        if (restriction === null) return true;
+        // Otherwise, check if it matches the user's assigned language
+        return restriction === trigraph;
     }
 }

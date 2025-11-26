@@ -2009,6 +2009,11 @@
     color: white;
 }
 
+.role-badge.editor {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
 .role-badge i {
     font-size: 10px;
 }
@@ -2041,6 +2046,24 @@
 .text-muted {
     color: var(--text-secondary);
     opacity: 0.5;
+}
+
+/* Language restriction lock indicator */
+.language-locked-hint {
+    margin-left: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.language-locked-hint i {
+    opacity: 0.7;
+}
+
+/* Disabled select styling */
+select.select-control:disabled {
+    background-color: var(--bg-secondary);
+    cursor: not-allowed;
+    opacity: 0.8;
 }
 
 /* =================================================================

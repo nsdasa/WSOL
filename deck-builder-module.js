@@ -46,12 +46,38 @@ class DeckBuilderModule extends LearningModule {
     }
     
     async render() {
-        // Check user role
+        // Check user role - Roles: admin > deck-manager > editor > voice-recorder
         this.userRole = window.authManager?.role || 'admin';
         this.isAdmin = this.userRole === 'admin';
-        
-        const adminOnlyClass = this.isAdmin ? '' : 'hidden';
-        const roleIndicator = this.isAdmin ? '' : '<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Voice Recorder Mode</span>';
+        this.isDeckManager = this.userRole === 'deck-manager';
+        this.isEditor = this.userRole === 'editor';
+        this.isRecorder = this.userRole === 'voice-recorder';
+
+        // Language restriction (null = no restriction, otherwise trigraph like 'ceb')
+        this.languageRestriction = window.authManager?.getLanguageRestriction?.() || null;
+        this.restrictedLanguageName = this.languageRestriction
+            ? (window.authManager?.getLanguageName?.(this.languageRestriction) || this.languageRestriction)
+            : null;
+
+        // Permission flags
+        this.canEditCards = this.isAdmin || this.isDeckManager || this.isEditor; // Can add/delete/edit cards
+        this.canAccessToolSections = this.isAdmin || this.isDeckManager; // Can see CSV, Media, Sentence, Grammar sections
+
+        // CSS classes for hiding elements
+        const toolSectionsClass = this.canAccessToolSections ? '' : 'hidden'; // For tool sections
+        const editButtonsClass = this.canEditCards ? '' : 'hidden'; // For add/delete/save buttons
+
+        // Role indicator badge (include language if restricted)
+        let roleIndicator = '';
+        if (this.isDeckManager) {
+            roleIndicator = '<span class="role-badge deck-manager"><i class="fas fa-user-tie"></i> Deck Manager</span>';
+        } else if (this.isEditor) {
+            const langSuffix = this.restrictedLanguageName ? ` - ${this.restrictedLanguageName}` : '';
+            roleIndicator = `<span class="role-badge editor"><i class="fas fa-edit"></i> Editor${langSuffix}</span>`;
+        } else if (this.isRecorder) {
+            const langSuffix = this.restrictedLanguageName ? ` - ${this.restrictedLanguageName}` : '';
+            roleIndicator = `<span class="role-badge voice-recorder"><i class="fas fa-microphone"></i> Recorder${langSuffix}</span>`;
+        }
         
         this.container.innerHTML = `
             <div class="card module-deck-builder">
@@ -65,10 +91,10 @@ class DeckBuilderModule extends LearningModule {
                         <p class="deck-description">Create, edit, and manage your language learning cards</p>
                     </div>
                     <div class="deck-actions">
-                        <button id="addCardBtn" class="btn btn-success ${adminOnlyClass}">
+                        <button id="addCardBtn" class="btn btn-success ${editButtonsClass}">
                             <i class="fas fa-plus"></i> Add New Card
                         </button>
-                        <button id="saveChangesBtn" class="btn btn-primary ${adminOnlyClass}" disabled>
+                        <button id="saveChangesBtn" class="btn btn-primary ${editButtonsClass}" disabled>
                             <i class="fas fa-save"></i> Save Changes
                         </button>
                         <button id="exportCSVBtn" class="btn btn-secondary">
@@ -99,8 +125,8 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
-                <!-- CSV Data Management Section (Admin only) -->
-                <div class="deck-section collapsible collapsed ${adminOnlyClass}" id="csvManagementSection" data-section="csv">
+                <!-- CSV Data Management Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="csvManagementSection" data-section="csv">
                     <h3 class="section-title" role="button" tabindex="0">
                         <i class="fas fa-sync-alt"></i> CSV Data Management
                         <i class="fas fa-chevron-down section-chevron"></i>
@@ -165,8 +191,8 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
-                <!-- Media Files Upload Section (Admin only) -->
-                <div class="deck-section collapsible collapsed ${adminOnlyClass}" id="mediaUploadSection" data-section="media">
+                <!-- Media Files Upload Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="mediaUploadSection" data-section="media">
                     <h3 class="section-title" role="button" tabindex="0">
                         <i class="fas fa-photo-video"></i> Media Files Upload
                         <i class="fas fa-chevron-down section-chevron"></i>
@@ -206,8 +232,8 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
-                <!-- Sentence Words Upload Section (Admin only) -->
-                <div class="deck-section collapsible collapsed ${adminOnlyClass}" id="sentenceWordsSection" data-section="sentence">
+                <!-- Sentence Words Upload Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="sentenceWordsSection" data-section="sentence">
                     <h3 class="section-title" role="button" tabindex="0">
                         <i class="fas fa-bars-staggered"></i> Sentence Builder Data
                         <i class="fas fa-chevron-down section-chevron"></i>
@@ -300,8 +326,8 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
-                <!-- Grammar Files Management Section (Admin only) -->
-                <div class="deck-section collapsible collapsed ${adminOnlyClass}" id="grammarManagementSection" data-section="grammar">
+                <!-- Grammar Files Management Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="grammarManagementSection" data-section="grammar">
                     <h3 class="section-title" role="button" tabindex="0">
                         <i class="fas fa-book-open"></i> Grammar Files Management
                         <i class="fas fa-chevron-down section-chevron"></i>
@@ -391,11 +417,12 @@ class DeckBuilderModule extends LearningModule {
                         <label for="languageFilter">
                             <i class="fas fa-language"></i> Language:
                         </label>
-                        <select id="languageFilter" class="select-control">
-                            <option value="ceb">Cebuano</option>
-                            <option value="mrw">Maranao</option>
-                            <option value="sin">Sinama</option>
+                        <select id="languageFilter" class="select-control" ${this.languageRestriction ? 'disabled' : ''}>
+                            <option value="ceb" ${this.languageRestriction === 'ceb' ? 'selected' : ''}>Cebuano</option>
+                            <option value="mrw" ${this.languageRestriction === 'mrw' ? 'selected' : ''}>Maranao</option>
+                            <option value="sin" ${this.languageRestriction === 'sin' ? 'selected' : ''}>Sinama</option>
                         </select>
+                        ${this.languageRestriction ? '<span class="language-locked-hint" title="Language restricted based on your role"><i class="fas fa-lock"></i></span>' : ''}
                     </div>
 
                     <div class="filter-group">
@@ -417,13 +444,13 @@ class DeckBuilderModule extends LearningModule {
                         <input type="text" id="searchCards" class="form-input" placeholder="Search words...">
                     </div>
 
-                    <button id="addCardBtnTop" class="btn btn-success ${adminOnlyClass}">
+                    <button id="addCardBtnTop" class="btn btn-success ${editButtonsClass}">
                         <i class="fas fa-plus"></i> Add New Card
                     </button>
 
                     <div class="stats-mini">
                         <span id="cardCount">0 cards</span>
-                        <span id="unsavedCount" class="unsaved-indicator hidden ${adminOnlyClass}">0 unsaved</span>
+                        <span id="unsavedCount" class="unsaved-indicator hidden ${editButtonsClass}">0 unsaved</span>
                     </div>
                 </div>
 
@@ -432,8 +459,8 @@ class DeckBuilderModule extends LearningModule {
                     <table class="deck-table" id="deckTable">
                         <thead>
                             <tr>
-                                <th style="width: 70px;">Actions</th>
-                                <th style="width: 50px;">Type</th>
+                                ${!this.isRecorder ? '<th style="width: 70px;">Actions</th>' : ''}
+                                ${!this.isRecorder ? '<th style="width: 50px;">Type</th>' : ''}
                                 <th style="width: 60px;" class="sortable-header" data-sort="cardNum">
                                     Card # <i class="fas fa-sort sort-icon"></i>
                                 </th>
@@ -443,13 +470,13 @@ class DeckBuilderModule extends LearningModule {
                                 <th class="sortable-header word-column" data-sort="english">
                                     English <i class="fas fa-sort sort-icon"></i>
                                 </th>
-                                <th style="width: 85px;">Categories</th>
-                                <th style="width: 140px;">Picture (PNG)</th>
-                                <th style="width: 90px;">Animated (GIF)</th>
+                                ${!this.isRecorder ? '<th style="width: 85px;">Categories</th>' : ''}
+                                ${!this.isRecorder ? '<th style="width: 140px;">Picture (PNG)</th>' : ''}
+                                ${!this.isRecorder ? '<th style="width: 90px;">Animated (GIF)</th>' : ''}
                                 <th style="width: 140px;">Audio</th>
-                                <th style="width: 100px;" class="sortable-header" data-sort="status">
+                                ${!this.isRecorder ? `<th style="width: 100px;" class="sortable-header" data-sort="status">
                                     Status <i class="fas fa-sort sort-icon"></i>
-                                </th>
+                                </th>` : ''}
                             </tr>
                         </thead>
                         <tbody id="deckTableBody">
@@ -459,7 +486,7 @@ class DeckBuilderModule extends LearningModule {
                 </div>
 
                 <!-- Add New Card Button (Bottom) -->
-                <div style="margin: 16px 0; text-align: center;">
+                <div style="margin: 16px 0; text-align: center;" class="${editButtonsClass}">
                     <button id="addCardBtnBottom" class="btn btn-success">
                         <i class="fas fa-plus"></i> Add New Card
                     </button>
@@ -565,6 +592,11 @@ class DeckBuilderModule extends LearningModule {
         // Store global reference for inline event handlers
         window.deckBuilder = this;
 
+        // If language restricted, force currentTrigraph to restricted language
+        if (this.languageRestriction) {
+            this.currentTrigraph = this.languageRestriction;
+        }
+
         // Load cards for current language from v4.0 manifest structure
         this.loadCardsForLanguage(this.currentTrigraph);
 
@@ -579,8 +611,8 @@ class DeckBuilderModule extends LearningModule {
         // Setup collapsible sections
         this.setupCollapsibleSections();
 
-        // Setup CSV, Media, and Grammar upload (admin only)
-        if (this.isAdmin) {
+        // Setup CSV, Media, and Grammar upload (admin and deck-manager)
+        if (this.canAccessToolSections) {
             this.setupCSVUpload();
             this.setupMediaUpload();
             this.setupSentenceWordsUpload();
@@ -1033,7 +1065,8 @@ class DeckBuilderModule extends LearningModule {
             headerRow.dataset.lesson = lesson;
 
             const headerCell = document.createElement('td');
-            headerCell.colSpan = 10; // Number of columns
+            // Dynamic colspan: recorder has 4 columns, others have 10
+            headerCell.colSpan = this.isRecorder ? 4 : 10;
             headerCell.className = 'lesson-header-cell';
             headerCell.innerHTML = `
                 <div class="lesson-header">
@@ -1101,45 +1134,53 @@ class DeckBuilderModule extends LearningModule {
             row.classList.add('edited-row');
         }
 
-        // Disabled attribute for voice recorder
-        const disabledAttr = this.isAdmin ? '' : 'disabled';
-        const readonlyClass = this.isAdmin ? '' : 'readonly-field';
+        // Permission-based attributes
+        const canEdit = this.canEditCards; // admin, deck-manager, editor
+        const disabledAttr = canEdit ? '' : 'disabled';
+        const readonlyClass = canEdit ? '' : 'readonly-field';
 
-        // Actions (moved to first column)
-        const actionsCell = document.createElement('td');
-        if (this.isAdmin) {
-            actionsCell.innerHTML = `
-                <div class="actions-cell">
-                    <button class="btn-icon add-below-btn" data-card-id="${cardId}" title="Add Card Below">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button class="btn-icon delete-card-btn" data-card-id="${cardId}" title="Delete Card">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            `;
-        } else {
-            actionsCell.innerHTML = `<span class="text-muted">-</span>`;
+        // Voice recorder sees limited columns only
+        const isRecorderOnly = this.isRecorder;
+
+        // Actions (moved to first column) - hidden for recorder
+        if (!isRecorderOnly) {
+            const actionsCell = document.createElement('td');
+            if (canEdit) {
+                actionsCell.innerHTML = `
+                    <div class="actions-cell">
+                        <button class="btn-icon add-below-btn" data-card-id="${cardId}" title="Add Card Below">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="btn-icon delete-card-btn" data-card-id="${cardId}" title="Delete Card">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                actionsCell.innerHTML = `<span class="text-muted">-</span>`;
+            }
+            row.appendChild(actionsCell);
         }
-        row.appendChild(actionsCell);
 
-        // Type
-        const typeCell = document.createElement('td');
-        typeCell.innerHTML = `
-            <select class="cell-select ${readonlyClass}" data-field="type" data-card-id="${cardId}" ${disabledAttr}>
-                <option value="N" ${card.type === 'N' ? 'selected' : ''}>N</option>
-                <option value="R" ${card.type === 'R' ? 'selected' : ''}>R</option>
-            </select>
-        `;
-        row.appendChild(typeCell);
+        // Type - hidden for recorder
+        if (!isRecorderOnly) {
+            const typeCell = document.createElement('td');
+            typeCell.innerHTML = `
+                <select class="cell-select ${readonlyClass}" data-field="type" data-card-id="${cardId}" ${disabledAttr}>
+                    <option value="N" ${card.type === 'N' ? 'selected' : ''}>N</option>
+                    <option value="R" ${card.type === 'R' ? 'selected' : ''}>R</option>
+                </select>
+            `;
+            row.appendChild(typeCell);
+        }
 
-        // Card # - NOW EDITABLE
+        // Card # - visible for all (read-only for recorder)
         const cardNumCell = document.createElement('td');
         cardNumCell.innerHTML = `<input type="number" class="cell-input card-num-input ${readonlyClass}" value="${cardId}"
             data-field="cardNum" data-card-id="${cardId}" data-original-id="${cardId}" min="1" ${disabledAttr}>`;
         row.appendChild(cardNumCell);
 
-        // Language word (editable) with notes icon
+        // Language word (editable) with notes icon - visible for all (read-only for recorder)
         const langWord = this.getCardWord(card);
         const hasWordNote = !!(card.wordNote && card.wordNote.trim());
         const langCell = document.createElement('td');
@@ -1148,7 +1189,7 @@ class DeckBuilderModule extends LearningModule {
             <div class="word-cell-container">
                 <input type="text" class="cell-input word-input ${readonlyClass}" value="${langWord}"
                     data-field="word" data-card-id="${cardId}" ${disabledAttr}>
-                <button class="notes-btn ${hasWordNote ? 'has-note' : ''} ${this.isAdmin ? '' : 'hidden'}" data-card-id="${cardId}" data-note-type="word" title="${hasWordNote ? 'Edit note' : 'Add note'}">
+                <button class="notes-btn ${hasWordNote ? 'has-note' : ''} ${canEdit ? '' : 'hidden'}" data-card-id="${cardId}" data-note-type="word" title="${hasWordNote ? 'Edit note' : 'Add note'}">
                     <i class="fas fa-sticky-note"></i>
                     ${hasWordNote ? '<i class="fas fa-check note-check"></i>' : ''}
                 </button>
@@ -1156,7 +1197,7 @@ class DeckBuilderModule extends LearningModule {
         `;
         row.appendChild(langCell);
 
-        // English translation (editable) with notes icon
+        // English translation (editable) with notes icon - visible for all (read-only for recorder)
         const engWord = this.getCardEnglish(card);
         const hasEngNote = !!(card.englishNote && card.englishNote.trim());
         const engCell = document.createElement('td');
@@ -1165,7 +1206,7 @@ class DeckBuilderModule extends LearningModule {
             <div class="word-cell-container">
                 <input type="text" class="cell-input word-input ${readonlyClass}" value="${engWord}"
                     data-field="english" data-card-id="${cardId}" ${disabledAttr}>
-                <button class="notes-btn ${hasEngNote ? 'has-note' : ''} ${this.isAdmin ? '' : 'hidden'}" data-card-id="${cardId}" data-note-type="english" title="${hasEngNote ? 'Edit note' : 'Add note'}">
+                <button class="notes-btn ${hasEngNote ? 'has-note' : ''} ${canEdit ? '' : 'hidden'}" data-card-id="${cardId}" data-note-type="english" title="${hasEngNote ? 'Edit note' : 'Add note'}">
                     <i class="fas fa-sticky-note"></i>
                     ${hasEngNote ? '<i class="fas fa-check note-check"></i>' : ''}
                 </button>
@@ -1173,34 +1214,42 @@ class DeckBuilderModule extends LearningModule {
         `;
         row.appendChild(engCell);
 
-        // Categories button
-        const categoriesCell = document.createElement('td');
-        categoriesCell.innerHTML = `
-            <button class="btn btn-sm btn-secondary categories-btn ${this.isAdmin ? '' : 'hidden'}" data-card-id="${cardId}" title="Edit Categories">
-                Categories
-            </button>
-        `;
-        row.appendChild(categoriesCell);
+        // Categories button - hidden for recorder
+        if (!isRecorderOnly) {
+            const categoriesCell = document.createElement('td');
+            categoriesCell.innerHTML = `
+                <button class="btn btn-sm btn-secondary categories-btn ${canEdit ? '' : 'hidden'}" data-card-id="${cardId}" title="Edit Categories">
+                    Categories
+                </button>
+            `;
+            row.appendChild(categoriesCell);
+        }
 
-        // Picture PNG - only clickable for admin
-        const pngCell = document.createElement('td');
-        pngCell.appendChild(this.createFileUploadBadge(card, 'png'));
-        row.appendChild(pngCell);
+        // Picture PNG - hidden for recorder
+        if (!isRecorderOnly) {
+            const pngCell = document.createElement('td');
+            pngCell.appendChild(this.createFileUploadBadge(card, 'png'));
+            row.appendChild(pngCell);
+        }
 
-        // Animated GIF - only clickable for admin
-        const gifCell = document.createElement('td');
-        gifCell.appendChild(this.createFileUploadBadge(card, 'gif'));
-        row.appendChild(gifCell);
+        // Animated GIF - hidden for recorder
+        if (!isRecorderOnly) {
+            const gifCell = document.createElement('td');
+            gifCell.appendChild(this.createFileUploadBadge(card, 'gif'));
+            row.appendChild(gifCell);
+        }
 
-        // Audio - simplified for v4.0 (single language per card)
+        // Audio - visible for all (this is the main thing recorders need to interact with)
         const audioCell = document.createElement('td');
         audioCell.appendChild(this.createAudioBadge(card));
         row.appendChild(audioCell);
 
-        // Status
-        const statusCell = document.createElement('td');
-        statusCell.innerHTML = `<span class="status ${this.getStatusClass(card)}">${this.getStatusText(card)}</span>`;
-        row.appendChild(statusCell);
+        // Status - hidden for recorder
+        if (!isRecorderOnly) {
+            const statusCell = document.createElement('td');
+            statusCell.innerHTML = `<span class="status ${this.getStatusClass(card)}">${this.getStatusText(card)}</span>`;
+            row.appendChild(statusCell);
+        }
 
         // Attach event listeners
         this.attachRowEventListeners(row, card);
