@@ -107,10 +107,6 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
                 <i class="fas fa-book-open"></i>
                 Grammar
             </button>
-            <button class="nav-tab" data-module="teacher-guide">
-                <i class="fas fa-chalkboard-teacher"></i>
-                Teacher's Guide
-            </button>
             <button class="nav-tab active" data-module="flashcards">
                 <i class="fas fa-layer-group"></i>
                 Flashcards
@@ -138,6 +134,10 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
             <button class="nav-tab hidden" data-module="admin" id="adminTab">
                 <i class="fas fa-tools"></i>
                 Admin
+            </button>
+            <button class="nav-tab" data-module="teacher-guide">
+                <i class="fas fa-chalkboard-teacher"></i>
+                Teacher's Guide
             </button>
             <button class="nav-tab" data-module="pdf">
                 <i class="fas fa-print"></i>
@@ -172,15 +172,12 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
             </div>
             <div class="modal-body">
                 <p style="margin-bottom: 20px; color: var(--text-secondary);">
-                    Select your role and enter the password to access protected features.
+                    Select your user account and enter the password to access protected features.
                 </p>
                 <div class="form-group">
-                    <label class="form-label">Role</label>
-                    <select id="loginRole" class="form-input">
-                        <option value="admin">Admin</option>
-                        <option value="deck-manager">Deck Manager</option>
-                        <option value="editor">Editor</option>
-                        <option value="voice-recorder">Voice Recorder</option>
+                    <label class="form-label">User</label>
+                    <select id="loginUser" class="form-input">
+                        <option value="">Loading users...</option>
                     </select>
                 </div>
                 <div class="form-group" style="margin-top: 16px;">
