@@ -100,9 +100,13 @@ class DeckBuilderModule extends LearningModule {
                 </div>
 
                 <!-- CSV Data Management Section (Admin only) -->
-                <div class="deck-section ${adminOnlyClass}" id="csvManagementSection">
-                    <h3 class="section-title"><i class="fas fa-sync-alt"></i> CSV Data Management</h3>
-                    <div class="section-card">
+                <div class="deck-section collapsible collapsed ${adminOnlyClass}" id="csvManagementSection" data-section="csv">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-sync-alt"></i> CSV Data Management
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
                         <p class="section-description">
                             Upload and process your Language List and Word List CSV files. In v4.0, each language has its own Word List file.
                         </p>
@@ -157,16 +161,21 @@ class DeckBuilderModule extends LearningModule {
                         <p class="section-hint">
                             <i class="fas fa-info-circle"></i> Upload CSVs first, then the system will scan for matching images/audio files
                         </p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Media Files Upload Section (Admin only) -->
-                <div class="deck-section ${adminOnlyClass}" id="mediaUploadSection">
-                    <h3 class="section-title"><i class="fas fa-photo-video"></i> Media Files Upload</h3>
-                    <div class="section-card">
-                        <p class="section-description">
-                            Upload image/video files (PNG/JPG/WebP/GIF/MP4/WebM) and audio files (MP3/M4A) for your words. Files must follow the naming convention.
-                        </p>
+                <div class="deck-section collapsible collapsed ${adminOnlyClass}" id="mediaUploadSection" data-section="media">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-photo-video"></i> Media Files Upload
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
+                            <p class="section-description">
+                                Upload image/video files (PNG/JPG/WebP/GIF/MP4/WebM) and audio files (MP3/M4A) for your words. Files must follow the naming convention.
+                            </p>
 
                         <div class="csv-upload-section">
                             <div class="file-upload-container">
@@ -188,19 +197,23 @@ class DeckBuilderModule extends LearningModule {
                             </div>
                         </div>
 
-                        <div class="section-actions">
-                            <button id="deckUploadMediaBtn" class="btn btn-primary" disabled>
-                                <i class="fas fa-cloud-upload-alt"></i> Upload Media Files
-                            </button>
+                            <div class="section-actions">
+                                <button id="deckUploadMediaBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-cloud-upload-alt"></i> Upload Media Files
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sentence Words Upload Section (Admin only) -->
-                <div class="deck-section ${adminOnlyClass}" id="sentenceWordsSection">
-                    <h3 class="section-title"><i class="fas fa-bars-staggered"></i> Sentence Builder Data</h3>
-
-                    <!-- Tab Navigation -->
+                <div class="deck-section collapsible collapsed ${adminOnlyClass}" id="sentenceWordsSection" data-section="sentence">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-bars-staggered"></i> Sentence Builder Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <!-- Tab Navigation -->
                     <div class="sentence-words-tabs">
                         <button class="sw-tab-btn active" data-tab="upload">
                             <i class="fas fa-upload"></i> Upload CSV
@@ -284,12 +297,17 @@ class DeckBuilderModule extends LearningModule {
                             </div>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- Grammar Files Management Section (Admin only) -->
-                <div class="deck-section ${adminOnlyClass}" id="grammarManagementSection">
-                    <h3 class="section-title"><i class="fas fa-book-open"></i> Grammar Files Management</h3>
-                    <div class="section-card">
+                <div class="deck-section collapsible collapsed ${adminOnlyClass}" id="grammarManagementSection" data-section="grammar">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-book-open"></i> Grammar Files Management
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
                         <p class="section-description">
                             Upload HTML grammar files for each lesson. Files can be exported from Word as "Web Page, Filtered" or converted using the <a href="converter/" target="_blank">Converter</a>.
                         </p>
@@ -343,6 +361,7 @@ class DeckBuilderModule extends LearningModule {
                                 </button>
                             </div>
                             <div id="grammarReportContent"></div>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -549,6 +568,9 @@ class DeckBuilderModule extends LearningModule {
         // Setup event listeners
         this.setupEventListeners();
 
+        // Setup collapsible sections
+        this.setupCollapsibleSections();
+
         // Setup CSV, Media, and Grammar upload (admin only)
         if (this.isAdmin) {
             this.setupCSVUpload();
@@ -712,6 +734,72 @@ class DeckBuilderModule extends LearningModule {
                 icon.className = 'fas fa-sort sort-icon';
             }
         });
+    }
+
+    /**
+     * Setup collapsible sections with localStorage persistence
+     */
+    setupCollapsibleSections() {
+        const sections = this.container.querySelectorAll('.deck-section.collapsible');
+        const storageKey = 'deckBuilder_collapsedSections';
+
+        // Load saved state from localStorage
+        let savedState = {};
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                savedState = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.warn('Could not load collapsed sections state:', e);
+        }
+
+        sections.forEach(section => {
+            const sectionId = section.dataset.section;
+            const title = section.querySelector('.section-title');
+
+            if (!title || !sectionId) return;
+
+            // Apply saved state (default to collapsed if no saved state)
+            if (savedState[sectionId] === false) {
+                section.classList.remove('collapsed');
+            }
+            // Note: sections start collapsed by default via HTML class
+
+            // Click handler
+            title.addEventListener('click', () => {
+                this.toggleSection(section, storageKey);
+            });
+
+            // Keyboard accessibility (Enter/Space to toggle)
+            title.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.toggleSection(section, storageKey);
+                }
+            });
+        });
+    }
+
+    /**
+     * Toggle a collapsible section and save state
+     */
+    toggleSection(section, storageKey) {
+        const sectionId = section.dataset.section;
+        const isCollapsed = section.classList.toggle('collapsed');
+
+        // Save state to localStorage
+        try {
+            let savedState = {};
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                savedState = JSON.parse(saved);
+            }
+            savedState[sectionId] = isCollapsed;
+            localStorage.setItem(storageKey, JSON.stringify(savedState));
+        } catch (e) {
+            console.warn('Could not save collapsed sections state:', e);
+        }
     }
 
     setupEventListeners() {
