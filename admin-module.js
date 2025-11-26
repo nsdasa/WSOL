@@ -555,6 +555,7 @@ class AdminModule extends LearningModule {
         const roleOptions = [
             { value: 'admin', label: 'Admin - Full access to all features' },
             { value: 'deck-manager', label: 'Deck Manager - Full Deck Builder access' },
+            { value: 'editor', label: 'Editor - Table editing only (no tool sections)' },
             { value: 'voice-recorder', label: 'Voice Recorder - Audio recording only' }
         ];
 
