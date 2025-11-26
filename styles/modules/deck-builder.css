@@ -4,8 +4,16 @@
    ================================================================= */
 
 .module-deck-builder {
-    max-width: 100%;
+    max-width: 95%;
+    width: 95%;
+    margin: 0 auto;
     padding: 20px;
+}
+
+/* Override container max-width for deck builder */
+.container:has(.module-deck-builder) {
+    max-width: 98%;
+    width: 98%;
 }
 
 /* Deck Header */
