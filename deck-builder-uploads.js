@@ -1686,3 +1686,32 @@ DeckBuilderModule.prototype.saveSentenceWordsChanges = async function() {
     }
 };
 
+// =================================================================
+// SENTENCE REVIEW BUILDER INTEGRATION
+// =================================================================
+
+/**
+ * Setup the Sentence Review Builder section
+ */
+DeckBuilderModule.prototype.setupSentenceReviewBuilder = function() {
+    // Check if SentenceReviewBuilder class is available
+    if (typeof SentenceReviewBuilder === 'undefined') {
+        console.warn('SentenceReviewBuilder class not loaded');
+        return;
+    }
+
+    // Create and store the builder instance
+    this.sentenceReviewBuilder = new SentenceReviewBuilder(this);
+    this.sentenceReviewBuilder.init();
+
+    debugLogger?.log(2, 'Sentence Review Builder initialized');
+};
+
+/**
+ * Called when language filter changes - notify sentence review builder
+ */
+DeckBuilderModule.prototype.notifySentenceReviewBuilderLanguageChange = function(trigraph) {
+    if (this.sentenceReviewBuilder) {
+        this.sentenceReviewBuilder.onLanguageChange(trigraph);
+    }
+};

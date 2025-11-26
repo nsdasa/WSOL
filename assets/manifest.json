@@ -19203,6 +19203,50 @@
         "mrw": [],
         "sin": []
     },
+    "sentenceReview": {
+        "ceb": {
+            "lessons": {
+                "1": {
+                    "title": "Lesson 1 - Basic Questions",
+                    "sequences": [
+                        {
+                            "id": 1,
+                            "title": "Finding the Book",
+                            "sentences": [
+                                {
+                                    "id": 1,
+                                    "text": "Asa ang libro?",
+                                    "english": "Where is the book?",
+                                    "words": [
+                                        {"word": "Asa", "root": null, "cardNum": 1, "imagePath": "assets/1.Asa.Where.png"},
+                                        {"word": "ang", "root": null, "cardNum": null, "imagePath": null},
+                                        {"word": "libro", "root": null, "cardNum": 35, "imagePath": "assets/35.Libro.Book.png"}
+                                    ]
+                                },
+                                {
+                                    "id": 2,
+                                    "text": "Ang libro sa lamesa.",
+                                    "english": "The book is on the table.",
+                                    "words": [
+                                        {"word": "Ang", "root": null, "cardNum": null, "imagePath": null},
+                                        {"word": "libro", "root": null, "cardNum": 35, "imagePath": "assets/35.Libro.Book.png"},
+                                        {"word": "sa", "root": null, "cardNum": 129, "imagePath": "assets/129.Sa.To.png"},
+                                        {"word": "lamesa", "root": null, "cardNum": 36, "imagePath": "assets/36.Lamesa.Table.png"}
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "mrw": {
+            "lessons": {}
+        },
+        "sin": {
+            "lessons": {}
+        }
+    },
     "stats": {
         "totalCards": 625,
         "cardsWithAudio": 264,

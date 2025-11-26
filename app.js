@@ -1856,6 +1856,7 @@ async function init() {
         router.register('match-sound', MatchSoundModule);
         router.register('quiz', UnsaNiQuizModule);
         router.register('sentence-builder', SentenceBuilderModule);
+        router.register('sentence-review', SentenceReviewModule);
         router.register('pdf', PDFPrintModule);
         router.register('deck-builder', DeckBuilderModule);
         router.register('admin', AdminModule);

@@ -142,6 +142,16 @@ try {
         $manifest['lessonMeta'][$trigraph] = $lessonMeta;
     }
 
+    // Update sentenceReview if provided
+    if (isset($data['sentenceReview'])) {
+        // Initialize sentenceReview section if not exists
+        if (!isset($manifest['sentenceReview'])) {
+            $manifest['sentenceReview'] = [];
+        }
+        // Update sentenceReview for this language
+        $manifest['sentenceReview'][$trigraph] = $data['sentenceReview'];
+    }
+
     // Update timestamp
     $manifest['lastUpdated'] = date('c');
 
