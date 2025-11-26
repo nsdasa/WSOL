@@ -433,9 +433,6 @@ class DeckBuilderModule extends LearningModule {
                         <thead>
                             <tr>
                                 <th style="width: 70px;">Actions</th>
-                                <th style="width: 65px;" class="sortable-header" data-sort="lesson">
-                                    Lesson <i class="fas fa-sort sort-icon"></i>
-                                </th>
                                 <th style="width: 50px;">Type</th>
                                 <th style="width: 60px;" class="sortable-header" data-sort="cardNum">
                                     Card # <i class="fas fa-sort sort-icon"></i>
@@ -1000,10 +997,95 @@ class DeckBuilderModule extends LearningModule {
         const tbody = document.getElementById('deckTableBody');
         tbody.innerHTML = '';
 
+        // Group cards by lesson
+        const lessonGroups = new Map();
         this.filteredCards.forEach(card => {
-            const row = this.createCardRow(card);
-            tbody.appendChild(row);
+            const lesson = card.lesson || 0;
+            if (!lessonGroups.has(lesson)) {
+                lessonGroups.set(lesson, []);
+            }
+            lessonGroups.get(lesson).push(card);
         });
+
+        // Sort lessons numerically
+        const sortedLessons = Array.from(lessonGroups.keys()).sort((a, b) => a - b);
+
+        // Load collapsed state from localStorage
+        const storageKey = 'deckBuilder_collapsedLessons';
+        let collapsedLessons = {};
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                collapsedLessons = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.warn('Could not load collapsed lessons state:', e);
+        }
+
+        // Render each lesson group
+        sortedLessons.forEach(lesson => {
+            const cards = lessonGroups.get(lesson);
+            const isCollapsed = collapsedLessons[lesson] !== false; // Default to collapsed
+
+            // Create lesson header row
+            const headerRow = document.createElement('tr');
+            headerRow.className = `lesson-header-row ${isCollapsed ? 'collapsed' : ''}`;
+            headerRow.dataset.lesson = lesson;
+
+            const headerCell = document.createElement('td');
+            headerCell.colSpan = 10; // Number of columns
+            headerCell.className = 'lesson-header-cell';
+            headerCell.innerHTML = `
+                <div class="lesson-header">
+                    <i class="fas fa-chevron-right lesson-chevron"></i>
+                    <span class="lesson-title">Lesson ${lesson}</span>
+                    <span class="lesson-count">${cards.length} card${cards.length !== 1 ? 's' : ''}</span>
+                </div>
+            `;
+
+            // Add click handler for expand/collapse
+            headerCell.addEventListener('click', () => {
+                this.toggleLessonGroup(lesson, headerRow, storageKey);
+            });
+
+            headerRow.appendChild(headerCell);
+            tbody.appendChild(headerRow);
+
+            // Create card rows for this lesson
+            cards.forEach(card => {
+                const row = this.createCardRow(card);
+                row.classList.add('lesson-card-row');
+                row.dataset.lesson = lesson;
+                if (isCollapsed) {
+                    row.classList.add('hidden');
+                }
+                tbody.appendChild(row);
+            });
+        });
+    }
+
+    toggleLessonGroup(lesson, headerRow, storageKey) {
+        const isCollapsed = headerRow.classList.toggle('collapsed');
+        const tbody = document.getElementById('deckTableBody');
+
+        // Toggle visibility of card rows for this lesson
+        const cardRows = tbody.querySelectorAll(`.lesson-card-row[data-lesson="${lesson}"]`);
+        cardRows.forEach(row => {
+            row.classList.toggle('hidden', isCollapsed);
+        });
+
+        // Save state to localStorage
+        try {
+            let collapsedLessons = {};
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                collapsedLessons = JSON.parse(saved);
+            }
+            collapsedLessons[lesson] = isCollapsed;
+            localStorage.setItem(storageKey, JSON.stringify(collapsedLessons));
+        } catch (e) {
+            console.warn('Could not save collapsed lessons state:', e);
+        }
     }
 
     createCardRow(card) {
@@ -1040,12 +1122,6 @@ class DeckBuilderModule extends LearningModule {
             actionsCell.innerHTML = `<span class="text-muted">-</span>`;
         }
         row.appendChild(actionsCell);
-
-        // Lesson
-        const lessonCell = document.createElement('td');
-        lessonCell.innerHTML = `<input type="number" class="cell-input ${readonlyClass}" value="${card.lesson || ''}"
-            data-field="lesson" data-card-id="${cardId}" min="1" max="100" ${disabledAttr}>`;
-        row.appendChild(lessonCell);
 
         // Type
         const typeCell = document.createElement('td');
