@@ -2540,8 +2540,8 @@ class DeckBuilderModule extends LearningModule {
     getStatusClass(card) {
         const hasPng = !!card.printImagePath;
         const hasGif = card.hasGif || !!card.gifPath;
-        // v4.0: audio is string, not object
-        const hasAudio = !!card.audio || card.hasAudio;
+        // v4.0: audio is array - check for actual paths, not empty arrays
+        const hasAudio = (Array.isArray(card.audio) ? card.audio.some(a => a && a.trim()) : !!card.audio) || card.hasAudio;
 
         if (hasPng && hasGif && hasAudio) return 'status-complete-animated';
         if (hasPng && hasAudio) return 'status-complete-static';
