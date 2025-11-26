@@ -7,6 +7,8 @@
 require_once 'config.php';
 enforceHttps();
 
+// Use configured session name for consistency with auth.php
+session_name(SESSION_NAME);
 session_start();
 
 header('Content-Type: application/json');
