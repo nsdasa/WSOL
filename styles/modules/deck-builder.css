@@ -250,6 +250,32 @@
     background: #2c3e50 !important;
 }
 
+/* Word columns - flexible width to show full words */
+.deck-table th.word-column,
+.deck-table td.word-column {
+    min-width: 180px;
+    width: auto;
+}
+
+/* Actions cell styling */
+.deck-table .actions-cell {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+
+.deck-table .actions-cell .btn-icon {
+    padding: 4px 6px;
+}
+
+.deck-table .actions-cell .add-below-btn {
+    color: var(--success);
+}
+
+.deck-table .actions-cell .delete-card-btn {
+    color: var(--danger);
+}
+
 [data-theme="dark"] .sortable-header:hover {
     background: var(--bg-primary) !important;
 }
