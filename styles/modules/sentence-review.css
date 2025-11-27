@@ -573,16 +573,49 @@
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    max-height: 70vh;
 }
 
 .sr-builder-preview h4 {
     margin-bottom: 12px;
     color: var(--text-primary);
+    flex-shrink: 0;
 }
 
 .sr-builder-preview h4 i {
     margin-right: 8px;
     color: var(--warning);
+}
+
+/* Scrollable preview content */
+#srPreviewContent {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-bottom: 16px;
+    min-height: 200px;
+    max-height: calc(70vh - 120px);
+}
+
+/* Custom scrollbar for preview */
+#srPreviewContent::-webkit-scrollbar {
+    width: 8px;
+}
+
+#srPreviewContent::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+#srPreviewContent::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+#srPreviewContent::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
 .preview-summary {
@@ -709,6 +742,12 @@
     display: flex;
     gap: 12px;
     margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid var(--border-color);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
 }
 
 /* Lessons List */
