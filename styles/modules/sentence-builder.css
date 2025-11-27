@@ -39,7 +39,6 @@
 
 #sentenceRow {
     width: 100%;
-    max-width: 900px;
     display: flex;
     flex-wrap: wrap;
     gap: clamp(8px, 1.5vw, 20px);
