@@ -297,29 +297,21 @@ class DeckBuilderModule extends LearningModule {
                                             <option value="">Select Language</option>
                                         </select>
                                     </div>
-                                    <div class="filter-group">
-                                        <label for="swEditorLesson">
-                                            <i class="fas fa-bookmark"></i> Lesson:
-                                        </label>
-                                        <select id="swEditorLesson" class="select-control">
-                                            <option value="">Select Lesson</option>
-                                        </select>
-                                    </div>
                                 </div>
                                 <div class="sw-editor-actions">
-                                    <button id="swAddWordType" class="btn btn-secondary" disabled>
-                                        <i class="fas fa-plus"></i> Add Word Type
+                                    <button id="swAddLesson" class="btn btn-secondary" disabled>
+                                        <i class="fas fa-plus"></i> Add Lesson
                                     </button>
-                                    <button id="swSaveChanges" class="btn btn-primary" disabled>
-                                        <i class="fas fa-save"></i> Save Changes
+                                    <button id="swSaveAllChanges" class="btn btn-primary" disabled>
+                                        <i class="fas fa-save"></i> Save All Changes
                                     </button>
                                 </div>
                             </div>
 
-                            <div id="swEditorContent" class="sw-editor-content">
+                            <div id="swLessonsList" class="sw-lessons-list">
                                 <div class="sw-editor-empty">
                                     <i class="fas fa-hand-pointer"></i>
-                                    <p>Select a language and lesson to edit sentence words</p>
+                                    <p>Select a language to view and edit sentence words</p>
                                 </div>
                             </div>
 

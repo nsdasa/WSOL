@@ -1343,7 +1343,7 @@ DeckBuilderModule.prototype.renderTeacherGuideReport = function(report) {
 
 
 // =========================================
-// SENTENCE WORDS EDITOR
+// SENTENCE WORDS EDITOR (Collapsible Lessons)
 // =========================================
 
 DeckBuilderModule.prototype.setupSentenceWordsEditor = function() {
@@ -1363,13 +1363,14 @@ DeckBuilderModule.prototype.setupSentenceWordsEditor = function() {
     });
 
     // Initialize editor state
-    this.swEditorData = null;
-    this.swEditorDirty = false;
+    this.swAllLessonsData = {}; // All lessons data: { lessonNum: { wordType: [...words] } }
+    this.swExpandedLessons = new Set(); // Track expanded lessons
+    this.swEditedLessons = new Set(); // Track which lessons have been edited
+    this.swEditorInitialized = false;
 };
 
 DeckBuilderModule.prototype.initSentenceWordsEditor = function() {
     const langSelect = document.getElementById('swEditorLanguage');
-    const lessonSelect = document.getElementById('swEditorLesson');
 
     // Populate language dropdown
     const languages = this.assets.manifest?.languages || [];
@@ -1378,124 +1379,166 @@ DeckBuilderModule.prototype.initSentenceWordsEditor = function() {
     langSelect.innerHTML = '<option value="">Select Language</option>' +
         targetLanguages.map(l => `<option value="${l.trigraph}">${l.name}</option>`).join('');
 
-    // Language change handler
-    langSelect.addEventListener('change', () => {
-        this.swEditorDirty = false;
-        this.populateLessonDropdown();
-    });
+    // Only add event listeners once
+    if (!this.swEditorInitialized) {
+        // Language change handler
+        langSelect.addEventListener('change', () => {
+            this.swEditedLessons.clear();
+            this.swExpandedLessons.clear();
+            this.loadAllSentenceWordsForLanguage();
+        });
 
-    // Lesson change handler
-    lessonSelect.addEventListener('change', () => {
-        this.loadSentenceWordsForEditor();
-    });
+        // Add Lesson button
+        document.getElementById('swAddLesson').addEventListener('click', () => {
+            this.addNewSentenceWordsLesson();
+        });
 
-    // Add Word Type button
-    document.getElementById('swAddWordType').addEventListener('click', () => {
-        this.addNewWordType();
-    });
+        // Save All Changes button
+        document.getElementById('swSaveAllChanges').addEventListener('click', () => {
+            this.saveAllSentenceWordsChanges();
+        });
 
-    // Save Changes button
-    document.getElementById('swSaveChanges').addEventListener('click', () => {
-        this.saveSentenceWordsChanges();
-    });
+        this.swEditorInitialized = true;
+    }
 };
 
-DeckBuilderModule.prototype.populateLessonDropdown = function() {
-    const langSelect = document.getElementById('swEditorLanguage');
-    const lessonSelect = document.getElementById('swEditorLesson');
-    const lang = langSelect.value;
+DeckBuilderModule.prototype.loadAllSentenceWordsForLanguage = function() {
+    const lang = document.getElementById('swEditorLanguage').value;
 
     if (!lang) {
-        lessonSelect.innerHTML = '<option value="">Select Lesson</option>';
-        lessonSelect.disabled = true;
-        document.getElementById('swEditorContent').innerHTML = `
+        document.getElementById('swAddLesson').disabled = true;
+        document.getElementById('swSaveAllChanges').disabled = true;
+        document.getElementById('swLessonsList').innerHTML = `
             <div class="sw-editor-empty">
                 <i class="fas fa-hand-pointer"></i>
-                <p>Select a language and lesson to edit sentence words</p>
+                <p>Select a language to view and edit sentence words</p>
             </div>`;
         return;
     }
 
-    // Get max lesson from cards
+    document.getElementById('swAddLesson').disabled = false;
+
+    // Get all sentence words for this language
+    const sentenceWords = this.assets.manifest?.sentenceWords?.[lang] || {};
+
+    // Deep clone for editing
+    this.swAllLessonsData = JSON.parse(JSON.stringify(sentenceWords));
+
+    // Also get max lesson from cards to ensure we show all possible lessons
     const cards = this.assets.manifest?.cards?.[lang] || [];
     const maxLesson = Math.max(...cards.map(c => c.lesson || 1), 1);
 
-    lessonSelect.innerHTML = '<option value="">Select Lesson</option>' +
-        Array.from({length: maxLesson}, (_, i) => `<option value="${i + 1}">Lesson ${i + 1}</option>`).join('');
-    lessonSelect.disabled = false;
+    // Ensure all lessons up to maxLesson exist in our data structure
+    for (let i = 1; i <= maxLesson; i++) {
+        if (!this.swAllLessonsData[i]) {
+            this.swAllLessonsData[i] = {};
+        }
+    }
+
+    this.renderSentenceWordsLessonsList();
 };
 
-DeckBuilderModule.prototype.loadSentenceWordsForEditor = function() {
+DeckBuilderModule.prototype.renderSentenceWordsLessonsList = function() {
+    const container = document.getElementById('swLessonsList');
     const lang = document.getElementById('swEditorLanguage').value;
-    const lesson = document.getElementById('swEditorLesson').value;
 
-    if (!lang || !lesson) {
-        document.getElementById('swAddWordType').disabled = true;
-        document.getElementById('swSaveChanges').disabled = true;
+    if (!lang) {
+        container.innerHTML = `
+            <div class="sw-editor-empty">
+                <i class="fas fa-hand-pointer"></i>
+                <p>Select a language to view and edit sentence words</p>
+            </div>`;
         return;
     }
 
-    document.getElementById('swAddWordType').disabled = false;
+    const lessonNums = Object.keys(this.swAllLessonsData).map(Number).sort((a, b) => a - b);
 
-    // Get sentence words from manifest
-    const sentenceWords = this.assets.manifest?.sentenceWords?.[lang]?.[lesson] || {};
-
-    // Deep clone for editing
-    this.swEditorData = JSON.parse(JSON.stringify(sentenceWords));
-    this.swEditorDirty = false;
-
-    this.renderSentenceWordsEditor();
-};
-
-DeckBuilderModule.prototype.renderSentenceWordsEditor = function() {
-    const container = document.getElementById('swEditorContent');
-    const lang = document.getElementById('swEditorLanguage').value;
-
-    if (!this.swEditorData || Object.keys(this.swEditorData).length === 0) {
+    if (lessonNums.length === 0) {
         container.innerHTML = `
             <div class="sw-editor-empty">
                 <i class="fas fa-inbox"></i>
-                <p>No sentence words defined for this lesson yet.</p>
-                <p>Click "Add Word Type" to create a new category.</p>
+                <p>No lessons found. Click "Add Lesson" to create one.</p>
             </div>`;
         return;
     }
 
     let html = '';
 
-    for (const [wordType, words] of Object.entries(this.swEditorData)) {
-        const wordCount = words.length;
+    lessonNums.forEach(lessonNum => {
+        const lessonData = this.swAllLessonsData[lessonNum] || {};
+        const isExpanded = this.swExpandedLessons.has(lessonNum);
+        const isEdited = this.swEditedLessons.has(lessonNum);
+        const wordTypeCount = Object.keys(lessonData).length;
+        const totalWords = Object.values(lessonData).reduce((sum, words) => sum + (words?.length || 0), 0);
+
         html += `
-            <div class="sw-word-type-section" data-type="${wordType}">
+            <div class="sw-lesson-item ${isExpanded ? 'expanded' : ''}" data-lesson="${lessonNum}">
+                <div class="sw-lesson-header" data-lesson="${lessonNum}">
+                    <i class="fas fa-${isExpanded ? 'minus' : 'plus'}-square expand-icon"></i>
+                    <span class="lesson-title">Lesson ${lessonNum}</span>
+                    <span class="word-type-count">${wordTypeCount} types, ${totalWords} words</span>
+                    ${isEdited ? '<span class="edited-badge">Modified</span>' : ''}
+                    <button class="btn btn-sm btn-secondary sw-add-word-type" data-lesson="${lessonNum}" title="Add word type">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger sw-delete-lesson" data-lesson="${lessonNum}" title="Delete lesson">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="sw-lesson-content ${isExpanded ? '' : 'hidden'}">
+                    ${this.renderWordTypesForLesson(lessonNum, lessonData, lang)}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+
+    // Attach event listeners
+    this.attachSentenceWordsListeners();
+    this.updateSaveAllButtonState();
+};
+
+DeckBuilderModule.prototype.renderWordTypesForLesson = function(lessonNum, lessonData, lang) {
+    if (!lessonData || Object.keys(lessonData).length === 0) {
+        return '<p class="sw-no-word-types">No word types defined. Click + to add one.</p>';
+    }
+
+    let html = '<div class="sw-word-types-list">';
+
+    for (const [wordType, words] of Object.entries(lessonData)) {
+        const wordCount = words?.length || 0;
+        html += `
+            <div class="sw-word-type-section" data-lesson="${lessonNum}" data-type="${wordType}">
                 <div class="sw-type-header">
-                    <button class="sw-collapse-btn" onclick="this.closest('.sw-word-type-section').classList.toggle('collapsed')">
+                    <button class="sw-collapse-btn">
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <span class="sw-type-name">${wordType}</span>
                     <span class="sw-type-count">(${wordCount} word${wordCount !== 1 ? 's' : ''})</span>
-                    <button class="sw-type-delete" title="Delete word type" onclick="deckBuilder.deleteWordType('${wordType}')">
+                    <button class="sw-type-delete" data-lesson="${lessonNum}" data-type="${wordType}" title="Delete word type">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
                 <div class="sw-type-body">
                     <div class="sw-word-chips">`;
 
-        for (const word of words) {
+        for (const word of (words || [])) {
             const cardMatch = this.findCardForWord(word, lang);
             const validClass = cardMatch ? 'valid' : 'invalid';
+            const escapedWord = word.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             html += `
-                        <div class="sw-word-chip ${validClass}" 
-                             data-word="${word}" 
-                             data-type="${wordType}"
-                             onmouseenter="deckBuilder.showWordPreview(event, '${word.replace(/'/g, "\\'")}', '${lang}')"
-                             onmouseleave="deckBuilder.hideWordPreview()">
-                            <span class="sw-chip-text" onclick="deckBuilder.editWord('${wordType}', '${word.replace(/'/g, "\\'")}')">${word}</span>
-                            <button class="sw-chip-delete" onclick="deckBuilder.deleteWord('${wordType}', '${word.replace(/'/g, "\\'")}')">&times;</button>
+                        <div class="sw-word-chip ${validClass}"
+                             data-word="${word}"
+                             data-lesson="${lessonNum}"
+                             data-type="${wordType}">
+                            <span class="sw-chip-text">${word}</span>
+                            <button class="sw-chip-delete" data-lesson="${lessonNum}" data-type="${wordType}" data-word="${escapedWord}">&times;</button>
                         </div>`;
         }
 
         html += `
-                        <button class="sw-add-word-btn" onclick="deckBuilder.addWordToType('${wordType}')">
+                        <button class="sw-add-word-btn" data-lesson="${lessonNum}" data-type="${wordType}">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -1503,8 +1546,307 @@ DeckBuilderModule.prototype.renderSentenceWordsEditor = function() {
             </div>`;
     }
 
-    container.innerHTML = html;
-    this.updateSaveButtonState();
+    html += '</div>';
+    return html;
+};
+
+DeckBuilderModule.prototype.attachSentenceWordsListeners = function() {
+    const lang = document.getElementById('swEditorLanguage').value;
+
+    // Lesson expand/collapse
+    document.querySelectorAll('.sw-lesson-header').forEach(header => {
+        header.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            const lessonNum = parseInt(header.dataset.lesson);
+            this.toggleSentenceWordsLesson(lessonNum);
+        });
+    });
+
+    // Word type collapse toggle
+    document.querySelectorAll('.sw-collapse-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const section = btn.closest('.sw-word-type-section');
+            section.classList.toggle('collapsed');
+        });
+    });
+
+    // Add word type buttons
+    document.querySelectorAll('.sw-add-word-type').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const lessonNum = parseInt(btn.dataset.lesson);
+            this.addWordTypeToLesson(lessonNum);
+        });
+    });
+
+    // Delete lesson buttons
+    document.querySelectorAll('.sw-delete-lesson').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const lessonNum = parseInt(btn.dataset.lesson);
+            this.deleteSentenceWordsLesson(lessonNum);
+        });
+    });
+
+    // Delete word type buttons
+    document.querySelectorAll('.sw-type-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const lessonNum = parseInt(btn.dataset.lesson);
+            const wordType = btn.dataset.type;
+            this.deleteWordTypeFromLesson(lessonNum, wordType);
+        });
+    });
+
+    // Add word buttons
+    document.querySelectorAll('.sw-add-word-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const lessonNum = parseInt(btn.dataset.lesson);
+            const wordType = btn.dataset.type;
+            this.addWordToTypeInLesson(lessonNum, wordType);
+        });
+    });
+
+    // Word chip text click (edit)
+    document.querySelectorAll('.sw-chip-text').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const chipDiv = chip.closest('.sw-word-chip');
+            const lessonNum = parseInt(chipDiv.dataset.lesson);
+            const wordType = chipDiv.dataset.type;
+            const word = chipDiv.dataset.word;
+            this.editWordInLesson(lessonNum, wordType, word);
+        });
+    });
+
+    // Delete word buttons
+    document.querySelectorAll('.sw-chip-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const lessonNum = parseInt(btn.dataset.lesson);
+            const wordType = btn.dataset.type;
+            const word = btn.dataset.word;
+            this.deleteWordFromLesson(lessonNum, wordType, word);
+        });
+    });
+
+    // Word chip hover for preview
+    document.querySelectorAll('.sw-word-chip').forEach(chip => {
+        chip.addEventListener('mouseenter', (e) => {
+            const word = chip.dataset.word;
+            this.showWordPreview(e, word, lang);
+        });
+        chip.addEventListener('mouseleave', () => {
+            this.hideWordPreview();
+        });
+    });
+};
+
+DeckBuilderModule.prototype.toggleSentenceWordsLesson = function(lessonNum) {
+    if (this.swExpandedLessons.has(lessonNum)) {
+        this.swExpandedLessons.delete(lessonNum);
+    } else {
+        this.swExpandedLessons.add(lessonNum);
+    }
+    this.renderSentenceWordsLessonsList();
+};
+
+DeckBuilderModule.prototype.addNewSentenceWordsLesson = function() {
+    const lessonNum = prompt('Enter lesson number:');
+    if (!lessonNum || isNaN(parseInt(lessonNum))) return;
+
+    const num = parseInt(lessonNum);
+    if (this.swAllLessonsData[num] && Object.keys(this.swAllLessonsData[num]).length > 0) {
+        toastManager?.show('Lesson already has data', 'warning');
+        return;
+    }
+
+    this.swAllLessonsData[num] = {};
+    this.swEditedLessons.add(num);
+    this.swExpandedLessons.add(num);
+    this.renderSentenceWordsLessonsList();
+    toastManager?.show(`Added Lesson ${num}`, 'success');
+};
+
+DeckBuilderModule.prototype.deleteSentenceWordsLesson = function(lessonNum) {
+    const lessonData = this.swAllLessonsData[lessonNum] || {};
+    const wordTypeCount = Object.keys(lessonData).length;
+
+    if (!confirm(`Delete Lesson ${lessonNum} and its ${wordTypeCount} word type(s)?`)) return;
+
+    delete this.swAllLessonsData[lessonNum];
+    this.swEditedLessons.add(lessonNum);
+    this.swExpandedLessons.delete(lessonNum);
+    this.renderSentenceWordsLessonsList();
+    toastManager?.show(`Deleted Lesson ${lessonNum}`, 'success');
+};
+
+DeckBuilderModule.prototype.addWordTypeToLesson = function(lessonNum) {
+    const typeName = prompt('Enter new word type name (e.g., Verb, Noun, Adjective):');
+    if (!typeName || !typeName.trim()) return;
+
+    const trimmedType = typeName.trim();
+    if (!this.swAllLessonsData[lessonNum]) {
+        this.swAllLessonsData[lessonNum] = {};
+    }
+
+    if (this.swAllLessonsData[lessonNum][trimmedType]) {
+        toastManager?.show('Word type already exists in this lesson', 'error');
+        return;
+    }
+
+    this.swAllLessonsData[lessonNum][trimmedType] = [];
+    this.swEditedLessons.add(lessonNum);
+    this.swExpandedLessons.add(lessonNum);
+    this.renderSentenceWordsLessonsList();
+    toastManager?.show(`Added word type "${trimmedType}" to Lesson ${lessonNum}`, 'success');
+};
+
+DeckBuilderModule.prototype.deleteWordTypeFromLesson = function(lessonNum, wordType) {
+    const wordCount = this.swAllLessonsData[lessonNum]?.[wordType]?.length || 0;
+    if (!confirm(`Delete word type "${wordType}" and its ${wordCount} word(s) from Lesson ${lessonNum}?`)) return;
+
+    delete this.swAllLessonsData[lessonNum][wordType];
+    this.swEditedLessons.add(lessonNum);
+    this.renderSentenceWordsLessonsList();
+    toastManager?.show(`Deleted word type "${wordType}"`, 'success');
+};
+
+DeckBuilderModule.prototype.addWordToTypeInLesson = function(lessonNum, wordType) {
+    const word = prompt(`Add new word to "${wordType}" in Lesson ${lessonNum}:`);
+    if (!word || !word.trim()) return;
+
+    const trimmedWord = word.trim();
+    if (!this.swAllLessonsData[lessonNum]) {
+        this.swAllLessonsData[lessonNum] = {};
+    }
+    if (!this.swAllLessonsData[lessonNum][wordType]) {
+        this.swAllLessonsData[lessonNum][wordType] = [];
+    }
+
+    if (this.swAllLessonsData[lessonNum][wordType].includes(trimmedWord)) {
+        toastManager?.show('Word already exists in this category', 'error');
+        return;
+    }
+
+    this.swAllLessonsData[lessonNum][wordType].push(trimmedWord);
+    this.swEditedLessons.add(lessonNum);
+    this.renderSentenceWordsLessonsList();
+    toastManager?.show(`Added "${trimmedWord}" to ${wordType}`, 'success');
+};
+
+DeckBuilderModule.prototype.editWordInLesson = function(lessonNum, wordType, oldWord) {
+    const newWord = prompt(`Edit word:`, oldWord);
+    if (!newWord || !newWord.trim() || newWord.trim() === oldWord) return;
+
+    const trimmedWord = newWord.trim();
+    const words = this.swAllLessonsData[lessonNum]?.[wordType] || [];
+    const index = words.indexOf(oldWord);
+
+    if (index > -1) {
+        this.swAllLessonsData[lessonNum][wordType][index] = trimmedWord;
+        this.swEditedLessons.add(lessonNum);
+        this.renderSentenceWordsLessonsList();
+        toastManager?.show(`Updated word to "${trimmedWord}"`, 'success');
+    }
+};
+
+DeckBuilderModule.prototype.deleteWordFromLesson = function(lessonNum, wordType, word) {
+    if (!confirm(`Delete "${word}" from ${wordType}?`)) return;
+
+    const words = this.swAllLessonsData[lessonNum]?.[wordType] || [];
+    const index = words.indexOf(word);
+
+    if (index > -1) {
+        this.swAllLessonsData[lessonNum][wordType].splice(index, 1);
+        this.swEditedLessons.add(lessonNum);
+        this.renderSentenceWordsLessonsList();
+        toastManager?.show(`Deleted "${word}"`, 'success');
+    }
+};
+
+DeckBuilderModule.prototype.updateSaveAllButtonState = function() {
+    const saveBtn = document.getElementById('swSaveAllChanges');
+    saveBtn.disabled = this.swEditedLessons.size === 0;
+};
+
+DeckBuilderModule.prototype.saveAllSentenceWordsChanges = async function() {
+    const lang = document.getElementById('swEditorLanguage').value;
+
+    if (!lang) {
+        toastManager?.show('Please select a language', 'error');
+        return;
+    }
+
+    if (this.swEditedLessons.size === 0) {
+        toastManager?.show('No changes to save', 'info');
+        return;
+    }
+
+    const saveBtn = document.getElementById('swSaveAllChanges');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    try {
+        // Save each edited lesson
+        const editedLessonNums = Array.from(this.swEditedLessons);
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const lessonNum of editedLessonNums) {
+            const lessonData = this.swAllLessonsData[lessonNum] || {};
+
+            try {
+                const response = await fetch('scan-assets.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveSentenceWords',
+                        language: lang,
+                        lesson: lessonNum.toString(),
+                        wordTypes: lessonData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update local manifest
+                    if (!this.assets.manifest.sentenceWords) {
+                        this.assets.manifest.sentenceWords = {};
+                    }
+                    if (!this.assets.manifest.sentenceWords[lang]) {
+                        this.assets.manifest.sentenceWords[lang] = {};
+                    }
+                    this.assets.manifest.sentenceWords[lang][lessonNum] = lessonData;
+                    successCount++;
+                } else {
+                    console.error(`Failed to save lesson ${lessonNum}:`, result.error);
+                    errorCount++;
+                }
+            } catch (error) {
+                console.error(`Error saving lesson ${lessonNum}:`, error);
+                errorCount++;
+            }
+        }
+
+        this.swEditedLessons.clear();
+        this.renderSentenceWordsLessonsList();
+
+        if (errorCount === 0) {
+            toastManager?.show(`Saved ${successCount} lesson(s) successfully`, 'success');
+        } else {
+            toastManager?.show(`Saved ${successCount} lesson(s), ${errorCount} failed`, 'warning');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        toastManager?.show('Failed to save changes', 'error');
+    } finally {
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All Changes';
+        this.updateSaveAllButtonState();
+    }
 };
 
 DeckBuilderModule.prototype.findCardForWord = function(word, lang) {
