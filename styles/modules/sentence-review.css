@@ -76,7 +76,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 16px;
+    gap: clamp(8px, 1.5vw, 20px);
     align-items: flex-start;
 }
 
@@ -87,10 +87,10 @@
     gap: 8px;
 }
 
-/* Flip Card Wrapper - 110x165px (2:3 ratio matching image dimensions) */
+/* Flip Card Wrapper - fluid sizing with 2:3 aspect ratio */
 .sr-card-wrapper {
-    width: 110px;
-    height: 165px;
+    width: clamp(80px, 8vw, 140px);
+    aspect-ratio: 2 / 3;
     perspective: 1000px;
     cursor: pointer;
 }
@@ -195,14 +195,14 @@
 
 /* Function word placeholder - smaller than picture cards */
 .sr-word-placeholder {
-    width: 60px;
-    height: 60px;
+    width: clamp(45px, 5vw, 70px);
+    aspect-ratio: 1 / 1;
     border-radius: 8px;
     background: var(--bg-tertiary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9rem;
+    font-size: clamp(0.7rem, 1vw, 0.9rem);
     color: var(--text-secondary);
     font-weight: 600;
     border: 2px dashed var(--border-color);
@@ -960,7 +960,7 @@
     padding: 20px;
 }
 
-/* Responsive */
+/* Responsive - fluid sizing handles most card dimensions */
 @media (max-width: 768px) {
     .sr-controls {
         flex-direction: column;
@@ -970,30 +970,23 @@
         padding: 16px;
     }
 
-    .sr-card-wrapper {
-        width: 80px;
-        height: 120px;
-    }
+    /* Fluid sizing with clamp() handles card dimensions */
 
     .sr-speaker-icon {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
+        width: clamp(24px, 3vw, 36px);
+        height: clamp(24px, 3vw, 36px);
+        font-size: clamp(10px, 1.5vw, 16px);
     }
 
     .sr-card-word {
-        font-size: 0.9rem;
+        font-size: clamp(0.8rem, 1.2vw, 1.2rem);
     }
 
     .sr-card-english {
-        font-size: 0.75rem;
+        font-size: clamp(0.65rem, 1vw, 0.9rem);
     }
 
-    .sr-word-placeholder {
-        width: 50px;
-        height: 50px;
-        font-size: 0.8rem;
-    }
+    /* Fluid sizing handles placeholder dimensions */
 
     .sr-reveal-section {
         flex-direction: column;

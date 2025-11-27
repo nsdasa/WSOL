@@ -67,27 +67,22 @@
     margin-top: 8px;
 }
 
-/* Cards Grid */
+/* Cards Grid - Fluid responsive using auto-fit */
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(180px, 18vw, 280px), 1fr));
+    gap: clamp(12px, 2vw, 24px);
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
 }
 
-@media (max-width: 1200px) {
-    .cards-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 18px;
-    }
-}
+/* Removed fixed 1200px breakpoint - fluid sizing handles this automatically */
 
 .card-container {
     cursor: pointer;
     position: relative;
-    height: 300px;
+    height: clamp(200px, 25vw, 350px);
     transition: width 0.3s ease, max-width 0.3s ease;
 }
 
@@ -380,20 +375,19 @@
 }
 
 /* =================================================================
-   MOBILE RESPONSIVE
+   MOBILE RESPONSIVE - Fluid sizing handles most cases
    ================================================================= */
 
-/* Phone: 1 card at a time */
+/* Phone: Override to single column for better UX */
 body.mobile-phone .cards-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: clamp(8px, 2vw, 16px);
     max-width: 400px;
     margin: 0 auto;
 }
 
 body.mobile-phone .card-container {
-    height: 200px;
-    max-height: 200px;
+    height: clamp(180px, 50vw, 250px);
 }
 
 body.mobile-phone .card-container.card-expanded {
@@ -441,53 +435,54 @@ body.mobile-phone .notes-popover {
     right: -8px;
 }
 
-/* Tablet: 2 cards */
+/* Tablet: Let fluid sizing handle column count */
 body.mobile-tablet .cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    /* Fluid auto-fit handles tablet layout automatically */
+    gap: clamp(12px, 2vw, 20px);
 }
 
-/* Tablet Landscape: 4 cards */
+/* Tablet Landscape: Fluid sizing handles this */
 body.mobile-tablet.landscape .cards-grid {
-    grid-template-columns: repeat(4, 1fr);
+    /* Auto-fit with minmax handles landscape naturally */
 }
 
 @media (max-width: 768px) {
+    /* Fluid auto-fit handles grid columns - this ensures minimum sizing */
     .cards-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(clamp(140px, 40vw, 200px), 1fr));
     }
-    
+
     .card-back-content {
-        padding: 12px;
-        gap: 12px;
+        padding: clamp(8px, 2vw, 16px);
+        gap: clamp(8px, 2vw, 14px);
     }
-    
+
     .primary-word-box {
-        padding: 14px;
+        padding: clamp(10px, 2vw, 16px);
     }
-    
+
     .primary-note,
     .secondary-note {
-        font-size: 13px;
+        font-size: clamp(11px, 1.5vw, 14px);
     }
 }
 
 @media (max-width: 480px) {
     .card-back-content {
-        padding: 10px;
-        gap: 10px;
+        padding: clamp(8px, 3vw, 12px);
+        gap: clamp(8px, 2vw, 12px);
     }
-    
+
     .primary-word-box {
-        padding: 12px;
+        padding: clamp(8px, 3vw, 14px);
     }
-    
+
     .primary-note,
     .secondary-note {
-        font-size: 12px;
+        font-size: clamp(10px, 2.5vw, 13px);
     }
-    
+
     .secondary-language {
-        padding: 10px 12px;
+        padding: clamp(8px, 2vw, 12px);
     }
 }
