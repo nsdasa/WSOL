@@ -20,7 +20,7 @@ class SentenceReviewModule extends LearningModule {
         const lessonNum = this.assets.currentLesson || 'Lesson';
 
         this.container.innerHTML = `
-            <div class="container module-sentence-review">
+            <div class="module-sentence-review">
                 <h1><i class="fas fa-images"></i> Sentence Review (${langName}: Lesson ${lessonNum})</h1>
 
                 <div class="sr-controls">

@@ -22,7 +22,7 @@ class UnsaNiQuizModule extends LearningModule {
             : (this.assets.currentLesson || 'Lesson');
         
         this.container.innerHTML = `
-            <div class="container module-quiz">
+            <div class="module-quiz">
                 <h1>Unsa Ni? (${langName}: ${lessonDisplay})</h1>
                 <div class="controls">
                     <div class="mode-buttons">

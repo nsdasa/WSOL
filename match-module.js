@@ -50,7 +50,7 @@ class MatchExerciseModule extends LearningModule {
             : (this.assets.currentLesson || 'Lesson');
         
         this.container.innerHTML = `
-            <div class="container module-match">
+            <div class="module-match">
                 <h1>Picture Match (${langName}: ${lessonDisplay})</h1>
                 <div class="controls">
                     <div class="mode-buttons">
