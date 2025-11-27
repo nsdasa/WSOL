@@ -1700,11 +1700,15 @@ DeckBuilderModule.prototype.setupSentenceReviewBuilder = function() {
         return;
     }
 
-    // Create and store the builder instance
-    this.sentenceReviewBuilder = new SentenceReviewBuilder(this);
-    this.sentenceReviewBuilder.init();
-
-    debugLogger?.log(2, 'Sentence Review Builder initialized');
+    try {
+        // Create and store the builder instance
+        this.sentenceReviewBuilder = new SentenceReviewBuilder(this);
+        this.sentenceReviewBuilder.init();
+        debugLogger?.log(2, 'Sentence Review Builder initialized');
+    } catch (err) {
+        console.error('[SentenceReviewBuilder] Initialization error:', err);
+        toastManager?.show('Sentence Review Builder failed to initialize. Please refresh the page.', 'error');
+    }
 };
 
 /**

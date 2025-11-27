@@ -141,10 +141,14 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
      * Initialize the builder after DOM is ready
      */
     init() {
-        this.loadData();
-        this.setupEventListeners();
-        this.populateLessonSelector();
-        this.renderLessonsList();
+        try {
+            this.loadData();
+            this.setupEventListeners();
+            this.populateLessonSelector();
+            this.renderLessonsList();
+        } catch (err) {
+            console.error('[SentenceReviewBuilder] Initialization error:', err);
+        }
     }
 
     /**
@@ -591,7 +595,8 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
         const container = document.getElementById('srLessonsList');
         if (!container) return;
 
-        const lessonNums = Object.keys(this.lessons).map(Number).sort((a, b) => a - b);
+        try {
+            const lessonNums = Object.keys(this.lessons || {}).map(Number).sort((a, b) => a - b);
 
         if (lessonNums.length === 0) {
             container.innerHTML = `
@@ -632,6 +637,15 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
         // Add event listeners
         this.attachLessonListeners();
+        } catch (err) {
+            console.error('[SentenceReviewBuilder] Error rendering lessons list:', err);
+            container.innerHTML = `
+                <div class="sr-empty-state error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error loading sentence review data. Please refresh the page.</p>
+                </div>
+            `;
+        }
     }
 
     /**
@@ -727,8 +741,11 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
         // Always show the row container for drag-and-drop and add functionality
         let html = `<div class="sr-word-pictures-row" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}">`;
 
-        if (words && words.length > 0) {
+        if (words && Array.isArray(words) && words.length > 0) {
             words.forEach((word, wordIndex) => {
+                // Skip invalid word objects
+                if (!word || typeof word !== 'object') return;
+
                 if (word.imagePath) {
                     const needsResClass = word.needsResolution ? ' needs-resolution' : '';
                     const resTitle = word.needsResolution ? ' ⚠️ Auto-assigned via root - needs review' : '';
