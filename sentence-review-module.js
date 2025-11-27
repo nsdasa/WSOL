@@ -232,13 +232,41 @@ class SentenceReviewModule extends LearningModule {
         const pictureRow = document.createElement('div');
         pictureRow.className = 'sr-picture-row';
 
-        sentence.words.forEach((wordData, index) => {
-            const wordContainer = document.createElement('div');
-            wordContainer.className = 'sr-word-container';
+        // Build a map of unique cards by cardNum to deduplicate cards
+        // When multiple words link to the same card (e.g., "Maayong" and "adlaw"
+        // both linked to a single "Maayong Adlaw" card), only show the card once
+        const cardMap = new Map(); // cardNum -> { wordData, wordIndices: [] }
+        const seenCardNums = new Set();
 
+        sentence.words.forEach((wordData, index) => {
             if (wordData.imagePath && wordData.cardNum) {
+                if (!cardMap.has(wordData.cardNum)) {
+                    cardMap.set(wordData.cardNum, {
+                        wordData: wordData,
+                        wordIndices: []
+                    });
+                }
+                cardMap.get(wordData.cardNum).wordIndices.push(index);
+            }
+        });
+
+        sentence.words.forEach((wordData, index) => {
+            if (wordData.imagePath && wordData.cardNum) {
+                // Skip if we've already rendered this card
+                if (seenCardNums.has(wordData.cardNum)) {
+                    return;
+                }
+                seenCardNums.add(wordData.cardNum);
+
+                // Get card info and all linked words
+                const cardInfo = cardMap.get(wordData.cardNum);
+                const linkedWords = cardInfo.wordIndices.map(i => sentence.words[i].word);
+
                 // Has a picture - create flippable card
                 const card = this.findCardByNum(wordData.cardNum);
+
+                const wordContainer = document.createElement('div');
+                wordContainer.className = 'sr-word-container';
 
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = 'sr-card-wrapper';
@@ -265,14 +293,14 @@ class SentenceReviewModule extends LearningModule {
                         // Fallback to image on video error
                         const fallbackImg = document.createElement('img');
                         fallbackImg.src = wordData.imagePath || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
-                        fallbackImg.alt = wordData.word;
+                        fallbackImg.alt = linkedWords.join(' ');
                         video.replaceWith(fallbackImg);
                     };
                     front.appendChild(video);
                 } else {
                     const img = document.createElement('img');
                     img.src = displayPath;
-                    img.alt = wordData.word;
+                    img.alt = linkedWords.join(' ');
                     img.onerror = () => {
                         img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
                     };
@@ -291,16 +319,14 @@ class SentenceReviewModule extends LearningModule {
                     front.appendChild(speaker);
                 }
 
-                // Back face (word text)
+                // Back face (word text) - show all linked words
                 const back = document.createElement('div');
                 back.className = 'sr-card-face sr-card-back';
 
                 const wordText = document.createElement('div');
                 wordText.className = 'sr-card-word';
-                wordText.textContent = wordData.word;
-                if (wordData.root) {
-                    wordText.innerHTML = `${wordData.word}<br><span class="root-hint">(${wordData.root})</span>`;
-                }
+                // Show all linked words (the phrase)
+                wordText.textContent = linkedWords.join(' ');
                 back.appendChild(wordText);
 
                 // English translation on back
@@ -333,15 +359,11 @@ class SentenceReviewModule extends LearningModule {
                 });
 
                 wordContainer.appendChild(cardWrapper);
-            } else {
-                // No picture - function word placeholder
-                const placeholderEl = document.createElement('div');
-                placeholderEl.className = 'sr-word-placeholder';
-                placeholderEl.textContent = wordData.word;
-                wordContainer.appendChild(placeholderEl);
+                pictureRow.appendChild(wordContainer);
+            } else if (!wordData.imagePath && !wordData.cardNum) {
+                // No picture - function word placeholder (skip silently, don't show placeholder)
+                // Function words without cards are not displayed as placeholders in the picture row
             }
-
-            pictureRow.appendChild(wordContainer);
         });
 
         area.appendChild(pictureRow);
