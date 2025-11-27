@@ -3086,6 +3086,76 @@ body.mobile-phone .deck-section .language-uploads {
     opacity: 0.5;
 }
 
+/* Collapsible Lessons List */
+.sw-lessons-list {
+    min-height: 200px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.sw-lesson-item {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.sw-lesson-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sw-lesson-header:hover {
+    background: var(--bg-tertiary);
+}
+
+.sw-lesson-header .expand-icon {
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.sw-lesson-header .lesson-title {
+    font-weight: 600;
+    flex: 1;
+}
+
+.sw-lesson-header .word-type-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.sw-lesson-header .edited-badge {
+    background: var(--warning);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.sw-lesson-content {
+    padding: 0 16px 16px;
+}
+
+.sw-lesson-content.hidden {
+    display: none;
+}
+
+.sw-no-word-types {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 12px 0;
+    text-align: center;
+}
+
+.sw-word-types-list {
+    padding-left: 8px;
+}
+
 /* Word Type Sections */
 .sw-word-type-section {
     background: var(--bg-secondary);
