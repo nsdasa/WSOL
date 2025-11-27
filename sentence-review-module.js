@@ -233,24 +233,37 @@ class SentenceReviewModule extends LearningModule {
         pictureRow.className = 'sr-picture-row';
 
         // Build phrase groups - consecutive runs of words sharing the same cardNum
-        // This deduplicates consecutive words linked to the same card (forming a phrase)
-        // but allows the same card to appear again later in the sentence if the phrase repeats
-        // Example: "Maayong Adlaw Maestra! Maayong Adlaw mga Estudiante!"
-        //   -> shows [Maayong Adlaw] [Maestra] [Maayong Adlaw] [Estudiante] (4 cards)
+        // Uses the card's word property to determine phrase length, so repeated phrases
+        // are correctly split into separate groups.
+        // Example: "Maayong Adlaw Maayong Adlaw" (card word = "Maayong Adlaw", 2 words)
+        //   -> shows [Maayong Adlaw] [Maayong Adlaw] (2 cards, not 1)
         const phraseGroups = [];
         let currentGroup = null;
 
         sentence.words.forEach((wordData, index) => {
             if (wordData.imagePath && wordData.cardNum) {
-                if (currentGroup && currentGroup.cardNum === wordData.cardNum) {
-                    // Continue current phrase group (consecutive words with same card)
+                // Get the card to determine expected phrase length
+                const card = this.findCardByNum(wordData.cardNum);
+                const cardWord = card?.word || wordData.word || '';
+                // Count words in the card's word property (phrase length)
+                const expectedPhraseLength = cardWord.split(/\s+/).filter(w => w.length > 0).length || 1;
+
+                // Check if we should continue the current group or start a new one
+                const shouldContinue = currentGroup &&
+                    currentGroup.cardNum === wordData.cardNum &&
+                    currentGroup.wordIndices.length < currentGroup.expectedLength;
+
+                if (shouldContinue) {
+                    // Continue current phrase group (still building the phrase)
                     currentGroup.wordIndices.push(index);
                 } else {
-                    // Start new phrase group
+                    // Start new phrase group (different card, or phrase is complete)
                     currentGroup = {
                         cardNum: wordData.cardNum,
                         wordData: wordData,
-                        wordIndices: [index]
+                        wordIndices: [index],
+                        expectedLength: expectedPhraseLength,
+                        card: card
                     };
                     phraseGroups.push(currentGroup);
                 }
@@ -264,9 +277,7 @@ class SentenceReviewModule extends LearningModule {
         phraseGroups.forEach(group => {
             const linkedWords = group.wordIndices.map(i => sentence.words[i].word);
             const wordData = group.wordData;
-
-                // Has a picture - create flippable card
-                const card = this.findCardByNum(wordData.cardNum);
+            const card = group.card;
 
                 const wordContainer = document.createElement('div');
                 wordContainer.className = 'sr-word-container';
