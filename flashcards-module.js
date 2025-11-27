@@ -17,7 +17,7 @@ class FlashcardsModule extends LearningModule {
         const isCebuano = langName.toLowerCase() === 'cebuano';
 
         this.container.innerHTML = `
-            <div class="container module-flashcards">
+            <div class="module-flashcards">
                 <h1>Flashcards (${langName}: ${lessonDisplay})</h1>
 
                 <div class="vp-toggle-container">
