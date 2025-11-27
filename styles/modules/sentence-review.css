@@ -87,10 +87,10 @@
     gap: 8px;
 }
 
-/* Flip Card Wrapper */
+/* Flip Card Wrapper - 110x165px (2:3 ratio matching image dimensions) */
 .sr-card-wrapper {
-    width: 160px;
-    height: 160px;
+    width: 110px;
+    height: 165px;
     perspective: 1000px;
     cursor: pointer;
 }
@@ -125,9 +125,9 @@
 }
 
 .sr-card-front img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
 }
 
 .sr-card-back {
@@ -192,18 +192,18 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
-/* Function word placeholder */
+/* Function word placeholder - smaller than picture cards */
 .sr-word-placeholder {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     border-radius: 8px;
     background: var(--bg-tertiary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
-    font-weight: 500;
+    font-weight: 600;
     border: 2px dashed var(--border-color);
 }
 
@@ -828,28 +828,28 @@
     }
 
     .sr-card-wrapper {
-        width: 120px;
+        width: 80px;
         height: 120px;
     }
 
     .sr-speaker-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
     }
 
     .sr-card-word {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
 
     .sr-card-english {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
     }
 
     .sr-word-placeholder {
-        width: 60px;
-        height: 60px;
-        font-size: 0.85rem;
+        width: 50px;
+        height: 50px;
+        font-size: 0.8rem;
     }
 
     .sr-reveal-section {
