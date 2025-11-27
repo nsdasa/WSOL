@@ -340,6 +340,19 @@ if (isset($_GET['path'])) {
 // Normalize path
 $path = '/' . ltrim($path, '/');
 
+// Simple debug - always works (add ?showpath=1 to any request)
+if (isset($_GET['showpath'])) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'path' => $path,
+        'method' => $method,
+        'get_path' => $_GET['path'] ?? null,
+        'php_version' => PHP_VERSION,
+        'curl_version' => curl_version()['version'] ?? 'unknown'
+    ]);
+    exit;
+}
+
 // Debug mode - uncomment to troubleshoot routing issues
 if (isset($_GET['debug']) && $config['debug']) {
     header('Content-Type: application/json');
