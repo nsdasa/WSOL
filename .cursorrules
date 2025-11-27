@@ -1,0 +1,47 @@
+# WSOL - Cursor Rules
+
+## Project Context
+This is the Bob and Mariel Ward School of Filipino Languages - a language learning web application for teaching Filipino languages (Cebuano, Maranao, Sinama) to English speakers.
+
+## CRITICAL: Documentation Sync Requirement
+
+After ANY code changes, you MUST check and update these documentation files:
+
+1. **USER_GUIDE.md** - Update if user-facing features changed
+   - UI elements, workflows, feature behavior, error messages
+
+2. **FUNCTIONAL_GUIDE.md** - Update if system behavior changed
+   - Architecture, admin features, data flow, configuration
+
+3. **AI_DEVELOPER_GUIDE.md** - Update if code structure changed
+   - APIs, classes, data structures, file organization, naming conventions
+
+## Documentation Workflow
+1. Complete your code changes
+2. Read each of the three documentation files
+3. Update any sections affected by your changes
+4. Include documentation updates in your commit
+
+## Tech Stack
+- Frontend: Pure JavaScript (ES6+), CSS3 with custom properties
+- Backend: PHP with MySQL
+- Architecture: Class-based modules extending LearningModule base class
+
+## Key Directories
+- /js/modules/ - Learning module classes
+- /js/admin/ - Admin tool classes
+- /css/ - Stylesheets
+- /php/ - Backend API endpoints
+- /assets/ - Images and audio files
+
+## Code Style
+- Use ES6+ JavaScript features
+- Follow existing naming conventions (see AI_DEVELOPER_GUIDE.md)
+- Extend LearningModule base class for new learning modules
+- Use CSS custom properties for theming
+
+## Before Every Commit
+- [ ] Code changes complete and tested
+- [ ] USER_GUIDE.md checked/updated
+- [ ] FUNCTIONAL_GUIDE.md checked/updated
+- [ ] AI_DEVELOPER_GUIDE.md checked/updated
