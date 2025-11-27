@@ -232,35 +232,38 @@ class SentenceReviewModule extends LearningModule {
         const pictureRow = document.createElement('div');
         pictureRow.className = 'sr-picture-row';
 
-        // Build a map of unique cards by cardNum to deduplicate cards
-        // When multiple words link to the same card (e.g., "Maayong" and "adlaw"
-        // both linked to a single "Maayong Adlaw" card), only show the card once
-        const cardMap = new Map(); // cardNum -> { wordData, wordIndices: [] }
-        const seenCardNums = new Set();
+        // Build phrase groups - consecutive runs of words sharing the same cardNum
+        // This deduplicates consecutive words linked to the same card (forming a phrase)
+        // but allows the same card to appear again later in the sentence if the phrase repeats
+        // Example: "Maayong Adlaw Maestra! Maayong Adlaw mga Estudiante!"
+        //   -> shows [Maayong Adlaw] [Maestra] [Maayong Adlaw] [Estudiante] (4 cards)
+        const phraseGroups = [];
+        let currentGroup = null;
 
         sentence.words.forEach((wordData, index) => {
             if (wordData.imagePath && wordData.cardNum) {
-                if (!cardMap.has(wordData.cardNum)) {
-                    cardMap.set(wordData.cardNum, {
+                if (currentGroup && currentGroup.cardNum === wordData.cardNum) {
+                    // Continue current phrase group (consecutive words with same card)
+                    currentGroup.wordIndices.push(index);
+                } else {
+                    // Start new phrase group
+                    currentGroup = {
+                        cardNum: wordData.cardNum,
                         wordData: wordData,
-                        wordIndices: []
-                    });
+                        wordIndices: [index]
+                    };
+                    phraseGroups.push(currentGroup);
                 }
-                cardMap.get(wordData.cardNum).wordIndices.push(index);
+            } else {
+                // Function word (no card) - ends any current phrase group
+                currentGroup = null;
             }
         });
 
-        sentence.words.forEach((wordData, index) => {
-            if (wordData.imagePath && wordData.cardNum) {
-                // Skip if we've already rendered this card
-                if (seenCardNums.has(wordData.cardNum)) {
-                    return;
-                }
-                seenCardNums.add(wordData.cardNum);
-
-                // Get card info and all linked words
-                const cardInfo = cardMap.get(wordData.cardNum);
-                const linkedWords = cardInfo.wordIndices.map(i => sentence.words[i].word);
+        // Render each phrase group as one card
+        phraseGroups.forEach(group => {
+            const linkedWords = group.wordIndices.map(i => sentence.words[i].word);
+            const wordData = group.wordData;
 
                 // Has a picture - create flippable card
                 const card = this.findCardByNum(wordData.cardNum);
@@ -360,10 +363,6 @@ class SentenceReviewModule extends LearningModule {
 
                 wordContainer.appendChild(cardWrapper);
                 pictureRow.appendChild(wordContainer);
-            } else if (!wordData.imagePath && !wordData.cardNum) {
-                // No picture - function word placeholder (skip silently, don't show placeholder)
-                // Function words without cards are not displayed as placeholders in the picture row
-            }
         });
 
         area.appendChild(pictureRow);
