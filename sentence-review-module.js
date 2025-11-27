@@ -104,26 +104,66 @@ class SentenceReviewModule extends LearningModule {
 
     /**
      * Load sentence review data from manifest
+     * Handles both regular lessons and review lessons (which aggregate multiple lessons)
      */
     loadSentenceReviewData() {
         const manifest = this.assets.manifest;
         const trigraph = this.assets.currentLanguage?.trigraph?.toLowerCase() || 'ceb';
         const lessonNum = this.assets.currentLesson;
 
-        // Check for sentenceReview data in manifest
-        const lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lessonNum];
+        // Check if this is a review lesson
+        const lessonMeta = manifest?.lessonMeta?.[trigraph]?.[lessonNum];
+        const isReviewLesson = lessonMeta?.type === 'review';
+        const lessonsToLoad = isReviewLesson && lessonMeta?.reviewsLessons?.length > 0
+            ? lessonMeta.reviewsLessons
+            : [lessonNum];
 
-        if (!lessonData || !lessonData.sequences || lessonData.sequences.length === 0) {
-            debugLogger?.log(2, `No sentence review data for ${trigraph} lesson ${lessonNum}`);
+        debugLogger?.log(2, `Loading sentence review for ${isReviewLesson ? 'review ' : ''}lesson ${lessonNum}${isReviewLesson ? ` (reviewing: ${lessonsToLoad.join(', ')})` : ''}`);
+
+        // Aggregate sequences from all lessons to load
+        const aggregatedSequences = [];
+        let sequenceIdCounter = 1;
+
+        for (const lessonToLoad of lessonsToLoad) {
+            const lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lessonToLoad];
+
+            if (!lessonData || !lessonData.sequences || lessonData.sequences.length === 0) {
+                debugLogger?.log(2, `No sentence review data for ${trigraph} lesson ${lessonToLoad}`);
+                continue;
+            }
+
+            // Add sequences with lesson prefix for review lessons
+            for (const sequence of lessonData.sequences) {
+                const aggregatedSequence = {
+                    ...sequence,
+                    id: sequenceIdCounter++,
+                    // For review lessons, prefix title with lesson number
+                    title: isReviewLesson
+                        ? `L${lessonToLoad}: ${sequence.title}`
+                        : sequence.title,
+                    originalLesson: lessonToLoad
+                };
+                aggregatedSequences.push(aggregatedSequence);
+            }
+        }
+
+        if (aggregatedSequences.length === 0) {
+            debugLogger?.log(2, `No sentence review data found for ${trigraph} lesson ${lessonNum}`);
             this.currentLesson = null;
             return;
         }
 
-        this.currentLesson = lessonData;
+        // Create aggregated lesson data
+        this.currentLesson = {
+            title: isReviewLesson
+                ? `Review: Lessons ${lessonsToLoad.join(', ')}`
+                : `Lesson ${lessonNum}`,
+            sequences: aggregatedSequences
+        };
         this.currentSequenceIndex = 0;
         this.currentSentenceIndex = 0;
 
-        debugLogger?.log(2, `Loaded sentence review: ${lessonData.sequences.length} sequences for lesson ${lessonNum}`);
+        debugLogger?.log(2, `Loaded sentence review: ${aggregatedSequences.length} sequences for lesson ${lessonNum}`);
     }
 
     /**
