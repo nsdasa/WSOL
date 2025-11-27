@@ -181,49 +181,6 @@ class SentenceReviewModule extends LearningModule {
 
         // Keyboard navigation
         document.addEventListener('keydown', (e) => this.handleKeydown(e));
-
-        // Window resize handler to redraw connection lines
-        this.resizeHandler = this.debounce(() => {
-            this.redrawConnectionLines();
-        }, 100);
-        window.addEventListener('resize', this.resizeHandler);
-    }
-
-    /**
-     * Debounce utility function
-     */
-    debounce(func, wait) {
-        let timeout;
-        return (...args) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    }
-
-    /**
-     * Redraw connection lines (called on resize)
-     */
-    redrawConnectionLines() {
-        const svg = document.querySelector('.sr-connection-lines');
-        if (!svg) return;
-
-        const layoutContainer = svg.parentElement;
-        if (!layoutContainer) return;
-
-        const bubbles = layoutContainer.querySelectorAll('.sr-word-bubble');
-        const pictures = layoutContainer.querySelectorAll('.sr-picture-slot');
-
-        const bubbleRefs = Array.from(bubbles).map(bubble => ({
-            element: bubble,
-            hasPicture: !bubble.classList.contains('function-word')
-        }));
-
-        const pictureRefs = Array.from(pictures).map(picture => ({
-            element: picture,
-            hasPicture: picture.classList.contains('has-picture')
-        }));
-
-        this.drawConnectionLines(svg, bubbleRefs, pictureRefs);
     }
 
     /**
@@ -247,8 +204,7 @@ class SentenceReviewModule extends LearningModule {
     }
 
     /**
-     * Render the current sentence with bubbles and pictures (Option A layout)
-     * Layout: Word bubbles on top -> Connection lines -> Pictures on bottom
+     * Render the current sentence with pictures
      */
     renderCurrentSentence() {
         const area = document.getElementById('srSentenceArea');
@@ -270,514 +226,128 @@ class SentenceReviewModule extends LearningModule {
         englishHint.textContent = sentence.english || '';
         englishHint.classList.add('hidden');
 
-        // Create the new layout structure
+        // Render pictures
         area.innerHTML = '';
 
-        // Main container for the bubble-picture layout
-        const layoutContainer = document.createElement('div');
-        layoutContainer.className = 'sr-bubble-layout';
-
-        // Word bubbles row
-        const bubblesRow = document.createElement('div');
-        bubblesRow.className = 'sr-bubbles-row';
-
-        // SVG for connection lines
-        const svgNS = 'http://www.w3.org/2000/svg';
-        const svg = document.createElementNS(svgNS, 'svg');
-        svg.setAttribute('class', 'sr-connection-lines');
-        svg.style.position = 'absolute';
-        svg.style.pointerEvents = 'none';
-        svg.style.overflow = 'visible';
-
-        // Pictures row
-        const picturesRow = document.createElement('div');
-        picturesRow.className = 'sr-pictures-row';
-
-        // Store references for drawing lines after layout
-        const bubbleRefs = [];
-        const pictureRefs = [];
+        const pictureRow = document.createElement('div');
+        pictureRow.className = 'sr-picture-row';
 
         sentence.words.forEach((wordData, index) => {
-            // Create bubble
-            const bubble = this.createWordBubble(wordData, index, sentence);
-            bubblesRow.appendChild(bubble);
-            bubbleRefs.push({ element: bubble, hasPicture: !!(wordData.imagePath && wordData.cardNum) });
+            const wordContainer = document.createElement('div');
+            wordContainer.className = 'sr-word-container';
 
-            // Create picture slot
-            const pictureSlot = this.createPictureSlot(wordData, index);
-            picturesRow.appendChild(pictureSlot);
-            pictureRefs.push({ element: pictureSlot, hasPicture: !!(wordData.imagePath && wordData.cardNum) });
+            if (wordData.imagePath && wordData.cardNum) {
+                // Has a picture - create flippable card
+                const card = this.findCardByNum(wordData.cardNum);
+
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'sr-card-wrapper';
+
+                const cardInner = document.createElement('div');
+                cardInner.className = 'sr-card-inner';
+
+                // Front face (image or video)
+                const front = document.createElement('div');
+                front.className = 'sr-card-face sr-card-front';
+
+                // Use card.imagePath (with WebP/WebM preference) instead of wordData.imagePath (printImagePath)
+                const displayPath = card?.imagePath || wordData.imagePath;
+                const isVideo = card?.isVideo || false;
+
+                if (isVideo) {
+                    const video = document.createElement('video');
+                    video.src = displayPath;
+                    video.autoplay = true;
+                    video.loop = true;
+                    video.muted = true;
+                    video.playsInline = true;
+                    video.onerror = () => {
+                        // Fallback to image on video error
+                        const fallbackImg = document.createElement('img');
+                        fallbackImg.src = wordData.imagePath || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
+                        fallbackImg.alt = wordData.word;
+                        video.replaceWith(fallbackImg);
+                    };
+                    front.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = displayPath;
+                    img.alt = wordData.word;
+                    img.onerror = () => {
+                        img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
+                    };
+                    front.appendChild(img);
+                }
+
+                // Speaker icon on front
+                if (card?.hasAudio && card?.audioPath?.length > 0) {
+                    const speaker = document.createElement('div');
+                    speaker.className = 'sr-speaker-icon';
+                    speaker.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    speaker.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.playCardAudio(card);
+                    });
+                    front.appendChild(speaker);
+                }
+
+                // Back face (word text)
+                const back = document.createElement('div');
+                back.className = 'sr-card-face sr-card-back';
+
+                const wordText = document.createElement('div');
+                wordText.className = 'sr-card-word';
+                wordText.textContent = wordData.word;
+                if (wordData.root) {
+                    wordText.innerHTML = `${wordData.word}<br><span class="root-hint">(${wordData.root})</span>`;
+                }
+                back.appendChild(wordText);
+
+                // English translation on back
+                if (card?.english) {
+                    const englishText = document.createElement('div');
+                    englishText.className = 'sr-card-english';
+                    englishText.textContent = card.english;
+                    back.appendChild(englishText);
+                }
+
+                // Speaker icon on back
+                if (card?.hasAudio && card?.audioPath?.length > 0) {
+                    const speakerBack = document.createElement('div');
+                    speakerBack.className = 'sr-speaker-icon';
+                    speakerBack.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    speakerBack.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.playCardAudio(card);
+                    });
+                    back.appendChild(speakerBack);
+                }
+
+                cardInner.appendChild(front);
+                cardInner.appendChild(back);
+                cardWrapper.appendChild(cardInner);
+
+                // Click to flip card
+                cardWrapper.addEventListener('click', () => {
+                    cardWrapper.classList.toggle('flipped');
+                });
+
+                wordContainer.appendChild(cardWrapper);
+            } else {
+                // No picture - function word placeholder
+                const placeholderEl = document.createElement('div');
+                placeholderEl.className = 'sr-word-placeholder';
+                placeholderEl.textContent = wordData.word;
+                wordContainer.appendChild(placeholderEl);
+            }
+
+            pictureRow.appendChild(wordContainer);
         });
 
-        // Assemble layout
-        layoutContainer.appendChild(bubblesRow);
-        layoutContainer.appendChild(svg);
-        layoutContainer.appendChild(picturesRow);
-        area.appendChild(layoutContainer);
-
-        // Draw connection lines after DOM is rendered
-        requestAnimationFrame(() => {
-            this.drawConnectionLines(svg, bubbleRefs, pictureRefs);
-        });
+        area.appendChild(pictureRow);
 
         // Update sentence text for reveal
         document.getElementById('srSentenceText').textContent = sentence.text;
-    }
-
-    /**
-     * Create a word bubble element
-     */
-    createWordBubble(wordData, index, sentence) {
-        const bubble = document.createElement('div');
-        bubble.className = 'sr-word-bubble';
-        bubble.dataset.index = index;
-
-        const hasPicture = !!(wordData.imagePath && wordData.cardNum);
-        if (!hasPicture) {
-            bubble.classList.add('function-word');
-        }
-
-        // Word text
-        const wordText = document.createElement('div');
-        wordText.className = 'sr-bubble-text';
-        wordText.textContent = wordData.word;
-        if (wordData.root) {
-            wordText.innerHTML = `${wordData.word}<br><span class="root-hint">(${wordData.root})</span>`;
-        }
-        bubble.appendChild(wordText);
-
-        // Edit button (appears on hover)
-        const editBtn = document.createElement('div');
-        editBtn.className = 'sr-bubble-edit';
-        editBtn.innerHTML = '<i class="fas fa-pencil-alt"></i>';
-        editBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.openBubbleEditModal(wordData, index, sentence);
-        });
-        bubble.appendChild(editBtn);
-
-        // Click bubble to play audio if available
-        const card = hasPicture ? this.findCardByNum(wordData.cardNum) : null;
-        if (card?.hasAudio && card?.audioPath?.length > 0) {
-            bubble.classList.add('has-audio');
-            bubble.addEventListener('click', () => {
-                this.playCardAudio(card);
-            });
-        }
-
-        return bubble;
-    }
-
-    /**
-     * Create a picture slot element
-     */
-    createPictureSlot(wordData, index) {
-        const slot = document.createElement('div');
-        slot.className = 'sr-picture-slot';
-        slot.dataset.index = index;
-
-        const hasPicture = !!(wordData.imagePath && wordData.cardNum);
-
-        if (hasPicture) {
-            const card = this.findCardByNum(wordData.cardNum);
-            slot.classList.add('has-picture');
-
-            // Create flippable card
-            const cardWrapper = document.createElement('div');
-            cardWrapper.className = 'sr-slot-card';
-
-            const cardInner = document.createElement('div');
-            cardInner.className = 'sr-slot-card-inner';
-
-            // Front face (image)
-            const front = document.createElement('div');
-            front.className = 'sr-slot-face sr-slot-front';
-
-            const displayPath = card?.imagePath || wordData.imagePath;
-            const isVideo = card?.isVideo || false;
-
-            if (isVideo) {
-                const video = document.createElement('video');
-                video.src = displayPath;
-                video.autoplay = true;
-                video.loop = true;
-                video.muted = true;
-                video.playsInline = true;
-                video.onerror = () => {
-                    const fallbackImg = document.createElement('img');
-                    fallbackImg.src = wordData.imagePath || this.getPlaceholderSvg();
-                    fallbackImg.alt = wordData.word;
-                    video.replaceWith(fallbackImg);
-                };
-                front.appendChild(video);
-            } else {
-                const img = document.createElement('img');
-                img.src = displayPath;
-                img.alt = wordData.word;
-                img.onerror = () => {
-                    img.src = this.getPlaceholderSvg();
-                };
-                front.appendChild(img);
-            }
-
-            // Speaker icon on front
-            if (card?.hasAudio && card?.audioPath?.length > 0) {
-                const speaker = document.createElement('div');
-                speaker.className = 'sr-slot-speaker';
-                speaker.innerHTML = '<i class="fas fa-volume-up"></i>';
-                speaker.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.playCardAudio(card);
-                });
-                front.appendChild(speaker);
-            }
-
-            // Back face (word and english)
-            const back = document.createElement('div');
-            back.className = 'sr-slot-face sr-slot-back';
-
-            const backWord = document.createElement('div');
-            backWord.className = 'sr-slot-word';
-            backWord.textContent = card?.word || wordData.word;
-            back.appendChild(backWord);
-
-            if (card?.english) {
-                const backEnglish = document.createElement('div');
-                backEnglish.className = 'sr-slot-english';
-                backEnglish.textContent = card.english;
-                back.appendChild(backEnglish);
-            }
-
-            cardInner.appendChild(front);
-            cardInner.appendChild(back);
-            cardWrapper.appendChild(cardInner);
-
-            // Click to flip
-            cardWrapper.addEventListener('click', () => {
-                cardWrapper.classList.toggle('flipped');
-            });
-
-            slot.appendChild(cardWrapper);
-        } else {
-            // Empty slot for function words (no picture)
-            slot.classList.add('no-picture');
-            const dot = document.createElement('div');
-            dot.className = 'sr-no-picture-dot';
-            slot.appendChild(dot);
-        }
-
-        return slot;
-    }
-
-    /**
-     * Draw SVG connection lines from bubbles to pictures
-     */
-    drawConnectionLines(svg, bubbleRefs, pictureRefs) {
-        const svgNS = 'http://www.w3.org/2000/svg';
-        svg.innerHTML = '';
-
-        const layoutContainer = svg.parentElement;
-        if (!layoutContainer) return;
-
-        const containerRect = layoutContainer.getBoundingClientRect();
-
-        // Set SVG dimensions to match container
-        svg.setAttribute('width', containerRect.width);
-        svg.setAttribute('height', containerRect.height);
-        svg.style.left = '0';
-        svg.style.top = '0';
-        svg.style.width = '100%';
-        svg.style.height = '100%';
-
-        bubbleRefs.forEach((bubbleRef, index) => {
-            if (!bubbleRef.hasPicture) return;
-
-            const bubble = bubbleRef.element;
-            const picture = pictureRefs[index]?.element;
-            if (!picture) return;
-
-            const bubbleRect = bubble.getBoundingClientRect();
-            const pictureRect = picture.getBoundingClientRect();
-
-            // Calculate positions relative to container
-            const startX = bubbleRect.left - containerRect.left + bubbleRect.width / 2;
-            const startY = bubbleRect.bottom - containerRect.top;
-            const endX = pictureRect.left - containerRect.left + pictureRect.width / 2;
-            const endY = pictureRect.top - containerRect.top;
-
-            // Create line
-            const line = document.createElementNS(svgNS, 'line');
-            line.setAttribute('x1', startX);
-            line.setAttribute('y1', startY);
-            line.setAttribute('x2', endX);
-            line.setAttribute('y2', endY);
-            line.setAttribute('class', 'sr-connection-line');
-            svg.appendChild(line);
-        });
-    }
-
-    /**
-     * Get placeholder SVG data URL
-     */
-    getPlaceholderSvg() {
-        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
-    }
-
-    /**
-     * Open modal to edit a word bubble
-     */
-    openBubbleEditModal(wordData, index, sentence) {
-        // Create modal
-        const modal = document.createElement('div');
-        modal.className = 'modal sr-bubble-edit-modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-edit"></i> Edit Word Bubble</h3>
-                    <button class="modal-close" aria-label="Close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Word(s)</label>
-                        <input type="text" class="form-control sr-bubble-word-input"
-                               value="${wordData.word}"
-                               placeholder="Enter word(s) - can be a phrase">
-                        <small class="form-hint">Enter multiple words for a phrase (e.g., "kumain ng")</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Root Word (optional)</label>
-                        <input type="text" class="form-control sr-bubble-root-input"
-                               value="${wordData.root || ''}"
-                               placeholder="Root word hint">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Linked Picture</label>
-                        <div class="sr-linked-picture-preview">
-                            ${wordData.cardNum ? this.renderLinkedPicturePreview(wordData) : '<div class="no-picture-linked">No picture linked</div>'}
-                        </div>
-                        <div class="sr-picture-actions">
-                            <button class="btn btn-secondary sr-change-picture-btn">
-                                <i class="fas fa-image"></i> ${wordData.cardNum ? 'Change Picture' : 'Link Picture'}
-                            </button>
-                            ${wordData.cardNum ? '<button class="btn btn-outline sr-remove-picture-btn"><i class="fas fa-unlink"></i> Remove Link</button>' : ''}
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary sr-bubble-cancel-btn">Cancel</button>
-                    <button class="btn btn-primary sr-bubble-save-btn">Save Changes</button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        setTimeout(() => modal.classList.add('active'), 10);
-
-        // Store current cardNum for reference
-        let currentCardNum = wordData.cardNum;
-        let currentImagePath = wordData.imagePath;
-
-        // Event listeners
-        const closeModal = () => {
-            modal.classList.remove('active');
-            setTimeout(() => modal.remove(), 300);
-        };
-
-        modal.querySelector('.modal-close').addEventListener('click', closeModal);
-        modal.querySelector('.sr-bubble-cancel-btn').addEventListener('click', closeModal);
-
-        // Change picture button
-        modal.querySelector('.sr-change-picture-btn').addEventListener('click', () => {
-            this.openPictureSelectorModal((selectedCard) => {
-                currentCardNum = selectedCard.cardNum;
-                currentImagePath = selectedCard.printImagePath || selectedCard.imagePath;
-
-                // Update preview
-                const previewContainer = modal.querySelector('.sr-linked-picture-preview');
-                previewContainer.innerHTML = this.renderLinkedPicturePreview({
-                    cardNum: currentCardNum,
-                    imagePath: currentImagePath
-                });
-
-                // Update actions
-                const actionsContainer = modal.querySelector('.sr-picture-actions');
-                actionsContainer.innerHTML = `
-                    <button class="btn btn-secondary sr-change-picture-btn">
-                        <i class="fas fa-image"></i> Change Picture
-                    </button>
-                    <button class="btn btn-outline sr-remove-picture-btn">
-                        <i class="fas fa-unlink"></i> Remove Link
-                    </button>
-                `;
-
-                // Re-attach listeners
-                actionsContainer.querySelector('.sr-change-picture-btn').addEventListener('click', () => {
-                    this.openPictureSelectorModal((selectedCard) => {
-                        currentCardNum = selectedCard.cardNum;
-                        currentImagePath = selectedCard.printImagePath || selectedCard.imagePath;
-                        previewContainer.innerHTML = this.renderLinkedPicturePreview({
-                            cardNum: currentCardNum,
-                            imagePath: currentImagePath
-                        });
-                    });
-                });
-
-                actionsContainer.querySelector('.sr-remove-picture-btn').addEventListener('click', () => {
-                    currentCardNum = null;
-                    currentImagePath = null;
-                    previewContainer.innerHTML = '<div class="no-picture-linked">No picture linked</div>';
-                    actionsContainer.innerHTML = `
-                        <button class="btn btn-secondary sr-change-picture-btn">
-                            <i class="fas fa-image"></i> Link Picture
-                        </button>
-                    `;
-                });
-            });
-        });
-
-        // Remove picture button (if exists)
-        const removePicBtn = modal.querySelector('.sr-remove-picture-btn');
-        if (removePicBtn) {
-            removePicBtn.addEventListener('click', () => {
-                currentCardNum = null;
-                currentImagePath = null;
-                modal.querySelector('.sr-linked-picture-preview').innerHTML = '<div class="no-picture-linked">No picture linked</div>';
-                modal.querySelector('.sr-picture-actions').innerHTML = `
-                    <button class="btn btn-secondary sr-change-picture-btn">
-                        <i class="fas fa-image"></i> Link Picture
-                    </button>
-                `;
-            });
-        }
-
-        // Save button
-        modal.querySelector('.sr-bubble-save-btn').addEventListener('click', () => {
-            const newWord = modal.querySelector('.sr-bubble-word-input').value.trim();
-            const newRoot = modal.querySelector('.sr-bubble-root-input').value.trim() || null;
-
-            if (!newWord) {
-                alert('Please enter a word or phrase.');
-                return;
-            }
-
-            // Update wordData
-            wordData.word = newWord;
-            wordData.root = newRoot;
-            wordData.cardNum = currentCardNum;
-            wordData.imagePath = currentImagePath;
-
-            // Mark lesson as edited
-            this.markLessonEdited();
-
-            // Re-render
-            this.renderCurrentSentence();
-            closeModal();
-        });
-
-        // Click outside to close
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
-    }
-
-    /**
-     * Render linked picture preview HTML
-     */
-    renderLinkedPicturePreview(wordData) {
-        const card = this.findCardByNum(wordData.cardNum);
-        const imagePath = card?.imagePath || wordData.imagePath;
-
-        return `
-            <div class="linked-picture-card">
-                <img src="${imagePath}" alt="Linked picture" onerror="this.src='${this.getPlaceholderSvg()}'">
-                <div class="linked-picture-info">
-                    <div class="linked-card-word">${card?.word || 'Unknown'}</div>
-                    <div class="linked-card-english">${card?.english || ''}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Open picture selector modal
-     */
-    openPictureSelectorModal(onSelect) {
-        const allCards = this.assets.getCards({ lesson: null });
-
-        const modal = document.createElement('div');
-        modal.className = 'modal sr-picture-modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-images"></i> Select Picture</h3>
-                    <button class="modal-close" aria-label="Close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="sr-search-bar">
-                        <input type="text" placeholder="Search cards..." class="sr-pic-search">
-                    </div>
-                    <div class="sr-pic-grid">
-                        ${allCards.map(card => `
-                            <div class="sr-pic-option" data-card-num="${card.cardNum}">
-                                ${card.imagePath ?
-                                    `<img src="${card.imagePath}" alt="${card.word}" onerror="this.parentElement.querySelector('.no-image')?.classList.remove('hidden'); this.style.display='none';">` :
-                                    '<div class="no-image">No image</div>'
-                                }
-                                <div class="card-word">${card.word}</div>
-                                <div class="card-english">${card.english || ''}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        setTimeout(() => modal.classList.add('active'), 10);
-
-        const closeModal = () => {
-            modal.classList.remove('active');
-            setTimeout(() => modal.remove(), 300);
-        };
-
-        modal.querySelector('.modal-close').addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
-
-        // Search functionality
-        const searchInput = modal.querySelector('.sr-pic-search');
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            modal.querySelectorAll('.sr-pic-option').forEach(option => {
-                const word = option.querySelector('.card-word').textContent.toLowerCase();
-                const english = option.querySelector('.card-english').textContent.toLowerCase();
-                option.style.display = (word.includes(query) || english.includes(query)) ? '' : 'none';
-            });
-        });
-
-        // Card selection
-        modal.querySelectorAll('.sr-pic-option').forEach(option => {
-            option.addEventListener('click', () => {
-                const cardNum = parseInt(option.dataset.cardNum);
-                const selectedCard = allCards.find(c => c.cardNum === cardNum);
-                if (selectedCard) {
-                    onSelect(selectedCard);
-                    closeModal();
-                }
-            });
-        });
-    }
-
-    /**
-     * Mark the current lesson as edited (for deck builder integration)
-     */
-    markLessonEdited() {
-        // This flag can be used to track unsaved changes
-        this.hasUnsavedChanges = true;
-        debugLogger?.log(2, 'Sentence review data modified');
     }
 
     /**
@@ -922,9 +492,6 @@ class SentenceReviewModule extends LearningModule {
      */
     destroy() {
         document.removeEventListener('keydown', this.handleKeydown);
-        if (this.resizeHandler) {
-            window.removeEventListener('resize', this.resizeHandler);
-        }
         super.destroy();
     }
 }
