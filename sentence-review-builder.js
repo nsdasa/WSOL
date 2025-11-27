@@ -36,10 +36,21 @@ class SentenceReviewBuilder {
                             Create and edit sentence review lessons. Sentences are displayed as a row of pictures representing each word.
                         </p>
 
-                        <!-- Import Text Section -->
+                        <!-- Import Section with Tabs -->
                         <div class="sr-builder-import">
-                            <h4><i class="fas fa-file-import"></i> Import from Text</h4>
-                            <textarea id="srImportText" class="sr-import-textarea" placeholder="Paste sentence text here...
+                            <div class="sr-import-tabs">
+                                <button class="sr-import-tab active" data-tab="text">
+                                    <i class="fas fa-font"></i> Text Import
+                                </button>
+                                <button class="sr-import-tab" data-tab="csv">
+                                    <i class="fas fa-file-csv"></i> CSV Import
+                                </button>
+                            </div>
+
+                            <!-- Text Import Tab -->
+                            <div class="sr-import-tab-content active" id="srTextImportTab">
+                                <h4><i class="fas fa-file-import"></i> Import from Text</h4>
+                                <textarea id="srImportText" class="sr-import-textarea" placeholder="Paste sentence text here...
 
 Example format:
 SEQUENCE 1: Finding the Book
@@ -52,13 +63,39 @@ SEQUENCE 2: What Is This?
 
 Unsa kini? (What is this?)
 Kini ang bolpen. (This is the ballpen.)"></textarea>
-                            <div class="sr-import-actions">
-                                <select id="srImportLesson" class="select-control">
-                                    <option value="">Select Target Lesson...</option>
-                                </select>
-                                <button id="srParseBtn" class="btn btn-primary">
-                                    <i class="fas fa-magic"></i> Parse & Preview
-                                </button>
+                                <div class="sr-import-actions">
+                                    <select id="srImportLesson" class="select-control">
+                                        <option value="">Select Target Lesson...</option>
+                                    </select>
+                                    <button id="srParseBtn" class="btn btn-primary">
+                                        <i class="fas fa-magic"></i> Parse & Preview
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- CSV Import Tab -->
+                            <div class="sr-import-tab-content" id="srCSVImportTab">
+                                <h4><i class="fas fa-file-csv"></i> Import from CSV</h4>
+                                <p class="sr-csv-description">
+                                    Upload a CSV file with columns: Lesson #, Seq #, Sequ Title, Sentence #, Sentence Text, English Translation, Sentence Type
+                                </p>
+                                <div class="sr-csv-upload-area" id="srCSVDropZone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop CSV file here or click to browse</p>
+                                    <input type="file" id="srCSVFileInput" accept=".csv" class="sr-csv-file-input">
+                                </div>
+                                <div class="sr-csv-file-info hidden" id="srCSVFileInfo">
+                                    <i class="fas fa-file-csv"></i>
+                                    <span id="srCSVFileName"></span>
+                                    <button class="sr-csv-remove-btn" id="srCSVRemoveBtn" title="Remove file">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="sr-import-actions">
+                                    <button id="srParseCSVBtn" class="btn btn-primary" disabled>
+                                        <i class="fas fa-magic"></i> Parse CSV & Preview
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -132,8 +169,51 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
      * Setup event listeners
      */
     setupEventListeners() {
-        // Parse button
+        // Import tab switching
+        document.querySelectorAll('.sr-import-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.sr-import-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.sr-import-tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                const tabId = tab.dataset.tab === 'text' ? 'srTextImportTab' : 'srCSVImportTab';
+                document.getElementById(tabId)?.classList.add('active');
+            });
+        });
+
+        // Parse button (text import)
         document.getElementById('srParseBtn')?.addEventListener('click', () => this.parseAndPreview());
+
+        // CSV file input
+        const csvInput = document.getElementById('srCSVFileInput');
+        const dropZone = document.getElementById('srCSVDropZone');
+
+        csvInput?.addEventListener('change', (e) => this.handleCSVFileSelect(e.target.files[0]));
+
+        // Drag and drop for CSV
+        dropZone?.addEventListener('click', () => csvInput?.click());
+        dropZone?.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone?.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        dropZone?.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.toLowerCase().endsWith('.csv')) {
+                this.handleCSVFileSelect(file);
+            } else {
+                toastManager?.show('Please drop a CSV file', 'warning');
+            }
+        });
+
+        // Remove CSV file button
+        document.getElementById('srCSVRemoveBtn')?.addEventListener('click', () => this.clearCSVFile());
+
+        // Parse CSV button
+        document.getElementById('srParseCSVBtn')?.addEventListener('click', () => this.parseCSVAndPreview());
 
         // Apply parsed data
         document.getElementById('srApplyParseBtn')?.addEventListener('click', () => this.applyParsedData());
@@ -142,6 +222,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
         document.getElementById('srCancelParseBtn')?.addEventListener('click', () => {
             document.getElementById('srPreviewSection').classList.add('hidden');
             this.parsedData = null;
+            this.parsedLessons = null;
         });
 
         // Add lesson button
@@ -149,6 +230,181 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
         // Save all button
         document.getElementById('srSaveAllBtn')?.addEventListener('click', () => this.saveAll());
+    }
+
+    /**
+     * Handle CSV file selection
+     */
+    handleCSVFileSelect(file) {
+        if (!file) return;
+
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            toastManager?.show('Please select a CSV file', 'error');
+            return;
+        }
+
+        this.csvFile = file;
+        document.getElementById('srCSVDropZone')?.classList.add('hidden');
+        document.getElementById('srCSVFileInfo')?.classList.remove('hidden');
+        document.getElementById('srCSVFileName').textContent = file.name;
+        document.getElementById('srParseCSVBtn').disabled = false;
+    }
+
+    /**
+     * Clear selected CSV file
+     */
+    clearCSVFile() {
+        this.csvFile = null;
+        document.getElementById('srCSVFileInput').value = '';
+        document.getElementById('srCSVDropZone')?.classList.remove('hidden');
+        document.getElementById('srCSVFileInfo')?.classList.add('hidden');
+        document.getElementById('srParseCSVBtn').disabled = true;
+    }
+
+    /**
+     * Parse CSV file and show preview
+     */
+    async parseCSVAndPreview() {
+        if (!this.csvFile) {
+            toastManager?.show('Please select a CSV file', 'warning');
+            return;
+        }
+
+        try {
+            const text = await this.csvFile.text();
+            const allCards = this.deckBuilder.assets.getCards({ lesson: null });
+
+            // Parse CSV into lessons structure
+            this.parsedLessons = SentenceReviewParser.parseCSV(text, allCards);
+
+            if (!this.parsedLessons || Object.keys(this.parsedLessons).length === 0) {
+                toastManager?.show('No valid data found in CSV', 'error');
+                return;
+            }
+
+            // Show preview
+            this.renderCSVPreview();
+        } catch (err) {
+            toastManager?.show(`Error parsing CSV: ${err.message}`, 'error');
+            debugLogger?.log(1, `CSV parse error: ${err.message}`);
+        }
+    }
+
+    /**
+     * Render CSV preview with multiple lessons
+     */
+    renderCSVPreview() {
+        const previewSection = document.getElementById('srPreviewSection');
+        const previewContent = document.getElementById('srPreviewContent');
+
+        if (!this.parsedLessons || Object.keys(this.parsedLessons).length === 0) {
+            previewContent.innerHTML = '<p class="error-text">No valid data found in CSV.</p>';
+            previewSection.classList.remove('hidden');
+            return;
+        }
+
+        const lessonNums = Object.keys(this.parsedLessons).map(Number).sort((a, b) => a - b);
+        let totalSequences = 0;
+        let totalSentences = 0;
+
+        lessonNums.forEach(num => {
+            const lesson = this.parsedLessons[num];
+            totalSequences += lesson.sequences?.length || 0;
+            lesson.sequences?.forEach(seq => {
+                totalSentences += seq.sentences?.length || 0;
+            });
+        });
+
+        let html = `
+            <div class="sr-csv-preview-summary">
+                <span class="summary-item"><i class="fas fa-book"></i> ${lessonNums.length} Lesson(s)</span>
+                <span class="summary-item"><i class="fas fa-list"></i> ${totalSequences} Sequence(s)</span>
+                <span class="summary-item"><i class="fas fa-comment"></i> ${totalSentences} Sentence(s)</span>
+            </div>
+        `;
+
+        lessonNums.forEach(lessonNum => {
+            const lesson = this.parsedLessons[lessonNum];
+            html += `
+                <div class="sr-preview-lesson">
+                    <div class="sr-preview-lesson-header">
+                        <i class="fas fa-book"></i>
+                        <strong>Lesson ${lessonNum}</strong>
+                        <span class="sequence-count">${lesson.sequences?.length || 0} sequences</span>
+                    </div>
+            `;
+
+            lesson.sequences?.forEach((sequence, seqIndex) => {
+                html += `
+                    <div class="sr-preview-sequence">
+                        <div class="sr-preview-seq-header">
+                            <strong>Sequence ${sequence.id}:</strong> ${sequence.title}
+                            <span class="sentence-count">${sequence.sentences?.length || 0} sentences</span>
+                        </div>
+                        <div class="sr-preview-sentences">
+                `;
+
+                sequence.sentences?.forEach((sentence, sentIndex) => {
+                    const withPic = sentence.words?.filter(w => w.imagePath).length || 0;
+                    const withoutPic = sentence.words?.filter(w => !w.imagePath).length || 0;
+                    const needsRes = sentence.words?.filter(w => w.needsResolution).length || 0;
+
+                    // Sentence type badge
+                    const typeClass = sentence.sentenceType ? `type-${sentence.sentenceType.toLowerCase()}` : '';
+                    const typeBadge = sentence.sentenceType ?
+                        `<span class="sr-sentence-type-badge ${typeClass}">${sentence.sentenceType}</span>` : '';
+
+                    html += `
+                        <div class="sr-preview-sentence">
+                            <div class="sr-preview-sent-text">
+                                ${sentence.text}
+                                ${typeBadge}
+                            </div>
+                            <div class="sr-preview-sent-english">${sentence.english}</div>
+                            <div class="sr-preview-words">
+                    `;
+
+                    sentence.words?.forEach(word => {
+                        if (word.imagePath) {
+                            const needsResClass = word.needsResolution ? ' needs-resolution' : '';
+                            const resTitle = word.needsResolution ? ' - Auto-assigned via root' : '';
+                            html += `
+                                <div class="sr-preview-word has-pic${needsResClass}" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}${resTitle}">
+                                    <img src="${word.imagePath}" alt="${word.word}">
+                                    ${word.needsResolution ? '<span class="resolution-flag">⚠️</span>' : ''}
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <div class="sr-preview-word no-pic" title="No picture found for: ${word.word}">
+                                    <span>${word.word}</span>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    html += `
+                            </div>
+                            <div class="sr-preview-stats">
+                                <span class="stat-good">${withPic} with pictures</span>
+                                ${withoutPic > 0 ? `<span class="stat-warn">${withoutPic} without pictures</span>` : ''}
+                                ${needsRes > 0 ? `<span class="stat-resolution">⚠️ ${needsRes} need review</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+        });
+
+        previewContent.innerHTML = html;
+        previewSection.classList.remove('hidden');
     }
 
     /**
@@ -280,6 +536,30 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
      * Apply parsed data to the target lesson
      */
     applyParsedData() {
+        // Handle CSV import (multiple lessons)
+        if (this.parsedLessons && Object.keys(this.parsedLessons).length > 0) {
+            let lessonsApplied = 0;
+
+            for (const [lessonNum, lessonData] of Object.entries(this.parsedLessons)) {
+                this.lessons[lessonNum] = lessonData;
+                this.editedLessons.add(parseInt(lessonNum));
+                lessonsApplied++;
+            }
+
+            // Clear CSV parse state
+            this.parsedLessons = null;
+            this.clearCSVFile();
+            document.getElementById('srPreviewSection').classList.add('hidden');
+
+            // Re-render lessons list
+            this.renderLessonsList();
+            this.updateSaveButton();
+
+            toastManager?.show(`${lessonsApplied} lesson(s) imported from CSV`, 'success');
+            return;
+        }
+
+        // Handle text import (single lesson)
         if (!this.parsedData || !this.parsedTargetLesson) return;
 
         // Create or update lesson data
@@ -408,11 +688,17 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
         let html = '<div class="sr-sentences-list">';
 
         sentences.forEach((sentence, sentIndex) => {
+            // Sentence type badge
+            const typeClass = sentence.sentenceType ? `type-${sentence.sentenceType.toLowerCase()}` : '';
+            const typeBadge = sentence.sentenceType ?
+                `<span class="sr-sentence-type-badge ${typeClass}">${sentence.sentenceType}</span>` : '';
+
             html += `
                 <div class="sr-sentence-item" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}">
                     <div class="sr-sentence-header">
                         <span class="sentence-num">${sentIndex + 1}.</span>
                         <span class="sentence-text">${sentence.text}</span>
+                        ${typeBadge}
                         <span class="sentence-english">(${sentence.english})</span>
                         <button class="btn btn-xs btn-secondary sr-edit-sentence" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" title="Edit sentence">
                             <i class="fas fa-edit"></i>
