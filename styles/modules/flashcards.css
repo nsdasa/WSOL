@@ -70,8 +70,10 @@
 /* Cards Grid - Fluid responsive using auto-fit */
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(clamp(180px, 18vw, 280px), 1fr));
-    gap: clamp(12px, 2vw, 24px);
+    /* Use smaller max (240px) to fit more cards per row on large displays */
+    /* At 1920px: ~7 cards per row. At 1440px: ~6 cards. At 1024px: ~5 cards */
+    grid-template-columns: repeat(auto-fit, minmax(clamp(160px, 15vw, 240px), 1fr));
+    gap: clamp(12px, 1.5vw, 20px);
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
@@ -82,7 +84,8 @@
 .card-container {
     cursor: pointer;
     position: relative;
-    height: clamp(200px, 25vw, 350px);
+    /* Height scaled proportionally with card width (2:3 aspect ratio) */
+    height: clamp(180px, 22vw, 320px);
     transition: width 0.3s ease, max-width 0.3s ease;
 }
 
