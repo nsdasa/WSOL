@@ -483,10 +483,21 @@ class DeckBuilderModule extends LearningModule {
                                 Create and edit sentence review lessons. Sentences are displayed as a row of pictures representing each word.
                             </p>
 
-                            <!-- Import Text Section -->
+                            <!-- Import Section with Tabs -->
                             <div class="sr-builder-import">
-                                <h4><i class="fas fa-file-import"></i> Import from Text</h4>
-                                <textarea id="srImportText" class="sr-import-textarea" placeholder="Paste sentence text here...
+                                <div class="sr-import-tabs">
+                                    <button class="sr-import-tab active" data-tab="text">
+                                        <i class="fas fa-font"></i> Text Import
+                                    </button>
+                                    <button class="sr-import-tab" data-tab="csv">
+                                        <i class="fas fa-file-csv"></i> CSV Import
+                                    </button>
+                                </div>
+
+                                <!-- Text Import Tab -->
+                                <div class="sr-import-tab-content active" id="srTextImportTab">
+                                    <h4><i class="fas fa-file-import"></i> Import from Text</h4>
+                                    <textarea id="srImportText" class="sr-import-textarea" placeholder="Paste sentence text here...
 
 Example format:
 SEQUENCE 1: Finding the Book
@@ -499,13 +510,39 @@ SEQUENCE 2: What Is This?
 
 Unsa kini? (What is this?)
 Kini ang bolpen. (This is the ballpen.)"></textarea>
-                                <div class="sr-import-actions">
-                                    <select id="srImportLesson" class="select-control">
-                                        <option value="">Select Target Lesson...</option>
-                                    </select>
-                                    <button id="srParseBtn" class="btn btn-primary">
-                                        <i class="fas fa-magic"></i> Parse & Preview
-                                    </button>
+                                    <div class="sr-import-actions">
+                                        <select id="srImportLesson" class="select-control">
+                                            <option value="">Select Target Lesson...</option>
+                                        </select>
+                                        <button id="srParseBtn" class="btn btn-primary">
+                                            <i class="fas fa-magic"></i> Parse & Preview
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- CSV Import Tab -->
+                                <div class="sr-import-tab-content" id="srCSVImportTab">
+                                    <h4><i class="fas fa-file-csv"></i> Import from CSV</h4>
+                                    <p class="sr-csv-description">
+                                        Upload a CSV file with columns: Lesson #, Seq #, Sequ Title, Sentence #, Sentence Text, English Translation, Sentence Type
+                                    </p>
+                                    <div class="sr-csv-upload-area" id="srCSVDropZone">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Drag & drop CSV file here or click to browse</p>
+                                        <input type="file" id="srCSVFileInput" accept=".csv" class="sr-csv-file-input">
+                                    </div>
+                                    <div class="sr-csv-file-info hidden" id="srCSVFileInfo">
+                                        <i class="fas fa-file-csv"></i>
+                                        <span id="srCSVFileName"></span>
+                                        <button class="sr-csv-remove-btn" id="srCSVRemoveBtn" title="Remove file">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="sr-import-actions">
+                                        <button id="srParseCSVBtn" class="btn btn-primary" disabled>
+                                            <i class="fas fa-magic"></i> Parse CSV & Preview
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
