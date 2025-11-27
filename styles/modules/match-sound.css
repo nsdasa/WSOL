@@ -29,14 +29,14 @@
     background: var(--bg-primary);
     border: 2px solid var(--border-color);
     border-radius: 8px;
-    padding: 12px;
+    padding: 8px;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 160px;
-    height: 160px;
+    width: 110px;
+    height: 165px;
     position: relative;
 }
 
@@ -48,8 +48,8 @@
 
 .pictures-row .item img,
 .pictures-row .item video {
-    width: 100%;
-    height: 100%;
+    width: 90%;
+    height: 90%;
     object-fit: contain;
     object-position: center;
     border-radius: 4px;
@@ -229,8 +229,8 @@ body.mobile-phone .pictures-row {
 }
 
 body.mobile-phone .pictures-row .item {
-    width: auto;
-    height: 140px;
+    width: 90px;
+    height: 135px;
     flex: 0 0 calc(50% - 6px);
 }
 
@@ -260,8 +260,8 @@ body.mobile-tablet .pictures-row {
 }
 
 body.mobile-tablet .pictures-row .item {
-    width: auto;
-    height: 180px;
+    width: 100px;
+    height: 150px;
 }
 
 body.mobile-tablet.landscape .pictures-row {

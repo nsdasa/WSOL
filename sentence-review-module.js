@@ -206,17 +206,38 @@ class SentenceReviewModule extends LearningModule {
                 const cardInner = document.createElement('div');
                 cardInner.className = 'sr-card-inner';
 
-                // Front face (image)
+                // Front face (image or video)
                 const front = document.createElement('div');
                 front.className = 'sr-card-face sr-card-front';
 
-                const img = document.createElement('img');
-                img.src = wordData.imagePath;
-                img.alt = wordData.word;
-                img.onerror = () => {
-                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
-                };
-                front.appendChild(img);
+                // Use card.imagePath (with WebP/WebM preference) instead of wordData.imagePath (printImagePath)
+                const displayPath = card?.imagePath || wordData.imagePath;
+                const isVideo = card?.isVideo || false;
+
+                if (isVideo) {
+                    const video = document.createElement('video');
+                    video.src = displayPath;
+                    video.autoplay = true;
+                    video.loop = true;
+                    video.muted = true;
+                    video.playsInline = true;
+                    video.onerror = () => {
+                        // Fallback to image on video error
+                        const fallbackImg = document.createElement('img');
+                        fallbackImg.src = wordData.imagePath || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
+                        fallbackImg.alt = wordData.word;
+                        video.replaceWith(fallbackImg);
+                    };
+                    front.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = displayPath;
+                    img.alt = wordData.word;
+                    img.onerror = () => {
+                        img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
+                    };
+                    front.appendChild(img);
+                }
 
                 // Speaker icon on front
                 if (card?.hasAudio && card?.audioPath?.length > 0) {

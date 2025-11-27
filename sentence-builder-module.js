@@ -11,7 +11,7 @@ class SentenceBuilderModule extends LearningModule {
         this.currentFrameIndex = 0; // Which frame is being filled
         this.availableWordTypes = []; // Word types from CSV columns
         this.wordsByType = {}; // Words organized by type for current lesson
-        this.frameSize = 160; // Match-sound module size
+        this.frameSize = 110; // Frame width (2:3 ratio: 110x165)
         this.maxFramesPerRow = 4; // Will be calculated based on screen
         this.selectedFrameIndex = null; // Frame being edited
         this.sortableInstances = []; // SortableJS instances for each row
@@ -245,7 +245,7 @@ class SentenceBuilderModule extends LearningModule {
                 ghostClass: 'sortable-ghost',
                 chosenClass: 'sortable-chosen',
                 dragClass: 'sortable-drag',
-                handle: '.frame-card', // Only drag by the card, not buttons
+                handle: '.frame-card, .function-word-text', // Drag by card or function word text
                 filter: '.frame-edit, .frame-delete, .frame-speaker, .empty-frame', // Don't drag empty frames or by buttons
                 preventOnFilter: false,
                 delay: 200, // Require 200ms hold before drag starts
@@ -282,7 +282,34 @@ class SentenceBuilderModule extends LearningModule {
         frame.className = 'sentence-frame';
         frame.dataset.index = index;
 
-        if (card) {
+        if (card && card.isFunctionWord) {
+            // Function word frame - smaller, text only
+            frame.classList.add('function-word');
+
+            const wordText = document.createElement('div');
+            wordText.className = 'function-word-text';
+            wordText.textContent = card.word;
+            frame.appendChild(wordText);
+
+            // Delete button on hover
+            const deleteBtn = document.createElement('div');
+            deleteBtn.className = 'frame-delete';
+            deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+            deleteBtn.style.cssText = 'opacity: 0; transition: opacity 0.2s;';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteFrame(index);
+            });
+            frame.appendChild(deleteBtn);
+
+            // Show delete on hover
+            frame.addEventListener('mouseenter', () => deleteBtn.style.opacity = '1');
+            frame.addEventListener('mouseleave', () => deleteBtn.style.opacity = '0');
+
+            // Click to edit
+            frame.addEventListener('click', () => this.editFrame(index));
+
+        } else if (card) {
             // Frame has a card
             frame.classList.add('has-card');
 
@@ -458,8 +485,19 @@ class SentenceBuilderModule extends LearningModule {
             // Find the card in manifest that matches this word
             const card = this.findCardByWord(word);
             if (!card) {
-                console.warn(`[SentenceBuilder] Card not found for word: "${word}"`);
-                debugLogger?.log(2, `Card not found for word: ${word}`);
+                // No picture card found - create as function word
+                console.log(`[SentenceBuilder] No card for "${word}" - treating as function word`);
+                debugLogger?.log(2, `Function word: ${word}`);
+                const functionWordCard = {
+                    word: word,
+                    english: '',
+                    isFunctionWord: true,
+                    imagePath: null,
+                    audioPath: null,
+                    hasAudio: false
+                };
+                const cardEl = this.createFunctionWordSelectorCard(functionWordCard);
+                grid.appendChild(cardEl);
                 return;
             }
 
@@ -533,6 +571,45 @@ class SentenceBuilderModule extends LearningModule {
         // No partial/fuzzy matching - it causes wrong card matches
         // If we didn't find an exact match, return null
         return null;
+    }
+
+    /**
+     * Create a function word selector card for the modal
+     */
+    createFunctionWordSelectorCard(card) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'selector-card function-word-selector';
+
+        const cardInner = document.createElement('div');
+        cardInner.className = 'selector-card-inner function-word-inner';
+        cardInner.style.cssText = 'width: 60px; height: 60px; background: var(--bg-tertiary); border: 2px dashed var(--border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center;';
+
+        const wordText = document.createElement('div');
+        wordText.className = 'function-word-text';
+        wordText.style.cssText = 'font-size: 14px; font-weight: 600; color: var(--text-secondary); text-align: center; word-break: break-word; padding: 4px;';
+        wordText.textContent = card.word;
+        cardInner.appendChild(wordText);
+
+        cardEl.appendChild(cardInner);
+        cardEl.style.cssText = 'width: 80px; height: 110px;';
+
+        // Select button
+        const selectBtn = document.createElement('button');
+        selectBtn.className = 'selector-select-btn';
+        selectBtn.innerHTML = '<i class="fas fa-check"></i> Select';
+        selectBtn.style.marginTop = '8px';
+        selectBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.selectCard(card);
+        });
+        cardEl.appendChild(selectBtn);
+
+        // Click to select
+        cardInner.addEventListener('click', () => {
+            this.selectCard(card);
+        });
+
+        return cardEl;
     }
 
     /**
