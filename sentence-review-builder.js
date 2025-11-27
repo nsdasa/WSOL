@@ -703,6 +703,9 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                         <button class="btn btn-xs btn-secondary sr-edit-sentence" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" title="Edit sentence">
                             <i class="fas fa-edit"></i>
                         </button>
+                        <button class="btn btn-xs btn-danger sr-delete-sentence" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" title="Delete sentence">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                     <div class="sr-sentence-pictures">
                         ${this.renderWordPictures(lessonNum, seqIndex, sentIndex, sentence.words || [])}
@@ -848,6 +851,17 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             });
         });
 
+        // Delete sentence buttons
+        document.querySelectorAll('.sr-delete-sentence').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const lessonNum = parseInt(btn.dataset.lesson);
+                const seqIndex = parseInt(btn.dataset.seq);
+                const sentIndex = parseInt(btn.dataset.sent);
+                this.deleteSentence(lessonNum, seqIndex, sentIndex);
+            });
+        });
+
         // Change picture buttons
         document.querySelectorAll('.sr-change-pic-btn, .sr-assign-pic-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -958,22 +972,38 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     }
 
     /**
-     * Delete a word from a sentence
+     * Delete a word from a sentence, or remove its card reference if it has one
+     * If the word has a picture/card, only remove the card reference (keep the word text)
+     * If the word has no picture, delete the entire word from the sentence
      */
     deleteWord(lessonNum, seqIndex, sentIndex, wordIndex) {
         const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
         const word = sentence.words[wordIndex];
 
-        if (!confirm(`Delete "${word.word}" from this sentence?`)) return;
+        if (word.imagePath || word.cardNum) {
+            // Word has a card/picture - only remove the card reference, keep the word text
+            if (!confirm(`Remove picture from "${word.word}"? (The word text will remain)`)) return;
 
-        sentence.words.splice(wordIndex, 1);
-        this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+            // Clear card-related properties but keep the word text
+            delete word.cardNum;
+            delete word.imagePath;
+            delete word.root;
+            delete word.needsResolution;
+
+            toastManager?.show('Picture removed from word', 'success');
+        } else {
+            // Word has no picture - delete the entire word
+            if (!confirm(`Delete "${word.word}" from this sentence?`)) return;
+
+            sentence.words.splice(wordIndex, 1);
+            this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+
+            toastManager?.show('Word deleted', 'success');
+        }
 
         this.editedLessons.add(lessonNum);
         this.renderLessonsList();
         this.updateSaveButton();
-
-        toastManager?.show('Word deleted', 'success');
     }
 
     /**
@@ -1238,12 +1268,19 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     }
 
     /**
-     * Delete a sequence
+     * Delete a sequence and renumber remaining sequences
      */
     deleteSequence(lessonNum, seqIndex) {
         if (!confirm('Delete this sequence?')) return;
 
-        this.lessons[lessonNum].sequences.splice(seqIndex, 1);
+        const sequences = this.lessons[lessonNum].sequences;
+        sequences.splice(seqIndex, 1);
+
+        // Renumber remaining sequences (1-indexed IDs)
+        sequences.forEach((seq, idx) => {
+            seq.id = idx + 1;
+        });
+
         this.editedLessons.add(lessonNum);
         this.renderLessonsList();
         this.updateSaveButton();
@@ -1308,6 +1345,30 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
         this.updateSaveButton();
 
         toastManager?.show('Sentence updated', 'success');
+    }
+
+    /**
+     * Delete a sentence from a sequence and renumber remaining sentences
+     */
+    deleteSentence(lessonNum, seqIndex, sentIndex) {
+        const sentences = this.lessons[lessonNum].sequences[seqIndex].sentences;
+        const sentence = sentences[sentIndex];
+
+        if (!confirm(`Delete sentence "${sentence.text}"?`)) return;
+
+        // Remove the sentence
+        sentences.splice(sentIndex, 1);
+
+        // Renumber remaining sentences (1-indexed IDs)
+        sentences.forEach((sent, idx) => {
+            sent.id = idx + 1;
+        });
+
+        this.editedLessons.add(lessonNum);
+        this.renderLessonsList();
+        this.updateSaveButton();
+
+        toastManager?.show('Sentence deleted', 'success');
     }
 
     /**
