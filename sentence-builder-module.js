@@ -477,11 +477,31 @@ class SentenceBuilderModule extends LearningModule {
 
         const words = this.wordsByType[wordType] || [];
 
+        // Check if this is the Affixes word type - affixes never have cards
+        const isAffixType = wordType.toLowerCase() === 'affixes';
+
         // Debug: log available cards
         const allCards = this.assets.getCards({ lesson: null });
-        console.log(`[SentenceBuilder] showCardSelectorModal: wordType="${wordType}", words=${JSON.stringify(words)}, totalCards=${allCards.length}`);
+        console.log(`[SentenceBuilder] showCardSelectorModal: wordType="${wordType}", words=${JSON.stringify(words)}, totalCards=${allCards.length}, isAffixType=${isAffixType}`);
 
         words.forEach(word => {
+            // Affixes don't have cards - always render as small placeholder cards
+            if (isAffixType) {
+                console.log(`[SentenceBuilder] Affix: "${word}" - rendering as small card`);
+                const affixCard = {
+                    word: word,
+                    english: '',
+                    isAffix: true,
+                    isFunctionWord: true,
+                    imagePath: null,
+                    audioPath: null,
+                    hasAudio: false
+                };
+                const cardEl = this.createFunctionWordSelectorCard(affixCard);
+                grid.appendChild(cardEl);
+                return;
+            }
+
             // Find the card in manifest that matches this word
             const card = this.findCardByWord(word);
             if (!card) {
