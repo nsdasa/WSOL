@@ -722,6 +722,7 @@
         <div class="debug-header">
             <h3>🐛 API Debug Console</h3>
             <div class="debug-header-actions">
+                <button class="debug-header-btn" onclick="testApiConnection()" style="background: #2196f3;">🔌 Test API</button>
                 <button class="debug-header-btn" onclick="viewServerLogs()" style="background: #ff9800;">🖥️ Server Logs</button>
                 <button class="debug-header-btn" onclick="copyAllLogs()">📋 Copy All</button>
                 <button class="debug-header-btn" onclick="clearLogs()">🗑️ Clear</button>
@@ -742,6 +743,11 @@
     <script>
         // ==================== API BASE URL ====================
         const API_BASE = './api.php';
+        
+        // Warn if not using HTTPS
+        if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost')) {
+            console.warn('Warning: Page loaded over HTTP. For security, use HTTPS.');
+        }
 
         // ==================== DEBUG LOGGING ====================
         const debugLog = {
@@ -819,6 +825,34 @@
                 document.body.appendChild(modal);
             } catch (error) {
                 alert(`Failed to fetch server logs: ${error.message}`);
+            }
+        }
+        
+        async function testApiConnection() {
+            debugLog.add('info', 'Testing API connection...');
+            try {
+                const response = await fetch(`${API_BASE}?path=/api/test`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    debugLog.add('response', 'API Test PASSED ✓', {
+                        message: data.message,
+                        elapsed: data.elapsed + 'ms',
+                        model: data.model
+                    });
+                    alert(`✓ API Connection Successful!\n\nResponse: ${data.message}\nTime: ${data.elapsed}ms\nModel: ${data.model}`);
+                } else {
+                    debugLog.add('error', 'API Test FAILED ✗', {
+                        error: data.error,
+                        hint: data.hint,
+                        httpCode: data.httpCode,
+                        curlErrno: data.curlErrno
+                    });
+                    alert(`✗ API Test Failed\n\nError: ${data.error}\n${data.hint ? '\nHint: ' + data.hint : ''}`);
+                }
+            } catch (error) {
+                debugLog.add('error', 'API Test Error', { error: error.message });
+                alert(`✗ API Test Error: ${error.message}`);
             }
         }
         

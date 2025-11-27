@@ -400,6 +400,87 @@ if ($method === 'GET' && $path === '/api/logs') {
     exit;
 }
 
+// Route: GET /api/test (test Anthropic API connectivity)
+if ($method === 'GET' && $path === '/api/test') {
+    writeLog('=== API Test started ===');
+    
+    if (empty($config['api_key']) || $config['api_key'] === 'sk-ant-api03-YOUR-API-KEY-HERE') {
+        echo json_encode(['error' => 'API key not configured']);
+        exit;
+    }
+    
+    $ch = curl_init('https://api.anthropic.com/v1/messages');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'x-api-key: ' . $config['api_key'],
+            'anthropic-version: 2023-06-01'
+        ],
+        CURLOPT_POSTFIELDS => json_encode([
+            'model' => 'claude-haiku-4-5-20251001',
+            'max_tokens' => 50,
+            'messages' => [['role' => 'user', 'content' => 'Say "API connection successful" and nothing else.']]
+        ]),
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_CONNECTTIMEOUT => 15,
+        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+        CURLOPT_NOSIGNAL => 1,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 3
+    ]);
+    
+    $startTime = microtime(true);
+    $response = curl_exec($ch);
+    $elapsed = round((microtime(true) - $startTime) * 1000);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    $curlErrno = curl_errno($ch);
+    curl_close($ch);
+    
+    writeLog('API Test result', [
+        'httpCode' => $httpCode,
+        'elapsed' => $elapsed . 'ms',
+        'curlError' => $curlError ?: 'none',
+        'curlErrno' => $curlErrno
+    ]);
+    
+    if ($curlError) {
+        echo json_encode([
+            'success' => false,
+            'error' => $curlError,
+            'curlErrno' => $curlErrno,
+            'elapsed' => $elapsed,
+            'hint' => strpos($curlError, 'getaddrinfo') !== false 
+                ? 'DNS resolution failed. This is a server-side network issue.' 
+                : 'Network error connecting to Anthropic API.'
+        ]);
+        exit;
+    }
+    
+    $data = json_decode($response, true);
+    
+    if ($httpCode === 200) {
+        echo json_encode([
+            'success' => true,
+            'message' => $data['content'][0]['text'] ?? 'OK',
+            'elapsed' => $elapsed,
+            'model' => $data['model'] ?? 'unknown'
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'httpCode' => $httpCode,
+            'error' => $data['error']['message'] ?? 'Unknown error',
+            'elapsed' => $elapsed
+        ]);
+    }
+    exit;
+}
+
 // Route: GET /api/config
 if ($method === 'GET' && $path === '/api/config') {
     echo json_encode([
@@ -449,7 +530,15 @@ function makeAnthropicRequest($requestBody, $config, $SYSTEM_PROMPT) {
                 'anthropic-version: 2023-06-01'
             ],
             CURLOPT_POSTFIELDS => json_encode($requestBody),
-            CURLOPT_TIMEOUT => 300 // 5 minute timeout for long responses
+            CURLOPT_TIMEOUT => 300,           // 5 minute timeout for long responses
+            CURLOPT_CONNECTTIMEOUT => 30,     // 30 second connection timeout
+            CURLOPT_DNS_CACHE_TIMEOUT => 120, // Cache DNS for 2 minutes
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4, // Force IPv4 (helps with some DNS issues)
+            CURLOPT_NOSIGNAL => 1,            // Required for timeout to work in multi-threaded environments
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_FOLLOWLOCATION => true,   // Follow redirects
+            CURLOPT_MAXREDIRS => 3
         ]);
         
         writeLog("CURL request starting...");
@@ -470,9 +559,30 @@ function makeAnthropicRequest($requestBody, $config, $SYSTEM_PROMPT) {
         // Handle curl errors
         if ($curlError) {
             writeLog("CURL ERROR: $curlError");
+            $retryLog[] = ['attempt' => $attempt, 'error' => 'CURL: ' . $curlError, 'timestamp' => date('c')];
+            
+            // DNS and connection errors are retryable (temporary network issues)
+            $isRetryableError = (
+                strpos($curlError, 'getaddrinfo') !== false ||
+                strpos($curlError, 'resolve') !== false ||
+                strpos($curlError, 'DNS') !== false ||
+                strpos($curlError, 'Connection') !== false ||
+                strpos($curlError, 'timed out') !== false
+            );
+            
+            if ($isRetryableError && $attempt < $retryConfig['max_attempts']) {
+                $delay = min(
+                    $retryConfig['initial_delay'] * pow($retryConfig['backoff_multiplier'], $attempt - 1),
+                    $retryConfig['max_delay']
+                );
+                writeLog("Retryable CURL error, waiting {$delay}s before retry...");
+                $retryLog[count($retryLog) - 1]['waiting'] = $delay;
+                $totalRetryTime += $delay;
+                sleep((int)$delay);
+                continue; // Retry the request
+            }
+            
             $lastError = ['type' => 'curl', 'message' => $curlError, 'code' => 500];
-            $retryLog[] = ['attempt' => $attempt, 'error' => 'CURL: ' . $curlError];
-            // Don't retry on curl errors (usually network issues)
             break;
         }
         
