@@ -18,7 +18,7 @@ class TeacherGuideModule extends LearningModule {
         const currentLesson = this.assets.currentLesson || 1;
 
         this.container.innerHTML = `
-            <div class="container module-teacher-guide">
+            <div class="module-teacher-guide">
                 <div class="teacher-guide-header">
                     <h1><i class="fas fa-chalkboard-teacher"></i> Teacher's Guide (${langName}: Lesson ${currentLesson})</h1>
                 </div>

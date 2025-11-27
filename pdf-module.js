@@ -27,7 +27,7 @@ class PDFPrintModule extends LearningModule {
         const backLanguages = availableLanguages.filter(lang => lang.trigraph.toLowerCase() !== currentLang);
         
         this.container.innerHTML = `
-            <div class="container module-pdf-print">
+            <div class="module-pdf-print">
                 <h1>Print Flashcards to PDF (${langName}: Lesson ${lessonNum})</h1>
                 
                 <div class="pdf-config-section">

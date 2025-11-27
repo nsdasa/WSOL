@@ -18,7 +18,7 @@ class GrammarModule extends LearningModule {
         const currentLesson = this.assets.currentLesson || 1;
 
         this.container.innerHTML = `
-            <div class="container module-grammar">
+            <div class="module-grammar">
                 <div class="grammar-header">
                     <h1><i class="fas fa-book-open"></i> Grammar (${langName}: Lesson ${currentLesson})</h1>
                 </div>

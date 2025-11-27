@@ -55,7 +55,7 @@ class MatchSoundModule extends LearningModule {
             : (this.assets.currentLesson || 'Lesson');
         
         this.container.innerHTML = `
-            <div class="container module-match-sound">
+            <div class="module-match-sound">
                 <h1>Audio Match (${langName}: ${lessonDisplay})</h1>
                 <div class="controls">
                     <div class="mode-buttons">

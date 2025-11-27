@@ -24,7 +24,7 @@ class SentenceBuilderModule extends LearningModule {
             : (this.assets.currentLesson || 'Lesson');
 
         this.container.innerHTML = `
-            <div class="container module-sentence-builder">
+            <div class="module-sentence-builder">
                 <h1><i class="fas fa-bars-staggered"></i> Sentence Builder (${langName}: Lesson ${lessonDisplay})</h1>
 
                 <div class="controls">
