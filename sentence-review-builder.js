@@ -16,6 +16,7 @@ class SentenceReviewBuilder {
         this.editedLessons = new Set(); // Track which lessons have been edited
         this.expandedLessons = new Set(); // Track expanded lessons
         this.expandedSequences = new Set(); // Track expanded sequences (format: "lessonNum-seqIndex")
+        this.sortableInstances = []; // Track SortableJS instances for cleanup
     }
 
     /**
@@ -434,40 +435,58 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     }
 
     /**
-     * Render word pictures in a row
+     * Render word pictures in a row with drag-and-drop support
      */
     renderWordPictures(lessonNum, seqIndex, sentIndex, words) {
-        if (!words || words.length === 0) {
-            return '<p class="sr-no-words">No words</p>';
+        // Always show the row container for drag-and-drop and add functionality
+        let html = `<div class="sr-word-pictures-row" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}">`;
+
+        if (words && words.length > 0) {
+            words.forEach((word, wordIndex) => {
+                if (word.imagePath) {
+                    const needsResClass = word.needsResolution ? ' needs-resolution' : '';
+                    const resTitle = word.needsResolution ? ' ⚠️ Auto-assigned via root - needs review' : '';
+                    html += `
+                        <div class="sr-word-pic${needsResClass}" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" data-word="${wordIndex}" draggable="true">
+                            <div class="sr-drag-handle" title="Drag to reorder">
+                                <i class="fas fa-grip-vertical"></i>
+                            </div>
+                            <img src="${word.imagePath}" alt="${word.word}" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}${resTitle}">
+                            <span class="word-label">${word.word}</span>
+                            ${word.needsResolution ? '<span class="resolution-flag" title="Auto-assigned via root - click to review">⚠️</span>' : ''}
+                            <button class="sr-change-pic-btn" title="Change picture">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                            <button class="sr-delete-word-btn" title="Delete word">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="sr-word-pic no-pic" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" data-word="${wordIndex}" draggable="true">
+                            <div class="sr-drag-handle" title="Drag to reorder">
+                                <i class="fas fa-grip-vertical"></i>
+                            </div>
+                            <span class="word-text">${word.word}</span>
+                            <button class="sr-assign-pic-btn" title="Assign picture">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="sr-delete-word-btn" title="Delete word">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            });
         }
 
-        let html = '<div class="sr-word-pictures-row">';
-
-        words.forEach((word, wordIndex) => {
-            if (word.imagePath) {
-                const needsResClass = word.needsResolution ? ' needs-resolution' : '';
-                const resTitle = word.needsResolution ? ' ⚠️ Auto-assigned via root - needs review' : '';
-                html += `
-                    <div class="sr-word-pic${needsResClass}" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" data-word="${wordIndex}">
-                        <img src="${word.imagePath}" alt="${word.word}" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}${resTitle}">
-                        <span class="word-label">${word.word}</span>
-                        ${word.needsResolution ? '<span class="resolution-flag" title="Auto-assigned via root - click to review">⚠️</span>' : ''}
-                        <button class="sr-change-pic-btn" title="Change picture">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div class="sr-word-pic no-pic" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" data-word="${wordIndex}">
-                        <span class="word-text">${word.word}</span>
-                        <button class="sr-assign-pic-btn" title="Assign picture">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                `;
-            }
-        });
+        // Add word button at the end
+        html += `
+            <div class="sr-add-word-btn" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" title="Add word/card">
+                <i class="fas fa-plus"></i>
+            </div>
+        `;
 
         html += '</div>';
         return html;
@@ -554,6 +573,290 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                 const wordIndex = parseInt(wordPic.dataset.word);
                 this.openPictureSelector(lessonNum, seqIndex, sentIndex, wordIndex);
             });
+        });
+
+        // Delete word buttons
+        document.querySelectorAll('.sr-delete-word-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const wordPic = btn.closest('.sr-word-pic');
+                const lessonNum = parseInt(wordPic.dataset.lesson);
+                const seqIndex = parseInt(wordPic.dataset.seq);
+                const sentIndex = parseInt(wordPic.dataset.sent);
+                const wordIndex = parseInt(wordPic.dataset.word);
+                this.deleteWord(lessonNum, seqIndex, sentIndex, wordIndex);
+            });
+        });
+
+        // Add word buttons
+        document.querySelectorAll('.sr-add-word-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const lessonNum = parseInt(btn.dataset.lesson);
+                const seqIndex = parseInt(btn.dataset.seq);
+                const sentIndex = parseInt(btn.dataset.sent);
+                this.addWord(lessonNum, seqIndex, sentIndex);
+            });
+        });
+
+        // Initialize SortableJS for word picture rows
+        this.initSortableWordRows();
+    }
+
+    /**
+     * Initialize SortableJS for drag-and-drop reordering of words
+     */
+    initSortableWordRows() {
+        // Destroy existing instances
+        this.sortableInstances.forEach(instance => instance.destroy());
+        this.sortableInstances = [];
+
+        // Initialize Sortable on each word pictures row
+        if (typeof Sortable !== 'undefined') {
+            document.querySelectorAll('.sr-word-pictures-row').forEach(row => {
+                const lessonNum = parseInt(row.dataset.lesson);
+                const seqIndex = parseInt(row.dataset.seq);
+                const sentIndex = parseInt(row.dataset.sent);
+
+                const sortable = new Sortable(row, {
+                    animation: 150,
+                    handle: '.sr-drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    dragClass: 'sortable-drag',
+                    filter: '.sr-add-word-btn', // Don't drag the add button
+                    onEnd: (evt) => {
+                        // Don't process if dropped on the add button
+                        if (evt.newIndex >= this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex].words.length) {
+                            // Re-render to reset position
+                            this.renderLessonsList();
+                            return;
+                        }
+                        this.onWordReorder(lessonNum, seqIndex, sentIndex, evt.oldIndex, evt.newIndex);
+                    }
+                });
+                this.sortableInstances.push(sortable);
+            });
+        }
+    }
+
+    /**
+     * Handle word reordering after drag-and-drop
+     */
+    onWordReorder(lessonNum, seqIndex, sentIndex, oldIndex, newIndex) {
+        if (oldIndex === newIndex) return;
+
+        const words = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex].words;
+        const [movedWord] = words.splice(oldIndex, 1);
+        words.splice(newIndex, 0, movedWord);
+
+        this.editedLessons.add(lessonNum);
+        this.updateSaveButton();
+
+        // Update sentence text to reflect new word order
+        this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+
+        // Re-render to update data-word indices
+        this.renderLessonsList();
+
+        toastManager?.show('Word order updated', 'success');
+    }
+
+    /**
+     * Update sentence text based on current word order
+     */
+    updateSentenceText(lessonNum, seqIndex, sentIndex) {
+        const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
+        // Reconstruct text from words (preserving punctuation would require more complex handling)
+        sentence.text = sentence.words.map(w => w.word).join(' ');
+    }
+
+    /**
+     * Delete a word from a sentence
+     */
+    deleteWord(lessonNum, seqIndex, sentIndex, wordIndex) {
+        const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
+        const word = sentence.words[wordIndex];
+
+        if (!confirm(`Delete "${word.word}" from this sentence?`)) return;
+
+        sentence.words.splice(wordIndex, 1);
+        this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+
+        this.editedLessons.add(lessonNum);
+        this.renderLessonsList();
+        this.updateSaveButton();
+
+        toastManager?.show('Word deleted', 'success');
+    }
+
+    /**
+     * Add a new word to a sentence
+     */
+    addWord(lessonNum, seqIndex, sentIndex) {
+        const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
+
+        // Show a modal to select what to add
+        this.openAddWordModal(lessonNum, seqIndex, sentIndex);
+    }
+
+    /**
+     * Open modal to add a new word (function word or card)
+     */
+    openAddWordModal(lessonNum, seqIndex, sentIndex) {
+        const allCards = this.deckBuilder.assets.getCards({ lesson: null });
+
+        const modal = document.createElement('div');
+        modal.className = 'modal sr-add-word-modal';
+        modal.id = 'srAddWordModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-plus"></i> Add Word to Sentence</h2>
+                    <button class="close-btn" id="srCloseAddWordModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="sr-add-word-tabs">
+                        <button class="sr-add-word-tab active" data-tab="function">
+                            <i class="fas fa-font"></i> Function Word
+                        </button>
+                        <button class="sr-add-word-tab" data-tab="card">
+                            <i class="fas fa-image"></i> Picture Card
+                        </button>
+                    </div>
+
+                    <div class="sr-add-word-content" id="functionWordTab">
+                        <p>Add a word without a picture (function words like "ang", "sa", etc.)</p>
+                        <input type="text" id="srFunctionWordInput" class="form-control" placeholder="Enter word...">
+                        <button id="srAddFunctionWordBtn" class="btn btn-success" style="margin-top: 12px;">
+                            <i class="fas fa-plus"></i> Add Function Word
+                        </button>
+                    </div>
+
+                    <div class="sr-add-word-content hidden" id="cardWordTab">
+                        <div class="sr-search-bar">
+                            <input type="text" id="srCardSearch" placeholder="Search cards...">
+                            <button id="srCardSearchBtn" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="sr-pic-grid" id="srCardGrid">
+                            <p class="hint-text">Search for a card to add</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Tab switching
+        modal.querySelectorAll('.sr-add-word-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                modal.querySelectorAll('.sr-add-word-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                document.getElementById('functionWordTab').classList.toggle('hidden', tab.dataset.tab !== 'function');
+                document.getElementById('cardWordTab').classList.toggle('hidden', tab.dataset.tab !== 'card');
+            });
+        });
+
+        // Add function word
+        document.getElementById('srAddFunctionWordBtn')?.addEventListener('click', () => {
+            const word = document.getElementById('srFunctionWordInput').value.trim();
+            if (!word) {
+                toastManager?.show('Please enter a word', 'warning');
+                return;
+            }
+
+            const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
+            sentence.words.push({
+                word: word,
+                root: null,
+                cardNum: null,
+                imagePath: null,
+                needsResolution: false
+            });
+
+            this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+            this.editedLessons.add(lessonNum);
+            this.renderLessonsList();
+            this.updateSaveButton();
+
+            modal.remove();
+            toastManager?.show('Function word added', 'success');
+        });
+
+        // Card search
+        const renderCardResults = (searchTerm) => {
+            const grid = document.getElementById('srCardGrid');
+            const term = searchTerm.toLowerCase();
+
+            if (!term) {
+                grid.innerHTML = '<p class="hint-text">Search for a card to add</p>';
+                return;
+            }
+
+            const matchingCards = allCards.filter(card => {
+                const wordMatch = card.word?.toLowerCase().includes(term);
+                const englishMatch = card.english?.toLowerCase().includes(term);
+                return wordMatch || englishMatch;
+            }).slice(0, 50);
+
+            if (matchingCards.length === 0) {
+                grid.innerHTML = '<p class="no-results">No matching cards found</p>';
+                return;
+            }
+
+            grid.innerHTML = matchingCards.map(card => `
+                <div class="sr-pic-option" data-cardnum="${card.cardNum}" data-word="${card.word}" data-imagepath="${card.printImagePath || ''}">
+                    ${card.printImagePath ? `<img src="${card.printImagePath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
+                    <span class="card-word">${card.word}</span>
+                    <span class="card-english">${card.english}</span>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            grid.querySelectorAll('.sr-pic-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const cardNum = parseInt(option.dataset.cardnum);
+                    const word = option.dataset.word;
+                    const imagePath = option.dataset.imagepath;
+
+                    const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
+                    sentence.words.push({
+                        word: word,
+                        root: null,
+                        cardNum: cardNum,
+                        imagePath: imagePath || null,
+                        needsResolution: false
+                    });
+
+                    this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+                    this.editedLessons.add(lessonNum);
+                    this.renderLessonsList();
+                    this.updateSaveButton();
+
+                    modal.remove();
+                    toastManager?.show('Card added', 'success');
+                });
+            });
+        };
+
+        document.getElementById('srCardSearchBtn')?.addEventListener('click', () => {
+            renderCardResults(document.getElementById('srCardSearch').value);
+        });
+
+        document.getElementById('srCardSearch')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                renderCardResults(e.target.value);
+            }
+        });
+
+        // Close modal
+        document.getElementById('srCloseAddWordModal')?.addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
         });
     }
 

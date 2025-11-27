@@ -124,7 +124,8 @@
     justify-content: center;
 }
 
-.sr-card-front img {
+.sr-card-front img,
+.sr-card-front video {
     width: 90%;
     height: 90%;
     object-fit: contain;
@@ -723,6 +724,148 @@
 .sr-word-pic:hover .sr-change-pic-btn,
 .sr-word-pic:hover .sr-assign-pic-btn {
     opacity: 1;
+}
+
+/* Drag handle for word pictures in deck builder */
+.sr-word-pic .sr-drag-handle {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    cursor: grab;
+    z-index: 5;
+}
+
+.sr-word-pic:hover .sr-drag-handle {
+    opacity: 1;
+}
+
+.sr-word-pic .sr-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Delete word button in deck builder */
+.sr-word-pic .sr-delete-word-btn {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--error, #e53935);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 5;
+}
+
+.sr-word-pic:hover .sr-delete-word-btn {
+    opacity: 1;
+}
+
+.sr-word-pic .sr-delete-word-btn:hover {
+    background: #c62828;
+    transform: scale(1.1);
+}
+
+/* Add word button in deck builder */
+.sr-add-word-btn {
+    width: 50px;
+    height: 50px;
+    border: 2px dashed var(--primary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--primary);
+    font-size: 1.2rem;
+    transition: all 0.2s;
+    background: transparent;
+}
+
+.sr-add-word-btn:hover {
+    background: var(--primary-light, rgba(79, 70, 229, 0.1));
+    transform: scale(1.05);
+}
+
+/* Sortable ghost/chosen states for word pictures */
+.sr-word-pic.sortable-ghost {
+    opacity: 0.4;
+}
+
+.sr-word-pic.sortable-chosen {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: scale(1.05);
+}
+
+/* Add word modal tabs */
+.sr-add-word-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.sr-add-word-tab {
+    flex: 1;
+    padding: 10px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.sr-add-word-tab:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.sr-add-word-tab.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.sr-add-word-content {
+    padding: 12px 0;
+}
+
+.sr-add-word-content p {
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.sr-add-word-content .hint-text {
+    text-align: center;
+    color: var(--text-tertiary);
+    padding: 20px;
 }
 
 /* Add buttons */
