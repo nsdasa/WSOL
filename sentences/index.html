@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cebuano Vocabulary Generator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: #4fc3f7; font-size: 2.2rem; margin-bottom: 10px; }
+        .subtitle { color: #90a4ae; font-size: 1rem; }
+
+        .server-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+        .server-status.connected { background: rgba(102, 187, 106, 0.2); color: #81c784; }
+        .server-status.disconnected { background: rgba(239, 83, 80, 0.2); color: #ef9a9a; }
+        .server-status.checking { background: rgba(255, 167, 38, 0.2); color: #ffb74d; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-dot.connected { background: #66bb6a; }
+        .status-dot.disconnected { background: #ef5350; }
+        .status-dot.checking { background: #ffa726; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .config-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .config-row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; }
+        .config-group { flex: 1; min-width: 200px; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #81d4fa;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"], input[type="password"], select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 0.95rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.2);
+        }
+
+        select option { background: #1a1a2e; color: #fff; }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-title { color: #4fc3f7; font-size: 1.2rem; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+            color: #0d1b2a;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(79, 195, 247, 0.4);
+        }
+        .btn-primary:disabled { background: #546e7a; cursor: not-allowed; }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .btn-success { background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%); color: #1a1a2e; }
+        .btn-danger { background: linear-gradient(135deg, #ef5350 0%, #e53935 100%); color: white; }
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+
+        .actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+
+        textarea.main-input {
+            height: 200px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+        }
+
+        .file-upload-area {
+            border: 2px dashed rgba(79, 195, 247, 0.4);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .file-upload-area:hover { border-color: #4fc3f7; background: rgba(79, 195, 247, 0.05); }
+        .file-upload-area.dragover { border-color: #4fc3f7; background: rgba(79, 195, 247, 0.1); }
+        .file-upload-icon { font-size: 3rem; margin-bottom: 10px; }
+        .file-upload-text { color: #90a4ae; }
+        .file-upload-text strong { color: #4fc3f7; }
+
+        .file-name-display {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(102, 187, 106, 0.1);
+            border-radius: 6px;
+            color: #81c784;
+            display: none;
+        }
+        .file-name-display.visible { display: block; }
+
+        .format-info {
+            background: rgba(255, 167, 38, 0.1);
+            border: 1px solid rgba(255, 167, 38, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+        .format-info h4 { color: #ffa726; margin-bottom: 8px; }
+        .format-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #90a4ae;
+        }
+        .or-divider::before, .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .or-divider span { padding: 0 15px; font-weight: 500; }
+
+        /* Parse Results */
+        .parse-results { display: none; }
+        .parse-results.visible { display: block; }
+
+        .parse-summary {
+            background: rgba(102, 187, 106, 0.1);
+            border: 1px solid rgba(102, 187, 106, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .parse-summary h3 { color: #81c784; margin-bottom: 10px; }
+        .parse-summary ul { list-style: none; padding-left: 0; }
+        .parse-summary li { padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .parse-summary li:last-child { border-bottom: none; }
+
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .lesson-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 2px solid rgba(79, 195, 247, 0.3);
+            overflow: hidden;
+        }
+        .lesson-card.verified { border-color: rgba(102, 187, 106, 0.5); }
+        .lesson-card.edited { border-color: rgba(255, 167, 38, 0.5); }
+
+        .lesson-card-header {
+            background: rgba(79, 195, 247, 0.1);
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .lesson-card.verified .lesson-card-header { background: rgba(102, 187, 106, 0.1); }
+        .lesson-card.edited .lesson-card-header { background: rgba(255, 167, 38, 0.1); }
+
+        .lesson-card-title { font-weight: 600; color: #4fc3f7; }
+        .lesson-card.verified .lesson-card-title { color: #81c784; }
+        .lesson-card.edited .lesson-card-title { color: #ffa726; }
+
+        .lesson-card-status {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .lesson-card-body { padding: 15px; max-height: 350px; overflow-y: auto; }
+
+        .lesson-field { margin-bottom: 12px; }
+        .lesson-field-label {
+            font-size: 0.75rem;
+            color: #90a4ae;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .lesson-field-value {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            max-height: 80px;
+            overflow-y: auto;
+            word-break: break-word;
+        }
+
+        .lesson-card-actions {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; }
+
+        .modal {
+            background: #1a1a2e;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(79, 195, 247, 0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { color: #4fc3f7; font-size: 1.3rem; }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #90a4ae;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .edit-field { margin-bottom: 15px; }
+        .edit-field textarea { height: 80px; font-family: 'Consolas', monospace; }
+
+        /* Output */
+        .output-section { display: none; }
+        .output-section.visible { display: block; }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4fc3f7, #29b6f6);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .progress-text { text-align: center; color: #90a4ae; font-size: 0.9rem; margin-bottom: 10px; }
+
+        .output-container { max-height: 600px; overflow-y: auto; }
+
+        .lesson-output {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-left: 4px solid #4fc3f7;
+        }
+        .lesson-output.processing { border-left-color: #ffa726; }
+        .lesson-output.success { border-left-color: #66bb6a; }
+        .lesson-output.error { border-left-color: #ef5350; }
+
+        .lesson-output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .lesson-output-title { font-weight: 600; color: #81d4fa; }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-pending { background: #546e7a; color: white; }
+        .status-processing { background: #ffa726; color: #1a1a2e; animation: pulse 1.5s infinite; }
+        .status-success { background: #66bb6a; color: white; }
+        .status-error { background: #ef5350; color: white; }
+
+        .output-content {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e0e0e0;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .copy-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .audit-result { margin-top: 15px; padding: 10px; border-radius: 6px; }
+        .audit-passed { background: rgba(102, 187, 106, 0.2); border: 1px solid rgba(102, 187, 106, 0.4); color: #81c784; }
+        .audit-failed { background: rgba(239, 83, 80, 0.2); border: 1px solid rgba(239, 83, 80, 0.4); color: #ef9a9a; }
+
+        .extracted-indicator {
+            background: rgba(102, 187, 106, 0.15);
+            border: 1px dashed rgba(102, 187, 106, 0.5);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #81c784;
+        }
+
+        .hidden { display: none !important; }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 25px;
+            color: #90a4ae;
+        }
+        .step.active { background: rgba(79, 195, 247, 0.2); color: #4fc3f7; }
+        .step.completed { background: rgba(102, 187, 106, 0.2); color: #81c784; }
+
+        .step-number {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .step.active .step-number { background: #4fc3f7; color: #1a1a2e; }
+        .step.completed .step-number { background: #66bb6a; color: white; }
+
+        .raw-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            white-space: pre;
+            max-height: 150px;
+            overflow: auto;
+            margin-top: 10px;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .collapsible-header:hover { background: rgba(255, 255, 255, 0.1); }
+        .collapsible-content { display: none; }
+        .collapsible-content.expanded { display: block; }
+        .chevron { transition: transform 0.3s; }
+        .chevron.expanded { transform: rotate(90deg); }
+
+        /* Debug Console */
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.4);
+        }
+        .debug-toggle:hover { transform: translateY(-2px); }
+        .debug-toggle.active { background: linear-gradient(135deg, #7b1fa2 0%, #4a148c 100%); }
+
+        .debug-panel {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            width: 600px;
+            max-width: calc(100vw - 40px);
+            max-height: 500px;
+            background: #1a1a2e;
+            border: 2px solid #9c27b0;
+            border-radius: 12px;
+            z-index: 998;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .debug-panel.visible { display: flex; }
+
+        .debug-header {
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .debug-header h3 { color: white; font-size: 1rem; }
+        .debug-header-actions { display: flex; gap: 8px; }
+        .debug-header-btn {
+            padding: 5px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .debug-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            max-height: 400px;
+        }
+
+        .log-entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #9c27b0;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .log-entry.request { border-left-color: #4fc3f7; }
+        .log-entry.response { border-left-color: #66bb6a; }
+        .log-entry.error { border-left-color: #ef5350; }
+        .log-entry.info { border-left-color: #ffa726; }
+
+        .log-timestamp { font-size: 0.7rem; color: #90a4ae; margin-bottom: 5px; }
+        .log-type { font-weight: 600; margin-bottom: 5px; }
+        .log-type.request { color: #4fc3f7; }
+        .log-type.response { color: #66bb6a; }
+        .log-type.error { color: #ef5350; }
+        .log-type.info { color: #ffa726; }
+
+        .log-data {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #b0bec5;
+        }
+        .log-data.collapsed { max-height: 60px; overflow: hidden; }
+        .log-toggle {
+            background: none;
+            border: none;
+            color: #9c27b0;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+
+        .debug-stats {
+            padding: 8px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.75rem;
+            color: #90a4ae;
+            display: flex;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇵🇭 Cebuano Vocabulary Generator</h1>
+            <p class="subtitle">Extract vocabulary and generate ladderized sentences using Claude API</p>
+            <div class="server-status checking" id="serverStatus">
+                <span class="status-dot checking"></span>
+                <span id="statusText">Checking server...</span>
+            </div>
+        </header>
+
+        <div class="step-indicator">
+            <div class="step active" id="step1"><span class="step-number">1</span><span>Input & Parse</span></div>
+            <div class="step" id="step2"><span class="step-number">2</span><span>Verify Lessons</span></div>
+            <div class="step" id="step3"><span class="step-number">3</span><span>Process & Output</span></div>
+        </div>
+
+        <div class="config-panel">
+            <div class="config-row">
+                <div class="config-group">
+                    <label for="modelName">Model Name</label>
+                    <select id="modelName">
+                        <option value="claude-sonnet-4-5-20250929">claude-sonnet-4-5-20250929</option>
+                        <option value="claude-opus-4-5-20251101">claude-opus-4-5-20251101</option>
+                        <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001</option>
+                    </select>
+                </div>
+                <div class="config-group">
+                    <label for="customModel">Or Custom Model</label>
+                    <input type="text" id="customModel" placeholder="Enter custom model string...">
+                </div>
+            </div>
+            <div class="config-row" style="margin-top: 15px;">
+                <div class="config-group" style="max-width: 200px;">
+                    <label for="delaySeconds">Delay Between Requests (seconds)</label>
+                    <input type="number" id="delaySeconds" value="20" min="5" max="120" onchange="updateLocalDelayConfig()">
+                </div>
+                <div class="config-group" style="max-width: 200px;">
+                    <label for="maxTokens">Max Tokens</label>
+                    <input type="number" id="maxTokens" value="32000" min="4000" max="64000" step="1000">
+                </div>
+                <div class="config-group" style="flex: 2;">
+                    <label>Rate Limit Protection</label>
+                    <div style="padding: 10px; background: rgba(102, 187, 106, 0.1); border-radius: 6px; font-size: 0.85rem; color: #81c784;">
+                        ✓ Server-side retry with exponential backoff &nbsp;|&nbsp; ✓ Automatic delays between lessons &nbsp;|&nbsp; ✓ 429 error handling
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="inputPanel">
+            <div class="panel-header">
+                <h2 class="panel-title">📥 Step 1: Load Vocabulary Data</h2>
+            </div>
+
+            <div class="format-info">
+                <h4>📄 Expected CSV Format</h4>
+                <p>Columns: <code>Lesson #, Q&A, Verb, allowed verb affixes, Adverb, Function Words, Pronoun, Noun, Adjective, Preposition, Numbers, Special</code></p>
+                <p style="margin-top: 8px;">• First row = header (auto-detected) • Each subsequent row = one lesson • Alternatives use "/" (e.g., Ako/ko)</p>
+            </div>
+
+            <div class="file-upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <div class="file-upload-icon">📁</div>
+                <div class="file-upload-text"><strong>Click to upload</strong> or drag and drop<br>CSV file (.csv)</div>
+                <input type="file" id="fileInput" accept=".csv" style="display: none" onchange="handleFileSelect(event)">
+            </div>
+            <div class="file-name-display" id="fileNameDisplay"></div>
+
+            <div class="or-divider"><span>OR</span></div>
+
+            <label for="rawInput">Paste CSV Content</label>
+            <textarea class="main-input" id="rawInput" placeholder="Paste your CSV content here..."></textarea>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="parseInput()">🔍 Parse Lessons</button>
+                <button class="btn btn-secondary" onclick="clearInput()">🗑️ Clear</button>
+            </div>
+        </div>
+
+        <div class="panel parse-results" id="parseResults">
+            <div class="panel-header">
+                <h2 class="panel-title">✅ Step 2: Verify Parsed Lessons</h2>
+                <button class="btn btn-secondary btn-sm" onclick="backToInput()">← Back to Input</button>
+            </div>
+            <div class="parse-summary" id="parseSummary"></div>
+            <div class="lessons-grid" id="lessonsGrid"></div>
+            <div class="actions">
+                <button class="btn btn-success btn-sm" onclick="verifyAllLessons()">✓ Verify All</button>
+                <button class="btn btn-primary" id="processBtn" onclick="processAllLessons()">🚀 Process All Verified Lessons</button>
+                <button class="btn btn-warning" onclick="backToInput()">🔄 Re-Parse</button>
+            </div>
+        </div>
+
+        <div class="panel output-section" id="outputSection">
+            <div class="panel-header">
+                <h2 class="panel-title">📤 Step 3: Results</h2>
+                <div>
+                    <button class="btn btn-secondary btn-sm" onclick="backToVerify()">← Back to Verify</button>
+                    <button class="btn btn-success btn-sm" id="exportBtn" onclick="exportAllOutputs()" disabled>💾 Export (CSV/MD)</button>
+                </div>
+            </div>
+            <div class="progress-text" id="progressText">Ready to process</div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+            <div class="output-container" id="outputContainer"></div>
+        </div>
+
+        <div class="modal-overlay" id="editModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modalTitle">Edit Lesson</h3>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="debug-toggle" id="debugToggle" onclick="toggleDebugPanel()">🐛 Debug Console</button>
+
+    <div class="debug-panel" id="debugPanel">
+        <div class="debug-header">
+            <h3>🐛 API Debug Console</h3>
+            <div class="debug-header-actions">
+                <button class="debug-header-btn" onclick="viewServerLogs()" style="background: #ff9800;">🖥️ Server Logs</button>
+                <button class="debug-header-btn" onclick="copyAllLogs()">📋 Copy All</button>
+                <button class="debug-header-btn" onclick="clearLogs()">🗑️ Clear</button>
+                <button class="debug-header-btn" onclick="exportLogs()">💾 Export</button>
+            </div>
+        </div>
+        <div class="debug-content" id="debugContent">
+            <div style="color: #90a4ae; text-align: center; padding: 20px;">API communications will be logged here...</div>
+        </div>
+        <div class="debug-stats">
+            <span>📤 Requests: <strong id="statRequests">0</strong></span>
+            <span>📥 Responses: <strong id="statResponses">0</strong></span>
+            <span>❌ Errors: <strong id="statErrors">0</strong></span>
+            <span>📊 Tokens: <strong id="statTokens">0</strong></span>
+        </div>
+    </div>
+
+    <script>
+        // ==================== API BASE URL ====================
+        const API_BASE = './api.php';
+
+        // ==================== DEBUG LOGGING ====================
+        const debugLog = {
+            entries: [],
+            stats: { requests: 0, responses: 0, errors: 0, tokens: 0 },
+
+            add(type, title, data, meta = {}) {
+                const entry = { id: Date.now() + Math.random(), timestamp: new Date().toISOString(), type, title, data, meta, collapsed: true };
+                this.entries.push(entry);
+                this.updateStats(type, meta);
+                this.render();
+            },
+
+            updateStats(type, meta) {
+                if (type === 'request') this.stats.requests++;
+                if (type === 'response') { this.stats.responses++; if (meta.tokens) this.stats.tokens += meta.tokens; }
+                if (type === 'error') this.stats.errors++;
+                document.getElementById('statRequests').textContent = this.stats.requests;
+                document.getElementById('statResponses').textContent = this.stats.responses;
+                document.getElementById('statErrors').textContent = this.stats.errors;
+                document.getElementById('statTokens').textContent = this.stats.tokens.toLocaleString();
+            },
+
+            render() {
+                const container = document.getElementById('debugContent');
+                if (!this.entries.length) {
+                    container.innerHTML = '<div style="color: #90a4ae; text-align: center; padding: 20px;">API communications will be logged here...</div>';
+                    return;
+                }
+                container.innerHTML = this.entries.map(e => `
+                    <div class="log-entry ${e.type}">
+                        <div class="log-timestamp">${e.timestamp}</div>
+                        <div class="log-type ${e.type}">${{request:'📤',response:'📥',error:'❌',info:'ℹ️'}[e.type]||'📝'} ${e.title}
+                            <button class="log-toggle" onclick="debugLog.toggle('${e.id}')">${e.collapsed?'expand':'collapse'}</button>
+                        </div>
+                        <div class="log-data ${e.collapsed?'collapsed':''}" onclick="debugLog.toggle('${e.id}')">${typeof e.data==='string'?e.data:JSON.stringify(e.data,null,2)}</div>
+                    </div>
+                `).join('');
+                container.scrollTop = container.scrollHeight;
+            },
+
+            toggle(id) { const e = this.entries.find(x => String(x.id) === String(id)); if (e) { e.collapsed = !e.collapsed; this.render(); } },
+            clear() { this.entries = []; this.stats = { requests: 0, responses: 0, errors: 0, tokens: 0 }; ['statRequests','statResponses','statErrors','statTokens'].forEach(id => document.getElementById(id).textContent = '0'); this.render(); },
+            getAll() { return this.entries.map(e => ({ timestamp: e.timestamp, type: e.type, title: e.title, data: e.data, meta: e.meta })); }
+        };
+
+        function toggleDebugPanel() { document.getElementById('debugPanel').classList.toggle('visible'); document.getElementById('debugToggle').classList.toggle('active'); }
+        function clearLogs() { if (confirm('Clear all debug logs?')) debugLog.clear(); }
+        function copyAllLogs() { navigator.clipboard.writeText(JSON.stringify(debugLog.getAll(), null, 2)).then(() => alert('Debug logs copied!')); }
+        function exportLogs() { const blob = new Blob([JSON.stringify(debugLog.getAll(), null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `cebuano-debug-${new Date().toISOString().split('T')[0]}.json`; a.click(); }
+        
+        async function viewServerLogs() {
+            try {
+                const response = await fetch(`${API_BASE}?path=/api/logs&limit=200`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(`Server logs not available:\n\n${data.error}\n\nTo enable, edit config.php and set:\n'debug' => true`);
+                    return;
+                }
+                
+                // Create modal for logs
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;flex-direction:column;padding:20px;';
+                modal.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <h3 style="color:#4fc3f7;margin:0;">🖥️ Server Logs (${data.lineCount} lines, ${Math.round(data.fileSize/1024)}KB)</h3>
+                        <div>
+                            <button onclick="clearServerLogs()" style="background:#f44336;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;margin-right:10px;">🗑️ Clear</button>
+                            <button onclick="this.closest('div').closest('div').remove()" style="background:#4fc3f7;color:black;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;">✕ Close</button>
+                        </div>
+                    </div>
+                    <pre style="flex:1;overflow:auto;background:#1a1a2e;padding:15px;border-radius:8px;font-size:12px;color:#e0e0e0;white-space:pre-wrap;word-wrap:break-word;">${data.logs || '(No logs yet)'}</pre>
+                `;
+                document.body.appendChild(modal);
+            } catch (error) {
+                alert(`Failed to fetch server logs: ${error.message}`);
+            }
+        }
+        
+        async function clearServerLogs() {
+            if (!confirm('Clear all server logs?')) return;
+            try {
+                const response = await fetch(`${API_BASE}?path=/api/logs&clear=1`);
+                const data = await response.json();
+                alert(data.message || 'Logs cleared');
+                document.querySelector('[style*="z-index:9999"]')?.remove();
+            } catch (error) {
+                alert(`Failed to clear logs: ${error.message}`);
+            }
+        }
+
+        // ==================== COLUMN DEFINITIONS ====================
+        const COLUMNS = [
+            { key: 'lessonNum', label: 'Lesson #', index: 0 },
+            { key: 'qa', label: 'Q&A', index: 1 },
+            { key: 'verb', label: 'Verb', index: 2 },
+            { key: 'affixes', label: 'Allowed Verb Affixes', index: 3 },
+            { key: 'adverb', label: 'Adverb', index: 4 },
+            { key: 'function', label: 'Function Words', index: 5 },
+            { key: 'pronoun', label: 'Pronoun', index: 6 },
+            { key: 'noun', label: 'Noun', index: 7 },
+            { key: 'adjective', label: 'Adjective', index: 8 },
+            { key: 'preposition', label: 'Preposition', index: 9 },
+            { key: 'numbers', label: 'Numbers', index: 10 },
+            { key: 'special', label: 'Special', index: 11 }
+        ];
+
+        const DISPLAY_COLUMNS = COLUMNS.filter(c => c.key !== 'lessonNum');
+        const VERIFIED_START_MARKER = '===VERIFIED_OUTPUT_START===';
+        const VERIFIED_END_MARKER = '===VERIFIED_OUTPUT_END===';
+
+        let parsedLessons = [];
+        let outputs = {};
+        let extractedOutputs = {};
+        let isProcessing = false;
+        let editingLessonIndex = null;
+        let serverConfig = {
+            delayBetweenRequests: 20,
+            retry: { max_attempts: 5, initial_delay: 10, backoff_multiplier: 2, max_delay: 120 }
+        };
+
+        // Local override for delay (user can adjust in UI)
+        let localDelayOverride = null;
+
+        function updateLocalDelayConfig() {
+            const delayInput = document.getElementById('delaySeconds');
+            if (delayInput) {
+                localDelayOverride = parseInt(delayInput.value) || 20;
+                debugLog.add('info', 'Local delay config updated', { delayBetweenRequests: localDelayOverride + 's' });
+            }
+        }
+
+        function getDelaySeconds() {
+            return localDelayOverride || serverConfig.delayBetweenRequests || 20;
+        }
+
+        // ==================== SERVER CHECK ====================
+        async function checkServer() {
+            const statusEl = document.getElementById('serverStatus');
+            const statusText = document.getElementById('statusText');
+            const statusDot = statusEl.querySelector('.status-dot');
+
+            try {
+                const response = await fetch(`${API_BASE}?path=/api/health`);
+                const data = await response.json();
+
+                if (data.status === 'ok' && data.hasApiKey) {
+                    statusEl.className = 'server-status connected';
+                    statusDot.className = 'status-dot connected';
+                    statusText.textContent = 'Server connected';
+                    
+                    // Load config
+                    const configRes = await fetch(`${API_BASE}?path=/api/config`);
+                    serverConfig = await configRes.json();
+                    
+                    // Dynamically populate model dropdown from server config
+                    if (serverConfig.availableModels && serverConfig.availableModels.length > 0) {
+                        const modelSelect = document.getElementById('modelName');
+                        modelSelect.innerHTML = serverConfig.availableModels.map(model => 
+                            `<option value="${model}">${model}</option>`
+                        ).join('');
+                    }
+                    
+                    // Set default model
+                    if (serverConfig.model) {
+                        document.getElementById('modelName').value = serverConfig.model;
+                    }
+                    // Update delay input with server value
+                    if (serverConfig.delayBetweenRequests) {
+                        document.getElementById('delaySeconds').value = serverConfig.delayBetweenRequests;
+                    }
+                    // Update max tokens input with server value
+                    if (serverConfig.maxTokens) {
+                        document.getElementById('maxTokens').value = serverConfig.maxTokens;
+                    }
+                    debugLog.add('info', 'Server config loaded', {
+                        delay: serverConfig.delayBetweenRequests + 's between requests',
+                        maxTokens: serverConfig.maxTokens,
+                        retryAttempts: serverConfig.retry?.max_attempts || 5,
+                        models: serverConfig.availableModels
+                    });
+                } else {
+                    statusEl.className = 'server-status disconnected';
+                    statusDot.className = 'status-dot disconnected';
+                    statusText.textContent = data.hasApiKey === false ? 'API key not configured' : 'Server error';
+                }
+            } catch (error) {
+                statusEl.className = 'server-status disconnected';
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = 'Server unavailable';
+                debugLog.add('error', 'Server check failed', error.message);
+            }
+        }
+
+        // ==================== DELAY HELPER ====================
+        function sleep(seconds) {
+            return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+        }
+
+        async function countdownDelay(seconds, lessonNum, nextLessonNum) {
+            for (let remaining = seconds; remaining > 0; remaining--) {
+                updateProgress(null, null, `⏳ Waiting ${remaining}s before processing Lesson ${nextLessonNum}... (rate limit protection)`);
+                await sleep(1);
+            }
+        }
+
+        // ==================== CSV PARSING ====================
+        function parseCSV(text) {
+            text = text.replace(/^\uFEFF/, '');
+            const rows = [];
+            let currentRow = [], currentField = '', inQuotes = false;
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i], nextChar = text[i + 1];
+                if (inQuotes) {
+                    if (char === '"') { if (nextChar === '"') { currentField += '"'; i++; } else { inQuotes = false; } }
+                    else { currentField += char; }
+                } else {
+                    if (char === '"') { inQuotes = true; }
+                    else if (char === ',') { currentRow.push(currentField.trim()); currentField = ''; }
+                    else if (char === '\n' || (char === '\r' && nextChar === '\n')) {
+                        currentRow.push(currentField.trim());
+                        if (currentRow.some(f => f)) rows.push(currentRow);
+                        currentRow = []; currentField = '';
+                        if (char === '\r') i++;
+                    } else if (char !== '\r') { currentField += char; }
+                }
+            }
+            currentRow.push(currentField.trim());
+            if (currentRow.some(f => f)) rows.push(currentRow);
+            return rows;
+        }
+
+        // ==================== FILE HANDLING ====================
+        const dropZone = document.getElementById('dropZone');
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+
+        function handleFileSelect(event) { if (event.target.files[0]) handleFile(event.target.files[0]); }
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.csv')) { alert('Please upload a CSV file.'); return; }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('rawInput').value = e.target.result;
+                document.getElementById('fileNameDisplay').textContent = `📄 Loaded: ${file.name}`;
+                document.getElementById('fileNameDisplay').classList.add('visible');
+                debugLog.add('info', `File loaded: ${file.name}`, { size: file.size });
+            };
+            reader.readAsText(file);
+        }
+
+        // ==================== OUTPUT EXTRACTION ====================
+        function extractVerifiedContent(fullResponse) {
+            const startIndex = fullResponse.indexOf(VERIFIED_START_MARKER);
+            const endIndex = fullResponse.indexOf(VERIFIED_END_MARKER);
+            
+            if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+                const extracted = fullResponse.substring(startIndex + VERIFIED_START_MARKER.length, endIndex).trim();
+                return { success: true, extracted, full: fullResponse, hasMarkers: true };
+            }
+            
+            const auditPassed = fullResponse.includes('Status: ✓ PASSED') || fullResponse.includes('Status: PASSED') || fullResponse.includes('✓ All words verified');
+            return { success: auditPassed, extracted: auditPassed ? fullResponse : null, full: fullResponse, hasMarkers: false };
+        }
+
+        // ==================== UI FUNCTIONS ====================
+        function setActiveStep(stepNum) {
+            document.querySelectorAll('.step').forEach((step, i) => {
+                step.classList.remove('active', 'completed');
+                if (i + 1 < stepNum) step.classList.add('completed');
+                else if (i + 1 === stepNum) step.classList.add('active');
+            });
+        }
+
+        function parseInput() {
+            const rawInput = document.getElementById('rawInput').value.trim();
+            if (!rawInput) { alert('Please upload a CSV file or paste CSV content.'); return; }
+
+            debugLog.add('info', 'Parsing CSV input', { length: rawInput.length });
+            const rows = parseCSV(rawInput);
+            if (rows.length < 2) { alert('CSV must have at least a header row and one data row.'); return; }
+
+            parsedLessons = [];
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i];
+                if (cells.every(c => !c)) continue;
+
+                const lesson = { number: cells[0] || String(parsedLessons.length + 1), verified: false, edited: false, data: {} };
+                COLUMNS.forEach((col, idx) => { lesson.data[col.key] = cells[idx] || ''; });
+                if (lesson.data.lessonNum) lesson.number = lesson.data.lessonNum;
+                parsedLessons.push(lesson);
+            }
+
+            if (!parsedLessons.length) { alert('No lesson data found.'); return; }
+
+            displayParsedLessons();
+            document.getElementById('inputPanel').classList.add('hidden');
+            document.getElementById('parseResults').classList.add('visible');
+            document.getElementById('outputSection').classList.remove('visible');
+            setActiveStep(2);
+        }
+
+        function displayParsedLessons() {
+            const nonEmptyFields = DISPLAY_COLUMNS.map(col => ({ label: col.label, count: parsedLessons.filter(l => l.data[col.key]).length })).filter(f => f.count);
+            
+            document.getElementById('parseSummary').innerHTML = `
+                <h3>📊 Parse Summary</h3>
+                <p><strong>${parsedLessons.length}</strong> lesson(s) detected</p>
+                <ul>${nonEmptyFields.map(f => `<li><strong>${f.label}:</strong> ${f.count} lesson(s)</li>`).join('')}</ul>
+                <div class="collapsible-header" onclick="toggleRawView()"><span class="chevron" id="rawChevron">▶</span><span>View Raw Parsed Data</span></div>
+                <div class="collapsible-content" id="rawDataView"><div class="raw-display">${escapeHtml(JSON.stringify(parsedLessons, null, 2))}</div></div>
+            `;
+
+            document.getElementById('lessonsGrid').innerHTML = parsedLessons.map((lesson, idx) => {
+                const statusClass = lesson.edited ? 'edited' : (lesson.verified ? 'verified' : '');
+                const statusText = lesson.edited ? '✏️ Edited' : (lesson.verified ? '✓ Verified' : 'Pending');
+                const fields = DISPLAY_COLUMNS.filter(col => lesson.data[col.key]).map(col => `
+                    <div class="lesson-field"><div class="lesson-field-label">${col.label}</div><div class="lesson-field-value">${escapeHtml(lesson.data[col.key])}</div></div>
+                `).join('');
+                return `
+                    <div class="lesson-card ${statusClass}" id="card-${idx}">
+                        <div class="lesson-card-header"><span class="lesson-card-title">Lesson ${lesson.number}</span><span class="lesson-card-status">${statusText}</span></div>
+                        <div class="lesson-card-body">${fields || '<p style="color:#90a4ae;">No data</p>'}</div>
+                        <div class="lesson-card-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editLesson(${idx})">✏️ Edit</button>
+                            <button class="btn ${lesson.verified?'btn-success':'btn-secondary'} btn-sm" onclick="verifyLesson(${idx})">${lesson.verified?'✓ Verified':'Verify'}</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteLesson(${idx})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleRawView() { document.getElementById('rawDataView').classList.toggle('expanded'); document.getElementById('rawChevron').classList.toggle('expanded'); }
+        
+        function editLesson(index) {
+            editingLessonIndex = index;
+            const lesson = parsedLessons[index];
+            document.getElementById('modalTitle').textContent = `Edit Lesson ${lesson.number}`;
+            document.getElementById('modalBody').innerHTML = COLUMNS.map(col => `
+                <div class="edit-field"><label for="edit-${col.key}">${col.label}</label><textarea id="edit-${col.key}">${escapeHtml(lesson.data[col.key] || '')}</textarea></div>
+            `).join('');
+            document.getElementById('editModal').classList.add('visible');
+        }
+
+        function closeModal() { document.getElementById('editModal').classList.remove('visible'); editingLessonIndex = null; }
+
+        function saveEdit() {
+            if (editingLessonIndex === null) return;
+            const lesson = parsedLessons[editingLessonIndex];
+            COLUMNS.forEach(col => { const input = document.getElementById(`edit-${col.key}`); if (input) lesson.data[col.key] = input.value.trim(); });
+            if (lesson.data.lessonNum) lesson.number = lesson.data.lessonNum;
+            lesson.edited = true; lesson.verified = true;
+            closeModal(); displayParsedLessons();
+        }
+
+        function verifyLesson(index) { parsedLessons[index].verified = !parsedLessons[index].verified; displayParsedLessons(); }
+        function verifyAllLessons() { parsedLessons.forEach(l => l.verified = true); displayParsedLessons(); }
+        function deleteLesson(index) { if (confirm(`Delete Lesson ${parsedLessons[index].number}?`)) { parsedLessons.splice(index, 1); displayParsedLessons(); } }
+
+        function backToInput() { document.getElementById('inputPanel').classList.remove('hidden'); document.getElementById('parseResults').classList.remove('visible'); setActiveStep(1); }
+        function backToVerify() { document.getElementById('parseResults').classList.add('visible'); document.getElementById('outputSection').classList.remove('visible'); setActiveStep(2); }
+        function clearInput() { document.getElementById('rawInput').value = ''; document.getElementById('fileInput').value = ''; document.getElementById('fileNameDisplay').classList.remove('visible'); parsedLessons = []; }
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        function getModel() { return document.getElementById('customModel').value.trim() || document.getElementById('modelName').value; }
+        function getMaxTokens() { return parseInt(document.getElementById('maxTokens').value) || 32000; }
+
+        function updateProgress(current, total, status) {
+            document.getElementById('progressFill').style.width = `${total ? (current/total)*100 : 0}%`;
+            document.getElementById('progressText').textContent = status;
+        }
+
+        function lessonToTableString(lesson) {
+            const header = COLUMNS.filter(c => c.key !== 'lessonNum').map(c => c.label).join('\t');
+            const row = COLUMNS.filter(c => c.key !== 'lessonNum').map(c => lesson.data[c.key] || '').join('\t');
+            return `${header}\n${row}`;
+        }
+
+        async function processLesson(lessonNum, tableData, cardElement) {
+            const model = getModel();
+            const maxTokens = getMaxTokens();
+            const requestBody = { lessonNum, tableData, customModel: model, maxTokens };
+
+            debugLog.add('request', `API Request - Lesson ${lessonNum}`, { model, maxTokens, tableDataLength: tableData.length });
+            
+            // Update card to show we're starting
+            if (cardElement) {
+                cardElement.querySelector('.output-content').textContent = 'Preparing request...';
+            }
+            
+            const startTime = Date.now();
+            let fetchStarted = false;
+
+            try {
+                debugLog.add('info', `Fetch starting - Lesson ${lessonNum}`, { 
+                    url: `${API_BASE}?path=/api/process`,
+                    timestamp: new Date().toISOString()
+                });
+                
+                if (cardElement) {
+                    cardElement.querySelector('.output-content').textContent = 'Sending request to server...';
+                }
+                
+                fetchStarted = true;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                    debugLog.add('error', `Request timeout - Lesson ${lessonNum}`, { elapsed: Date.now() - startTime });
+                }, 600000); // 10 minute timeout
+                
+                // Add progress indicator
+                let dots = 0;
+                const progressInterval = setInterval(() => {
+                    dots = (dots + 1) % 4;
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    if (cardElement) {
+                        cardElement.querySelector('.output-content').textContent = 
+                            `Waiting for Claude API response${'.'.repeat(dots)} (${elapsed}s elapsed)`;
+                    }
+                }, 1000);
+
+                const response = await fetch(`${API_BASE}?path=/api/process`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                clearInterval(progressInterval);
+
+                const data = await response.json();
+                const elapsed = Date.now() - startTime;
+
+                debugLog.add('info', `Response received - Lesson ${lessonNum}`, { 
+                    status: response.status,
+                    elapsed: elapsed + 'ms',
+                    hasContent: !!data.content
+                });
+
+                if (!response.ok) {
+                    // Log retry information if available
+                    if (data.retryLog && data.retryLog.length > 0) {
+                        debugLog.add('info', `Retry attempts for Lesson ${lessonNum}`, {
+                            attempts: data.attempts,
+                            totalRetryTime: data.totalRetryTime + 's',
+                            log: data.retryLog
+                        });
+                    }
+                    debugLog.add('error', `API Error - Lesson ${lessonNum}`, { 
+                        status: response.status, 
+                        error: data.error,
+                        errorType: data.errorType,
+                        attempts: data.attempts
+                    });
+                    throw new Error(data.error || `Request failed: ${response.status}`);
+                }
+
+                // Log success with retry info
+                const logData = {
+                    model: data.model,
+                    elapsed_ms: elapsed,
+                    usage: data.usage,
+                    contentLength: data.content?.length || 0
+                };
+                if (data.attempts > 1) {
+                    logData.retryAttempts = data.attempts;
+                    logData.totalRetryTime = data.totalRetryTime + 's';
+                    logData.retryLog = data.retryLog;
+                }
+                debugLog.add('response', `API Response - Lesson ${lessonNum}`, logData, { tokens: data.usage?.totalTokens || 0 });
+
+                return {
+                    content: data.content,
+                    attempts: data.attempts,
+                    totalRetryTime: data.totalRetryTime
+                };
+            } catch (error) {
+                const elapsed = Date.now() - startTime;
+                if (error.name === 'AbortError') {
+                    debugLog.add('error', `Request aborted (timeout) - Lesson ${lessonNum}`, { elapsed: elapsed + 'ms' });
+                    throw new Error(`Request timed out after ${Math.floor(elapsed/1000)} seconds`);
+                }
+                debugLog.add('error', `Request Failed - Lesson ${lessonNum}`, { 
+                    error: error.message,
+                    elapsed: elapsed + 'ms',
+                    fetchStarted
+                });
+                throw error;
+            }
+        }
+
+        async function processAllLessons() {
+            if (isProcessing) return;
+
+            let lessonsToProcess = parsedLessons.filter(l => l.verified);
+            if (!lessonsToProcess.length) {
+                if (!confirm('No lessons verified. Process all?')) return;
+                lessonsToProcess = parsedLessons;
+            }
+
+            const delaySeconds = getDelaySeconds();
+            const estimatedTime = lessonsToProcess.length * (90 + delaySeconds); // ~90s per lesson + delay
+            const estimatedMinutes = Math.ceil(estimatedTime / 60);
+            
+            if (!confirm(`Process ${lessonsToProcess.length} lesson(s)?\n\nEstimated time: ~${estimatedMinutes} minutes\n(${delaySeconds}s delay between requests to avoid rate limits)`)) {
+                return;
+            }
+
+            isProcessing = true;
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('exportBtn').disabled = true;
+
+            document.getElementById('parseResults').classList.remove('visible');
+            document.getElementById('outputSection').classList.add('visible');
+            setActiveStep(3);
+
+            const outputContainer = document.getElementById('outputContainer');
+            outputContainer.innerHTML = '';
+            outputs = {}; extractedOutputs = {};
+
+            lessonsToProcess.forEach(lesson => {
+                outputContainer.innerHTML += `
+                    <div class="lesson-output pending" id="output-${lesson.number}">
+                        <div class="lesson-output-header"><span class="lesson-output-title">Lesson ${lesson.number}</span><span class="status-badge status-pending">PENDING</span></div>
+                        <div class="output-content">Waiting...</div>
+                    </div>
+                `;
+            });
+
+            let totalRetries = 0;
+            let totalRetryTime = 0;
+
+            for (let i = 0; i < lessonsToProcess.length; i++) {
+                const lesson = lessonsToProcess[i];
+                const isLastLesson = i === lessonsToProcess.length - 1;
+                
+                updateProgress(i, lessonsToProcess.length, `🔄 Processing Lesson ${lesson.number} (${i+1}/${lessonsToProcess.length})...`);
+
+                const card = document.getElementById(`output-${lesson.number}`);
+                if (card) {
+                    card.className = 'lesson-output processing';
+                    card.querySelector('.status-badge').className = 'status-badge status-processing';
+                    card.querySelector('.status-badge').textContent = 'PROCESSING';
+                    card.querySelector('.output-content').textContent = 'Sending request to Claude API...';
+                }
+
+                try {
+                    const result = await processLesson(lesson.number, lessonToTableString(lesson), card);
+                    const extraction = extractVerifiedContent(result.content);
+
+                    outputs[lesson.number] = result.content;
+                    extractedOutputs[lesson.number] = extraction.extracted;
+
+                    // Track retries
+                    if (result.attempts > 1) {
+                        totalRetries += result.attempts - 1;
+                        totalRetryTime += result.totalRetryTime || 0;
+                    }
+
+                    if (card) {
+                        card.className = `lesson-output ${extraction.success ? 'success' : 'error'}`;
+                        card.querySelector('.status-badge').className = `status-badge status-${extraction.success ? 'success' : 'error'}`;
+                        card.querySelector('.status-badge').textContent = extraction.success ? 'SUCCESS' : 'NEEDS REVIEW';
+                        card.querySelector('.output-content').textContent = extraction.extracted || result.content;
+
+                        let actionsDiv = card.querySelector('.output-actions');
+                        if (!actionsDiv) { actionsDiv = document.createElement('div'); actionsDiv.className = 'output-actions'; actionsDiv.style = 'margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;'; card.appendChild(actionsDiv); }
+                        actionsDiv.innerHTML = `<button class="copy-btn" onclick="copyOutput('${lesson.number}',false)">📋 Copy Verified</button><button class="copy-btn" onclick="copyOutput('${lesson.number}',true)">📋 Copy Full</button>`;
+
+                        const extractedDiv = document.createElement('div');
+                        extractedDiv.className = 'extracted-indicator';
+                        let extractedText = extraction.hasMarkers ? `✓ Verified content extracted (${extraction.extracted?.length || 0} chars)` : '⚠ No markers found';
+                        if (result.attempts > 1) {
+                            extractedText += ` | ⟳ ${result.attempts} attempts (${result.totalRetryTime}s retry time)`;
+                        }
+                        extractedDiv.innerHTML = extractedText;
+                        card.appendChild(extractedDiv);
+
+                        const auditDiv = document.createElement('div');
+                        auditDiv.className = `audit-result ${extraction.success ? 'audit-passed' : 'audit-failed'}`;
+                        auditDiv.textContent = extraction.success ? '✓ Vocabulary audit passed' : '⚠ Audit issues detected';
+                        card.appendChild(auditDiv);
+                    }
+
+                    // Add delay before next lesson (except for the last one)
+                    if (!isLastLesson) {
+                        const nextLesson = lessonsToProcess[i + 1];
+                        await countdownDelay(delaySeconds, lesson.number, nextLesson.number);
+                    }
+
+                } catch (error) {
+                    outputs[lesson.number] = `Error: ${error.message}`;
+                    extractedOutputs[lesson.number] = null;
+                    if (card) {
+                        card.className = 'lesson-output error';
+                        card.querySelector('.status-badge').className = 'status-badge status-error';
+                        card.querySelector('.status-badge').textContent = 'ERROR';
+                        card.querySelector('.output-content').textContent = `Error: ${error.message}\n\nThis may be due to rate limiting. The server attempted retries but was unable to complete the request.`;
+                    }
+
+                    // Still add delay before next lesson to let rate limits reset
+                    if (!isLastLesson) {
+                        const nextLesson = lessonsToProcess[i + 1];
+                        await countdownDelay(delaySeconds * 2, lesson.number, nextLesson.number); // Double delay after error
+                    }
+                }
+            }
+
+            let completionMsg = `✅ Complete! Processed ${lessonsToProcess.length} lesson(s).`;
+            if (totalRetries > 0) {
+                completionMsg += ` (${totalRetries} retries, ${totalRetryTime}s total retry time)`;
+            }
+            updateProgress(lessonsToProcess.length, lessonsToProcess.length, completionMsg);
+            
+            isProcessing = false;
+            document.getElementById('processBtn').disabled = false;
+            document.getElementById('exportBtn').disabled = false;
+        }
+
+        function copyOutput(lessonNum, copyFull = false) {
+            const content = copyFull ? outputs[lessonNum] : (extractedOutputs[lessonNum] || outputs[lessonNum]);
+            if (content) navigator.clipboard.writeText(content).then(() => alert(`Lesson ${lessonNum} ${copyFull ? 'full' : 'verified'} output copied!`));
+        }
+
+        function extractCSVFromOutput(content) {
+            // Look for CSV content between ```csv markers
+            const csvMatch = content.match(/```csv\n([\s\S]*?)```/);
+            if (csvMatch) {
+                return csvMatch[1].trim();
+            }
+            // Fallback: look for CSV header pattern
+            const headerMatch = content.match(/(Lesson #,Seq #,Sequ Title[\s\S]*?)(?=\n\n##|\n===|$)/);
+            if (headerMatch) {
+                return headerMatch[1].trim();
+            }
+            return null;
+        }
+
+        function exportAllOutputs() {
+            const validOutputs = Object.keys(extractedOutputs).filter(k => extractedOutputs[k]);
+            if (!validOutputs.length) { alert('No verified outputs to export.'); return; }
+
+            // Ask user which format they want
+            const format = prompt('Export format:\n1 = CSV only (sentences)\n2 = Markdown (full output)\n3 = Both\n\nEnter 1, 2, or 3:', '3');
+            
+            if (!format || !['1', '2', '3'].includes(format.trim())) {
+                alert('Invalid selection. Export cancelled.');
+                return;
+            }
+
+            const exportCSV = format.trim() === '1' || format.trim() === '3';
+            const exportMD = format.trim() === '2' || format.trim() === '3';
+
+            // Build combined CSV from all lessons
+            if (exportCSV) {
+                let csvContent = 'Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type\n';
+                let csvFound = false;
+
+                validOutputs.sort((a, b) => parseInt(a) - parseInt(b)).forEach(lessonNum => {
+                    const lessonCSV = extractCSVFromOutput(extractedOutputs[lessonNum]);
+                    if (lessonCSV) {
+                        csvFound = true;
+                        // Skip header row if present (except for first lesson)
+                        const lines = lessonCSV.split('\n');
+                        const startIndex = lines[0].includes('Lesson #') ? 1 : 0;
+                        csvContent += lines.slice(startIndex).join('\n') + '\n';
+                    }
+                });
+
+                if (csvFound) {
+                    const csvBlob = new Blob([csvContent], { type: 'text/csv' });
+                    const csvLink = document.createElement('a');
+                    csvLink.href = URL.createObjectURL(csvBlob);
+                    csvLink.download = `cebuano-sentences-${new Date().toISOString().split('T')[0]}.csv`;
+                    csvLink.click();
+                    debugLog.add('info', 'Exported CSV', { lessons: validOutputs.length, chars: csvContent.length });
+                } else {
+                    alert('No CSV content found in outputs. The AI may not have formatted the output correctly.');
+                }
+            }
+
+            // Build markdown export
+            if (exportMD) {
+                let markdown = '# Cebuano Vocabulary & Sentences - Verified Output\n\n';
+                markdown += `Generated: ${new Date().toISOString()}\nLessons exported: ${validOutputs.length}\n\n---\n\n`;
+
+                validOutputs.sort((a, b) => parseInt(a) - parseInt(b)).forEach(lessonNum => {
+                    markdown += `# Lesson ${lessonNum}\n\n${extractedOutputs[lessonNum]}\n\n---\n\n`;
+                });
+
+                const mdBlob = new Blob([markdown], { type: 'text/markdown' });
+                const mdLink = document.createElement('a');
+                mdLink.href = URL.createObjectURL(mdBlob);
+                mdLink.download = `cebuano-verified-${new Date().toISOString().split('T')[0]}.md`;
+                mdLink.click();
+                debugLog.add('info', 'Exported Markdown', { lessons: validOutputs.length, chars: markdown.length });
+            }
+        }
+
+        // ==================== INIT ====================
+        checkServer();
+    </script>
+</body>
+</html>

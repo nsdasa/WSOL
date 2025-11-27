@@ -1,0 +1,89 @@
+# Cebuano Vocabulary Generator - Apache Configuration
+# For DreamHost deployment at /sentences
+
+# Enable RewriteEngine
+RewriteEngine On
+
+# Set base path
+RewriteBase /sentences/
+
+# ==========================================
+# SECURITY
+# ==========================================
+
+# Block direct access to config file
+<Files "config.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Block access to hidden files
+<FilesMatch "^\.">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Prevent directory listing
+Options -Indexes
+
+# ==========================================
+# API ROUTING
+# ==========================================
+
+# Route API requests to api.php
+RewriteCond %{REQUEST_URI} ^/sentences/api/ [NC]
+RewriteRule ^api/(.*)$ api.php [L,QSA]
+
+# ==========================================
+# FRONTEND ROUTING
+# ==========================================
+
+# If the request is not for an existing file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# And it's not an API request
+RewriteCond %{REQUEST_URI} !^/sentences/api/ [NC]
+# Serve index.html
+RewriteRule . index.html [L]
+
+# ==========================================
+# CACHING
+# ==========================================
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 1 hour"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
+
+# ==========================================
+# COMPRESSION
+# ==========================================
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/json application/javascript text/xml application/xml
+</IfModule>
+
+# ==========================================
+# SECURITY HEADERS
+# ==========================================
+
+<IfModule mod_headers.c>
+    # Prevent clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # Prevent MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # XSS Protection
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Referrer Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
