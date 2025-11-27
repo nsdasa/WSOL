@@ -811,7 +811,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             const seenCardNums = new Set();
 
             words.forEach((word, wordIndex) => {
-                if (word.cardNum && !seenCardNums.has(word.cardNum)) {
+                if (word.cardNum && pictureMap.has(word.cardNum) && !seenCardNums.has(word.cardNum)) {
                     seenCardNums.add(word.cardNum);
                     picturesInOrder.push(pictureMap.get(word.cardNum));
                 }
