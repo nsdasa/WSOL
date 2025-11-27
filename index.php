@@ -132,14 +132,6 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
                 <i class="fas fa-images"></i>
                 Sentence Review
             </button>
-            <button class="nav-tab hidden" data-module="deck-builder" id="deckBuilderTab">
-                <i class="fas fa-edit"></i>
-                Deck Builder
-            </button>
-            <button class="nav-tab hidden" data-module="admin" id="adminTab">
-                <i class="fas fa-tools"></i>
-                Admin
-            </button>
             <button class="nav-tab" data-module="teacher-guide">
                 <i class="fas fa-chalkboard-teacher"></i>
                 Teacher's Guide
@@ -147,6 +139,14 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
             <button class="nav-tab" data-module="pdf">
                 <i class="fas fa-print"></i>
                 Print PDFs
+            </button>
+            <button class="nav-tab hidden" data-module="deck-builder" id="deckBuilderTab">
+                <i class="fas fa-edit"></i>
+                Deck Builder
+            </button>
+            <button class="nav-tab hidden" data-module="admin" id="adminTab">
+                <i class="fas fa-tools"></i>
+                Admin
             </button>
         </div>
         <div id="moduleContainer" class="module-container"></div>

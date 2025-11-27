@@ -63,6 +63,10 @@
 
 .module-admin .admin-section {
     margin-bottom: 32px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
 }
 
 .module-admin .section-title {
@@ -73,6 +77,60 @@
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.module-admin .section-title i:first-child {
+    color: var(--primary);
+}
+
+/* Collapsible section styles */
+.admin-section.collapsible .section-title {
+    cursor: pointer;
+    user-select: none;
+    padding: 12px 16px;
+    margin: -20px -20px 16px -20px;
+    border-radius: 12px 12px 0 0;
+    transition: background-color 0.2s ease;
+}
+
+.admin-section.collapsible .section-title:hover {
+    background-color: var(--bg-primary);
+}
+
+.admin-section.collapsible .section-title:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Chevron icon for collapsible sections */
+.admin-section .section-chevron {
+    margin-left: auto;
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.admin-section.collapsed .section-chevron {
+    transform: rotate(-90deg);
+}
+
+/* Section content wrapper for collapse animation */
+.admin-section .section-content {
+    overflow: hidden;
+    max-height: 2000px;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.admin-section.collapsed .section-content {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Remove bottom margin when collapsed */
+.admin-section.collapsed .section-title {
+    margin-bottom: 0;
+    border-radius: 12px;
 }
 
 /* Module Status Grid */
