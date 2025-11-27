@@ -505,6 +505,9 @@ function getDetailedWordValidation($filePath, $trigraph, $manifest) {
 
             $colName = $headers[$i] ?? "Column $i";
 
+            // Check if this is the affixes column - skip card matching for affixes
+            $isAffixColumn = (stripos($colName, 'affix') !== false);
+
             // Split comma-separated words
             $cellWords = array_map('trim', explode(',', $cellValue));
 
@@ -512,6 +515,24 @@ function getDetailedWordValidation($filePath, $trigraph, $manifest) {
                 if (empty($word)) continue;
 
                 $stats['total']++;
+
+                // Affixes don't have cards - mark as matched automatically
+                if ($isAffixColumn) {
+                    $wordEntry = [
+                        'original' => $word,
+                        'wordType' => 'Affixes',  // Normalize column name
+                        'lesson' => $lesson,
+                        'row' => $rowNum,
+                        'matched' => true,
+                        'cardNum' => null,
+                        'cardWord' => null,
+                        'isAffix' => true,
+                        'suggestions' => []
+                    ];
+                    $stats['matched']++;
+                    $words[] = $wordEntry;
+                    continue;
+                }
 
                 // Try to find matching card
                 $matchResult = findMatchingCard($word, $cardLookup, $cards);
@@ -1836,7 +1857,12 @@ function loadSentenceWordsCSV($path) {
     // First column is "Lesson #", rest are word types
     $wordTypes = [];
     for ($i = 1; $i < count($headers); $i++) {
-        $wordTypes[$i] = trim($headers[$i]);
+        $colName = trim($headers[$i]);
+        // Normalize "allowed verb affixes" to "Affixes"
+        if (stripos($colName, 'affix') !== false) {
+            $colName = 'Affixes';
+        }
+        $wordTypes[$i] = $colName;
     }
 
     // Process each row (each row is a lesson)
