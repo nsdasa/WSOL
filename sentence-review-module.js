@@ -512,6 +512,142 @@ class SentenceReviewParser {
     }
 
     /**
+     * Parse CSV data into structured sentence review data with multiple lessons
+     * CSV columns: Lesson #, Seq #, Sequ Title, Sentence #, Sentence Text, English Translation, Sentence Type
+     * @param {string} csvText - The raw CSV text
+     * @param {Array} allCards - All cards from manifest for word lookup
+     * @returns {Object} Lessons object keyed by lesson number
+     */
+    static parseCSV(csvText, allCards) {
+        const rows = this.parseCSVRows(csvText);
+        const lessons = {};
+
+        let currentLesson = null;
+        let currentSequence = null;
+
+        for (const row of rows) {
+            // Skip header row
+            if (row['Lesson #'] === 'Lesson #') continue;
+
+            const lessonNum = row['Lesson #']?.trim();
+            const seqNum = row['Seq #']?.trim();
+            const seqTitle = row['Sequ Title']?.trim();
+            const sentNum = row['Sentence #']?.trim();
+            const sentText = row['Sentence Text']?.trim();
+            const english = row['English Translation']?.trim();
+            const sentType = row['Sentence Type']?.trim();
+
+            // Sequence header row: has lesson/seq number and title but no sentence data
+            if ((lessonNum || seqNum) && seqTitle && !sentNum) {
+                // Update current lesson if specified
+                if (lessonNum) {
+                    currentLesson = lessonNum;
+                }
+
+                // Initialize lesson if needed
+                if (currentLesson && !lessons[currentLesson]) {
+                    lessons[currentLesson] = {
+                        title: `Lesson ${currentLesson}`,
+                        sequences: []
+                    };
+                }
+
+                // Create new sequence
+                if (currentLesson && seqNum) {
+                    currentSequence = {
+                        id: parseInt(seqNum),
+                        title: seqTitle,
+                        sentences: []
+                    };
+                    lessons[currentLesson].sequences.push(currentSequence);
+                }
+            }
+            // Sentence row: has sentence number and text
+            else if (sentNum && sentText && currentSequence) {
+                // Parse words with {root} notation
+                const words = this.parseWords(sentText, allCards);
+
+                // Clean display text (remove {root} notation)
+                const cleanText = sentText.replace(/\s*\{[^}]+\}/g, '');
+
+                currentSequence.sentences.push({
+                    id: parseInt(sentNum),
+                    text: cleanText,
+                    english: english || '',
+                    sentenceType: sentType || null,
+                    words: words
+                });
+            }
+        }
+
+        return lessons;
+    }
+
+    /**
+     * Parse CSV text into array of row objects
+     * Handles quoted fields with commas
+     * @param {string} csvText - Raw CSV text
+     * @returns {Array} Array of objects with column headers as keys
+     */
+    static parseCSVRows(csvText) {
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) return [];
+
+        // Parse header row
+        const headers = this.parseCSVLine(lines[0]);
+        const rows = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const values = this.parseCSVLine(lines[i]);
+            const row = {};
+
+            headers.forEach((header, index) => {
+                row[header] = values[index] || '';
+            });
+
+            rows.push(row);
+        }
+
+        return rows;
+    }
+
+    /**
+     * Parse a single CSV line, handling quoted fields
+     * @param {string} line - CSV line
+     * @returns {Array} Array of field values
+     */
+    static parseCSVLine(line) {
+        const fields = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+
+            if (char === '"') {
+                if (inQuotes && line[i + 1] === '"') {
+                    // Escaped quote
+                    current += '"';
+                    i++;
+                } else {
+                    // Toggle quote mode
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                fields.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+
+        // Push last field
+        fields.push(current.trim());
+
+        return fields;
+    }
+
+    /**
      * Parse words from a sentence, handling {root} notation
      * @param {string} text - The sentence text
      * @param {Array} allCards - All cards for lookup
