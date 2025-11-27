@@ -724,61 +724,201 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     }
 
     /**
-     * Render word pictures in a row with drag-and-drop support
+     * Render word pictures with bubble layout and connection lines
+     * Layout: Word bubbles on top -> Connection lines -> Deduplicated pictures on bottom
      */
     renderWordPictures(lessonNum, seqIndex, sentIndex, words) {
-        // Always show the row container for drag-and-drop and add functionality
-        let html = `<div class="sr-word-pictures-row" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}">`;
+        const sentenceKey = `${lessonNum}-${seqIndex}-${sentIndex}`;
+
+        // Build a map of unique pictures (by cardNum) and which word indices link to them
+        const pictureMap = new Map(); // cardNum -> { card info, wordIndices: [] }
+        const wordsWithPictures = [];
 
         if (words && words.length > 0) {
             words.forEach((word, wordIndex) => {
-                if (word.imagePath) {
-                    const needsResClass = word.needsResolution ? ' needs-resolution' : '';
-                    const resTitle = word.needsResolution ? ' ⚠️ Auto-assigned via root - needs review' : '';
-                    html += `
-                        <div class="sr-word-pic${needsResClass}" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" data-word="${wordIndex}" draggable="true">
-                            <div class="sr-drag-handle" title="Drag to reorder">
-                                <i class="fas fa-grip-vertical"></i>
-                            </div>
-                            <img src="${word.imagePath}" alt="${word.word}" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}${resTitle}">
-                            <span class="word-label">${word.word}</span>
-                            ${word.needsResolution ? '<span class="resolution-flag" title="Auto-assigned via root - click to review">⚠️</span>' : ''}
-                            <button class="sr-change-pic-btn" title="Change picture">
-                                <i class="fas fa-exchange-alt"></i>
-                            </button>
-                            <button class="sr-delete-word-btn" title="Delete word">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    html += `
-                        <div class="sr-word-pic no-pic" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" data-word="${wordIndex}" draggable="true">
-                            <div class="sr-drag-handle" title="Drag to reorder">
-                                <i class="fas fa-grip-vertical"></i>
-                            </div>
-                            <span class="word-text">${word.word}</span>
-                            <button class="sr-assign-pic-btn" title="Assign picture">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="sr-delete-word-btn" title="Delete word">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `;
+                if (word.cardNum && word.imagePath) {
+                    if (!pictureMap.has(word.cardNum)) {
+                        pictureMap.set(word.cardNum, {
+                            cardNum: word.cardNum,
+                            imagePath: word.imagePath,
+                            wordIndices: []
+                        });
+                    }
+                    pictureMap.get(word.cardNum).wordIndices.push(wordIndex);
+                    wordsWithPictures.push(wordIndex);
                 }
             });
         }
 
-        // Add word button at the end
+        let html = `<div class="sr-bubble-layout" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}">`;
+
+        // === BUBBLES ROW ===
+        html += `<div class="sr-bubbles-row" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}">`;
+
+        if (words && words.length > 0) {
+            words.forEach((word, wordIndex) => {
+                const hasPicture = !!(word.cardNum && word.imagePath);
+                const needsResClass = word.needsResolution ? ' needs-resolution' : '';
+                const functionClass = hasPicture ? '' : ' function-word';
+
+                html += `
+                    <div class="sr-word-bubble${functionClass}${needsResClass}"
+                         data-lesson="${lessonNum}"
+                         data-seq="${seqIndex}"
+                         data-sent="${sentIndex}"
+                         data-word="${wordIndex}"
+                         data-cardnum="${word.cardNum || ''}"
+                         draggable="true">
+                        <div class="sr-bubble-text" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}">${word.word}</div>
+                        ${word.needsResolution ? '<span class="sr-bubble-warning" title="Auto-assigned via root - needs review">⚠️</span>' : ''}
+                        <div class="sr-bubble-actions">
+                            <button class="sr-bubble-edit-btn" title="Edit word">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button class="sr-bubble-link-btn" title="${hasPicture ? 'Change picture link' : 'Link to picture'}">
+                                <i class="fas fa-link"></i>
+                            </button>
+                            <button class="sr-bubble-delete-btn" title="Delete word">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="sr-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Add word button
         html += `
-            <div class="sr-add-word-btn" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" title="Add word/card">
+            <div class="sr-add-word-btn" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" title="Add word">
                 <i class="fas fa-plus"></i>
             </div>
         `;
 
-        html += '</div>';
+        html += '</div>'; // End bubbles row
+
+        // === SVG CONNECTION LINES (placeholder - drawn after render) ===
+        html += `<svg class="sr-connection-lines" data-sentence="${sentenceKey}"></svg>`;
+
+        // === PICTURES ROW (deduplicated) ===
+        html += `<div class="sr-pictures-row">`;
+
+        if (pictureMap.size > 0) {
+            // Create array of pictures in order of first word that links to them
+            const picturesInOrder = [];
+            const seenCardNums = new Set();
+
+            words.forEach((word, wordIndex) => {
+                if (word.cardNum && !seenCardNums.has(word.cardNum)) {
+                    seenCardNums.add(word.cardNum);
+                    picturesInOrder.push(pictureMap.get(word.cardNum));
+                }
+            });
+
+            picturesInOrder.forEach(picInfo => {
+                const linkedWords = picInfo.wordIndices.map(i => words[i].word).join(', ');
+                html += `
+                    <div class="sr-picture-slot"
+                         data-cardnum="${picInfo.cardNum}"
+                         data-word-indices="${picInfo.wordIndices.join(',')}"
+                         title="Linked to: ${linkedWords}">
+                        <div class="sr-slot-card">
+                            <img src="${picInfo.imagePath}" alt="Card ${picInfo.cardNum}">
+                            ${picInfo.wordIndices.length > 1 ? `<span class="sr-multi-link-badge">${picInfo.wordIndices.length}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Add placeholder slots for function words (to maintain visual alignment)
+        words.forEach((word, wordIndex) => {
+            if (!word.cardNum || !word.imagePath) {
+                html += `
+                    <div class="sr-picture-slot no-picture" data-word="${wordIndex}">
+                        <div class="sr-no-picture-dot"></div>
+                    </div>
+                `;
+            }
+        });
+
+        html += '</div>'; // End pictures row
+        html += '</div>'; // End bubble layout
+
         return html;
+    }
+
+    /**
+     * Draw connection lines for a sentence after DOM is rendered
+     */
+    drawConnectionLines(sentenceKey) {
+        const svg = document.querySelector(`.sr-connection-lines[data-sentence="${sentenceKey}"]`);
+        if (!svg) return;
+
+        const layoutContainer = svg.closest('.sr-bubble-layout');
+        if (!layoutContainer) return;
+
+        const bubblesRow = layoutContainer.querySelector('.sr-bubbles-row');
+        const picturesRow = layoutContainer.querySelector('.sr-pictures-row');
+        if (!bubblesRow || !picturesRow) return;
+
+        // Clear existing lines
+        svg.innerHTML = '';
+
+        const containerRect = layoutContainer.getBoundingClientRect();
+
+        // Set SVG dimensions
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+        svg.style.position = 'absolute';
+        svg.style.top = '0';
+        svg.style.left = '0';
+        svg.style.pointerEvents = 'none';
+
+        // Get all bubbles with pictures
+        const bubbles = bubblesRow.querySelectorAll('.sr-word-bubble:not(.function-word)');
+
+        bubbles.forEach(bubble => {
+            const cardNum = bubble.dataset.cardnum;
+            if (!cardNum) return;
+
+            // Find the picture slot for this cardNum
+            const pictureSlot = picturesRow.querySelector(`.sr-picture-slot[data-cardnum="${cardNum}"]`);
+            if (!pictureSlot) return;
+
+            const bubbleRect = bubble.getBoundingClientRect();
+            const pictureRect = pictureSlot.getBoundingClientRect();
+
+            // Calculate positions relative to container
+            const startX = bubbleRect.left - containerRect.left + bubbleRect.width / 2;
+            const startY = bubbleRect.bottom - containerRect.top;
+            const endX = pictureRect.left - containerRect.left + pictureRect.width / 2;
+            const endY = pictureRect.top - containerRect.top;
+
+            // Create line
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', startX);
+            line.setAttribute('y1', startY);
+            line.setAttribute('x2', endX);
+            line.setAttribute('y2', endY);
+            line.setAttribute('class', 'sr-connection-line');
+            svg.appendChild(line);
+        });
+    }
+
+    /**
+     * Redraw all connection lines (called after layout changes)
+     */
+    redrawAllConnectionLines() {
+        document.querySelectorAll('.sr-bubble-layout').forEach(layout => {
+            const lessonNum = layout.dataset.lesson;
+            const seqIndex = layout.dataset.seq;
+            const sentIndex = layout.dataset.sent;
+            const sentenceKey = `${lessonNum}-${seqIndex}-${sentIndex}`;
+            this.drawConnectionLines(sentenceKey);
+        });
     }
 
     /**
@@ -862,28 +1002,41 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             });
         });
 
-        // Change picture buttons
-        document.querySelectorAll('.sr-change-pic-btn, .sr-assign-pic-btn').forEach(btn => {
+        // Bubble edit buttons (edit word text)
+        document.querySelectorAll('.sr-bubble-edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const wordPic = btn.closest('.sr-word-pic');
-                const lessonNum = parseInt(wordPic.dataset.lesson);
-                const seqIndex = parseInt(wordPic.dataset.seq);
-                const sentIndex = parseInt(wordPic.dataset.sent);
-                const wordIndex = parseInt(wordPic.dataset.word);
-                this.openPictureSelector(lessonNum, seqIndex, sentIndex, wordIndex);
+                const bubble = btn.closest('.sr-word-bubble');
+                const lessonNum = parseInt(bubble.dataset.lesson);
+                const seqIndex = parseInt(bubble.dataset.seq);
+                const sentIndex = parseInt(bubble.dataset.sent);
+                const wordIndex = parseInt(bubble.dataset.word);
+                this.editWordText(lessonNum, seqIndex, sentIndex, wordIndex);
             });
         });
 
-        // Delete word buttons
-        document.querySelectorAll('.sr-delete-word-btn').forEach(btn => {
+        // Bubble link buttons (link to picture)
+        document.querySelectorAll('.sr-bubble-link-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const wordPic = btn.closest('.sr-word-pic');
-                const lessonNum = parseInt(wordPic.dataset.lesson);
-                const seqIndex = parseInt(wordPic.dataset.seq);
-                const sentIndex = parseInt(wordPic.dataset.sent);
-                const wordIndex = parseInt(wordPic.dataset.word);
+                const bubble = btn.closest('.sr-word-bubble');
+                const lessonNum = parseInt(bubble.dataset.lesson);
+                const seqIndex = parseInt(bubble.dataset.seq);
+                const sentIndex = parseInt(bubble.dataset.sent);
+                const wordIndex = parseInt(bubble.dataset.word);
+                this.openPictureLinkModal(lessonNum, seqIndex, sentIndex, wordIndex);
+            });
+        });
+
+        // Bubble delete buttons
+        document.querySelectorAll('.sr-bubble-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const bubble = btn.closest('.sr-word-bubble');
+                const lessonNum = parseInt(bubble.dataset.lesson);
+                const seqIndex = parseInt(bubble.dataset.seq);
+                const sentIndex = parseInt(bubble.dataset.sent);
+                const wordIndex = parseInt(bubble.dataset.word);
                 this.deleteWord(lessonNum, seqIndex, sentIndex, wordIndex);
             });
         });
@@ -899,21 +1052,44 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             });
         });
 
-        // Initialize SortableJS for word picture rows
-        this.initSortableWordRows();
+        // Initialize SortableJS for bubble rows
+        this.initSortableBubbleRows();
+
+        // Draw connection lines after DOM is ready
+        requestAnimationFrame(() => {
+            this.redrawAllConnectionLines();
+        });
     }
 
     /**
-     * Initialize SortableJS for drag-and-drop reordering of words
+     * Edit word text inline
      */
-    initSortableWordRows() {
+    editWordText(lessonNum, seqIndex, sentIndex, wordIndex) {
+        const word = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex].words[wordIndex];
+        const newText = prompt('Edit word(s):\n(You can enter multiple words for a phrase)', word.word);
+
+        if (newText === null || newText.trim() === '') return;
+
+        word.word = newText.trim();
+        this.editedLessons.add(lessonNum);
+        this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+        this.renderLessonsList();
+        this.updateSaveButton();
+
+        toastManager?.show('Word updated', 'success');
+    }
+
+    /**
+     * Initialize SortableJS for drag-and-drop reordering of bubbles
+     */
+    initSortableBubbleRows() {
         // Destroy existing instances
         this.sortableInstances.forEach(instance => instance.destroy());
         this.sortableInstances = [];
 
-        // Initialize Sortable on each word pictures row
+        // Initialize Sortable on each bubbles row
         if (typeof Sortable !== 'undefined') {
-            document.querySelectorAll('.sr-word-pictures-row').forEach(row => {
+            document.querySelectorAll('.sr-bubbles-row').forEach(row => {
                 const lessonNum = parseInt(row.dataset.lesson);
                 const seqIndex = parseInt(row.dataset.seq);
                 const sentIndex = parseInt(row.dataset.sent);
@@ -1372,31 +1548,79 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     }
 
     /**
-     * Open picture selector modal for a word
+     * Open picture link modal with Quick Link and search functionality
      */
-    openPictureSelector(lessonNum, seqIndex, sentIndex, wordIndex) {
-        const word = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex].words[wordIndex];
+    openPictureLinkModal(lessonNum, seqIndex, sentIndex, wordIndex) {
+        const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
+        const word = sentence.words[wordIndex];
         const allCards = this.deckBuilder.assets.getCards({ lesson: null });
+
+        // Find other words in this sentence that have pictures (for Quick Link)
+        const otherLinkedWords = sentence.words
+            .map((w, idx) => ({ word: w, index: idx }))
+            .filter(item => item.index !== wordIndex && item.word.cardNum && item.word.imagePath);
 
         // Create modal
         const modal = document.createElement('div');
-        modal.className = 'modal sr-picture-modal';
-        modal.id = 'srPictureModal';
+        modal.className = 'modal sr-picture-link-modal';
+        modal.id = 'srPictureLinkModal';
+
+        const hasCurrentPicture = !!(word.cardNum && word.imagePath);
+
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2><i class="fas fa-image"></i> Select Picture for "${word.word}"</h2>
-                    <button class="close-btn" id="srClosePicModal">&times;</button>
+                    <h2><i class="fas fa-link"></i> Link "${word.word}" to Picture</h2>
+                    <button class="close-btn" id="srCloseLinkModal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="sr-search-bar">
-                        <input type="text" id="srPicSearch" placeholder="Search cards..." value="${word.word}">
-                        <button id="srPicSearchBtn" class="btn btn-primary">
-                            <i class="fas fa-search"></i>
-                        </button>
+                    ${hasCurrentPicture ? `
+                        <div class="sr-current-link">
+                            <h4>Currently Linked To:</h4>
+                            <div class="sr-current-picture">
+                                <img src="${word.imagePath}" alt="Current">
+                                <span>Card #${word.cardNum}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${otherLinkedWords.length > 0 ? `
+                        <div class="sr-quick-link-section">
+                            <h4><i class="fas fa-bolt"></i> Quick Link (same as another word)</h4>
+                            <div class="sr-quick-link-options">
+                                ${otherLinkedWords.map(item => {
+                                    const card = allCards.find(c => c.cardNum === item.word.cardNum);
+                                    return `
+                                        <div class="sr-quick-link-option" data-cardnum="${item.word.cardNum}" data-imagepath="${item.word.imagePath}">
+                                            <img src="${item.word.imagePath}" alt="${item.word.word}">
+                                            <div class="sr-quick-link-info">
+                                                <span class="sr-quick-link-word">Same as "${item.word.word}"</span>
+                                                <span class="sr-quick-link-card">${card?.word || 'Card #' + item.word.cardNum}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="sr-search-section">
+                        <h4><i class="fas fa-search"></i> Search for a Card</h4>
+                        <div class="sr-search-bar">
+                            <input type="text" id="srPicSearch" placeholder="Search cards..." value="${word.word}">
+                            <button id="srPicSearchBtn" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                        <div class="sr-pic-grid" id="srPicGrid">
+                            <!-- Cards will be rendered here -->
+                        </div>
                     </div>
-                    <div class="sr-pic-grid" id="srPicGrid">
-                        <!-- Cards will be rendered here -->
+
+                    <div class="sr-remove-link-section">
+                        <button id="srRemoveLinkBtn" class="btn btn-outline-danger ${hasCurrentPicture ? '' : 'hidden'}">
+                            <i class="fas fa-unlink"></i> Remove Picture Link (make function word)
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1404,16 +1628,44 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
         document.body.appendChild(modal);
 
-        // Render initial results
+        // Helper to apply a link and close modal
+        const applyLink = (cardNum, imagePath) => {
+            word.cardNum = cardNum;
+            word.imagePath = imagePath;
+            word.needsResolution = false;
+
+            this.editedLessons.add(lessonNum);
+            this.renderLessonsList();
+            this.updateSaveButton();
+
+            modal.remove();
+            toastManager?.show('Picture linked', 'success');
+        };
+
+        // Quick link click handlers
+        modal.querySelectorAll('.sr-quick-link-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const cardNum = parseInt(option.dataset.cardnum);
+                const imagePath = option.dataset.imagepath;
+                applyLink(cardNum, imagePath);
+            });
+        });
+
+        // Search and render results
         const renderResults = (searchTerm) => {
             const grid = document.getElementById('srPicGrid');
             const term = searchTerm.toLowerCase();
+
+            if (!term) {
+                grid.innerHTML = '<p class="hint-text">Enter a search term to find cards</p>';
+                return;
+            }
 
             const matchingCards = allCards.filter(card => {
                 const wordMatch = card.word?.toLowerCase().includes(term);
                 const englishMatch = card.english?.toLowerCase().includes(term);
                 return wordMatch || englishMatch;
-            }).slice(0, 50); // Limit to 50 results
+            }).slice(0, 50);
 
             if (matchingCards.length === 0) {
                 grid.innerHTML = '<p class="no-results">No matching cards found</p>';
@@ -1424,7 +1676,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                 <div class="sr-pic-option" data-cardnum="${card.cardNum}" data-imagepath="${card.printImagePath || ''}">
                     ${card.printImagePath ? `<img src="${card.printImagePath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
                     <span class="card-word">${card.word}</span>
-                    <span class="card-english">${card.english}</span>
+                    <span class="card-english">${card.english || ''}</span>
                 </div>
             `).join('');
 
@@ -1433,39 +1685,42 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                 option.addEventListener('click', () => {
                     const cardNum = parseInt(option.dataset.cardnum);
                     const imagePath = option.dataset.imagepath;
-
-                    // Update word data
-                    word.cardNum = cardNum;
-                    word.imagePath = imagePath || null;
-
-                    this.editedLessons.add(lessonNum);
-                    this.renderLessonsList();
-                    this.updateSaveButton();
-
-                    // Close modal
-                    modal.remove();
-                    toastManager?.show('Picture updated', 'success');
+                    applyLink(cardNum, imagePath);
                 });
             });
         };
 
-        // Initial render
+        // Initial search with word text
         renderResults(word.word);
 
-        // Search functionality
+        // Search button
         document.getElementById('srPicSearchBtn')?.addEventListener('click', () => {
-            const term = document.getElementById('srPicSearch').value;
-            renderResults(term);
+            renderResults(document.getElementById('srPicSearch').value);
         });
 
+        // Search on Enter
         document.getElementById('srPicSearch')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 renderResults(e.target.value);
             }
         });
 
+        // Remove link button
+        document.getElementById('srRemoveLinkBtn')?.addEventListener('click', () => {
+            word.cardNum = null;
+            word.imagePath = null;
+            word.needsResolution = false;
+
+            this.editedLessons.add(lessonNum);
+            this.renderLessonsList();
+            this.updateSaveButton();
+
+            modal.remove();
+            toastManager?.show('Picture link removed', 'success');
+        });
+
         // Close modal
-        document.getElementById('srClosePicModal')?.addEventListener('click', () => modal.remove());
+        document.getElementById('srCloseLinkModal')?.addEventListener('click', () => modal.remove());
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.remove();
         });
