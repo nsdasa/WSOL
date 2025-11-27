@@ -242,6 +242,109 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
+                <!-- Card Data Section (Collapsible) -->
+                <div class="deck-section collapsible collapsed" id="cardDataSection" data-section="cardData">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-table"></i> Card Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+
+                <!-- Legend -->
+                <div class="deck-legend">
+                    <strong>Status Legend:</strong>
+                    <span class="legend-item"><span class="status status-complete-animated">Complete (Animated)</span> - PNG + GIF + Audio</span>
+                    <span class="legend-item"><span class="status status-complete-static">Complete (Static)</span> - PNG + Audio</span>
+                    <span class="legend-item"><span class="status status-partial">Partial</span> - Some assets</span>
+                    <span class="legend-item"><span class="status status-missing">Missing</span> - No assets</span>
+                    <span class="legend-item"><span class="type-badge new">N</span> - New Word</span>
+                    <span class="legend-item"><span class="type-badge review">R</span> - Review</span>
+                </div>
+
+                <!-- Filter Controls Bar (above table) -->
+                <div class="deck-controls">
+                    <div class="filter-group">
+                        <label for="languageFilter">
+                            <i class="fas fa-language"></i> Language:
+                        </label>
+                        <select id="languageFilter" class="select-control" ${this.languageRestriction ? 'disabled' : ''}>
+                            <option value="ceb" ${this.languageRestriction === 'ceb' ? 'selected' : ''}>Cebuano</option>
+                            <option value="mrw" ${this.languageRestriction === 'mrw' ? 'selected' : ''}>Maranao</option>
+                            <option value="sin" ${this.languageRestriction === 'sin' ? 'selected' : ''}>Sinama</option>
+                        </select>
+                        ${this.languageRestriction ? '<span class="language-locked-hint" title="Language restricted based on your role"><i class="fas fa-lock"></i></span>' : ''}
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="lessonFilterFrom">
+                            <i class="fas fa-filter"></i> Lesson:
+                        </label>
+                        <input type="number" id="lessonFilterFrom" class="form-input lesson-range-input" placeholder="From" min="1">
+                        <span style="color: var(--text-secondary);">-</span>
+                        <input type="number" id="lessonFilterTo" class="form-input lesson-range-input" placeholder="To" min="1">
+                        <button id="clearLessonFilter" class="btn btn-sm btn-secondary" title="Clear lesson filter">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="filter-group search-group">
+                        <label for="searchCards">
+                            <i class="fas fa-search"></i>
+                        </label>
+                        <input type="text" id="searchCards" class="form-input" placeholder="Search words...">
+                    </div>
+
+                    <button id="addCardBtnTop" class="btn btn-success ${editButtonsClass}">
+                        <i class="fas fa-plus"></i> Add New Card
+                    </button>
+
+                    <div class="stats-mini">
+                        <span id="cardCount">0 cards</span>
+                        <span id="unsavedCount" class="unsaved-indicator hidden ${editButtonsClass}">0 unsaved</span>
+                    </div>
+                </div>
+
+                <!-- Card Table -->
+                <div class="deck-table-container">
+                    <table class="deck-table" id="deckTable">
+                        <thead>
+                            <tr>
+                                ${!this.isRecorder ? '<th style="width: 70px;">Actions</th>' : ''}
+                                ${!this.isRecorder ? '<th style="width: 50px;">Type</th>' : ''}
+                                <th style="width: 60px;" class="sortable-header" data-sort="cardNum">
+                                    Card # <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable-header word-column" data-sort="word" id="langHeader">
+                                    Cebuano <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="sortable-header word-column" data-sort="english">
+                                    English <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                ${!this.isRecorder ? '<th style="width: 85px;">Categories</th>' : ''}
+                                ${!this.isRecorder ? '<th style="width: 140px;">Picture (PNG)</th>' : ''}
+                                ${!this.isRecorder ? '<th style="width: 90px;">Animated (GIF)</th>' : ''}
+                                <th style="width: 140px;">Audio</th>
+                                ${!this.isRecorder ? `<th style="width: 100px;" class="sortable-header" data-sort="status">
+                                    Status <i class="fas fa-sort sort-icon"></i>
+                                </th>` : ''}
+                            </tr>
+                        </thead>
+                        <tbody id="deckTableBody">
+                            <!-- Cards will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Add New Card Button (Bottom) -->
+                <div style="margin: 16px 0; text-align: center;" class="${editButtonsClass}">
+                    <button id="addCardBtnBottom" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add New Card
+                    </button>
+                </div>
+
+                    </div>
+                </div>
+
                 <!-- Sentence Words Upload Section (Admin and Deck Manager only) -->
                 <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="sentenceWordsSection" data-section="sentence">
                     <h3 class="section-title" role="button" tabindex="0">
@@ -325,6 +428,117 @@ class DeckBuilderModule extends LearningModule {
                             </div>
                         </div>
                     </div>
+                    </div>
+                </div>
+
+                <!-- Sentence Review Data Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="sentenceReviewSection" data-section="sentenceReview">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-images"></i> Sentence Review Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
+                            <p class="section-description">
+                                Create and edit sentence review lessons. Sentences are displayed as a row of pictures representing each word.
+                            </p>
+
+                            <!-- Import Section with Tabs -->
+                            <div class="sr-builder-import">
+                                <div class="sr-import-tabs">
+                                    <button class="sr-import-tab active" data-tab="text">
+                                        <i class="fas fa-font"></i> Text Import
+                                    </button>
+                                    <button class="sr-import-tab" data-tab="csv">
+                                        <i class="fas fa-file-csv"></i> CSV Import
+                                    </button>
+                                </div>
+
+                                <!-- Text Import Tab -->
+                                <div class="sr-import-tab-content active" id="srTextImportTab">
+                                    <h4><i class="fas fa-file-import"></i> Import from Text</h4>
+                                    <textarea id="srImportText" class="sr-import-textarea" placeholder="Paste sentence text here...
+
+Example format:
+SEQUENCE 1: Finding the Book
+
+Asa ang libro? (Where is the book?)
+Ang libro sa lamesa. (The book is on the table.)
+Kuhaa {kuha} ang libro. (Get the book.)
+
+SEQUENCE 2: What Is This?
+
+Unsa kini? (What is this?)
+Kini ang bolpen. (This is the ballpen.)"></textarea>
+                                    <div class="sr-import-actions">
+                                        <select id="srImportLesson" class="select-control">
+                                            <option value="">Select Target Lesson...</option>
+                                        </select>
+                                        <button id="srParseBtn" class="btn btn-primary">
+                                            <i class="fas fa-magic"></i> Parse & Preview
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- CSV Import Tab -->
+                                <div class="sr-import-tab-content" id="srCSVImportTab">
+                                    <h4><i class="fas fa-file-csv"></i> Import from CSV</h4>
+                                    <p class="sr-csv-description">
+                                        Upload a CSV file with columns: Lesson #, Seq #, Sequ Title, Sentence #, Sentence Text, English Translation, Sentence Type
+                                    </p>
+                                    <div class="sr-csv-upload-area" id="srCSVDropZone">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Drag & drop CSV file here or click to browse</p>
+                                        <input type="file" id="srCSVFileInput" accept=".csv" class="sr-csv-file-input">
+                                    </div>
+                                    <div class="sr-csv-file-info hidden" id="srCSVFileInfo">
+                                        <i class="fas fa-file-csv"></i>
+                                        <span id="srCSVFileName"></span>
+                                        <button class="sr-csv-remove-btn" id="srCSVRemoveBtn" title="Remove file">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="sr-import-actions">
+                                        <button id="srParseCSVBtn" class="btn btn-primary" disabled>
+                                            <i class="fas fa-magic"></i> Parse CSV & Preview
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Section -->
+                            <div class="sr-builder-preview hidden" id="srPreviewSection">
+                                <h4><i class="fas fa-search"></i> Preview Parsed Data</h4>
+                                <div id="srPreviewContent"></div>
+                                <div class="sr-preview-actions">
+                                    <button id="srApplyParseBtn" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Apply to Lesson
+                                    </button>
+                                    <button id="srCancelParseBtn" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lessons List -->
+                            <div class="sr-builder-lessons">
+                                <h4>
+                                    <i class="fas fa-list"></i> Lessons with Sentence Review Data
+                                    <button id="srAddLessonBtn" class="btn btn-sm btn-success">
+                                        <i class="fas fa-plus"></i> Add Lesson
+                                    </button>
+                                </h4>
+                                <div id="srLessonsList" class="sr-lessons-list">
+                                    <!-- Lessons will be rendered here -->
+                                </div>
+                            </div>
+
+                            <div class="section-actions">
+                                <button id="srSaveAllBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save"></i> Save Sentence Review Data
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -460,217 +674,31 @@ class DeckBuilderModule extends LearningModule {
                     </div>
                 </div>
 
-                <!-- Sentence Review Data Section (Admin and Deck Manager only) -->
-                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="sentenceReviewSection" data-section="sentenceReview">
+                <!-- Tour Guide Editor Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="tourGuideEditorSection" data-section="tourGuide">
                     <h3 class="section-title" role="button" tabindex="0">
-                        <i class="fas fa-images"></i> Sentence Review Data
+                        <i class="fas fa-route"></i> Tour Guide Editor
                         <i class="fas fa-chevron-down section-chevron"></i>
                     </h3>
                     <div class="section-content">
                         <div class="section-card">
                             <p class="section-description">
-                                Create and edit sentence review lessons. Sentences are displayed as a row of pictures representing each word.
+                                Edit the guided tour text that appears when users click "Show Tour" in each module.
                             </p>
-
-                            <!-- Import Section with Tabs -->
-                            <div class="sr-builder-import">
-                                <div class="sr-import-tabs">
-                                    <button class="sr-import-tab active" data-tab="text">
-                                        <i class="fas fa-font"></i> Text Import
-                                    </button>
-                                    <button class="sr-import-tab" data-tab="csv">
-                                        <i class="fas fa-file-csv"></i> CSV Import
-                                    </button>
-                                </div>
-
-                                <!-- Text Import Tab -->
-                                <div class="sr-import-tab-content active" id="srTextImportTab">
-                                    <h4><i class="fas fa-file-import"></i> Import from Text</h4>
-                                    <textarea id="srImportText" class="sr-import-textarea" placeholder="Paste sentence text here...
-
-Example format:
-SEQUENCE 1: Finding the Book
-
-Asa ang libro? (Where is the book?)
-Ang libro sa lamesa. (The book is on the table.)
-Kuhaa {kuha} ang libro. (Get the book.)
-
-SEQUENCE 2: What Is This?
-
-Unsa kini? (What is this?)
-Kini ang bolpen. (This is the ballpen.)"></textarea>
-                                    <div class="sr-import-actions">
-                                        <select id="srImportLesson" class="select-control">
-                                            <option value="">Select Target Lesson...</option>
-                                        </select>
-                                        <button id="srParseBtn" class="btn btn-primary">
-                                            <i class="fas fa-magic"></i> Parse & Preview
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- CSV Import Tab -->
-                                <div class="sr-import-tab-content" id="srCSVImportTab">
-                                    <h4><i class="fas fa-file-csv"></i> Import from CSV</h4>
-                                    <p class="sr-csv-description">
-                                        Upload a CSV file with columns: Lesson #, Seq #, Sequ Title, Sentence #, Sentence Text, English Translation, Sentence Type
-                                    </p>
-                                    <div class="sr-csv-upload-area" id="srCSVDropZone">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Drag & drop CSV file here or click to browse</p>
-                                        <input type="file" id="srCSVFileInput" accept=".csv" class="sr-csv-file-input">
-                                    </div>
-                                    <div class="sr-csv-file-info hidden" id="srCSVFileInfo">
-                                        <i class="fas fa-file-csv"></i>
-                                        <span id="srCSVFileName"></span>
-                                        <button class="sr-csv-remove-btn" id="srCSVRemoveBtn" title="Remove file">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                    <div class="sr-import-actions">
-                                        <button id="srParseCSVBtn" class="btn btn-primary" disabled>
-                                            <i class="fas fa-magic"></i> Parse CSV & Preview
-                                        </button>
-                                    </div>
+                            <div id="tourEditorContainer">
+                                <div class="tour-editor-loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading tour configuration...
                                 </div>
                             </div>
-
-                            <!-- Preview Section -->
-                            <div class="sr-builder-preview hidden" id="srPreviewSection">
-                                <h4><i class="fas fa-search"></i> Preview Parsed Data</h4>
-                                <div id="srPreviewContent"></div>
-                                <div class="sr-preview-actions">
-                                    <button id="srApplyParseBtn" class="btn btn-success">
-                                        <i class="fas fa-check"></i> Apply to Lesson
-                                    </button>
-                                    <button id="srCancelParseBtn" class="btn btn-secondary">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Lessons List -->
-                            <div class="sr-builder-lessons">
-                                <h4>
-                                    <i class="fas fa-list"></i> Lessons with Sentence Review Data
-                                    <button id="srAddLessonBtn" class="btn btn-sm btn-success">
-                                        <i class="fas fa-plus"></i> Add Lesson
-                                    </button>
-                                </h4>
-                                <div id="srLessonsList" class="sr-lessons-list">
-                                    <!-- Lessons will be rendered here -->
-                                </div>
-                            </div>
-
-                            <div class="section-actions">
-                                <button id="srSaveAllBtn" class="btn btn-primary" disabled>
-                                    <i class="fas fa-save"></i> Save Sentence Review Data
+                            <div class="tour-editor-actions" style="margin-top:16px;display:flex;gap:12px;">
+                                <button id="saveTourConfigBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                                <button id="resetTourConfigBtn" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Reset to Saved
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Card Data Section (Collapsible) -->
-                <div class="deck-section collapsible" id="cardDataSection" data-section="cardData">
-                    <h3 class="section-title" role="button" tabindex="0">
-                        <i class="fas fa-table"></i> Card Data
-                        <i class="fas fa-chevron-down section-chevron"></i>
-                    </h3>
-                    <div class="section-content">
-
-                <!-- Legend -->
-                <div class="deck-legend">
-                    <strong>Status Legend:</strong>
-                    <span class="legend-item"><span class="status status-complete-animated">Complete (Animated)</span> - PNG + GIF + Audio</span>
-                    <span class="legend-item"><span class="status status-complete-static">Complete (Static)</span> - PNG + Audio</span>
-                    <span class="legend-item"><span class="status status-partial">Partial</span> - Some assets</span>
-                    <span class="legend-item"><span class="status status-missing">Missing</span> - No assets</span>
-                    <span class="legend-item"><span class="type-badge new">N</span> - New Word</span>
-                    <span class="legend-item"><span class="type-badge review">R</span> - Review</span>
-                </div>
-
-                <!-- Filter Controls Bar (above table) -->
-                <div class="deck-controls">
-                    <div class="filter-group">
-                        <label for="languageFilter">
-                            <i class="fas fa-language"></i> Language:
-                        </label>
-                        <select id="languageFilter" class="select-control" ${this.languageRestriction ? 'disabled' : ''}>
-                            <option value="ceb" ${this.languageRestriction === 'ceb' ? 'selected' : ''}>Cebuano</option>
-                            <option value="mrw" ${this.languageRestriction === 'mrw' ? 'selected' : ''}>Maranao</option>
-                            <option value="sin" ${this.languageRestriction === 'sin' ? 'selected' : ''}>Sinama</option>
-                        </select>
-                        ${this.languageRestriction ? '<span class="language-locked-hint" title="Language restricted based on your role"><i class="fas fa-lock"></i></span>' : ''}
-                    </div>
-
-                    <div class="filter-group">
-                        <label for="lessonFilterFrom">
-                            <i class="fas fa-filter"></i> Lesson:
-                        </label>
-                        <input type="number" id="lessonFilterFrom" class="form-input lesson-range-input" placeholder="From" min="1">
-                        <span style="color: var(--text-secondary);">-</span>
-                        <input type="number" id="lessonFilterTo" class="form-input lesson-range-input" placeholder="To" min="1">
-                        <button id="clearLessonFilter" class="btn btn-sm btn-secondary" title="Clear lesson filter">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <div class="filter-group search-group">
-                        <label for="searchCards">
-                            <i class="fas fa-search"></i>
-                        </label>
-                        <input type="text" id="searchCards" class="form-input" placeholder="Search words...">
-                    </div>
-
-                    <button id="addCardBtnTop" class="btn btn-success ${editButtonsClass}">
-                        <i class="fas fa-plus"></i> Add New Card
-                    </button>
-
-                    <div class="stats-mini">
-                        <span id="cardCount">0 cards</span>
-                        <span id="unsavedCount" class="unsaved-indicator hidden ${editButtonsClass}">0 unsaved</span>
-                    </div>
-                </div>
-
-                <!-- Card Table -->
-                <div class="deck-table-container">
-                    <table class="deck-table" id="deckTable">
-                        <thead>
-                            <tr>
-                                ${!this.isRecorder ? '<th style="width: 70px;">Actions</th>' : ''}
-                                ${!this.isRecorder ? '<th style="width: 50px;">Type</th>' : ''}
-                                <th style="width: 60px;" class="sortable-header" data-sort="cardNum">
-                                    Card # <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th class="sortable-header word-column" data-sort="word" id="langHeader">
-                                    Cebuano <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                <th class="sortable-header word-column" data-sort="english">
-                                    English <i class="fas fa-sort sort-icon"></i>
-                                </th>
-                                ${!this.isRecorder ? '<th style="width: 85px;">Categories</th>' : ''}
-                                ${!this.isRecorder ? '<th style="width: 140px;">Picture (PNG)</th>' : ''}
-                                ${!this.isRecorder ? '<th style="width: 90px;">Animated (GIF)</th>' : ''}
-                                <th style="width: 140px;">Audio</th>
-                                ${!this.isRecorder ? `<th style="width: 100px;" class="sortable-header" data-sort="status">
-                                    Status <i class="fas fa-sort sort-icon"></i>
-                                </th>` : ''}
-                            </tr>
-                        </thead>
-                        <tbody id="deckTableBody">
-                            <!-- Cards will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Add New Card Button (Bottom) -->
-                <div style="margin: 16px 0; text-align: center;" class="${editButtonsClass}">
-                    <button id="addCardBtnBottom" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Add New Card
-                    </button>
-                </div>
-
                     </div>
                 </div>
 
@@ -849,6 +877,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             this.setupGrammarUpload();
             this.setupTeacherGuideUpload();
             this.setupSentenceReviewBuilder();
+            this.setupTourEditor();
         }
 
         // Initial render (will apply default sort)
@@ -3503,6 +3532,416 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     // setupMediaUpload, uploadMediaFiles,
     // setupSentenceWordsUpload, uploadSentenceWords,
     // setupGrammarUpload, uploadGrammarFile, showGrammarReport, renderGrammarReport
+
+    // =========================================
+    // TOUR EDITOR
+    // =========================================
+
+    async setupTourEditor() {
+        this.tourConfig = null;
+        this.tourConfigModified = false;
+
+        const container = document.getElementById('tourEditorContainer');
+        const saveBtn = document.getElementById('saveTourConfigBtn');
+        const resetBtn = document.getElementById('resetTourConfigBtn');
+
+        if (!container) return;
+
+        // Load the tour configuration
+        try {
+            const response = await fetch('tour-config.json?v=' + Date.now(), {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
+            if (!response.ok) throw new Error('Failed to load config');
+            this.tourConfig = await response.json();
+            this.renderTourEditor();
+        } catch (error) {
+            container.innerHTML = `
+                <div class="tour-editor-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load tour configuration: ${error.message}</p>
+                    <button class="btn btn-secondary" onclick="location.reload()">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        // Save button handler
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveTourConfig());
+        }
+
+        // Reset button handler
+        if (resetBtn) {
+            resetBtn.addEventListener('click', async () => {
+                if (confirm('Discard all changes and reload from saved configuration?')) {
+                    const response = await fetch('tour-config.json?v=' + Date.now(), {
+                        cache: 'no-store',
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+                    this.tourConfig = await response.json();
+                    this.tourConfigModified = false;
+                    this.renderTourEditor();
+                    this.updateTourSaveButton();
+                    toastManager?.show('Configuration reset', 'info');
+                }
+            });
+        }
+    }
+
+    renderTourEditor() {
+        const container = document.getElementById('tourEditorContainer');
+        if (!container || !this.tourConfig) return;
+
+        const moduleNames = {
+            'flashcards': 'Flashcards',
+            'match': 'Picture Match',
+            'match-sound': 'Audio Match',
+            'quiz': 'Unsa Ni? Quiz',
+            'rec': 'Voice Recorder'
+        };
+
+        const phaseNames = {
+            'intro': 'Introduction',
+            'review': 'Review Mode',
+            'test': 'Test Mode',
+            'cardBack': 'Card Back (Flipped)'
+        };
+
+        let html = '<div class="tour-editor-modules">';
+
+        for (const [moduleId, moduleData] of Object.entries(this.tourConfig)) {
+            // Skip comment fields
+            if (moduleId.startsWith('_')) continue;
+
+            const moduleName = moduleNames[moduleId] || moduleId;
+            const isPhased = !Array.isArray(moduleData) && typeof moduleData === 'object';
+
+            // Calculate total step count
+            let stepCount = 0;
+            if (isPhased) {
+                for (const phase of Object.values(moduleData)) {
+                    if (Array.isArray(phase)) stepCount += phase.length;
+                }
+            } else if (Array.isArray(moduleData)) {
+                stepCount = moduleData.length;
+            }
+
+            html += `
+                <div class="tour-module-section" data-module="${moduleId}">
+                    <div class="tour-module-header" onclick="this.parentElement.classList.toggle('expanded')">
+                        <h4><i class="fas fa-route"></i> ${moduleName} <span class="step-count">${stepCount} steps</span></h4>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="tour-module-steps">
+            `;
+
+            if (isPhased) {
+                // Phased format - show each phase as a sub-section
+                for (const [phaseId, steps] of Object.entries(moduleData)) {
+                    if (!Array.isArray(steps)) continue;
+
+                    const phaseName = phaseNames[phaseId] || phaseId;
+                    html += `
+                        <div class="tour-phase-section" data-phase="${phaseId}">
+                            <div class="tour-phase-header">
+                                <span class="tour-phase-name">${phaseName}</span>
+                                <span class="tour-phase-count">${steps.length} steps</span>
+                            </div>
+                            ${this.renderTourSteps(moduleId, steps, phaseId)}
+                            <button class="btn btn-sm btn-secondary add-step-btn" data-module="${moduleId}" data-phase="${phaseId}">
+                                <i class="fas fa-plus"></i> Add Step to ${phaseName}
+                            </button>
+                        </div>
+                    `;
+                }
+            } else if (Array.isArray(moduleData)) {
+                // Simple array format
+                html += this.renderTourSteps(moduleId, moduleData, null);
+                html += `
+                    <button class="btn btn-sm btn-secondary add-step-btn" data-module="${moduleId}">
+                        <i class="fas fa-plus"></i> Add Step
+                    </button>
+                `;
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+
+        // Setup step editing handlers
+        this.setupTourStepHandlers();
+    }
+
+    renderTourSteps(moduleId, steps, phaseId = null) {
+        if (!Array.isArray(steps) || steps.length === 0) {
+            return '<p class="tour-no-steps">No steps defined</p>';
+        }
+
+        const phaseAttr = phaseId ? `data-phase="${phaseId}"` : '';
+
+        return steps.map((step, index) => `
+            <div class="tour-step-card" data-module="${moduleId}" data-index="${index}" ${phaseAttr}>
+                <div class="tour-step-header">
+                    <span class="step-number">Step ${index + 1}</span>
+                    <div class="tour-step-actions">
+                        <button class="tour-move-up" title="Move up" ${index === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button class="tour-move-down" title="Move down" ${index === steps.length - 1 ? 'disabled' : ''}>
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="tour-delete-step delete-step" title="Delete step">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="tour-step-fields">
+                    <div class="tour-field">
+                        <label>Element Selector</label>
+                        <input type="text" class="tour-input-element" value="${this.escapeHtml(step.element || '')}" placeholder="CSS selector (e.g., #myButton) or leave empty">
+                    </div>
+                    <div class="tour-field">
+                        <label>Title</label>
+                        <input type="text" class="tour-input-title" value="${this.escapeHtml(step.title || '')}" placeholder="Step title">
+                    </div>
+                    <div class="tour-field full-width">
+                        <label>Description</label>
+                        <textarea class="tour-input-description" rows="2" placeholder="Step description">${this.escapeHtml(step.description || '')}</textarea>
+                    </div>
+                    <div class="tour-field">
+                        <label>Position</label>
+                        <select class="tour-input-position">
+                            <option value="bottom" ${step.position === 'bottom' ? 'selected' : ''}>Bottom</option>
+                            <option value="top" ${step.position === 'top' ? 'selected' : ''}>Top</option>
+                            <option value="left" ${step.position === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="right" ${step.position === 'right' ? 'selected' : ''}>Right</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    setupTourStepHandlers() {
+        const container = document.getElementById('tourEditorContainer');
+        if (!container) return;
+
+        // Handle input changes
+        container.querySelectorAll('.tour-input-element, .tour-input-title, .tour-input-description, .tour-input-position').forEach(input => {
+            input.addEventListener('input', (e) => this.handleTourInputChange(e));
+            input.addEventListener('change', (e) => this.handleTourInputChange(e));
+        });
+
+        // Handle move up buttons
+        container.querySelectorAll('.tour-move-up').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const card = e.target.closest('.tour-step-card');
+                const moduleId = card.dataset.module;
+                const phaseId = card.dataset.phase || null;
+                const index = parseInt(card.dataset.index);
+                this.moveTourStep(moduleId, phaseId, index, -1);
+            });
+        });
+
+        // Handle move down buttons
+        container.querySelectorAll('.tour-move-down').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const card = e.target.closest('.tour-step-card');
+                const moduleId = card.dataset.module;
+                const phaseId = card.dataset.phase || null;
+                const index = parseInt(card.dataset.index);
+                this.moveTourStep(moduleId, phaseId, index, 1);
+            });
+        });
+
+        // Handle delete buttons
+        container.querySelectorAll('.tour-delete-step').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (confirm('Delete this step?')) {
+                    const card = e.target.closest('.tour-step-card');
+                    const moduleId = card.dataset.module;
+                    const phaseId = card.dataset.phase || null;
+                    const index = parseInt(card.dataset.index);
+                    this.deleteTourStep(moduleId, phaseId, index);
+                }
+            });
+        });
+
+        // Handle add step buttons
+        container.querySelectorAll('.add-step-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const moduleId = e.target.closest('button').dataset.module;
+                const phaseId = e.target.closest('button').dataset.phase || null;
+                this.addTourStep(moduleId, phaseId);
+            });
+        });
+    }
+
+    handleTourInputChange(e) {
+        const card = e.target.closest('.tour-step-card');
+        if (!card) return;
+
+        const moduleId = card.dataset.module;
+        const phaseId = card.dataset.phase || null;
+        const index = parseInt(card.dataset.index);
+
+        const element = card.querySelector('.tour-input-element').value || null;
+        const title = card.querySelector('.tour-input-title').value;
+        const description = card.querySelector('.tour-input-description').value;
+        const position = card.querySelector('.tour-input-position').value;
+
+        // Get the steps array (either from phase or directly)
+        const steps = phaseId ? this.tourConfig[moduleId]?.[phaseId] : this.tourConfig[moduleId];
+
+        if (steps && steps[index]) {
+            steps[index] = { element, title, description, position };
+            this.tourConfigModified = true;
+            this.updateTourSaveButton();
+        }
+    }
+
+    moveTourStep(moduleId, phaseId, index, direction) {
+        const steps = phaseId ? this.tourConfig[moduleId]?.[phaseId] : this.tourConfig[moduleId];
+        if (!steps || !Array.isArray(steps)) return;
+
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= steps.length) return;
+
+        // Swap steps
+        [steps[index], steps[newIndex]] = [steps[newIndex], steps[index]];
+
+        this.tourConfigModified = true;
+        this.renderTourEditor();
+        this.updateTourSaveButton();
+
+        // Re-expand the module section
+        const section = document.querySelector(`.tour-module-section[data-module="${moduleId}"]`);
+        if (section) section.classList.add('expanded');
+    }
+
+    deleteTourStep(moduleId, phaseId, index) {
+        const steps = phaseId ? this.tourConfig[moduleId]?.[phaseId] : this.tourConfig[moduleId];
+        if (!steps || !Array.isArray(steps)) return;
+
+        steps.splice(index, 1);
+        this.tourConfigModified = true;
+        this.renderTourEditor();
+        this.updateTourSaveButton();
+
+        // Re-expand the module section
+        const section = document.querySelector(`.tour-module-section[data-module="${moduleId}"]`);
+        if (section) section.classList.add('expanded');
+    }
+
+    addTourStep(moduleId, phaseId = null) {
+        let steps;
+        if (phaseId) {
+            if (!this.tourConfig[moduleId]) {
+                this.tourConfig[moduleId] = {};
+            }
+            if (!this.tourConfig[moduleId][phaseId]) {
+                this.tourConfig[moduleId][phaseId] = [];
+            }
+            steps = this.tourConfig[moduleId][phaseId];
+        } else {
+            if (!Array.isArray(this.tourConfig[moduleId])) {
+                this.tourConfig[moduleId] = [];
+            }
+            steps = this.tourConfig[moduleId];
+        }
+
+        steps.push({
+            element: null,
+            title: 'New Step',
+            description: 'Enter description here',
+            position: 'bottom'
+        });
+
+        this.tourConfigModified = true;
+        this.renderTourEditor();
+        this.updateTourSaveButton();
+
+        // Expand the module section and scroll to new step
+        const section = document.querySelector(`.tour-module-section[data-module="${moduleId}"]`);
+        if (section) {
+            section.classList.add('expanded');
+            // Find the last card in the appropriate phase section or module
+            let lastCard;
+            if (phaseId) {
+                const phaseSection = section.querySelector(`.tour-phase-section[data-phase="${phaseId}"]`);
+                lastCard = phaseSection?.querySelector('.tour-step-card:last-of-type');
+            } else {
+                lastCard = section.querySelector('.tour-step-card:last-of-type');
+            }
+            if (lastCard) {
+                lastCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                lastCard.querySelector('.tour-input-title')?.focus();
+            }
+        }
+    }
+
+    updateTourSaveButton() {
+        const saveBtn = document.getElementById('saveTourConfigBtn');
+        if (saveBtn) {
+            saveBtn.disabled = !this.tourConfigModified;
+        }
+    }
+
+    async saveTourConfig() {
+        const saveBtn = document.getElementById('saveTourConfigBtn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        }
+
+        try {
+            const response = await fetch('save-tour-config.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.tourConfig)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to save');
+            }
+
+            this.tourConfigModified = false;
+            toastManager?.show('Tour configuration saved!', 'success');
+            debugLogger?.log(0, 'Tour configuration saved');
+
+        } catch (error) {
+            toastManager?.show(`Error saving: ${error.message}`, 'error');
+            debugLogger?.log(1, `Tour config save error: ${error.message}`);
+        } finally {
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                this.updateTourSaveButton();
+            }
+        }
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
     destroy() {
         super.destroy();
