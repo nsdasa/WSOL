@@ -12,7 +12,7 @@ class SentenceReviewModule extends LearningModule {
         this.currentSequenceIndex = 0;
         this.currentSentenceIndex = 0;
         this.isTextRevealed = false;
-        this.pictureSize = 80; // Size of word pictures
+        this.pictureSize = 160; // Size of word pictures (matches audio-match)
     }
 
     async render() {
@@ -47,9 +47,6 @@ class SentenceReviewModule extends LearningModule {
                 <div class="sr-reveal-section">
                     <button id="srRevealBtn" class="btn btn-primary btn-lg">
                         <i class="fas fa-eye"></i> Show Sentence Text
-                    </button>
-                    <button id="srPlayAudioBtn" class="btn btn-secondary btn-lg">
-                        <i class="fas fa-volume-up"></i> Play Audio
                     </button>
                 </div>
 
@@ -136,7 +133,6 @@ class SentenceReviewModule extends LearningModule {
         document.getElementById('srPrevSentenceBtn').addEventListener('click', () => this.previousSentence());
         document.getElementById('srNextSentenceBtn').addEventListener('click', () => this.nextSentence());
         document.getElementById('srRevealBtn').addEventListener('click', () => this.toggleReveal());
-        document.getElementById('srPlayAudioBtn').addEventListener('click', () => this.playSentenceAudio());
 
         // Click on sequence title to show selector
         document.getElementById('srSequenceTitle').addEventListener('click', () => {
@@ -164,9 +160,6 @@ class SentenceReviewModule extends LearningModule {
                 e.preventDefault();
                 this.toggleReveal();
                 break;
-            case 'Enter':
-                this.playSentenceAudio();
-                break;
         }
     }
 
@@ -188,6 +181,11 @@ class SentenceReviewModule extends LearningModule {
         document.getElementById('srRevealedText').classList.add('hidden');
         document.getElementById('srRevealBtn').innerHTML = '<i class="fas fa-eye"></i> Show Sentence Text';
 
+        // Hide English hint initially (will show on reveal)
+        const englishHint = document.getElementById('srEnglishHint');
+        englishHint.textContent = sentence.english || '';
+        englishHint.classList.add('hidden');
+
         // Render pictures
         area.innerHTML = '';
 
@@ -199,42 +197,83 @@ class SentenceReviewModule extends LearningModule {
             wordContainer.className = 'sr-word-container';
 
             if (wordData.imagePath && wordData.cardNum) {
-                // Has a picture
-                const pictureEl = document.createElement('div');
-                pictureEl.className = 'sr-word-picture';
-
-                // Get the card data for audio
+                // Has a picture - create flippable card
                 const card = this.findCardByNum(wordData.cardNum);
 
-                // Create image or video
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'sr-card-wrapper';
+
+                const cardInner = document.createElement('div');
+                cardInner.className = 'sr-card-inner';
+
+                // Front face (image)
+                const front = document.createElement('div');
+                front.className = 'sr-card-face sr-card-front';
+
                 const img = document.createElement('img');
                 img.src = wordData.imagePath;
                 img.alt = wordData.word;
                 img.onerror = () => {
-                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2RkZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj4/PC90ZXh0Pjwvc3ZnPg==';
+                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
                 };
-                pictureEl.appendChild(img);
+                front.appendChild(img);
 
-                // Click to play word audio
+                // Speaker icon on front
                 if (card?.hasAudio && card?.audioPath?.length > 0) {
-                    pictureEl.classList.add('has-audio');
-                    pictureEl.addEventListener('click', () => {
+                    const speaker = document.createElement('div');
+                    speaker.className = 'sr-speaker-icon';
+                    speaker.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    speaker.addEventListener('click', (e) => {
+                        e.stopPropagation();
                         this.playCardAudio(card);
                     });
+                    front.appendChild(speaker);
                 }
 
-                wordContainer.appendChild(pictureEl);
+                // Back face (word text)
+                const back = document.createElement('div');
+                back.className = 'sr-card-face sr-card-back';
 
-                // Show word label on hover/reveal
-                const wordLabel = document.createElement('div');
-                wordLabel.className = 'sr-word-label';
-                wordLabel.textContent = wordData.word;
+                const wordText = document.createElement('div');
+                wordText.className = 'sr-card-word';
+                wordText.textContent = wordData.word;
                 if (wordData.root) {
-                    wordLabel.innerHTML = `${wordData.word} <span class="root-hint">(${wordData.root})</span>`;
+                    wordText.innerHTML = `${wordData.word}<br><span class="root-hint">(${wordData.root})</span>`;
                 }
-                wordContainer.appendChild(wordLabel);
+                back.appendChild(wordText);
+
+                // English translation on back
+                if (card?.english) {
+                    const englishText = document.createElement('div');
+                    englishText.className = 'sr-card-english';
+                    englishText.textContent = card.english;
+                    back.appendChild(englishText);
+                }
+
+                // Speaker icon on back
+                if (card?.hasAudio && card?.audioPath?.length > 0) {
+                    const speakerBack = document.createElement('div');
+                    speakerBack.className = 'sr-speaker-icon';
+                    speakerBack.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    speakerBack.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.playCardAudio(card);
+                    });
+                    back.appendChild(speakerBack);
+                }
+
+                cardInner.appendChild(front);
+                cardInner.appendChild(back);
+                cardWrapper.appendChild(cardInner);
+
+                // Click to flip card
+                cardWrapper.addEventListener('click', () => {
+                    cardWrapper.classList.toggle('flipped');
+                });
+
+                wordContainer.appendChild(cardWrapper);
             } else {
-                // No picture - function word
+                // No picture - function word placeholder
                 const placeholderEl = document.createElement('div');
                 placeholderEl.className = 'sr-word-placeholder';
                 placeholderEl.textContent = wordData.word;
@@ -245,10 +284,6 @@ class SentenceReviewModule extends LearningModule {
         });
 
         area.appendChild(pictureRow);
-
-        // Show English hint
-        const englishHint = document.getElementById('srEnglishHint');
-        englishHint.textContent = sentence.english || '';
 
         // Update sentence text for reveal
         document.getElementById('srSentenceText').textContent = sentence.text;
@@ -269,23 +304,16 @@ class SentenceReviewModule extends LearningModule {
         this.isTextRevealed = !this.isTextRevealed;
         const revealedText = document.getElementById('srRevealedText');
         const revealBtn = document.getElementById('srRevealBtn');
+        const englishHint = document.getElementById('srEnglishHint');
 
         if (this.isTextRevealed) {
             revealedText.classList.remove('hidden');
+            englishHint.classList.remove('hidden');
             revealBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Sentence Text';
-
-            // Also show word labels
-            document.querySelectorAll('.sr-word-label').forEach(el => {
-                el.classList.add('visible');
-            });
         } else {
             revealedText.classList.add('hidden');
+            englishHint.classList.add('hidden');
             revealBtn.innerHTML = '<i class="fas fa-eye"></i> Show Sentence Text';
-
-            // Hide word labels
-            document.querySelectorAll('.sr-word-label').forEach(el => {
-                el.classList.remove('visible');
-            });
         }
     }
 
@@ -299,58 +327,6 @@ class SentenceReviewModule extends LearningModule {
         audio.play().catch(err => {
             debugLogger?.log(1, `Audio play error: ${err.message}`);
         });
-    }
-
-    /**
-     * Play all word audio in sequence for the sentence
-     */
-    playSentenceAudio() {
-        const sequence = this.currentLesson.sequences[this.currentSequenceIndex];
-        const sentence = sequence.sentences[this.currentSentenceIndex];
-
-        // Collect all cards with audio
-        const cardsWithAudio = [];
-        sentence.words.forEach(wordData => {
-            if (wordData.cardNum) {
-                const card = this.findCardByNum(wordData.cardNum);
-                if (card?.hasAudio && card?.audioPath?.length > 0) {
-                    cardsWithAudio.push(card);
-                }
-            }
-        });
-
-        if (cardsWithAudio.length === 0) {
-            toastManager?.show('No audio available for this sentence', 'warning');
-            return;
-        }
-
-        let currentIndex = 0;
-
-        const playNext = () => {
-            if (currentIndex >= cardsWithAudio.length) {
-                return;
-            }
-
-            const card = cardsWithAudio[currentIndex];
-            const audio = new Audio(card.audioPath[0]);
-
-            audio.onended = () => {
-                currentIndex++;
-                setTimeout(playNext, 200); // Small delay between words
-            };
-
-            audio.onerror = () => {
-                currentIndex++;
-                playNext();
-            };
-
-            audio.play().catch(() => {
-                currentIndex++;
-                playNext();
-            });
-        };
-
-        playNext();
     }
 
     /**

@@ -31,9 +31,6 @@ class SentenceBuilderModule extends LearningModule {
                     <button id="resetSentenceBtn" class="btn btn-warning">
                         <i class="fas fa-redo"></i> Reset
                     </button>
-                    <button id="playSentenceBtn" class="btn btn-primary" disabled>
-                        <i class="fas fa-play"></i> Play Sentence
-                    </button>
                 </div>
 
                 <div class="sentence-area" id="sentenceArea">
@@ -189,9 +186,6 @@ class SentenceBuilderModule extends LearningModule {
         // Reset button
         document.getElementById('resetSentenceBtn').addEventListener('click', () => this.resetSentence());
 
-        // Play sentence button
-        document.getElementById('playSentenceBtn').addEventListener('click', () => this.playSentence());
-
         // Modal close buttons
         document.getElementById('closeWordTypeModal').addEventListener('click', () => this.hideWordTypeModal());
         document.getElementById('closeCardSelectorModal').addEventListener('click', () => this.hideCardSelectorModal());
@@ -261,10 +255,6 @@ class SentenceBuilderModule extends LearningModule {
             });
             this.sortableInstances.push(sortable);
         }
-
-        // Update play button state
-        const hasCards = this.sentenceFrames.some(card => card !== null);
-        document.getElementById('playSentenceBtn').disabled = !hasCards;
     }
 
     /**
@@ -750,68 +740,6 @@ class SentenceBuilderModule extends LearningModule {
         };
 
         playNext();
-    }
-
-    /**
-     * Play all cards in the sentence sequentially
-     */
-    playSentence() {
-        const cards = this.sentenceFrames.filter(card => card !== null);
-        if (cards.length === 0) return;
-
-        let currentCardIndex = 0;
-
-        const playNextCard = () => {
-            if (currentCardIndex >= cards.length) {
-                toastManager?.show('Sentence playback complete', 'success');
-                return;
-            }
-
-            const card = cards[currentCardIndex];
-            if (!card.audioPath || card.audioPath.length === 0) {
-                currentCardIndex++;
-                // Small delay before next card
-                setTimeout(playNextCard, 300);
-                return;
-            }
-
-            // Play all audio variants for this card
-            let variantIndex = 0;
-
-            const playNextVariant = () => {
-                if (variantIndex >= card.audioPath.length) {
-                    currentCardIndex++;
-                    // Small delay before next card
-                    setTimeout(playNextCard, 500);
-                    return;
-                }
-
-                const audioPath = card.audioPath[variantIndex];
-                if (!audioPath) {
-                    variantIndex++;
-                    playNextVariant();
-                    return;
-                }
-
-                const audio = new Audio(audioPath);
-                audio.onended = () => {
-                    variantIndex++;
-                    playNextVariant();
-                };
-                audio.onerror = () => {
-                    variantIndex++;
-                    playNextVariant();
-                };
-                audio.play().catch(() => {
-                    variantIndex++;
-                    playNextVariant();
-                });
-            };
-
-            playNextVariant();
-        };
-
-        playNextCard();
     }
 
     /**
