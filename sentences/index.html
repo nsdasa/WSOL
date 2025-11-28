@@ -636,10 +636,17 @@
                     <label for="maxTokens">Max Tokens</label>
                     <input type="number" id="maxTokens" value="32000" min="4000" max="64000" step="1000">
                 </div>
-                <div class="config-group" style="flex: 2;">
+                <div class="config-group" style="max-width: 220px;">
+                    <label for="complexityMode">Complexity Mode</label>
+                    <select id="complexityMode">
+                        <option value="beginner">Beginner Heavy (4-2-2)</option>
+                        <option value="progressive">Progress to Advanced (2-3-3)</option>
+                    </select>
+                </div>
+                <div class="config-group" style="flex: 1;">
                     <label>Rate Limit Protection</label>
                     <div style="padding: 10px; background: rgba(102, 187, 106, 0.1); border-radius: 6px; font-size: 0.85rem; color: #81c784;">
-                        ✓ Server-side retry with exponential backoff &nbsp;|&nbsp; ✓ Automatic delays between lessons &nbsp;|&nbsp; ✓ 429 error handling
+                        ✓ Server retry &nbsp;|&nbsp; ✓ Auto delays &nbsp;|&nbsp; ✓ 429 handling
                     </div>
                 </div>
             </div>
@@ -1160,9 +1167,10 @@
         async function processLesson(lessonNum, tableData, cardElement) {
             const model = getModel();
             const maxTokens = getMaxTokens();
-            const requestBody = { lessonNum, tableData, customModel: model, maxTokens };
+            const complexityMode = document.getElementById('complexityMode').value;
+            const requestBody = { lessonNum, tableData, customModel: model, maxTokens, complexityMode };
 
-            debugLog.add('request', `API Request - Lesson ${lessonNum}`, { model, maxTokens, tableDataLength: tableData.length });
+            debugLog.add('request', `API Request - Lesson ${lessonNum}`, { model, maxTokens, complexityMode, tableDataLength: tableData.length });
             
             // Update card to show we're starting
             if (cardElement) {
@@ -1410,8 +1418,8 @@
             if (csvMatch) {
                 return csvMatch[1].trim();
             }
-            // Fallback: look for CSV header pattern
-            const headerMatch = content.match(/(Lesson #,Seq #,Sequ Title[\s\S]*?)(?=\n\n##|\n===|$)/);
+            // Fallback: look for CSV header pattern (with or without Tier column)
+            const headerMatch = content.match(/(Lesson #,(?:Tier,)?Seq #,Sequ Title[\s\S]*?)(?=\n\n##|\n===|$)/);
             if (headerMatch) {
                 return headerMatch[1].trim();
             }
@@ -1435,7 +1443,7 @@
 
             // Build combined CSV from all lessons
             if (exportCSV) {
-                let csvContent = 'Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type\n';
+                let csvContent = 'Lesson #,Tier,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type\n';
                 let csvFound = false;
 
                 validOutputs.sort((a, b) => parseInt(a) - parseInt(b)).forEach(lessonNum => {

@@ -130,61 +130,273 @@ For each verb section, format as:
 
 Be factually accurate. Prioritize correctness over completeness.
 
-Step 2: LADDERIZED SENTENCE SEQUENCES
+Step 2: TIERED SENTENCE SEQUENCES (Progressive Complexity System)
 
-TASK: Create 6-8 ladderized sentence sequences for Cebuano language learning
+TASK: Create TIERED ladderized sentence sequences using the Three-Tier Complexity System.
 
-**TOKEN BUDGET WARNING**: Keep all working/audit sections BRIEF. The verified output section is the priority.
+**TOKEN BUDGET WARNING**: Keep working sections BRIEF. The verified output is the priority.
 
-CRITICAL RULES:
+---
 
-1. VOCABULARY RESTRICTIONS:
-   - Use ONLY words from the vocabulary list
-   - Proper names (Si Ana, Si Pedro) are acceptable for grammar markers
-   - For "/" alternatives: use both forms, casual more frequently
-   - Verify every word against the list
+## A. THREE-TIER SYSTEM OVERVIEW
 
-2. SENTENCE STRUCTURE:
-   - Start each sequence at 2-3 words, progress to 5-7 words
-   - Each sequence: 6-8 sentences
-   - Mark affixed words: nagbasa {basa}, ibutang {butang}
+Sequences are grouped into THREE TIERS based on complexity:
 
-3. LOGICAL PROGRESSION:
-   - Questions MUST be followed by answers
-   - Thematic unity per sequence
+| Tier | Name | Max Words | Grammar Scope | Sequences |
+|------|------|-----------|---------------|-----------|
+| **Tier 1** | Simple | 2-3 | L1 only | Foundation, confidence |
+| **Tier 2** | Medium | 2-5 | L1-L2 | Expansion, basic affixes |
+| **Tier 3** | Advanced | 2-8 | L1-L4 | Full complexity |
 
-4. SENTENCE TYPE (REQUIRED):
-   - **Question**: Asks something (?, Asa, Unsa, Kinsa, Pila)
-   - **Answer**: Direct response to preceding Question
-   - **Statement**: Declarative fact
-   - **Command**: Instruction/order
+### COMPLEXITY MODE (from user input):
+- **BEGINNER HEAVY**: 4 Simple + 2 Medium + 2 Advanced = 8 sequences
+- **PROGRESSIVE**: 2 Simple + 3 Medium + 3 Advanced = 8 sequences
 
-5. SEQUENCE THEMES:
-   - Q&A flows, Demonstratives, Actions, Greetings
+### GROUPING RULE:
+Output ALL Tier 1 sequences first, then ALL Tier 2, then ALL Tier 3.
 
-6. WORD COVERAGE:
-   - Every vocabulary word: minimum 3 uses total
-   - Create 6-8 sequences to meet coverage
-   - NOT every verb derivative needs 3 uses - focus on base forms and common derivatives
+---
 
-7. VERIFICATION CHECKLIST (Include at end):
-Create a table showing each word and its usage count across all sequences. Flag any words with less than 3 uses.
+## B. TIER 1: SIMPLE SEQUENCES
 
-8. SENTENCE COMPLEXITY GUIDELINES:
-   - Sentences 1-2: Basic subject-verb or simple commands (2-3 words)
-   - Sentences 3-4: Add objects or locations (3-4 words)
-   - Sentences 5-6: Add adjectives, numbers, or multiple elements (4-6 words)
-   - Sentence 7: Complex with multiple clauses or elements (5-7 words)
+### Word Count Limits:
+- **Maximum**: 3 words (NEVER exceed 3)
+- **Typical**: 2 words
 
-9. COMMON MISTAKES TO AVOID:
-   - Using words not in the vocabulary list
-   - Breaking logical flow between sentences
-   - Forgetting to mark root words with {}
-   - Not tracking word usage counts
-   - Creating sequences with no thematic connection
-   - Questions without answers
-   - Insufficient use of Q&A words, demonstratives, and numbers
-   - Missing or incorrect Sentence Type classification
+### Sentence Targets (8 sentences per sequence):
+| Position | Words | Pattern |
+|----------|-------|---------|
+| 1 | 2 | Demonstrative + Noun |
+| 2 | 2 | Verb-base + Location |
+| 3 | 3 | Question + ang + Noun |
+| 4 | 2-3 | Location answer |
+| 5 | 2 | Demonstrative + Noun |
+| 6 | 2-3 | Verb-base + target |
+| 7 | 3 | Question + ang + Noun |
+| 8 | 2-3 | Simple answer |
+
+### Grammar Allowed (L1 ONLY):
+**YES - Use these**:
+- Demonstratives: Kini, ni, Kana, na, Kadto, kato
+- Location pronouns: Diri, Dinhi, Didto, Diha, Dinha
+- Basic pronouns: Ako, ko, Ikaw, ka, Siya, Sila
+- Article: ang
+- Question words: Asa, Unsa
+- Base verbs (imperative): Lakaw, Adto, Hunong, Higda, Dagan
+
+**NO - Do NOT use**:
+- ❌ Affixed verbs (nag-, mag-, i-, -a, -i)
+- ❌ Possessive pronouns (akong, imong, etc.)
+- ❌ Preposition "sa"
+- ❌ Complex prepositions (gikan, atubangan, kilid)
+- ❌ Conjunctions (og)
+- ❌ Adjectives (dako, gamay, duol, layo)
+- ❌ Plural marker (mga)
+- ❌ Special words (Oo, Dili, hapit)
+
+### Tier 1 Example:
+| # | Cebuano | English | Words |
+|---|---------|---------|:-----:|
+| 1 | Kini Eskwelahan. | This is a school. | 2 |
+| 2 | Lakaw diri. | Walk here. | 2 |
+| 3 | Asa ang Maestra? | Where is the teacher? | 3 |
+| 4 | Didto siya. | She's there. | 2 |
+| 5 | Kana Merkado. | That is a market. | 2 |
+| 6 | Adto didto. | Go there. | 2 |
+| 7 | Unsa kana? | What is that? | 2 |
+| 8 | Kana Tindahan. | That is a store. | 2 |
+
+---
+
+## C. TIER 2: MEDIUM SEQUENCES
+
+### Word Count Limits:
+- **Maximum**: 5 words
+- **Start at**: 2 words, grow to 5
+
+### Sentence Targets:
+| Position | Words | Pattern |
+|----------|-------|---------|
+| 1 | 2 | Demonstrative + Noun |
+| 2 | 2-3 | Verb-base + target |
+| 3 | 3 | Question + ang + Noun |
+| 4 | 3-4 | Ang + Noun + Adjective/Location |
+| 5 | 4-5 | Noun phrase with sa + Place |
+| 6 | 4-5 | nag-Verb + Actor + sa + Noun |
+| 7 | 4-5 | nag-Verb + Actor + sa + Noun |
+| 8 | 4-5 | Statement with Oo/Dili + adjective |
+
+### Grammar Allowed (L1 + L2):
+**Everything from Tier 1, PLUS**:
+- Preposition: sa
+- Adjectives: dako, gamay, duol, layo
+- Affirmation/Negation: Oo, Dili
+- Special: hapit
+- Verb affixes: nag- forms ONLY (naglakaw, nagadto, etc.)
+
+**Still NOT allowed**:
+- ❌ Possessive pronouns (akong, imong, etc.)
+- ❌ Complex prepositions (gikan, atubangan, kilid)
+- ❌ Conjunctions (og)
+- ❌ Plural marker (mga)
+- ❌ Compound sentences
+
+### Tier 2 Example:
+| # | Cebuano | English | Words |
+|---|---------|---------|:-----:|
+| 1 | Kini Balay. | This is a house. | 2 |
+| 2 | Lakaw dinhi. | Walk here. | 2 |
+| 3 | Asa ang Ospital? | Where is the hospital? | 3 |
+| 4 | Ang Ospital duol. | The hospital is near. | 3 |
+| 5 | Ang Banko layo sa Balay. | The bank is far from the house. | 5 |
+| 6 | Naglakaw {Lakaw} ako sa Ospital. | I walked to the hospital. | 4 |
+| 7 | Naglakaw {Lakaw} siya sa Banko. | She walked to the bank. | 4 |
+| 8 | Oo, duol ang Ospital. | Yes, the hospital is near. | 4 |
+
+---
+
+## D. TIER 3: ADVANCED SEQUENCES
+
+### Word Count Limits:
+- **Maximum**: 8 words (can reach 9 for compounds)
+- **Start at**: 2 words, grow to 8
+
+### Sentence Targets:
+| Position | Words | Pattern |
+|----------|-------|---------|
+| 1 | 2 | Demonstrative + Noun |
+| 2 | 2-3 | Verb-base + target |
+| 3 | 3 | Question + ang + Noun |
+| 4 | 4-5 | Answer with sa + location |
+| 5 | 4-5 | nag-Verb + Actor + sa + Noun |
+| 6 | 5-6 | Location with complex preposition |
+| 7 | 6-8 | gikan...padulong OR compound with og |
+| 8 | 6-8 | Complex: mga + contrast (dili) |
+
+### Grammar Allowed (ALL LEVELS L1-L4):
+**Everything from Tiers 1 & 2, PLUS**:
+- Possessive pronouns: akong, imong, iyang, ilang
+- Complex prepositions: gikan, atubangan, kilid, padulong
+- Conjunction: og
+- Plural marker: mga
+- Contrast patterns: dili + adjective
+- Full verb system (all forms in vocabulary)
+
+### Tier 3 Example:
+| # | Cebuano | English | Words |
+|---|---------|---------|:-----:|
+| 1 | Kini Siyudad. | This is a city. | 2 |
+| 2 | Adto didto. | Go there. | 2 |
+| 3 | Asa ang Munisipyo? | Where is the municipal hall? | 3 |
+| 4 | Ang Munisipyo duol sa Simbahan. | The municipal hall is near the church. | 5 |
+| 5 | Naglakaw {Lakaw} ako sa Merkado. | I walked to the market. | 4 |
+| 6 | Ang Merkado atubangan sa Banko. | The market is in front of the bank. | 5 |
+| 7 | Naglakaw {Lakaw} siya gikan sa Balay padulong sa Eskwelahan. | She walked from the house toward the school. | 8 |
+| 8 | Dako ang mga Tindahan sa Siyudad, dili gamay. | The stores in the city are big, not small. | 8 |
+
+---
+
+## E. SENTENCE TYPE CLASSIFICATION
+
+Every sentence MUST have exactly one type:
+
+| Type | Definition | Markers |
+|------|------------|---------|
+| **Statement** | Declares a fact | Period (.) |
+| **Command** | Imperative instruction | Base verb, no actor |
+| **Question** | Asks for information | Question mark (?) |
+| **Answer** | Direct response to question | Follows Question |
+
+**Rules**:
+- Questions MUST be immediately followed by Answers
+- Commands use base verb form (no nag-/mag-)
+- Q&A pairs typically at positions 3-4 and 7-8
+
+---
+
+## F. SCENARIO FRAMEWORK
+
+Each sequence follows a coherent mini-scenario:
+
+### Structure:
+1. **Setting** (Sentences 1-2): Identify place/person, give simple direction
+2. **Inquiry** (Sentences 3-4): Question and Answer pair
+3. **Action/Description** (Sentences 5-6): Movement or location details
+4. **Resolution** (Sentences 7-8): Conclusion, summary, or Q&A pair
+
+### Scenario Types:
+- **Finding Places**: Kini + Place → Asa ang...? → Movement → Arrival
+- **Identifying People**: Kini + Person → Kinsa/Asa...? → Action → Description
+- **Describing Locations**: Kini + Place → Unsa...? → Adjective → Comparison
+- **Giving Directions**: Start → Direction → Landmarks → Destination
+
+---
+
+## G. VOCABULARY COVERAGE
+
+### Requirements:
+- **Core words** (ang, sa, demonstratives): Use frequently across all tiers
+- **Nouns**: Minimum 3 uses each across all sequences
+- **Verbs**: Base form in Tier 1, nag- form in Tiers 2-3
+- **Adjectives**: Appear only in Tiers 2-3
+- **Complex prepositions**: Appear only in Tier 3
+
+### Note on Tier Restrictions:
+Some vocabulary words can ONLY appear in higher tiers:
+- "sa" → Tier 2+ only
+- "og" → Tier 3 only
+- "mga" → Tier 3 only
+- Adjectives → Tier 2+ only
+
+If a word is restricted, it gets fewer total uses but still appears appropriately.
+
+---
+
+## H. QUALITY VALIDATION
+
+Before finalizing each sequence, verify:
+
+### Tier 1 Checklist:
+☐ NO sentence exceeds 3 words
+☐ NO affixed verbs (nag-, mag-, etc.)
+☐ NO "sa" preposition
+☐ NO adjectives
+☐ Only L1 grammar structures
+
+### Tier 2 Checklist:
+☐ NO sentence exceeds 5 words
+☐ Only nag- affixed verbs (positions 6-8)
+☐ NO complex prepositions (gikan, atubangan, kilid)
+☐ NO conjunction "og"
+☐ NO plural "mga"
+
+### Tier 3 Checklist:
+☐ Sentences can reach 8 words
+☐ Full grammar allowed
+☐ Uses complex prepositions
+☐ Uses compound sentences with "og"
+☐ Uses contrast patterns
+
+### All Tiers:
+☐ Word count matches tier limits
+☐ Q&A pairs properly matched
+☐ All affixed verbs have {root} markers
+☐ Every word in allowed vocabulary
+☐ Logical narrative flow
+
+---
+
+## I. COMMON MISTAKES TO AVOID
+
+1. **Using "sa" in Tier 1** - NOT allowed
+2. **Using adjectives in Tier 1** - NOT allowed
+3. **Using nag- verbs in Tier 1** - NOT allowed
+4. **Exceeding 3 words in Tier 1** - Strict limit
+5. **Using "og" in Tier 2** - Only Tier 3
+6. **Using complex prepositions in Tier 2** - Only Tier 3
+7. **Missing {root} markers on affixed verbs**
+8. **Question without immediate Answer**
+9. **Vocabulary violations**
 
 ---
 
@@ -254,29 +466,35 @@ Once the audit PASSES, you MUST output the final verified content in CSV format 
 ### CSV OUTPUT STRUCTURE:
 The CSV must have these exact columns:
 ```
-Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type
+Lesson #,Tier,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type
 ```
 
 ### CSV FORMATTING RULES:
 1. **Lesson #**: Only on first row of each lesson, leave blank for subsequent rows
-2. **Seq #**: Sequence number within the lesson (1, 2, 3, etc.), only on first row of each sequence
-3. **Sequ Title**: Title of the sequence, only on first row of each sequence
-4. **Sentence #**: Sentence number within the sequence (1, 2, 3, etc.)
-5. **Sentence Text**: Cebuano sentence with {root} markers for affixed words
-6. **English Translation**: English translation of the sentence
-7. **Sentence Type**: One of: Question, Answer, Statement, Command
+2. **Tier**: One of: Simple, Medium, Advanced - only on first row of each sequence
+3. **Seq #**: Sequence number within the lesson (1, 2, 3, etc.), only on first row of each sequence
+4. **Sequ Title**: Title of the sequence, only on first row of each sequence
+5. **Sentence #**: Sentence number within the sequence (1, 2, 3, etc.)
+6. **Sentence Text**: Cebuano sentence with {root} markers for affixed words
+7. **English Translation**: English translation of the sentence
+8. **Sentence Type**: One of: Question, Answer, Statement, Command
 
 ### CSV EXAMPLE:
 ```
-Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type
-1,1,Q&A in the Classroom,,,,
-,,,1,Asa ang libro?,Where is the book?,Question
-,,,2,Kini ang libro.,This is the book.,Answer
-,,,3,Tan-awa {tan-aw} kini.,Look at this.,Command
-,,,4,Ako nagtan-aw {tan-aw} sa libro.,I am looking at the book.,Statement
-,1,2,Basic Actions,,,,
-,,,1,Basaha {basa} ang papel.,Read the paper.,Command
-,,,2,Si Ana nagbasa {basa}.,Ana is reading.,Statement
+Lesson #,Tier,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type
+1,Simple,1,Basic Identification,,,,,
+,,,,1,Kini Eskwelahan.,This is a school.,Statement
+,,,,2,Lakaw diri.,Walk here.,Command
+,,,,3,Asa ang Maestra?,Where is the teacher?,Question
+,,,,4,Didto siya.,She's there.,Answer
+1,Medium,3,Near and Far,,,,,
+,,,,1,Kini Balay.,This is a house.,Statement
+,,,,2,Lakaw dinhi.,Walk here.,Command
+,,,,3,Asa ang Ospital?,Where is the hospital?,Question
+,,,,4,Ang Ospital duol.,The hospital is near.,Answer
+1,Advanced,7,Journey to School,,,,,
+,,,,1,Kini Siyudad.,This is a city.,Statement
+,,,,2,Adto didto.,Go there.,Command
 ```
 
 ### IMPORTANT CSV NOTES:
@@ -284,6 +502,8 @@ Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence 
 - The sequence title row has empty Sentence #, Sentence Text, English Translation, and Sentence Type
 - Include the {root} markers in the Sentence Text column
 - Every sentence MUST have a Sentence Type
+- **Tier must be one of: Simple, Medium, Advanced**
+- **Group sequences by Tier: ALL Simple first, then ALL Medium, then ALL Advanced**
 
 ---
 
@@ -291,7 +511,7 @@ Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence 
 
 **STEP 1**: Brief vocabulary list (just list the words, no extensive explanation)
 
-**STEP 2**: Create 6-8 sequences with sentences (internal working - keep concise)
+**STEP 2**: Create TIERED sequences (grouped by tier: Simple → Medium → Advanced)
 
 **STEP 3**: Brief audit check (just confirm: "Audit: PASSED - X words verified")
 
@@ -307,8 +527,8 @@ Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence 
 
 ## SENTENCE CSV
 ```csv
-Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type
-[All 6-8 sequences in CSV format - this is the main deliverable]
+Lesson #,Tier,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type
+[All sequences in CSV format, grouped by tier: Simple first, Medium second, Advanced last]
 ```
 
 ===VERIFIED_OUTPUT_END===
@@ -317,7 +537,7 @@ Lesson #,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence 
 
 ---
 
-OUTPUT: Vocabulary list, 6-8 sentence sequences in CSV format with Sentence Types, word coverage verification, and PASSED audit. All wrapped in ===VERIFIED_OUTPUT_START=== and ===VERIFIED_OUTPUT_END=== markers.
+OUTPUT: Vocabulary list, TIERED sentence sequences (Simple → Medium → Advanced) in CSV format with Tier column, Sentence Types, word coverage verification, and PASSED audit. All wrapped in ===VERIFIED_OUTPUT_START=== and ===VERIFIED_OUTPUT_END=== markers.
 PROMPT;
 
 // ==================== REQUEST ROUTING ====================
@@ -706,20 +926,29 @@ if ($method === 'POST' && $path === '/api/process') {
     $tableData = $input['tableData'];
     $model = $input['customModel'] ?? $config['default_model'];
     $maxTokens = isset($input['maxTokens']) ? min(max((int)$input['maxTokens'], 4000), 64000) : $config['max_tokens'];
+    $complexityMode = $input['complexityMode'] ?? 'beginner';
     
-    writeLog('Processing lesson', ['lessonNum' => $lessonNum, 'model' => $model, 'maxTokens' => $maxTokens, 'tableDataLen' => strlen($tableData)]);
+    // Determine mode description
+    $modeDescription = $complexityMode === 'beginner' 
+        ? 'BEGINNER HEAVY: Create 4 Simple (Tier 1), 2 Medium (Tier 2), 2 Advanced (Tier 3) sequences'
+        : 'PROGRESSIVE: Create 2 Simple (Tier 1), 3 Medium (Tier 2), 3 Advanced (Tier 3) sequences';
+    
+    writeLog('Processing lesson', ['lessonNum' => $lessonNum, 'model' => $model, 'maxTokens' => $maxTokens, 'complexityMode' => $complexityMode, 'tableDataLen' => strlen($tableData)]);
     
     $userMessage = "Process the following vocabulary table for Lesson {$lessonNum}:
 
 {$tableData}
 
+**COMPLEXITY MODE**: {$modeDescription}
+
 Please:
 1. Extract all vocabulary exactly as shown (remember \"/\" means both forms are valid, e.g., Ako/ko means both \"Ako\" and \"ko\")
 2. Generate actual verb derivatives (only real Cebuano forms)
-3. Create ladderized sentence sequences
-4. Perform the mandatory vocabulary audit
-5. Ensure all words meet the 3x minimum usage requirement
-6. IMPORTANT: Wrap your final verified output in ===VERIFIED_OUTPUT_START=== and ===VERIFIED_OUTPUT_END=== markers
+3. Create TIERED ladderized sentence sequences following the specified complexity mode
+4. Group sequences by tier: ALL Simple (Tier 1) first, then ALL Medium (Tier 2), then ALL Advanced (Tier 3)
+5. Perform the mandatory vocabulary audit
+6. Ensure all words meet the 3x minimum usage requirement
+7. IMPORTANT: Wrap your final verified output in ===VERIFIED_OUTPUT_START=== and ===VERIFIED_OUTPUT_END=== markers
 
 Output the complete verified result with markers.";
 
