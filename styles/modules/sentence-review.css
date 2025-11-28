@@ -217,6 +217,8 @@
     gap: 12px;
     padding: 14px 28px;
     border-radius: 12px;
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom: 20px;
     font-size: 1.4rem;
     font-weight: 700;

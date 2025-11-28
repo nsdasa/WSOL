@@ -425,6 +425,14 @@ class SentenceReviewModule extends LearningModule {
         // Store phrase groups for bubble layout rendering
         this.phraseGroups = phraseGroups;
         this.skipIndices = skipIndices;
+
+        // Set sentence type banner width to match picture row
+        requestAnimationFrame(() => {
+            const typeDisplay = document.getElementById('srSentenceType');
+            if (typeDisplay && pictureRow.offsetWidth > 0) {
+                typeDisplay.style.maxWidth = `${pictureRow.offsetWidth}px`;
+            }
+        });
     }
 
     /**
@@ -594,15 +602,14 @@ class SentenceReviewModule extends LearningModule {
     drawConnectionLines() {
         const svg = document.getElementById('srConnectionLines');
         const sentenceArea = document.getElementById('srSentenceArea');
-        const bubbleDisplay = document.getElementById('srBubbleDisplay');
 
-        if (!svg || !sentenceArea || !bubbleDisplay) return;
+        if (!svg || !sentenceArea) return;
 
         // Clear existing lines
         svg.innerHTML = '';
 
-        // Get the bounding rect of the bubble display container for relative positioning
-        const containerRect = bubbleDisplay.getBoundingClientRect();
+        // Use SVG's bounding rect as reference - coordinates are relative to SVG element
+        const svgRect = svg.getBoundingClientRect();
 
         // Get all card wrappers and placeholders
         const cardWrappers = sentenceArea.querySelectorAll('.sr-card-wrapper');
@@ -618,18 +625,20 @@ class SentenceReviewModule extends LearningModule {
             if (!bubbleGroup) return;
 
             const cardRect = cardWrapper.getBoundingClientRect();
-            const cardCenterX = cardRect.left + cardRect.width / 2 - containerRect.left;
-            const cardBottomY = cardRect.bottom - containerRect.top;
+            // Center-bottom of picture card frame
+            const cardCenterX = cardRect.left + cardRect.width / 2 - svgRect.left;
+            const cardBottomY = cardRect.bottom - svgRect.top;
 
             // Get all bubbles in this group
             const bubbles = bubbleGroup.querySelectorAll('.sr-display-bubble');
 
             bubbles.forEach((bubble) => {
                 const bubbleRect = bubble.getBoundingClientRect();
-                const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2 - containerRect.left;
-                const bubbleTopY = bubbleRect.top - containerRect.top;
+                // Center-top of word bubble
+                const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2 - svgRect.left;
+                const bubbleTopY = bubbleRect.top - svgRect.top;
 
-                // Create line from card bottom to bubble top
+                // Create line from card bottom-center to bubble top-center
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 line.setAttribute('x1', cardCenterX);
                 line.setAttribute('y1', cardBottomY);
@@ -648,17 +657,19 @@ class SentenceReviewModule extends LearningModule {
             if (!bubbleGroup) return;
 
             const placeholderRect = placeholder.getBoundingClientRect();
-            const placeholderCenterX = placeholderRect.left + placeholderRect.width / 2 - containerRect.left;
-            const placeholderBottomY = placeholderRect.bottom - containerRect.top;
+            // Center-bottom of placeholder
+            const placeholderCenterX = placeholderRect.left + placeholderRect.width / 2 - svgRect.left;
+            const placeholderBottomY = placeholderRect.bottom - svgRect.top;
 
             // Get the bubble in this group
             const bubble = bubbleGroup.querySelector('.sr-display-bubble');
             if (bubble) {
                 const bubbleRect = bubble.getBoundingClientRect();
-                const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2 - containerRect.left;
-                const bubbleTopY = bubbleRect.top - containerRect.top;
+                // Center-top of word bubble
+                const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2 - svgRect.left;
+                const bubbleTopY = bubbleRect.top - svgRect.top;
 
-                // Create line from placeholder bottom to bubble top
+                // Create line from placeholder bottom-center to bubble top-center
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 line.setAttribute('x1', placeholderCenterX);
                 line.setAttribute('y1', placeholderBottomY);
