@@ -3,10 +3,17 @@
  * System Status Check for TTS Generator
  *
  * Checks for required dependencies and system capabilities.
+ * Requires Admin authentication.
  */
+
+// Auth check must come before any output
+require_once __DIR__ . '/auth-check.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
+
+// Require Admin authentication
+requireTTSAuth();
 
 $status = [
     'php_version' => PHP_VERSION,
