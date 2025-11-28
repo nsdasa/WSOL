@@ -613,6 +613,31 @@
         </div>
 
         <div class="config-panel">
+            <!-- Content Type and Progression Mode (Primary Options) -->
+            <div class="config-row" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div class="config-group" style="flex: 1;">
+                    <label for="contentType">Content Type</label>
+                    <select id="contentType" onchange="updateContentTypeDescription()">
+                        <option value="review">Review Sentences</option>
+                        <option value="story">Story Sequences</option>
+                        <option value="conversation">Conversation Dialogues</option>
+                    </select>
+                    <div class="config-description" id="contentTypeDesc" style="margin-top: 8px; font-size: 0.8rem; color: #90a4ae;">
+                        Tiered ladder sentences for Sentence Review module
+                    </div>
+                </div>
+                <div class="config-group" style="flex: 1;">
+                    <label for="progressionMode">Progression Mode</label>
+                    <select id="progressionMode" onchange="updateProgressionModeDescription()">
+                        <option value="tier-locked">Tier-Locked (Hybrid A+C)</option>
+                        <option value="cumulative">Cumulative (Proposal D)</option>
+                    </select>
+                    <div class="config-description" id="progressionModeDesc" style="margin-top: 8px; font-size: 0.8rem; color: #90a4ae;">
+                        Same grammar constraints per tier, patterns unlock based on available grammar
+                    </div>
+                </div>
+            </div>
+            <!-- Model Configuration -->
             <div class="config-row">
                 <div class="config-group">
                     <label for="modelName">Model Name</label>
@@ -627,6 +652,7 @@
                     <input type="text" id="customModel" placeholder="Enter custom model string...">
                 </div>
             </div>
+            <!-- Processing Options -->
             <div class="config-row" style="margin-top: 15px;">
                 <div class="config-group" style="max-width: 200px;">
                     <label for="delaySeconds">Delay Between Requests (seconds)</label>
@@ -644,9 +670,9 @@
                     </select>
                 </div>
                 <div class="config-group" style="flex: 1;">
-                    <label>Rate Limit Protection</label>
+                    <label>Audit Features</label>
                     <div style="padding: 10px; background: rgba(102, 187, 106, 0.1); border-radius: 6px; font-size: 0.85rem; color: #81c784;">
-                        ✓ Server retry &nbsp;|&nbsp; ✓ Auto delays &nbsp;|&nbsp; ✓ 429 handling
+                        ✓ Vocabulary Audit &nbsp;|&nbsp; ✓ Grammar Audit &nbsp;|&nbsp; ✓ Tier Validation
                     </div>
                 </div>
             </div>
@@ -920,6 +946,43 @@
             return localDelayOverride || serverConfig.delayBetweenRequests || 20;
         }
 
+        // ==================== CONTENT TYPE & PROGRESSION MODE ====================
+
+        const contentTypeDescriptions = {
+            'review': 'Tiered ladder sentences for Sentence Review module',
+            'story': 'Narrative sequences for Story Zone (drag-to-order exercises)',
+            'conversation': 'Q&A pairs for Conversation Zone (matching exercises)'
+        };
+
+        const progressionModeDescriptions = {
+            'tier-locked': 'Same grammar constraints per tier, patterns unlock based on available grammar',
+            'cumulative': 'Higher tiers can use vocabulary from all previous lessons for richer content'
+        };
+
+        function updateContentTypeDescription() {
+            const select = document.getElementById('contentType');
+            const desc = document.getElementById('contentTypeDesc');
+            if (select && desc) {
+                desc.textContent = contentTypeDescriptions[select.value] || '';
+            }
+        }
+
+        function updateProgressionModeDescription() {
+            const select = document.getElementById('progressionMode');
+            const desc = document.getElementById('progressionModeDesc');
+            if (select && desc) {
+                desc.textContent = progressionModeDescriptions[select.value] || '';
+            }
+        }
+
+        function getContentType() {
+            return document.getElementById('contentType')?.value || 'review';
+        }
+
+        function getProgressionMode() {
+            return document.getElementById('progressionMode')?.value || 'tier-locked';
+        }
+
         // ==================== SERVER CHECK ====================
         async function checkServer() {
             const statusEl = document.getElementById('serverStatus');
@@ -1164,13 +1227,29 @@
             return `${header}\n${row}`;
         }
 
-        async function processLesson(lessonNum, tableData, cardElement) {
+        async function processLesson(lessonNum, tableData, cardElement, previousLessonsData = null) {
             const model = getModel();
             const maxTokens = getMaxTokens();
             const complexityMode = document.getElementById('complexityMode').value;
-            const requestBody = { lessonNum, tableData, customModel: model, maxTokens, complexityMode };
+            const contentType = getContentType();
+            const progressionMode = getProgressionMode();
 
-            debugLog.add('request', `API Request - Lesson ${lessonNum}`, { model, maxTokens, complexityMode, tableDataLength: tableData.length });
+            const requestBody = {
+                lessonNum,
+                tableData,
+                customModel: model,
+                maxTokens,
+                complexityMode,
+                contentType,
+                progressionMode
+            };
+
+            // Include previous lessons data for cumulative mode
+            if (progressionMode === 'cumulative' && previousLessonsData) {
+                requestBody.previousLessonsData = previousLessonsData;
+            }
+
+            debugLog.add('request', `API Request - Lesson ${lessonNum}`, { model, maxTokens, complexityMode, contentType, progressionMode, tableDataLength: tableData.length });
             
             // Update card to show we're starting
             if (cardElement) {
@@ -1289,10 +1368,18 @@
             }
 
             const delaySeconds = getDelaySeconds();
-            const estimatedTime = lessonsToProcess.length * (90 + delaySeconds); // ~90s per lesson + delay
+            const contentType = getContentType();
+            const progressionMode = getProgressionMode();
+            const estimatedTime = lessonsToProcess.length * (90 + delaySeconds);
             const estimatedMinutes = Math.ceil(estimatedTime / 60);
-            
-            if (!confirm(`Process ${lessonsToProcess.length} lesson(s)?\n\nEstimated time: ~${estimatedMinutes} minutes\n(${delaySeconds}s delay between requests to avoid rate limits)`)) {
+
+            const contentTypeLabels = {
+                'review': 'Review Sentences',
+                'story': 'Story Sequences',
+                'conversation': 'Conversation Dialogues'
+            };
+
+            if (!confirm(`Process ${lessonsToProcess.length} lesson(s)?\n\nContent Type: ${contentTypeLabels[contentType]}\nProgression Mode: ${progressionMode === 'cumulative' ? 'Cumulative' : 'Tier-Locked'}\n\nEstimated time: ~${estimatedMinutes} minutes\n(${delaySeconds}s delay between requests to avoid rate limits)`)) {
                 return;
             }
 
@@ -1320,10 +1407,18 @@
             let totalRetries = 0;
             let totalRetryTime = 0;
 
+            // Build cumulative vocabulary lookup for cumulative mode
+            const lessonVocabMap = {};
+            if (progressionMode === 'cumulative') {
+                parsedLessons.forEach(lesson => {
+                    lessonVocabMap[lesson.number] = lessonToTableString(lesson);
+                });
+            }
+
             for (let i = 0; i < lessonsToProcess.length; i++) {
                 const lesson = lessonsToProcess[i];
                 const isLastLesson = i === lessonsToProcess.length - 1;
-                
+
                 updateProgress(i, lessonsToProcess.length, `🔄 Processing Lesson ${lesson.number} (${i+1}/${lessonsToProcess.length})...`);
 
                 const card = document.getElementById(`output-${lesson.number}`);
@@ -1331,11 +1426,26 @@
                     card.className = 'lesson-output processing';
                     card.querySelector('.status-badge').className = 'status-badge status-processing';
                     card.querySelector('.status-badge').textContent = 'PROCESSING';
-                    card.querySelector('.output-content').textContent = 'Sending request to Claude API...';
+                    card.querySelector('.output-content').textContent = `Sending ${contentTypeLabels[contentType]} request to Claude API...`;
+                }
+
+                // Build previous lessons data for cumulative mode
+                let previousLessonsData = null;
+                if (progressionMode === 'cumulative') {
+                    const currentLessonNum = parseInt(lesson.number);
+                    const previousLessons = parsedLessons
+                        .filter(l => parseInt(l.number) < currentLessonNum)
+                        .sort((a, b) => parseInt(a.number) - parseInt(b.number));
+
+                    if (previousLessons.length > 0) {
+                        previousLessonsData = previousLessons
+                            .map(l => `### Lesson ${l.number} Vocabulary:\n${lessonToTableString(l)}`)
+                            .join('\n\n');
+                    }
                 }
 
                 try {
-                    const result = await processLesson(lesson.number, lessonToTableString(lesson), card);
+                    const result = await processLesson(lesson.number, lessonToTableString(lesson), card, previousLessonsData);
                     const extraction = extractVerifiedContent(result.content);
 
                     outputs[lesson.number] = result.content;

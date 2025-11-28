@@ -257,6 +257,49 @@ class SomeModule extends LearningModule {
    - Click picture cards or word bubbles to hear pronunciation
    - Speaker icons indicate audio availability
 
+## Sentence Content Generator (/sentences/)
+
+**What it does**: AI-powered tool that generates sentence content for multiple learning modules using Claude API.
+
+**Location**: `/sentences/` directory (standalone web application)
+
+**Content Types Available**:
+
+| Content Type | Target Module | Description |
+|--------------|---------------|-------------|
+| **Review Sentences** | Sentence Review Module | Tiered ladder sentences with Q&A pairs |
+| **Story Sequences** | Story Zone Module | Narrative sequences for drag-to-order exercises |
+| **Conversation Dialogues** | Conversation Zone Module | Q&A pairs for matching exercises |
+
+**Progression Modes**:
+
+| Mode | Description |
+|------|-------------|
+| **Tier-Locked** | Same grammar constraints per tier. Patterns unlock based on available grammar (Hybrid A+C) |
+| **Cumulative** | Higher tiers can use vocabulary from all previous lessons for richer content (Proposal D) |
+
+**Three-Tier Grammar System**:
+
+| Tier | Name | Grammar Allowed |
+|------|------|-----------------|
+| Tier 1 | Simple | L1 only - demonstratives, location pronouns, base verbs, "ang" |
+| Tier 2 | Medium | L1+L2 - adds "sa", adjectives, Oo/Dili, nag- verbs |
+| Tier 3 | Advanced | All L1-L4 - full verb system, possessives, complex prepositions, "og", "mga" |
+
+**Audit Features** (Zero Tolerance):
+- Vocabulary audit - ensures no words outside allowed list
+- Grammar audit - validates pronoun forms, articles, affixes
+- Tier validation - ensures no forbidden grammar in lower tiers
+- 3x minimum usage requirement for each vocabulary word
+
+**How to use**:
+1. Visit `/sentences/` in browser
+2. Select Content Type (Review/Story/Conversation)
+3. Select Progression Mode (Tier-Locked/Cumulative)
+4. Upload vocabulary CSV or paste data
+5. Process lessons with Claude API
+6. Export generated CSV for import into admin tools
+
 ## Voice Practice Module (voice-practice-module.js)
 
 **What it does**: Record yourself and compare to native pronunciation.

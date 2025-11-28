@@ -569,6 +569,56 @@ Save card changes directly to manifest.json.
 | `?action=edit` | POST | Update user |
 | `?action=delete` | POST | Delete user |
 
+### /sentences/api.php (Sentence Content Generator)
+
+Standalone API for generating AI-powered sentence content. Located at `/sentences/api.php`.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Server health check, returns API version and available features |
+| `/api/config` | GET | Get current configuration (models, content types, progression modes) |
+| `/api/test` | GET | Test Anthropic API connection |
+| `/api/process` | POST | Process a lesson and generate content |
+| `/api/logs` | GET | View debug logs (requires debug mode enabled) |
+
+**POST /api/process Request Body:**
+
+```javascript
+{
+    "lessonNum": "1",                    // Required: Lesson number
+    "tableData": "...",                  // Required: Vocabulary table data (CSV format)
+    "customModel": "claude-sonnet-4-5",  // Optional: Override default model
+    "maxTokens": 32000,                  // Optional: Max response tokens
+    "complexityMode": "beginner",        // "beginner" (4-2-2) or "progressive" (2-3-3)
+    "contentType": "review",             // "review", "story", or "conversation"
+    "progressionMode": "tier-locked",    // "tier-locked" or "cumulative"
+    "previousLessonsData": "..."         // Optional: For cumulative mode, previous lessons' vocabulary
+}
+```
+
+**Content Types:**
+
+| Value | Output | Target Module |
+|-------|--------|---------------|
+| `review` | Tiered ladder sentences | Sentence Review Module |
+| `story` | Narrative sequences | Story Zone (drag-to-order) |
+| `conversation` | Q&A dialogue pairs | Conversation Zone (matching) |
+
+**Progression Modes:**
+
+| Value | Description |
+|-------|-------------|
+| `tier-locked` | Same grammar constraints per tier (Hybrid A+C) |
+| `cumulative` | Higher tiers use vocabulary from previous lessons (Proposal D) |
+
+**Response includes:**
+- `success`: boolean
+- `content`: Generated content with audit tables
+- `contentType`: Type of content generated
+- `progressionMode`: Mode used
+- `usage`: Token counts (input/output/total)
+- `attempts`: Number of API attempts (includes retries)
+
 ---
 
 ## Frontend Module Development
