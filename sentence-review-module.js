@@ -426,14 +426,21 @@ class SentenceReviewModule extends LearningModule {
         this.phraseGroups = phraseGroups;
         this.skipIndices = skipIndices;
 
-        // Set sentence type banner width to match picture row (but at least as wide as content)
+        // Set sentence type banner width to match actual cards width (not container)
         requestAnimationFrame(() => {
             const typeDisplay = document.getElementById('srSentenceType');
-            if (typeDisplay && pictureRow.offsetWidth > 0) {
-                // Use the larger of: picture row width or banner's natural content width (with 10% buffer)
-                const contentWidth = typeDisplay.scrollWidth * 1.1;
-                const pictureRowWidth = pictureRow.offsetWidth;
-                typeDisplay.style.width = `${Math.max(contentWidth, pictureRowWidth)}px`;
+            const cards = pictureRow.querySelectorAll('.sr-word-container');
+            if (typeDisplay && cards.length > 0) {
+                // Calculate actual width spanned by cards (first to last card)
+                const firstCard = cards[0];
+                const lastCard = cards[cards.length - 1];
+                const firstRect = firstCard.getBoundingClientRect();
+                const lastRect = lastCard.getBoundingClientRect();
+                const cardsWidth = lastRect.right - firstRect.left;
+
+                // Banner should be at least as wide as its content
+                const contentWidth = typeDisplay.scrollWidth;
+                typeDisplay.style.width = `${Math.max(contentWidth, cardsWidth)}px`;
             }
         });
     }
