@@ -419,6 +419,38 @@ Creates guided tutorials that walk new users through the app.
   - `step-manager.js`: Manages tour steps
   - `toolbar.js`: Editor toolbar buttons
 
+## TTS Generator (TTS/ folder)
+
+Generates audio files for words and sentences using the ElevenLabs Text-to-Speech API.
+
+**Files**:
+- `index.html`: Main interface for TTS generation
+- `generate.php`: Backend API that calls ElevenLabs and converts audio
+- `status.php`: System status check endpoint
+
+**Features**:
+- **Word Generation**: Select words from the manifest and batch generate audio
+- **Sentence Generation**: Generate audio for sentences from sentence review data
+- **Custom Text**: Generate audio for any custom text
+- **Format Support**: OPUS (recommended) or MP3 output
+- **Auto-Manifest Update**: Automatically updates manifest.json with new audio paths
+
+**How it works**:
+1. Enter your ElevenLabs API key
+2. Load available voices from your account
+3. Select a voice and model
+4. Browse words/sentences from the manifest
+5. Select items and click Generate Audio
+6. Files are saved to:
+   - Words: `assets/{cardNum}.{lang}.{word}.opus`
+   - Sentences: `assets/sentences/audio/{lang}/lesson{N}-sent{id}.opus`
+
+**Requirements**:
+- ElevenLabs API key (paid account)
+- ffmpeg for OPUS conversion (falls back to MP3 if unavailable)
+- PHP with cURL extension
+- Writable assets directory
+
 ---
 
 # How Data is Stored

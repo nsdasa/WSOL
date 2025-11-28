@@ -150,6 +150,12 @@ WSOL/
 │   ├── voice-recorder-app.js    # Standalone recorder for voice actors
 │   └── voice-recorder.css
 │
+├── # TTS GENERATOR (ElevenLabs)
+├── TTS/
+│   ├── index.html               # TTS generation interface
+│   ├── generate.php             # API handler for ElevenLabs
+│   └── status.php               # System status check
+│
 ├── # STYLES
 ├── styles/
 │   ├── core.css                 # Base styles & CSS variables

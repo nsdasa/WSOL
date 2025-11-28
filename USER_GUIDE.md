@@ -754,6 +754,43 @@ View stats about:
 - Total cards per language
 - Asset status (pictures, audio files)
 
+### TTS Generator (Text-to-Speech):
+
+Generate audio files using ElevenLabs API.
+
+**Access:** Go to `/TTS/` in your browser (e.g., `https://yoursite.com/TTS/`)
+
+**Using the TTS Generator:**
+1. Enter your ElevenLabs API key
+2. Click "Load Voices" to see available voices
+3. Select a voice and model
+4. Choose output format (OPUS or MP3)
+
+**Generating Word Audio:**
+1. Click "Words" tab
+2. Select language and lesson
+3. Click words to select them, or use "Select Without Audio"
+4. Click "Generate Audio"
+5. Wait for processing (1 second delay between requests)
+
+**Generating Sentence Audio:**
+1. Click "Sentences" tab
+2. Select language and lesson
+3. Click sentences to select them
+4. Click "Generate Audio"
+
+**Custom Text:**
+1. Click "Custom Text" tab
+2. Enter text to synthesize
+3. Enter filename (without extension)
+4. Choose save location
+5. Click "Generate & Save"
+
+**Notes:**
+- Requires ElevenLabs API key (paid account)
+- Files save automatically to the correct directories
+- Manifest is updated automatically for words
+
 ### Tips:
 - Only create Admin accounts when absolutely necessary
 - Use Deck Manager for content editors
