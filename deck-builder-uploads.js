@@ -1957,9 +1957,10 @@ DeckBuilderModule.prototype.showWordPreview = function(event, word, lang) {
     const wordEl = preview.querySelector('.sw-preview-word');
     const englishEl = preview.querySelector('.sw-preview-english');
 
-    // Set image
-    if (card.printImagePath) {
-        imageContainer.innerHTML = `<img src="${card.printImagePath}" alt="${card.word}">`;
+    // Set image (prefer format-optimized imagePath over printImagePath)
+    const imgPath = card.imagePath || card.printImagePath;
+    if (imgPath) {
+        imageContainer.innerHTML = `<img src="${imgPath}" alt="${card.word}">`;
     } else {
         imageContainer.innerHTML = '<i class="fas fa-image" style="font-size: 40px; color: var(--text-secondary);"></i>';
     }
