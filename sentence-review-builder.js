@@ -768,8 +768,9 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                          data-sent="${sentIndex}"
                          data-word="${wordIndex}"
                          data-cardnum="${word.cardNum || ''}"
-                         draggable="true">
-                        <div class="sr-bubble-text" title="${word.word}${word.root ? ' (root: ' + word.root + ')' : ''}">${word.word}</div>
+                         draggable="true"
+                         title="Click to ${hasPicture ? 'change' : 'add'} picture link">
+                        <div class="sr-bubble-text">${word.word}${word.root ? ' <span class="sr-root-hint">(root: ' + word.root + ')</span>' : ''}</div>
                         ${word.needsResolution ? '<span class="sr-bubble-warning" title="Auto-assigned via root - needs review">⚠️</span>' : ''}
                         <div class="sr-bubble-actions">
                             <button class="sr-bubble-edit-btn" title="Edit word">
@@ -1038,6 +1039,22 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                 const sentIndex = parseInt(bubble.dataset.sent);
                 const wordIndex = parseInt(bubble.dataset.word);
                 this.deleteWord(lessonNum, seqIndex, sentIndex, wordIndex);
+            });
+        });
+
+        // Word bubble click - open picture link modal (click on bubble itself, not buttons)
+        document.querySelectorAll('.sr-word-bubble').forEach(bubble => {
+            bubble.addEventListener('click', (e) => {
+                // Don't trigger if clicking on action buttons or drag handle
+                if (e.target.closest('.sr-bubble-actions') || e.target.closest('.sr-drag-handle')) {
+                    return;
+                }
+                e.stopPropagation();
+                const lessonNum = parseInt(bubble.dataset.lesson);
+                const seqIndex = parseInt(bubble.dataset.seq);
+                const sentIndex = parseInt(bubble.dataset.sent);
+                const wordIndex = parseInt(bubble.dataset.word);
+                this.openPictureLinkModal(lessonNum, seqIndex, sentIndex, wordIndex);
             });
         });
 
