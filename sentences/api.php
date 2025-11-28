@@ -441,15 +441,31 @@ For EACH word extracted from sentences:
 3. Re-run audit until it passes with ZERO violations
 4. Only then proceed to output
 
-### AUDIT OUTPUT FORMAT (Keep this BRIEF to save space for the main output):
+### AUDIT OUTPUT FORMAT:
+
+The audit results MUST be included in the VERIFIED OUTPUT section with full details:
 
 ## VOCABULARY AUDIT
-Status: [PASSED / FAILED]
-Words checked: [number] | Violations: [number]
-[If PASSED]: ✓ Audit passed
-[If FAILED]: Brief list of violations and corrections, then re-audit
 
-**IMPORTANT**: Keep audit section SHORT. The priority is the VERIFIED OUTPUT section below.
+### Allowed Words Check:
+List any words used in sentences that are NOT in the allowed vocabulary list:
+- [word] ❌ NOT IN VOCABULARY - used in Sequence X, Sentence Y
+- (or) ✓ All words verified - no violations
+
+### Word Usage Count:
+| Word | Category | Count | Status |
+|------|----------|-------|--------|
+| Kini | Demonstrative | 5 | ✓ |
+| ang | Function | 12 | ✓ |
+| Eskwelahan | Noun | 2 | ❌ (needs 3) |
+... (list ALL vocabulary words)
+
+### Summary:
+- Total vocabulary words: [X]
+- Words meeting 3x minimum: [Y]
+- Words below minimum: [Z] (list them)
+- Vocabulary violations: [0 or list]
+- **Status: PASSED / FAILED**
 
 ### ZERO TOLERANCE RULE:
 NO sentences may contain words outside the ALLOWED WORD LIST. 
@@ -457,7 +473,7 @@ A single invalid word means the entire output is rejected.
 
 ---
 
-## CRITICAL: VERIFIED OUTPUT FORMAT (CSV) - THIS IS THE PRIORITY
+## CRITICAL: VERIFIED OUTPUT FORMAT (CSV)
 
 Once the audit PASSES, you MUST output the final verified content in CSV format wrapped in special markers.
 
@@ -513,17 +529,31 @@ Lesson #,Tier,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sent
 
 **STEP 2**: Create TIERED sequences (grouped by tier: Simple → Medium → Advanced)
 
-**STEP 3**: Brief audit check (just confirm: "Audit: PASSED - X words verified")
+**STEP 3**: Perform full vocabulary audit
 
-**STEP 4**: Output the VERIFIED section below - THIS IS THE PRIORITY
+**STEP 4**: Output the VERIFIED section below
 
 ===VERIFIED_OUTPUT_START===
 
 ## VOCABULARY LIST
-[Compact list organized by category - no lengthy explanations]
+[Organized by category: Q&A, Function Words, Pronouns, Nouns, Adjectives, Prepositions, Numbers, Special, Verbs with derivatives]
 
-## WORD COVERAGE
-[Simple table: Word | Count | ✓ or ✗]
+## VOCABULARY AUDIT
+
+### Allowed Words Check:
+[List any violations, or confirm "✓ All words verified - no violations"]
+
+### Word Usage Count:
+| Word | Category | Count | Status |
+|------|----------|-------|--------|
+[List EVERY vocabulary word with its usage count and ✓ or ❌]
+
+### Audit Summary:
+- Total vocabulary words: [X]
+- Words meeting 3x minimum: [Y]  
+- Words below minimum: [Z] - [list them]
+- Vocabulary violations: [0 or list]
+- **Status: PASSED**
 
 ## SENTENCE CSV
 ```csv
@@ -533,11 +563,11 @@ Lesson #,Tier,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sent
 
 ===VERIFIED_OUTPUT_END===
 
-**CRITICAL**: You MUST complete the ===VERIFIED_OUTPUT_END=== marker. Budget your tokens - keep working sections brief so you have enough tokens for the complete CSV output.
+**CRITICAL**: You MUST complete the ===VERIFIED_OUTPUT_END=== marker. Include the full audit table - this is essential for verification.
 
 ---
 
-OUTPUT: Vocabulary list, TIERED sentence sequences (Simple → Medium → Advanced) in CSV format with Tier column, Sentence Types, word coverage verification, and PASSED audit. All wrapped in ===VERIFIED_OUTPUT_START=== and ===VERIFIED_OUTPUT_END=== markers.
+OUTPUT: Vocabulary list, TIERED sentence sequences (Simple → Medium → Advanced) in CSV format with Tier column, Sentence Types, FULL word usage audit table, and PASSED audit. All wrapped in ===VERIFIED_OUTPUT_START=== and ===VERIFIED_OUTPUT_END=== markers.
 PROMPT;
 
 // ==================== REQUEST ROUTING ====================
