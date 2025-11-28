@@ -1300,13 +1300,15 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                 return;
             }
 
-            grid.innerHTML = matchingCards.map(card => `
-                <div class="sr-pic-option" data-cardnum="${card.cardNum}" data-word="${card.word}" data-imagepath="${card.printImagePath || ''}">
-                    ${card.printImagePath ? `<img src="${card.printImagePath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
+            grid.innerHTML = matchingCards.map(card => {
+                const imgPath = card.imagePath || card.printImagePath;
+                return `
+                <div class="sr-pic-option" data-cardnum="${card.cardNum}" data-word="${card.word}" data-imagepath="${imgPath || ''}">
+                    ${imgPath ? `<img src="${imgPath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
                     <span class="card-word">${card.word}</span>
                     <span class="card-english">${card.english}</span>
                 </div>
-            `).join('');
+            `}).join('');
 
             // Add click handlers
             grid.querySelectorAll('.sr-pic-option').forEach(option => {
@@ -1672,13 +1674,15 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                 return;
             }
 
-            grid.innerHTML = matchingCards.map(card => `
-                <div class="sr-pic-option" data-cardnum="${card.cardNum}" data-imagepath="${card.printImagePath || ''}">
-                    ${card.printImagePath ? `<img src="${card.printImagePath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
+            grid.innerHTML = matchingCards.map(card => {
+                const imgPath = card.imagePath || card.printImagePath;
+                return `
+                <div class="sr-pic-option" data-cardnum="${card.cardNum}" data-imagepath="${imgPath || ''}">
+                    ${imgPath ? `<img src="${imgPath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
                     <span class="card-word">${card.word}</span>
                     <span class="card-english">${card.english || ''}</span>
                 </div>
-            `).join('');
+            `}).join('');
 
             // Add click handlers
             grid.querySelectorAll('.sr-pic-option').forEach(option => {
