@@ -4,7 +4,12 @@
  *
  * Handles API calls to ElevenLabs, converts audio to OPUS format,
  * and saves files to the correct location.
+ *
+ * Requires Admin authentication.
  */
+
+// Auth check must come before any output
+require_once __DIR__ . '/auth-check.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -15,6 +20,9 @@ header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
+
+// Require Admin authentication
+requireTTSAuth();
 
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
