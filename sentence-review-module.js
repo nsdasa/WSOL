@@ -232,13 +232,55 @@ class SentenceReviewModule extends LearningModule {
         const pictureRow = document.createElement('div');
         pictureRow.className = 'sr-picture-row';
 
-        sentence.words.forEach((wordData, index) => {
-            const wordContainer = document.createElement('div');
-            wordContainer.className = 'sr-word-container';
+        // Build phrase groups - consecutive runs of words sharing the same cardNum
+        // Uses the card's word property to determine phrase length, so repeated phrases
+        // are correctly split into separate groups.
+        // Example: "Maayong Adlaw Maayong Adlaw" (card word = "Maayong Adlaw", 2 words)
+        //   -> shows [Maayong Adlaw] [Maayong Adlaw] (2 cards, not 1)
+        const phraseGroups = [];
+        let currentGroup = null;
 
+        sentence.words.forEach((wordData, index) => {
             if (wordData.imagePath && wordData.cardNum) {
-                // Has a picture - create flippable card
+                // Get the card to determine expected phrase length
                 const card = this.findCardByNum(wordData.cardNum);
+                const cardWord = card?.word || wordData.word || '';
+                // Count words in the card's word property (phrase length)
+                const expectedPhraseLength = cardWord.split(/\s+/).filter(w => w.length > 0).length || 1;
+
+                // Check if we should continue the current group or start a new one
+                const shouldContinue = currentGroup &&
+                    currentGroup.cardNum === wordData.cardNum &&
+                    currentGroup.wordIndices.length < currentGroup.expectedLength;
+
+                if (shouldContinue) {
+                    // Continue current phrase group (still building the phrase)
+                    currentGroup.wordIndices.push(index);
+                } else {
+                    // Start new phrase group (different card, or phrase is complete)
+                    currentGroup = {
+                        cardNum: wordData.cardNum,
+                        wordData: wordData,
+                        wordIndices: [index],
+                        expectedLength: expectedPhraseLength,
+                        card: card
+                    };
+                    phraseGroups.push(currentGroup);
+                }
+            } else {
+                // Function word (no card) - ends any current phrase group
+                currentGroup = null;
+            }
+        });
+
+        // Render each phrase group as one card
+        phraseGroups.forEach(group => {
+            const linkedWords = group.wordIndices.map(i => sentence.words[i].word);
+            const wordData = group.wordData;
+            const card = group.card;
+
+                const wordContainer = document.createElement('div');
+                wordContainer.className = 'sr-word-container';
 
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = 'sr-card-wrapper';
@@ -265,14 +307,14 @@ class SentenceReviewModule extends LearningModule {
                         // Fallback to image on video error
                         const fallbackImg = document.createElement('img');
                         fallbackImg.src = wordData.imagePath || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
-                        fallbackImg.alt = wordData.word;
+                        fallbackImg.alt = linkedWords.join(' ');
                         video.replaceWith(fallbackImg);
                     };
                     front.appendChild(video);
                 } else {
                     const img = document.createElement('img');
                     img.src = displayPath;
-                    img.alt = wordData.word;
+                    img.alt = linkedWords.join(' ');
                     img.onerror = () => {
                         img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPj88L3RleHQ+PC9zdmc+';
                     };
@@ -291,16 +333,14 @@ class SentenceReviewModule extends LearningModule {
                     front.appendChild(speaker);
                 }
 
-                // Back face (word text)
+                // Back face (word text) - show all linked words
                 const back = document.createElement('div');
                 back.className = 'sr-card-face sr-card-back';
 
                 const wordText = document.createElement('div');
                 wordText.className = 'sr-card-word';
-                wordText.textContent = wordData.word;
-                if (wordData.root) {
-                    wordText.innerHTML = `${wordData.word}<br><span class="root-hint">(${wordData.root})</span>`;
-                }
+                // Show all linked words (the phrase)
+                wordText.textContent = linkedWords.join(' ');
                 back.appendChild(wordText);
 
                 // English translation on back
@@ -333,15 +373,7 @@ class SentenceReviewModule extends LearningModule {
                 });
 
                 wordContainer.appendChild(cardWrapper);
-            } else {
-                // No picture - function word placeholder
-                const placeholderEl = document.createElement('div');
-                placeholderEl.className = 'sr-word-placeholder';
-                placeholderEl.textContent = wordData.word;
-                wordContainer.appendChild(placeholderEl);
-            }
-
-            pictureRow.appendChild(wordContainer);
+                pictureRow.appendChild(wordContainer);
         });
 
         area.appendChild(pictureRow);
