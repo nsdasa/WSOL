@@ -858,11 +858,23 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to load voices: ' + response.statusText);
+                    // Try to get error details from response body
+                    let errorMsg = `HTTP ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.detail?.message || errorData.detail || errorData.message || errorMsg;
+                    } catch (e) {
+                        errorMsg = response.statusText || errorMsg;
+                    }
+                    throw new Error('Failed to load voices: ' + errorMsg);
                 }
 
                 const data = await response.json();
-                voices = data.voices;
+                voices = data.voices || [];
+
+                if (voices.length === 0) {
+                    log('No voices found in your account. You may need to add voices in ElevenLabs.', 'info');
+                }
 
                 // Also try to get shared voices for Filipino languages
                 try {
@@ -886,12 +898,14 @@
                     }
                 } catch (e) {
                     // Shared voices optional, continue without
+                    log('Could not load shared voices (optional)', 'info');
                 }
 
                 filterVoices();
                 log(`Loaded ${voices.length} voices`, 'success');
             } catch (error) {
                 log('Error loading voices: ' + error.message, 'error');
+                console.error('Voice loading error:', error);
             }
         }
 
