@@ -364,12 +364,20 @@ The manifest is the central database for all card data:
     "sentenceWords": {
         "ceb": {
             "1": {
-                "Question Word": ["Asa", "Unsa", "Kinsa"],
+                "Question Word": [
+                    { "word": "Asa", "cardNum": 45 },
+                    { "word": "Unsa", "cardNum": 46 },
+                    { "word": "Kinsa", "cardNum": null }
+                ],
                 "Noun": ["libro", "lamesa", "silya"],
                 "Verb": ["kuha", "butang", "sulat"]
             }
         }
     },
+    // Note: sentenceWords entries can be:
+    // - Simple strings: "word" (legacy format, auto-linked at runtime)
+    // - Objects: { "word": "text", "cardNum": 123 } (explicit card link)
+    // cardNum can be null for unlinked words
 
     "sentenceReview": {
         "ceb": {

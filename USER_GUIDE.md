@@ -584,6 +584,8 @@ Shows all cards with columns for:
 **Sentence Builder Data:**
 - Upload sentence word lists
 - Edit which words appear in sentence building exercises
+- Click on any word chip to link it to a specific picture card
+- Words are auto-linked to matching cards on load, but can be manually overridden
 
 **Sentence Review Data:**
 - Create and edit sentence review lessons

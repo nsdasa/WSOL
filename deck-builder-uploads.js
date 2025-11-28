@@ -1363,8 +1363,7 @@ DeckBuilderModule.prototype.setupSentenceWordsEditor = function() {
     });
 
     // Initialize editor state
-    this.swAllLessonsData = {}; // All lessons data: { lessonNum: { wordType: [...words] } }
-    this.swWordCardLinks = {}; // Manual card links: { "lessonNum:wordType:word": cardNum }
+    this.swAllLessonsData = {}; // All lessons data: { lessonNum: { wordType: [{ word, cardNum }, ...] } }
     this.swExpandedLessons = new Set(); // Track expanded lessons
     this.swEditedLessons = new Set(); // Track which lessons have been edited
     this.swEditorInitialized = false;
@@ -1425,6 +1424,9 @@ DeckBuilderModule.prototype.loadAllSentenceWordsForLanguage = function() {
     // Deep clone for editing
     this.swAllLessonsData = JSON.parse(JSON.stringify(sentenceWords));
 
+    // Normalize words to objects and auto-link cards
+    this.normalizeAndAutoLinkWords(lang);
+
     // Also get max lesson from cards to ensure we show all possible lessons
     const cards = this.assets.manifest?.cards?.[lang] || [];
     const maxLesson = Math.max(...cards.map(c => c.lesson || 1), 1);
@@ -1437,6 +1439,42 @@ DeckBuilderModule.prototype.loadAllSentenceWordsForLanguage = function() {
     }
 
     this.renderSentenceWordsLessonsList();
+};
+
+/**
+ * Normalize words to objects with cardNum and auto-link cards
+ * Converts legacy string arrays to object arrays: "word" -> { word: "word", cardNum: null }
+ * Auto-links cards for words without explicit cardNum
+ */
+DeckBuilderModule.prototype.normalizeAndAutoLinkWords = function(lang) {
+    for (const lessonNum of Object.keys(this.swAllLessonsData)) {
+        const lessonData = this.swAllLessonsData[lessonNum];
+
+        for (const wordType of Object.keys(lessonData)) {
+            const words = lessonData[wordType];
+            if (!Array.isArray(words)) continue;
+
+            // Convert to normalized objects and auto-link
+            lessonData[wordType] = words.map(wordItem => {
+                // Handle legacy string format
+                if (typeof wordItem === 'string') {
+                    const card = this.findCardForWord(wordItem, lang);
+                    return {
+                        word: wordItem,
+                        cardNum: card ? card.cardNum : null
+                    };
+                }
+
+                // Already an object - auto-link if no cardNum set
+                if (wordItem.cardNum === undefined || wordItem.cardNum === null) {
+                    const card = this.findCardForWord(wordItem.word, lang);
+                    wordItem.cardNum = card ? card.cardNum : null;
+                }
+
+                return wordItem;
+            });
+        }
+    }
 };
 
 DeckBuilderModule.prototype.renderSentenceWordsLessonsList = function() {
@@ -1524,16 +1562,19 @@ DeckBuilderModule.prototype.renderWordTypesForLesson = function(lessonNum, lesso
                 <div class="sw-type-body">
                     <div class="sw-word-chips">`;
 
-        for (const word of (words || [])) {
-            const cardMatch = this.findCardForWord(word, lang);
-            const validClass = cardMatch ? 'valid' : 'invalid';
-            const escapedWord = word.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        for (const wordItem of (words || [])) {
+            // Handle both object format { word, cardNum } and legacy string format
+            const wordText = typeof wordItem === 'string' ? wordItem : wordItem.word;
+            const cardNum = typeof wordItem === 'object' ? wordItem.cardNum : null;
+            const validClass = cardNum ? 'valid' : 'invalid';
+            const escapedWord = wordText.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             html += `
                         <div class="sw-word-chip ${validClass}"
-                             data-word="${word}"
+                             data-word="${wordText}"
                              data-lesson="${lessonNum}"
-                             data-type="${wordType}">
-                            <span class="sw-chip-text">${word}</span>
+                             data-type="${wordType}"
+                             data-cardnum="${cardNum || ''}">
+                            <span class="sw-chip-text">${wordText}</span>
                             <button class="sw-chip-delete" data-lesson="${lessonNum}" data-type="${wordType}" data-word="${escapedWord}">&times;</button>
                         </div>`;
         }
@@ -1637,7 +1678,8 @@ DeckBuilderModule.prototype.attachSentenceWordsListeners = function() {
     document.querySelectorAll('.sw-word-chip').forEach(chip => {
         chip.addEventListener('mouseenter', (e) => {
             const word = chip.dataset.word;
-            this.showWordPreview(e, word, lang);
+            const cardNum = chip.dataset.cardnum ? parseInt(chip.dataset.cardnum) : null;
+            this.showWordPreview(e, word, lang, cardNum);
         });
         chip.addEventListener('mouseleave', () => {
             this.hideWordPreview();
@@ -1716,6 +1758,7 @@ DeckBuilderModule.prototype.deleteWordTypeFromLesson = function(lessonNum, wordT
 };
 
 DeckBuilderModule.prototype.addWordToTypeInLesson = function(lessonNum, wordType) {
+    const lang = document.getElementById('swEditorLanguage').value;
     const word = prompt(`Add new word to "${wordType}" in Lesson ${lessonNum}:`);
     if (!word || !word.trim()) return;
 
@@ -1727,27 +1770,48 @@ DeckBuilderModule.prototype.addWordToTypeInLesson = function(lessonNum, wordType
         this.swAllLessonsData[lessonNum][wordType] = [];
     }
 
-    if (this.swAllLessonsData[lessonNum][wordType].includes(trimmedWord)) {
+    // Check for duplicate by word text (handle both string and object formats)
+    const words = this.swAllLessonsData[lessonNum][wordType];
+    const isDuplicate = words.some(w =>
+        (typeof w === 'string' ? w : w.word) === trimmedWord
+    );
+    if (isDuplicate) {
         toastManager?.show('Word already exists in this category', 'error');
         return;
     }
 
-    this.swAllLessonsData[lessonNum][wordType].push(trimmedWord);
+    // Auto-link card and push as object
+    const card = this.findCardForWord(trimmedWord, lang);
+    words.push({
+        word: trimmedWord,
+        cardNum: card ? card.cardNum : null
+    });
+
     this.swEditedLessons.add(lessonNum);
     this.renderSentenceWordsLessonsList();
     toastManager?.show(`Added "${trimmedWord}" to ${wordType}`, 'success');
 };
 
 DeckBuilderModule.prototype.editWordInLesson = function(lessonNum, wordType, oldWord) {
+    const lang = document.getElementById('swEditorLanguage').value;
     const newWord = prompt(`Edit word:`, oldWord);
     if (!newWord || !newWord.trim() || newWord.trim() === oldWord) return;
 
     const trimmedWord = newWord.trim();
     const words = this.swAllLessonsData[lessonNum]?.[wordType] || [];
-    const index = words.indexOf(oldWord);
+    // Find by word text (handle both string and object formats)
+    const index = words.findIndex(w =>
+        (typeof w === 'string' ? w : w.word) === oldWord
+    );
 
     if (index > -1) {
-        this.swAllLessonsData[lessonNum][wordType][index] = trimmedWord;
+        const oldItem = words[index];
+        // Re-link card when word text changes
+        const card = this.findCardForWord(trimmedWord, lang);
+        words[index] = {
+            word: trimmedWord,
+            cardNum: card ? card.cardNum : null
+        };
         this.swEditedLessons.add(lessonNum);
         this.renderSentenceWordsLessonsList();
         toastManager?.show(`Updated word to "${trimmedWord}"`, 'success');
@@ -1758,7 +1822,10 @@ DeckBuilderModule.prototype.deleteWordFromLesson = function(lessonNum, wordType,
     if (!confirm(`Delete "${word}" from ${wordType}?`)) return;
 
     const words = this.swAllLessonsData[lessonNum]?.[wordType] || [];
-    const index = words.indexOf(word);
+    // Find by word text (handle both string and object formats)
+    const index = words.findIndex(w =>
+        (typeof w === 'string' ? w : w.word) === word
+    );
 
     if (index > -1) {
         this.swAllLessonsData[lessonNum][wordType].splice(index, 1);
@@ -1875,19 +1942,29 @@ DeckBuilderModule.prototype.findCardForWord = function(word, lang) {
 
 /**
  * Open modal to link a word to a specific card
+ * Saves cardNum directly to the word object in swAllLessonsData
  */
 DeckBuilderModule.prototype.openWordCardLinkModal = function(lessonNum, wordType, word, lang) {
     const allCards = this.assets.getCards({ lesson: null });
-    const linkKey = `${lessonNum}:${wordType}:${word}`;
-    const currentCardNum = this.swWordCardLinks[linkKey];
-    const autoMatchCard = this.findCardForWord(word, lang);
 
-    // Get currently linked card (manual or auto-match)
+    // Find the word object in swAllLessonsData
+    const words = this.swAllLessonsData[lessonNum]?.[wordType] || [];
+    const wordIndex = words.findIndex(w =>
+        (typeof w === 'string' ? w : w.word) === word
+    );
+
+    if (wordIndex === -1) {
+        toastManager?.show('Word not found', 'error');
+        return;
+    }
+
+    const wordObj = words[wordIndex];
+    const currentCardNum = typeof wordObj === 'object' ? wordObj.cardNum : null;
+
+    // Get currently linked card
     let currentCard = null;
     if (currentCardNum) {
         currentCard = allCards.find(c => c.cardNum === currentCardNum);
-    } else if (autoMatchCard) {
-        currentCard = autoMatchCard;
     }
 
     // Create modal
@@ -1909,7 +1986,7 @@ DeckBuilderModule.prototype.openWordCardLinkModal = function(lessonNum, wordType
                         <h4>Currently Linked To:</h4>
                         <div class="sw-current-picture">
                             ${imgPath ? `<img src="${imgPath}" alt="Current">` : '<div class="no-image">No Image</div>'}
-                            <span>Card #${currentCard.cardNum}${currentCardNum ? '' : ' (auto-matched)'}</span>
+                            <span>Card #${currentCard.cardNum} - ${currentCard.word}</span>
                         </div>
                     </div>
                 ` : `
@@ -1937,7 +2014,7 @@ DeckBuilderModule.prototype.openWordCardLinkModal = function(lessonNum, wordType
                         <i class="fas fa-edit"></i> Edit Word Text
                     </button>
                     <button id="swRemoveLinkBtn" class="btn btn-outline-danger ${currentCardNum ? '' : 'hidden'}">
-                        <i class="fas fa-unlink"></i> Remove Manual Link
+                        <i class="fas fa-unlink"></i> Remove Card Link
                     </button>
                 </div>
             </div>
@@ -1946,9 +2023,15 @@ DeckBuilderModule.prototype.openWordCardLinkModal = function(lessonNum, wordType
 
     document.body.appendChild(modal);
 
-    // Helper to apply a link and close modal
+    // Helper to apply a link and close modal - saves directly to word object
     const applyLink = (cardNum) => {
-        this.swWordCardLinks[linkKey] = cardNum;
+        // Update the word object directly
+        if (typeof words[wordIndex] === 'string') {
+            words[wordIndex] = { word: words[wordIndex], cardNum: cardNum };
+        } else {
+            words[wordIndex].cardNum = cardNum;
+        }
+
         this.swEditedLessons.add(lessonNum);
         this.renderSentenceWordsLessonsList();
         this.updateSaveAllButtonState();
@@ -2018,14 +2101,16 @@ DeckBuilderModule.prototype.openWordCardLinkModal = function(lessonNum, wordType
         this.editWordInLesson(lessonNum, wordType, word);
     });
 
-    // Remove link button
+    // Remove link button - sets cardNum to null
     document.getElementById('swRemoveLinkBtn')?.addEventListener('click', () => {
-        delete this.swWordCardLinks[linkKey];
+        if (typeof words[wordIndex] === 'object') {
+            words[wordIndex].cardNum = null;
+        }
         this.swEditedLessons.add(lessonNum);
         this.renderSentenceWordsLessonsList();
         this.updateSaveAllButtonState();
         modal.remove();
-        toastManager?.show('Manual link removed', 'success');
+        toastManager?.show('Card link removed', 'success');
     });
 
     // Close modal
@@ -2107,8 +2192,17 @@ DeckBuilderModule.prototype.deleteWordType = function(wordType) {
     toastManager?.show(`Deleted word type "${wordType}"`, 'success');
 };
 
-DeckBuilderModule.prototype.showWordPreview = function(event, word, lang) {
-    const card = this.findCardForWord(word, lang);
+DeckBuilderModule.prototype.showWordPreview = function(event, word, lang, cardNum) {
+    // Use explicit cardNum if provided, otherwise fall back to auto-matching
+    let card = null;
+    if (cardNum) {
+        const allCards = this.assets.manifest?.cards?.[lang] || [];
+        card = allCards.find(c => c.cardNum === cardNum);
+    }
+    if (!card) {
+        card = this.findCardForWord(word, lang);
+    }
+
     const preview = document.getElementById('swCardPreview');
 
     if (!card) {
