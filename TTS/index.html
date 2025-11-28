@@ -397,6 +397,15 @@
                     <input type="password" id="apiKey" placeholder="Enter your ElevenLabs API key">
                 </div>
                 <div class="config-group">
+                    <label for="voiceFilter">Voice Filter</label>
+                    <select id="voiceFilter" onchange="filterVoices()">
+                        <option value="all">All Voices</option>
+                        <option value="filipino">Filipino/Tagalog</option>
+                        <option value="cebuano">Cebuano</option>
+                        <option value="asian">Asian Languages</option>
+                    </select>
+                </div>
+                <div class="config-group">
                     <label for="voiceSelect">Voice</label>
                     <select id="voiceSelect">
                         <option value="">-- Load voices first --</option>
@@ -444,7 +453,17 @@
         <!-- Rate Limit Info -->
         <div class="rate-limit-info">
             <strong>Note:</strong> ElevenLabs has rate limits. Processing includes a 1-second delay between requests to avoid hitting limits.
-            Batch processing saves files in OPUS format to the correct asset directories.
+        </div>
+
+        <!-- Filipino Voice Tips -->
+        <div class="rate-limit-info" style="background: #e0f2fe; border-color: #0284c7;">
+            <strong>Filipino/Cebuano Tips:</strong>
+            <ul style="margin: 5px 0 0 20px; font-size: 13px;">
+                <li><strong>Model:</strong> Use "Multilingual v2" - it supports Filipino (Tagalog) and can handle Cebuano reasonably well</li>
+                <li><strong>Voice Filter:</strong> Try "Filipino/Tagalog" to find voices with Filipino accents from the Voice Library</li>
+                <li><strong>Any Voice Works:</strong> With Multilingual v2, any voice can speak Filipino text - the model handles pronunciation</li>
+                <li><strong>Cebuano:</strong> No dedicated Cebuano voices exist, but Multilingual v2 handles it through its general multilingual capability</li>
+            </ul>
         </div>
 
         <!-- Tabs -->
@@ -729,17 +748,114 @@
                 const data = await response.json();
                 voices = data.voices;
 
-                const select = document.getElementById('voiceSelect');
-                select.innerHTML = '<option value="">-- Select a voice --</option>';
+                // Also try to get shared voices for Filipino languages
+                try {
+                    const sharedResponse = await fetch('https://api.elevenlabs.io/v1/shared-voices?page_size=100&language=fil', {
+                        headers: {
+                            'xi-api-key': apiKey
+                        }
+                    });
+                    if (sharedResponse.ok) {
+                        const sharedData = await sharedResponse.json();
+                        if (sharedData.voices) {
+                            // Mark shared voices and add to list
+                            sharedData.voices.forEach(v => {
+                                v.isShared = true;
+                                v.labels = v.labels || {};
+                                v.labels.source = 'Voice Library';
+                                v.labels.language = 'Filipino';
+                            });
+                            voices = voices.concat(sharedData.voices);
+                        }
+                    }
+                } catch (e) {
+                    // Shared voices optional, continue without
+                }
 
-                voices.forEach(voice => {
-                    const labels = voice.labels ? Object.values(voice.labels).join(', ') : '';
-                    select.innerHTML += `<option value="${voice.voice_id}">${voice.name} ${labels ? '(' + labels + ')' : ''}</option>`;
-                });
-
+                filterVoices();
                 log(`Loaded ${voices.length} voices`, 'success');
             } catch (error) {
                 log('Error loading voices: ' + error.message, 'error');
+            }
+        }
+
+        // Filter voices based on language selection
+        function filterVoices() {
+            const filter = document.getElementById('voiceFilter').value;
+            const select = document.getElementById('voiceSelect');
+            select.innerHTML = '<option value="">-- Select a voice --</option>';
+
+            if (!voices || voices.length === 0) {
+                return;
+            }
+
+            // Keywords to match for each filter
+            const filterKeywords = {
+                'filipino': ['filipino', 'tagalog', 'philippines', 'fil', 'tl'],
+                'cebuano': ['cebuano', 'bisaya', 'visayan', 'ceb'],
+                'asian': ['filipino', 'tagalog', 'cebuano', 'asian', 'chinese', 'japanese', 'korean', 'vietnamese', 'thai', 'indonesian', 'malay']
+            };
+
+            let filteredVoices = voices;
+
+            if (filter !== 'all' && filterKeywords[filter]) {
+                const keywords = filterKeywords[filter];
+                filteredVoices = voices.filter(voice => {
+                    // Check voice name
+                    const nameLower = voice.name.toLowerCase();
+                    if (keywords.some(kw => nameLower.includes(kw))) return true;
+
+                    // Check labels
+                    if (voice.labels) {
+                        const labelValues = Object.values(voice.labels).map(v => String(v).toLowerCase());
+                        const labelKeys = Object.keys(voice.labels).map(k => k.toLowerCase());
+                        const allLabels = [...labelValues, ...labelKeys].join(' ');
+                        if (keywords.some(kw => allLabels.includes(kw))) return true;
+                    }
+
+                    // Check description if available
+                    if (voice.description) {
+                        const descLower = voice.description.toLowerCase();
+                        if (keywords.some(kw => descLower.includes(kw))) return true;
+                    }
+
+                    // Check fine_tuning language if available
+                    if (voice.fine_tuning?.language) {
+                        const ftLang = voice.fine_tuning.language.toLowerCase();
+                        if (keywords.some(kw => ftLang.includes(kw))) return true;
+                    }
+
+                    return false;
+                });
+            }
+
+            // Sort: prioritize voices with relevant language labels
+            filteredVoices.sort((a, b) => {
+                const aHasLang = a.labels?.language || a.labels?.accent || '';
+                const bHasLang = b.labels?.language || b.labels?.accent || '';
+                if (aHasLang && !bHasLang) return -1;
+                if (!aHasLang && bHasLang) return 1;
+                return a.name.localeCompare(b.name);
+            });
+
+            filteredVoices.forEach(voice => {
+                const labelParts = [];
+                if (voice.labels) {
+                    if (voice.labels.language) labelParts.push(voice.labels.language);
+                    if (voice.labels.accent) labelParts.push(voice.labels.accent);
+                    if (voice.labels.gender) labelParts.push(voice.labels.gender);
+                    if (voice.labels.age) labelParts.push(voice.labels.age);
+                    if (voice.labels.source) labelParts.push(voice.labels.source);
+                }
+                const labelStr = labelParts.length > 0 ? ` (${labelParts.join(', ')})` : '';
+                select.innerHTML += `<option value="${voice.voice_id}">${voice.name}${labelStr}</option>`;
+            });
+
+            if (filteredVoices.length === 0) {
+                select.innerHTML = '<option value="">-- No matching voices found --</option>';
+                log(`No voices found matching "${filter}" filter. Try "All Voices" and use Multilingual v2 model.`, 'info');
+            } else {
+                log(`Showing ${filteredVoices.length} voices for "${filter}" filter`, 'info');
             }
         }
 
