@@ -3290,6 +3290,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     /**
      * Export Sentence Words CSV (per language)
      * Format: Lesson #,Q&A,Verb,Adverb,Function Words,Pronoun,Noun,Adjective,Preposition,Numbers,Special
+     * Words can be strings or objects { word, cardNum } - both formats are supported
      */
     exportSentenceWordsCSV() {
         const sentenceWords = this.assets.manifest?.sentenceWords?.[this.currentTrigraph];
@@ -3314,8 +3315,13 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
             for (const wordType of wordTypes) {
                 const words = lessonData[wordType] || [];
-                // Join words with comma, escape the whole cell
-                const cellValue = words.join(', ');
+                // Handle both string and object formats: { word, cardNum }
+                const wordTexts = words.map(w => {
+                    if (typeof w === 'string') return w;
+                    // Include cardNum in export if present: "word[#cardNum]"
+                    return w.cardNum ? `${w.word}[#${w.cardNum}]` : w.word;
+                });
+                const cellValue = wordTexts.join(', ');
                 row.push(this.escapeCSV(cellValue));
             }
 
