@@ -36,22 +36,29 @@ class SentenceReviewModule extends LearningModule {
                     </button>
                 </div>
 
+                <div class="sr-sentence-type-display hidden" id="srSentenceType">
+                    <i class="fas fa-comment"></i>
+                    <span id="srSentenceTypeText">Statement</span>
+                </div>
+
                 <div class="sr-sentence-area" id="srSentenceArea">
                     <!-- Pictures will be rendered here -->
                 </div>
 
-                <div class="sr-english-hint" id="srEnglishHint">
-                    <!-- English translation hint -->
+                <div class="sr-bubble-display hidden" id="srBubbleDisplay">
+                    <svg class="sr-connection-lines" id="srConnectionLines"></svg>
+                    <div class="sr-display-bubbles-row" id="srBubblesRow">
+                        <!-- Word bubbles will be rendered here -->
+                    </div>
+                    <div class="sr-english-translation" id="srEnglishTranslation">
+                        <!-- English translation here -->
+                    </div>
                 </div>
 
                 <div class="sr-reveal-section">
                     <button id="srRevealBtn" class="btn btn-primary btn-lg">
                         <i class="fas fa-eye"></i> Show Sentence Text
                     </button>
-                </div>
-
-                <div class="sr-revealed-text hidden" id="srRevealedText">
-                    <div class="sr-sentence-text" id="srSentenceText"></div>
                 </div>
 
                 <div class="sr-sequence-selector hidden" id="srSequenceSelector">
@@ -218,13 +225,14 @@ class SentenceReviewModule extends LearningModule {
 
         // Reset reveal state
         this.isTextRevealed = false;
-        document.getElementById('srRevealedText').classList.add('hidden');
+        document.getElementById('srBubbleDisplay').classList.add('hidden');
         document.getElementById('srRevealBtn').innerHTML = '<i class="fas fa-eye"></i> Show Sentence Text';
 
-        // Hide English hint initially (will show on reveal)
-        const englishHint = document.getElementById('srEnglishHint');
-        englishHint.textContent = sentence.english || '';
-        englishHint.classList.add('hidden');
+        // Display sentence type banner
+        this.displaySentenceType(sentence.sentenceType);
+
+        // Store current sentence for bubble rendering
+        this.currentSentence = sentence;
 
         // Render pictures
         area.innerHTML = '';
@@ -306,6 +314,9 @@ class SentenceReviewModule extends LearningModule {
 
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = 'sr-card-wrapper';
+                // Store data for connection lines
+                cardWrapper.dataset.cardNum = group.cardNum;
+                cardWrapper.dataset.wordIndices = JSON.stringify(group.wordIndices);
 
                 const cardInner = document.createElement('div');
                 cardInner.className = 'sr-card-inner';
@@ -400,6 +411,9 @@ class SentenceReviewModule extends LearningModule {
                 const placeholderEl = document.createElement('div');
                 placeholderEl.className = 'sr-word-placeholder';
                 placeholderEl.textContent = wordData.word;
+                // Store data for connection lines (function word has no cardNum)
+                placeholderEl.dataset.wordIndex = index;
+                placeholderEl.dataset.isFunctionWord = 'true';
                 wordContainer.appendChild(placeholderEl);
             }
 
@@ -408,8 +422,9 @@ class SentenceReviewModule extends LearningModule {
 
         area.appendChild(pictureRow);
 
-        // Update sentence text for reveal
-        document.getElementById('srSentenceText').textContent = sentence.text;
+        // Store phrase groups for bubble layout rendering
+        this.phraseGroups = phraseGroups;
+        this.skipIndices = skipIndices;
     }
 
     /**
@@ -421,23 +436,240 @@ class SentenceReviewModule extends LearningModule {
     }
 
     /**
-     * Toggle reveal of sentence text
+     * Toggle reveal of sentence text with bubble layout
      */
     toggleReveal() {
         this.isTextRevealed = !this.isTextRevealed;
-        const revealedText = document.getElementById('srRevealedText');
+        const bubbleDisplay = document.getElementById('srBubbleDisplay');
         const revealBtn = document.getElementById('srRevealBtn');
-        const englishHint = document.getElementById('srEnglishHint');
 
         if (this.isTextRevealed) {
-            revealedText.classList.remove('hidden');
-            englishHint.classList.remove('hidden');
+            // Render the bubble layout
+            this.renderBubbleLayout();
+            bubbleDisplay.classList.remove('hidden');
             revealBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Sentence Text';
+
+            // Draw connection lines after DOM update
+            requestAnimationFrame(() => {
+                this.drawConnectionLines();
+            });
         } else {
-            revealedText.classList.add('hidden');
-            englishHint.classList.add('hidden');
+            bubbleDisplay.classList.add('hidden');
             revealBtn.innerHTML = '<i class="fas fa-eye"></i> Show Sentence Text';
         }
+    }
+
+    /**
+     * Display sentence type banner with appropriate color and icon
+     */
+    displaySentenceType(sentenceType) {
+        const typeDisplay = document.getElementById('srSentenceType');
+        const typeText = document.getElementById('srSentenceTypeText');
+        const typeIcon = typeDisplay.querySelector('i');
+
+        if (!sentenceType) {
+            typeDisplay.classList.add('hidden');
+            return;
+        }
+
+        // Remove all type classes
+        typeDisplay.classList.remove('type-question', 'type-statement', 'type-command', 'type-answer');
+
+        // Set type-specific class, icon, and text
+        const typeLower = sentenceType.toLowerCase();
+        typeDisplay.classList.add(`type-${typeLower}`);
+        typeText.textContent = sentenceType.toUpperCase();
+
+        // Set icon based on type
+        const iconMap = {
+            'question': 'fa-circle-question',
+            'statement': 'fa-comment',
+            'command': 'fa-bullhorn',
+            'answer': 'fa-reply'
+        };
+        typeIcon.className = `fas ${iconMap[typeLower] || 'fa-comment'}`;
+
+        typeDisplay.classList.remove('hidden');
+    }
+
+    /**
+     * Render the bubble layout with word bubbles below picture cards
+     */
+    renderBubbleLayout() {
+        const bubblesRow = document.getElementById('srBubblesRow');
+        const englishTranslation = document.getElementById('srEnglishTranslation');
+        const sentence = this.currentSentence;
+
+        if (!sentence) return;
+
+        // Clear previous content
+        bubblesRow.innerHTML = '';
+
+        // Build bubble layout - bubbles must be in same order as cards
+        // Group bubbles under their respective cards
+        const wordContainers = document.querySelectorAll('#srSentenceArea .sr-word-container');
+
+        wordContainers.forEach((container, containerIndex) => {
+            const cardWrapper = container.querySelector('.sr-card-wrapper');
+            const placeholder = container.querySelector('.sr-word-placeholder');
+
+            if (cardWrapper) {
+                // This is a picture card - create bubbles for all linked words
+                const wordIndices = JSON.parse(cardWrapper.dataset.wordIndices || '[]');
+                const cardNum = cardWrapper.dataset.cardNum;
+
+                // Create a bubble group container to keep multi-word phrases together
+                const bubbleGroup = document.createElement('div');
+                bubbleGroup.className = 'sr-bubble-group';
+                bubbleGroup.dataset.cardNum = cardNum;
+
+                wordIndices.forEach((wordIndex, i) => {
+                    const wordData = sentence.words[wordIndex];
+                    const bubble = this.createWordBubble(wordData, wordIndex, cardNum);
+                    bubbleGroup.appendChild(bubble);
+                });
+
+                bubblesRow.appendChild(bubbleGroup);
+
+            } else if (placeholder) {
+                // This is a function word placeholder - create a bubble for it
+                const wordIndex = parseInt(placeholder.dataset.wordIndex);
+                const wordData = sentence.words[wordIndex];
+
+                // Create a bubble group for consistency (single bubble)
+                const bubbleGroup = document.createElement('div');
+                bubbleGroup.className = 'sr-bubble-group function-word-group';
+
+                const bubble = this.createWordBubble(wordData, wordIndex, null, true);
+                bubbleGroup.appendChild(bubble);
+                bubblesRow.appendChild(bubbleGroup);
+            }
+        });
+
+        // Set English translation
+        englishTranslation.textContent = sentence.english || '';
+    }
+
+    /**
+     * Create a word bubble element
+     */
+    createWordBubble(wordData, wordIndex, cardNum, isFunctionWord = false) {
+        const bubble = document.createElement('div');
+        bubble.className = 'sr-display-bubble';
+        if (isFunctionWord) {
+            bubble.classList.add('function-word');
+        }
+        bubble.dataset.wordIndex = wordIndex;
+        if (cardNum) {
+            bubble.dataset.cardNum = cardNum;
+        }
+
+        const text = document.createElement('span');
+        text.className = 'sr-bubble-text';
+        text.textContent = wordData.word;
+        bubble.appendChild(text);
+
+        // Add speaker icon if audio available
+        const card = cardNum ? this.findCardByNum(parseInt(cardNum)) : null;
+        if (card?.hasAudio && card?.audioPath?.length > 0) {
+            const speaker = document.createElement('span');
+            speaker.className = 'sr-bubble-speaker';
+            speaker.innerHTML = '<i class="fas fa-volume-up"></i>';
+            bubble.appendChild(speaker);
+        }
+
+        // Add click handler for audio
+        bubble.addEventListener('click', () => {
+            if (card?.hasAudio && card?.audioPath?.length > 0) {
+                this.playCardAudio(card);
+            }
+        });
+
+        return bubble;
+    }
+
+    /**
+     * Draw SVG connection lines from picture cards down to word bubbles
+     */
+    drawConnectionLines() {
+        const svg = document.getElementById('srConnectionLines');
+        const sentenceArea = document.getElementById('srSentenceArea');
+        const bubbleDisplay = document.getElementById('srBubbleDisplay');
+
+        if (!svg || !sentenceArea || !bubbleDisplay) return;
+
+        // Clear existing lines
+        svg.innerHTML = '';
+
+        // Get the bounding rect of the bubble display container for relative positioning
+        const containerRect = bubbleDisplay.getBoundingClientRect();
+
+        // Get all card wrappers and placeholders
+        const cardWrappers = sentenceArea.querySelectorAll('.sr-card-wrapper');
+        const placeholders = sentenceArea.querySelectorAll('.sr-word-placeholder');
+        const bubbleGroups = document.querySelectorAll('#srBubblesRow .sr-bubble-group');
+
+        // Match cards/placeholders with bubble groups by position (same order)
+        let groupIndex = 0;
+
+        // Process card wrappers
+        cardWrappers.forEach((cardWrapper) => {
+            const bubbleGroup = bubbleGroups[groupIndex];
+            if (!bubbleGroup) return;
+
+            const cardRect = cardWrapper.getBoundingClientRect();
+            const cardCenterX = cardRect.left + cardRect.width / 2 - containerRect.left;
+            const cardBottomY = cardRect.bottom - containerRect.top;
+
+            // Get all bubbles in this group
+            const bubbles = bubbleGroup.querySelectorAll('.sr-display-bubble');
+
+            bubbles.forEach((bubble) => {
+                const bubbleRect = bubble.getBoundingClientRect();
+                const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2 - containerRect.left;
+                const bubbleTopY = bubbleRect.top - containerRect.top;
+
+                // Create line from card bottom to bubble top
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', cardCenterX);
+                line.setAttribute('y1', cardBottomY);
+                line.setAttribute('x2', bubbleCenterX);
+                line.setAttribute('y2', bubbleTopY);
+                line.setAttribute('class', 'sr-connection-line');
+                svg.appendChild(line);
+            });
+
+            groupIndex++;
+        });
+
+        // Process placeholders (function words)
+        placeholders.forEach((placeholder) => {
+            const bubbleGroup = bubbleGroups[groupIndex];
+            if (!bubbleGroup) return;
+
+            const placeholderRect = placeholder.getBoundingClientRect();
+            const placeholderCenterX = placeholderRect.left + placeholderRect.width / 2 - containerRect.left;
+            const placeholderBottomY = placeholderRect.bottom - containerRect.top;
+
+            // Get the bubble in this group
+            const bubble = bubbleGroup.querySelector('.sr-display-bubble');
+            if (bubble) {
+                const bubbleRect = bubble.getBoundingClientRect();
+                const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2 - containerRect.left;
+                const bubbleTopY = bubbleRect.top - containerRect.top;
+
+                // Create line from placeholder bottom to bubble top
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', placeholderCenterX);
+                line.setAttribute('y1', placeholderBottomY);
+                line.setAttribute('x2', bubbleCenterX);
+                line.setAttribute('y2', bubbleTopY);
+                line.setAttribute('class', 'sr-connection-line function-word-line');
+                svg.appendChild(line);
+            }
+
+            groupIndex++;
+        });
     }
 
     /**

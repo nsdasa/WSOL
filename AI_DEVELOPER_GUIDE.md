@@ -284,7 +284,7 @@ CSV Files ──► scan-assets.php ──► manifest.json ──► AssetManag
 | `MatchSoundModule` | match-sound-module.js | Match audio to words (listening) |
 | `UnsaNiQuizModule` | quiz-module.js | Type-the-word quiz from picture |
 | `SentenceBuilderModule` | sentence-builder-module.js | Build sentences by selecting word cards |
-| `SentenceReviewModule` | sentence-review-module.js | Practice predefined sentences |
+| `SentenceReviewModule` | sentence-review-module.js | Practice predefined sentences with visual word-picture connections |
 | `GrammarModule` | grammar-module.js | Display grammar HTML lessons |
 | `TeacherGuideModule` | teacher-guide-module.js | Display teacher guide HTML |
 | `PDFPrintModule` | pdf-module.js | Generate printable flashcards/worksheets |
@@ -733,6 +733,44 @@ if (card.isVideo) {
     container.appendChild(img);
 }
 ```
+
+### SentenceReviewModule Methods
+
+The SentenceReviewModule has several key methods for displaying sentence type and visual connections:
+
+```javascript
+// Display sentence type banner with color-coded styling
+displaySentenceType(sentenceType)
+// sentenceType: 'Question' | 'Statement' | 'Command' | 'Answer' | null
+
+// Render word bubbles below picture cards
+renderBubbleLayout()
+// Creates bubble groups matching card order, with speaker icons for audio
+
+// Create individual word bubble element
+createWordBubble(wordData, wordIndex, cardNum, isFunctionWord)
+// Returns DOM element for the bubble
+
+// Draw SVG connection lines from cards to bubbles
+drawConnectionLines()
+// Uses requestAnimationFrame for accurate positioning
+```
+
+**Key CSS Classes:**
+- `.sr-sentence-type-display` - Sentence type banner (with `.type-question`, `.type-statement`, `.type-command`, `.type-answer`)
+- `.sr-bubble-display` - Container for bubbles and connection lines
+- `.sr-display-bubbles-row` - Row of word bubbles
+- `.sr-bubble-group` - Groups bubbles belonging to same card
+- `.sr-display-bubble` - Individual word bubble (`.function-word` variant for function words)
+- `.sr-connection-lines` - SVG container for lines
+- `.sr-connection-line` - Individual SVG line (`.function-word-line` variant)
+- `.sr-english-translation` - English text at bottom
+
+**Data Attributes on Card Elements:**
+- `data-card-num` - Card number for connection mapping
+- `data-word-indices` - JSON array of word indices belonging to card
+- `data-word-index` - Index of individual word
+- `data-is-function-word` - True for function word placeholders
 
 ---
 
