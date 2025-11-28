@@ -1972,7 +1972,8 @@ DeckBuilderModule.prototype.openWordCardLinkModal = function(lessonNum, wordType
     modal.className = 'modal sw-card-link-modal';
     modal.id = 'swCardLinkModal';
 
-    const imgPath = currentCard ? (currentCard.imagePath || currentCard.printImagePath) : null;
+    // Use assetManager.getImagePath for proper image resolution
+    const imgPath = currentCard ? this.assets.getImagePath(currentCard) : null;
 
     modal.innerHTML = `
         <div class="modal-content">
@@ -2061,7 +2062,8 @@ DeckBuilderModule.prototype.openWordCardLinkModal = function(lessonNum, wordType
         }
 
         grid.innerHTML = matchingCards.map(card => {
-            const cardImgPath = card.imagePath || card.printImagePath;
+            // Use assetManager.getImagePath for proper image resolution
+            const cardImgPath = this.assets.getImagePath(card);
             return `
                 <div class="sw-card-option" data-cardnum="${card.cardNum}">
                     ${cardImgPath ? `<img src="${cardImgPath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
