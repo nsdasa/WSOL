@@ -377,6 +377,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <script src="sentence-builder-module.js?v=<?php echo cacheBust('sentence-builder-module.js'); ?>"></script>
     <script src="sentence-review-module.js?v=<?php echo cacheBust('sentence-review-module.js'); ?>"></script>
     <script src="sentence-review-builder.js?v=<?php echo cacheBust('sentence-review-builder.js'); ?>"></script>
+    <script src="card-sentence-sync.js?v=<?php echo cacheBust('card-sentence-sync.js'); ?>"></script>
     <script src="conversation-practice-module.js?v=<?php echo cacheBust('conversation-practice-module.js'); ?>"></script>
     <script src="picture-story-module.js?v=<?php echo cacheBust('picture-story-module.js'); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

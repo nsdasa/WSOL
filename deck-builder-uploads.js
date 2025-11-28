@@ -2315,3 +2315,24 @@ DeckBuilderModule.prototype.notifySentenceReviewBuilderLanguageChange = function
         this.sentenceReviewBuilder.onLanguageChange(trigraph);
     }
 };
+
+// =================================================================
+// CARD-SENTENCE SYNC MANAGER INTEGRATION
+// =================================================================
+
+/**
+ * Setup the Card-Sentence Sync Manager
+ * Should be called after the deck builder is initialized
+ */
+DeckBuilderModule.prototype.setupCardSentenceSyncManager = function() {
+    // Check if CardSentenceSyncManager class is available
+    if (typeof CardSentenceSyncManager === 'undefined') {
+        console.warn('CardSentenceSyncManager class not loaded');
+        return;
+    }
+
+    // Create and store the sync manager instance
+    this.cardSentenceSyncManager = new CardSentenceSyncManager(this);
+
+    debugLogger?.log(2, 'Card-Sentence Sync Manager initialized');
+};
