@@ -3985,3 +3985,486 @@ body.mobile-phone .deck-section .language-uploads {
         flex-direction: column;
     }
 }
+
+/* =================================================================
+   CONVERSATION ZONE BUILDER STYLES
+   ================================================================= */
+
+/* CSV Upload Area */
+.cz-csv-upload-area,
+.sz-csv-upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 16px 0;
+}
+
+.cz-csv-upload-area:hover,
+.sz-csv-upload-area:hover,
+.cz-csv-upload-area.dragover,
+.sz-csv-upload-area.dragover {
+    border-color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.05);
+}
+
+.cz-csv-upload-area i,
+.sz-csv-upload-area i {
+    font-size: 48px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.cz-csv-file-input,
+.sz-csv-file-input {
+    display: none;
+}
+
+.cz-csv-file-info,
+.sz-csv-file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin: 16px 0;
+}
+
+.cz-csv-file-info i,
+.sz-csv-file-info i {
+    color: var(--success);
+    font-size: 24px;
+}
+
+.cz-csv-remove-btn,
+.sz-csv-remove-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--error);
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.cz-import-actions,
+.sz-import-actions {
+    margin-top: 12px;
+}
+
+/* Preview Sections */
+.cz-builder-preview,
+.sz-builder-preview {
+    margin: 20px 0;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.cz-preview-conversation,
+.sz-preview-story {
+    margin: 12px 0;
+    padding: 12px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.cz-preview-header,
+.sz-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.cz-preview-header .pair-count,
+.sz-preview-header .sentence-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.cz-preview-pairs,
+.sz-preview-sentences {
+    font-size: 13px;
+}
+
+.cz-preview-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cz-preview-pair:last-child {
+    border-bottom: none;
+}
+
+.pair-q {
+    color: var(--primary);
+}
+
+.pair-a {
+    color: var(--success);
+    padding-left: 16px;
+}
+
+.sz-preview-sentence {
+    display: flex;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sz-preview-sentence:last-child {
+    border-bottom: none;
+}
+
+.sz-preview-sentence .position {
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 24px;
+}
+
+.cz-preview-actions,
+.sz-preview-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+/* Conversations/Stories List */
+.cz-conversations-list,
+.sz-stories-list {
+    margin: 16px 0;
+}
+
+.cz-conversation-item,
+.sz-story-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.cz-conversation-header,
+.sz-story-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.cz-conversation-header:hover,
+.sz-story-header:hover {
+    background: var(--bg-tertiary);
+}
+
+.cz-conversation-header .expand-icon,
+.sz-story-header .expand-icon {
+    color: var(--text-secondary);
+}
+
+.cz-conversation-header .conv-title,
+.sz-story-header .story-title {
+    font-weight: 600;
+    flex: 1;
+}
+
+.cz-conversation-header .conv-lesson,
+.sz-story-header .story-lesson {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.cz-conversation-header .pair-count,
+.sz-story-header .sentence-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.edited-badge {
+    font-size: 11px;
+    background: var(--warning);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.cz-conversation-content,
+.sz-story-content {
+    padding: 16px;
+    background: var(--bg-primary);
+}
+
+.cz-empty-state,
+.sz-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.cz-empty-state i,
+.sz-empty-state i {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+/* Q&A Pairs List */
+.cz-pairs-list {
+    margin-bottom: 12px;
+}
+
+.cz-pair-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cz-pair-item:last-of-type {
+    border-bottom: none;
+}
+
+.cz-pair-num {
+    font-weight: 700;
+    color: var(--text-secondary);
+    min-width: 24px;
+}
+
+.cz-pair-content {
+    flex: 1;
+}
+
+.cz-pair-question,
+.cz-pair-answer {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.cz-pair-question .pair-label {
+    font-weight: 600;
+    color: var(--primary);
+    min-width: 24px;
+}
+
+.cz-pair-answer .pair-label {
+    font-weight: 600;
+    color: var(--success);
+    min-width: 24px;
+}
+
+.cz-pair-question .pair-text,
+.cz-pair-answer .pair-text {
+    flex: 1;
+}
+
+.cz-pair-question .pair-num,
+.cz-pair-answer .pair-num {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.cz-pair-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.cz-add-pair {
+    margin-top: 12px;
+}
+
+/* Story Sentences List */
+.sz-sentences-list {
+    margin-bottom: 12px;
+}
+
+.sz-sentence-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: var(--bg-primary);
+    transition: box-shadow 0.2s ease;
+}
+
+.sz-sentence-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sz-sentence-item.sortable-ghost {
+    opacity: 0.5;
+    background: var(--primary-light);
+}
+
+.sz-drag-handle {
+    cursor: grab;
+    color: var(--text-secondary);
+    padding: 4px;
+}
+
+.sz-drag-handle:active {
+    cursor: grabbing;
+}
+
+.sz-position {
+    font-weight: 700;
+    color: var(--text-secondary);
+    min-width: 24px;
+}
+
+.sz-sentence-text {
+    flex: 1;
+}
+
+.sz-sentence-num {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.sz-remove-sentence {
+    opacity: 0.5;
+}
+
+.sz-sentence-item:hover .sz-remove-sentence {
+    opacity: 1;
+}
+
+.sz-add-sentence {
+    margin-top: 12px;
+}
+
+/* Pair Editor Modal */
+.cz-pair-modal .modal-content {
+    max-width: 600px;
+}
+
+.cz-pair-modal .form-group {
+    margin-bottom: 16px;
+}
+
+.cz-pair-modal .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.cz-pair-modal .mt-2 {
+    margin-top: 8px;
+}
+
+/* Sentence Picker Modal */
+.sz-sentence-modal .modal-content {
+    max-width: 700px;
+}
+
+.sz-sentence-options {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.sz-sentence-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.15s ease;
+}
+
+.sz-sentence-option:last-child {
+    border-bottom: none;
+}
+
+.sz-sentence-option:hover {
+    background: var(--bg-secondary);
+}
+
+.sz-sentence-option.selected {
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+
+.sz-sentence-option .num {
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 40px;
+}
+
+.sz-sentence-option .text {
+    flex: 1;
+}
+
+.sz-sentence-option .type {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.sz-sentence-modal .mt-3 {
+    margin-top: 16px;
+}
+
+/* Import description */
+.import-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.preview-summary {
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+/* No pairs/sentences message */
+.cz-no-pairs,
+.sz-no-sentences {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cz-conversation-header,
+    .sz-story-header {
+        flex-wrap: wrap;
+    }
+
+    .cz-pair-item {
+        flex-direction: column;
+    }
+
+    .cz-pair-actions {
+        align-self: flex-end;
+    }
+}

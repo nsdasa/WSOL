@@ -545,6 +545,154 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                     </div>
                 </div>
 
+                <!-- Conversation Zone Data Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="conversationZoneSection" data-section="conversation-zone">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-comments"></i> Conversation Zone Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
+                            <p class="section-description">
+                                Create Q&A conversation pairs for the Conversation Practice module.
+                                Each conversation contains question-answer pairs from the sentence pool.
+                            </p>
+
+                            <!-- Import Section -->
+                            <div class="cz-builder-import">
+                                <h4><i class="fas fa-file-csv"></i> Import from CSV</h4>
+                                <p class="import-description">
+                                    CSV format: Conversation Title, Lesson, Question Sentence #, Answer Sentence #
+                                </p>
+                                <div class="cz-csv-upload-area" id="czCSVDropZone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop CSV file here or click to browse</p>
+                                    <input type="file" id="czCSVFileInput" accept=".csv" class="cz-csv-file-input">
+                                </div>
+                                <div class="cz-csv-file-info hidden" id="czCSVFileInfo">
+                                    <i class="fas fa-file-csv"></i>
+                                    <span id="czCSVFileName"></span>
+                                    <button class="cz-csv-remove-btn" id="czCSVRemoveBtn" title="Remove file">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="cz-import-actions">
+                                    <button id="czParseCSVBtn" class="btn btn-primary" disabled>
+                                        <i class="fas fa-magic"></i> Parse CSV & Preview
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Preview Section -->
+                            <div class="cz-builder-preview hidden" id="czPreviewSection">
+                                <h4><i class="fas fa-search"></i> Preview Parsed Data</h4>
+                                <div id="czPreviewContent"></div>
+                                <div class="cz-preview-actions">
+                                    <button id="czApplyParseBtn" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Apply Import
+                                    </button>
+                                    <button id="czCancelParseBtn" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Conversations List -->
+                            <div class="cz-builder-conversations">
+                                <h4>
+                                    <i class="fas fa-list"></i> Conversations
+                                    <button id="czAddConversationBtn" class="btn btn-sm btn-success">
+                                        <i class="fas fa-plus"></i> Add Conversation
+                                    </button>
+                                </h4>
+                                <div id="czConversationsList" class="cz-conversations-list">
+                                    <!-- Conversations will be rendered here -->
+                                </div>
+                            </div>
+
+                            <div class="section-actions">
+                                <button id="czSaveAllBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save"></i> Save Conversation Zone Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Story Zone Data Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="storyZoneSection" data-section="story-zone">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-book-open"></i> Story Zone Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
+                            <p class="section-description">
+                                Create ordered story sequences for the Picture Story module.
+                                Each story contains sentences in a specific order that students must arrange.
+                            </p>
+
+                            <!-- Import Section -->
+                            <div class="sz-builder-import">
+                                <h4><i class="fas fa-file-csv"></i> Import from CSV</h4>
+                                <p class="import-description">
+                                    CSV format: Story Title, Lesson, Position, Sentence #
+                                </p>
+                                <div class="sz-csv-upload-area" id="szCSVDropZone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop CSV file here or click to browse</p>
+                                    <input type="file" id="szCSVFileInput" accept=".csv" class="sz-csv-file-input">
+                                </div>
+                                <div class="sz-csv-file-info hidden" id="szCSVFileInfo">
+                                    <i class="fas fa-file-csv"></i>
+                                    <span id="szCSVFileName"></span>
+                                    <button class="sz-csv-remove-btn" id="szCSVRemoveBtn" title="Remove file">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="sz-import-actions">
+                                    <button id="szParseCSVBtn" class="btn btn-primary" disabled>
+                                        <i class="fas fa-magic"></i> Parse CSV & Preview
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Preview Section -->
+                            <div class="sz-builder-preview hidden" id="szPreviewSection">
+                                <h4><i class="fas fa-search"></i> Preview Parsed Data</h4>
+                                <div id="szPreviewContent"></div>
+                                <div class="sz-preview-actions">
+                                    <button id="szApplyParseBtn" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Apply Import
+                                    </button>
+                                    <button id="szCancelParseBtn" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Stories List -->
+                            <div class="sz-builder-stories">
+                                <h4>
+                                    <i class="fas fa-list"></i> Stories
+                                    <button id="szAddStoryBtn" class="btn btn-sm btn-success">
+                                        <i class="fas fa-plus"></i> Add Story
+                                    </button>
+                                </h4>
+                                <div id="szStoriesList" class="sz-stories-list">
+                                    <!-- Stories will be rendered here -->
+                                </div>
+                            </div>
+
+                            <div class="section-actions">
+                                <button id="szSaveAllBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save"></i> Save Story Zone Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Grammar Files Management Section (Admin and Deck Manager only) -->
                 <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="grammarManagementSection" data-section="grammar">
                     <h3 class="section-title" role="button" tabindex="0">
@@ -880,6 +1028,9 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             this.setupGrammarUpload();
             this.setupTeacherGuideUpload();
             this.setupSentenceReviewBuilder();
+            this.setupConversationZoneBuilder();
+            this.setupStoryZoneBuilder();
+            this.setupSentencePoolManager();
             this.setupCardSentenceSyncManager();
             this.setupTourEditor();
         }
