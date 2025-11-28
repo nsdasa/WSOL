@@ -77,11 +77,43 @@ switch ($action) {
     case 'status':
         echo json_encode([
             'server' => 'Cebuano Dictionary Scraper LITE',
-            'version' => '1.0.0-php',
+            'version' => '1.0.1-php',
             'sources' => ['binisaya'],
             'scraper' => 'php-curl',
             'note' => 'DreamHost compatible - Binisaya.com only'
         ]);
+        break;
+
+    case 'debug_html':
+        // Debug: show raw HTML from Binisaya
+        $word = isset($_GET['word']) ? $_GET['word'] : 'kalipay';
+        $url = 'https://www.binisaya.com/node/21?search=binisaya&word=' . urlencode($word) . '&Search=Search';
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            CURLOPT_SSL_VERIFYPEER => true
+        ]);
+        $html = curl_exec($ch);
+        $error = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        // Show first 5000 chars of HTML for debugging
+        echo json_encode([
+            'url' => $url,
+            'http_code' => $httpCode,
+            'error' => $error,
+            'html_length' => strlen($html),
+            'html_preview' => substr($html, 0, 5000),
+            'contains_word_rootword' => strpos($html, 'Word - rootword') !== false,
+            'contains_table' => strpos($html, '<table') !== false,
+            'contains_binisaya_cebuano' => strpos($html, 'binisaya.com/cebuano') !== false
+        ], JSON_PRETTY_PRINT);
         break;
 
     case 'progress':
