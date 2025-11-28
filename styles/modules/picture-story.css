@@ -1,0 +1,411 @@
+/* =================================================================
+   PICTURE STORY MODULE STYLES
+   Version 1.0 - November 2025
+   ================================================================= */
+
+.module-picture-story {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.module-picture-story h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Controls */
+.ps-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.ps-mode-toggle {
+    display: flex;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.ps-mode-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ps-mode-btn:hover {
+    color: var(--text-primary);
+}
+
+.ps-mode-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+.ps-sequence-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#psSequenceInfo {
+    font-weight: 500;
+    color: var(--text-primary);
+    min-width: 140px;
+    text-align: center;
+}
+
+/* Story Header */
+.ps-story-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.ps-story-header h2 {
+    font-size: 20px;
+    color: var(--text-primary);
+}
+
+.ps-attempts {
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+}
+
+/* Instruction */
+.ps-instruction {
+    padding: 12px 16px;
+    background: var(--primary-light);
+    border-radius: 8px;
+    color: var(--primary-dark);
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Story Area */
+.ps-story-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 300px;
+}
+
+/* Sentence Card */
+.ps-sentence-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+}
+
+.ps-sentence-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.ps-sentence-card.correct {
+    border-color: var(--success);
+    background: var(--success-light);
+}
+
+.ps-sentence-card.incorrect {
+    border-color: var(--error);
+    background: #FEE2E2;
+}
+
+/* Drag Handle */
+.ps-drag-handle {
+    cursor: grab;
+    padding: 8px;
+    color: var(--text-secondary);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+}
+
+.ps-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Sentence Content */
+.ps-sentence-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ps-sentence-pictures {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.ps-sentence-text {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Audio Button */
+.ps-sentence-audio {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--gray-200);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.ps-sentence-audio:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Position Indicator */
+.ps-position-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ps-sentence-card.correct .ps-position-indicator {
+    background: var(--success);
+    color: white;
+}
+
+.ps-sentence-card.incorrect .ps-position-indicator {
+    background: var(--warning);
+    color: white;
+}
+
+/* Compact Flip Cards */
+.ps-card-wrapper {
+    width: 50px;
+    height: 75px;
+    perspective: 1000px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.ps-card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.4s;
+}
+
+.ps-card-wrapper.flipped .ps-card-inner {
+    transform: rotateY(180deg);
+}
+
+.ps-card-front,
+.ps-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.ps-card-front {
+    background: var(--bg-primary);
+}
+
+.ps-card-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ps-card-speaker {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 10px;
+    color: var(--primary);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px;
+    border-radius: 50%;
+}
+
+.ps-card-back {
+    background: var(--primary);
+    color: white;
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    text-align: center;
+}
+
+.ps-card-word {
+    font-size: 9px;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.ps-card-english {
+    font-size: 7px;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+/* Function words */
+.ps-function-word {
+    padding: 4px 8px;
+    background: var(--gray-100);
+    border-radius: 3px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* Sortable states */
+.ps-sentence-ghost {
+    opacity: 0.4;
+}
+
+.ps-sentence-chosen {
+    box-shadow: var(--shadow-lg);
+    transform: scale(1.02);
+}
+
+.ps-sentence-drag {
+    opacity: 0;
+}
+
+/* Actions */
+.ps-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Feedback */
+.ps-feedback {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.ps-feedback.correct {
+    background: var(--success-light);
+    color: #065F46;
+}
+
+.ps-feedback.incorrect {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+/* Empty State */
+.module-picture-story .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.module-picture-story .empty-state i {
+    font-size: 48px;
+    color: var(--warning);
+    margin-bottom: 16px;
+}
+
+.module-picture-story .empty-state h2 {
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.module-picture-story .empty-state p {
+    color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ps-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ps-sentence-card {
+        flex-wrap: wrap;
+    }
+
+    .ps-card-wrapper {
+        width: 40px;
+        height: 60px;
+    }
+
+    .ps-card-word {
+        font-size: 8px;
+    }
+
+    .ps-card-english {
+        font-size: 6px;
+    }
+
+    .ps-sentence-text {
+        font-size: 12px;
+    }
+
+    .ps-actions {
+        flex-wrap: wrap;
+    }
+}

@@ -245,6 +245,41 @@ body {
     border-bottom-color: var(--primary);
 }
 
+/* Two-level navigation styles */
+.nav-level-2 {
+    background: var(--bg-tertiary);
+    border-radius: 8px 8px 0 0;
+    padding: 4px 4px 0;
+}
+
+.nav-tab.nav-back {
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    margin-right: 8px;
+    padding: 10px 16px;
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.nav-tab.nav-back:hover {
+    background: var(--gray-200);
+    color: var(--text-primary);
+}
+
+.nav-tab.nav-category {
+    position: relative;
+}
+
+.nav-tab.nav-category::after {
+    content: '\f078';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 10px;
+    margin-left: 4px;
+    opacity: 0.6;
+}
+
 .tab-content {
     display: none;
 }

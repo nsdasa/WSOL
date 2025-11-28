@@ -861,6 +861,7 @@ class SentenceReviewParser {
             const sentNum = row['Sentence #']?.trim();
             const sentText = row['Sentence Text']?.trim();
             const english = row['English Translation']?.trim();
+            const cebuanoTranslation = row['Cebuano Translation']?.trim();
             const sentType = row['Sentence Type']?.trim();
 
             // Sequence header row: has lesson/seq number and title but no sentence data
@@ -896,13 +897,20 @@ class SentenceReviewParser {
                 // Clean display text (remove {root} notation)
                 const cleanText = sentText.replace(/\s*\{[^}]+\}/g, '');
 
-                currentSequence.sentences.push({
+                const sentenceObj = {
                     id: parseInt(sentNum),
                     text: cleanText,
                     english: english || '',
                     sentenceType: sentType || null,
                     words: words
-                });
+                };
+
+                // Add cebuano translation for non-Cebuano languages
+                if (cebuanoTranslation) {
+                    sentenceObj.cebuano = cebuanoTranslation;
+                }
+
+                currentSequence.sentences.push(sentenceObj);
             }
         }
 

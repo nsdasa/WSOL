@@ -1,6 +1,6 @@
 // =================================================================
 // CEBUANO LEARNING PLATFORM - Core Application
-// Version 4.2 - November 2025 - Advanced Filter Support
+// Version 4.3 - November 2025 - Two-Level Navigation & New Modules
 // =================================================================
 
 // Global instances
@@ -1727,6 +1727,128 @@ class Router {
 }
 
 // =================================================================
+// TWO-LEVEL NAVIGATION SYSTEM
+// =================================================================
+
+// Module to category mapping
+const moduleCategories = {
+    'flashcards': 'word-discovery',
+    'match': 'word-discovery',
+    'match-sound': 'word-discovery',
+    'quiz': 'word-discovery',
+    'sentence-review': 'sentence-zone',
+    'conversation-practice': 'sentence-zone',
+    'picture-story': 'sentence-zone',
+    'sentence-builder': 'sentence-zone'
+};
+
+// Current navigation state
+let currentNavCategory = null;
+
+/**
+ * Initialize two-level navigation system
+ */
+function initTwoLevelNavigation() {
+    const navLevel1 = document.getElementById('navLevel1');
+    const navWordDiscovery = document.getElementById('navWordDiscovery');
+    const navSentenceZone = document.getElementById('navSentenceZone');
+
+    // Category button clicks (Word Discovery, Sentence Zone)
+    document.querySelectorAll('.nav-tab[data-category]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const category = btn.dataset.category;
+            showNavLevel2(category);
+        });
+    });
+
+    // Back button clicks
+    document.querySelectorAll('.nav-tab[data-back]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            showNavLevel1();
+        });
+    });
+
+    // Check initial hash to determine which nav level to show
+    const hash = window.location.hash.slice(1) || 'flashcards';
+    const category = moduleCategories[hash];
+
+    if (category) {
+        showNavLevel2(category, false);
+        updateActiveTab(hash);
+    }
+}
+
+/**
+ * Show Level 1 navigation (main categories)
+ */
+function showNavLevel1() {
+    const navLevel1 = document.getElementById('navLevel1');
+    const navWordDiscovery = document.getElementById('navWordDiscovery');
+    const navSentenceZone = document.getElementById('navSentenceZone');
+
+    navLevel1.classList.remove('hidden');
+    navWordDiscovery.classList.add('hidden');
+    navSentenceZone.classList.add('hidden');
+
+    currentNavCategory = null;
+}
+
+/**
+ * Show Level 2 navigation for a specific category
+ * @param {string} category - The category to show ('word-discovery' or 'sentence-zone')
+ * @param {boolean} navigateToDefault - Whether to navigate to the default module
+ */
+function showNavLevel2(category, navigateToDefault = true) {
+    const navLevel1 = document.getElementById('navLevel1');
+    const navWordDiscovery = document.getElementById('navWordDiscovery');
+    const navSentenceZone = document.getElementById('navSentenceZone');
+
+    navLevel1.classList.add('hidden');
+
+    if (category === 'word-discovery') {
+        navWordDiscovery.classList.remove('hidden');
+        navSentenceZone.classList.add('hidden');
+        if (navigateToDefault && router) {
+            router.navigate('flashcards');
+            updateActiveTab('flashcards');
+        }
+    } else if (category === 'sentence-zone') {
+        navSentenceZone.classList.remove('hidden');
+        navWordDiscovery.classList.add('hidden');
+        if (navigateToDefault && router) {
+            router.navigate('sentence-review');
+            updateActiveTab('sentence-review');
+        }
+    }
+
+    currentNavCategory = category;
+}
+
+/**
+ * Update active tab styling across all navigation levels
+ * @param {string} moduleName - The active module name
+ */
+function updateActiveTab(moduleName) {
+    // Remove active from all tabs
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Add active to matching module tab
+    document.querySelectorAll(`.nav-tab[data-module="${moduleName}"]`).forEach(tab => {
+        tab.classList.add('active');
+    });
+
+    // Also highlight the category in Level 1 if applicable
+    const category = moduleCategories[moduleName];
+    if (category) {
+        document.querySelectorAll(`.nav-tab[data-category="${category}"]`).forEach(tab => {
+            tab.classList.add('active');
+        });
+    }
+}
+
+// =================================================================
 // INITIALIZATION - WITH AUTHENTICATION
 // =================================================================
 async function init() {
@@ -1861,11 +1983,25 @@ async function init() {
         router.register('deck-builder', DeckBuilderModule);
         router.register('admin', AdminModule);
     }
-    
-    // Navigation events
-    document.querySelectorAll('.nav-tab').forEach(btn => {
+
+    // Register new sentence modules if available
+    if (typeof ConversationPracticeModule !== 'undefined') {
+        router.register('conversation-practice', ConversationPracticeModule);
+    }
+    if (typeof PictureStoryModule !== 'undefined') {
+        router.register('picture-story', PictureStoryModule);
+    }
+
+    // Two-level navigation system
+    initTwoLevelNavigation();
+
+    // Navigation events for direct module tabs
+    document.querySelectorAll('.nav-tab[data-module]').forEach(btn => {
         btn.addEventListener('click', () => {
-            router.navigate(btn.dataset.module);
+            if (btn.dataset.module) {
+                router.navigate(btn.dataset.module);
+                updateActiveTab(btn.dataset.module);
+            }
         });
     });
     

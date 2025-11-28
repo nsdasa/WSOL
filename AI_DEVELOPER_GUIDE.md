@@ -1,6 +1,6 @@
 # WSOL - AI Developer Guide
 ## Bob and Mariel Ward School of Filipino Languages - Learning Platform
-### Version 4.2 - November 2025
+### Version 4.3 - November 2025
 
 ---
 
@@ -96,6 +96,8 @@ WSOL/
 ├── quiz-module.js               # "Unsa Ni?" fill-in quiz
 ├── sentence-builder-module.js   # Build sentences with word cards
 ├── sentence-review-module.js    # Review predefined sentences
+├── conversation-practice-module.js # Q&A dialogue practice (NEW)
+├── picture-story-module.js      # Story sequence ordering (NEW)
 ├── sentence-review-builder.js   # Editor for sentence review data
 ├── grammar-module.js            # Grammar lesson HTML viewer
 ├── teacher-guide-module.js      # Teacher guide HTML viewer

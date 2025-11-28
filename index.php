@@ -15,7 +15,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-<!-- Bob and Mariel Ward School of Filipino Languages - Version 4.2 - Advanced Filter - November 2025 -->
+<!-- Bob and Mariel Ward School of Filipino Languages - Version 4.3 - Two-Level Navigation & New Modules - November 2025 -->
 <head>
     <meta charset="UTF-8">
     <!-- Manifest version for JavaScript cache busting -->
@@ -56,6 +56,8 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <link rel="stylesheet" href="styles/modules/voice-practice.css?v=<?php echo cacheBust('styles/modules/voice-practice.css'); ?>">
     <link rel="stylesheet" href="styles/modules/sentence-builder.css?v=<?php echo cacheBust('styles/modules/sentence-builder.css'); ?>">
     <link rel="stylesheet" href="styles/modules/sentence-review.css?v=<?php echo cacheBust('styles/modules/sentence-review.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/conversation-practice.css?v=<?php echo cacheBust('styles/modules/conversation-practice.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/picture-story.css?v=<?php echo cacheBust('styles/modules/picture-story.css'); ?>">
 
     <!-- Driver.js for onboarding tours -->
     <link rel="stylesheet" href="assets/vendor/driver.css?v=<?php echo cacheBust('assets/vendor/driver.css'); ?>"/>
@@ -68,7 +70,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
                     <img id="logoImg" src="assets/logo.png" alt="Logo" class="logo-image" style="display: none;" onload="this.style.display='inline-block';" onerror="this.style.display='none'">
                     Bob and Mariel Ward School of Filipino Languages
                 </h1>
-                <span class="version-badge">v4.2</span>
+                <span class="version-badge">v4.3</span>
             </div>
             <div class="header-controls">
                 <div class="language-selector">
@@ -103,10 +105,43 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     </div>
 
     <div class="container">
-        <div class="nav-tabs">
+        <!-- Two-Level Navigation System -->
+        <div class="nav-tabs" id="navLevel1">
             <button class="nav-tab" data-module="grammar">
                 <i class="fas fa-book-open"></i>
                 Grammar
+            </button>
+            <button class="nav-tab nav-category active" data-category="word-discovery">
+                <i class="fas fa-search"></i>
+                Word Discovery
+            </button>
+            <button class="nav-tab nav-category" data-category="sentence-zone">
+                <i class="fas fa-comments"></i>
+                Sentence Zone
+            </button>
+            <button class="nav-tab" data-module="teacher-guide">
+                <i class="fas fa-chalkboard-teacher"></i>
+                Teacher's Guide
+            </button>
+            <button class="nav-tab" data-module="pdf">
+                <i class="fas fa-print"></i>
+                Print PDFs
+            </button>
+            <button class="nav-tab hidden" data-module="deck-builder" id="deckBuilderTab">
+                <i class="fas fa-edit"></i>
+                Deck Builder
+            </button>
+            <button class="nav-tab hidden" data-module="admin" id="adminTab">
+                <i class="fas fa-tools"></i>
+                Admin
+            </button>
+        </div>
+
+        <!-- Level 2: Word Discovery -->
+        <div class="nav-tabs nav-level-2 hidden" id="navWordDiscovery" data-category="word-discovery">
+            <button class="nav-tab nav-back" data-back="true">
+                <i class="fas fa-arrow-left"></i>
+                Back
             </button>
             <button class="nav-tab active" data-module="flashcards">
                 <i class="fas fa-layer-group"></i>
@@ -124,29 +159,29 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
                 <i class="fas fa-question-circle"></i>
                 Unsa Ni?
             </button>
+        </div>
+
+        <!-- Level 2: Sentence Zone -->
+        <div class="nav-tabs nav-level-2 hidden" id="navSentenceZone" data-category="sentence-zone">
+            <button class="nav-tab nav-back" data-back="true">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+            <button class="nav-tab" data-module="sentence-review">
+                <i class="fas fa-eye"></i>
+                Review Zone
+            </button>
+            <button class="nav-tab" data-module="conversation-practice">
+                <i class="fas fa-comments"></i>
+                Conversation Zone
+            </button>
+            <button class="nav-tab" data-module="picture-story">
+                <i class="fas fa-book-reader"></i>
+                Story Zone
+            </button>
             <button class="nav-tab" data-module="sentence-builder">
                 <i class="fas fa-bars-staggered"></i>
                 Sentence Builder
-            </button>
-            <button class="nav-tab" data-module="sentence-review">
-                <i class="fas fa-images"></i>
-                Sentence Review
-            </button>
-            <button class="nav-tab" data-module="teacher-guide">
-                <i class="fas fa-chalkboard-teacher"></i>
-                Teacher's Guide
-            </button>
-            <button class="nav-tab" data-module="pdf">
-                <i class="fas fa-print"></i>
-                Print PDFs
-            </button>
-            <button class="nav-tab hidden" data-module="deck-builder" id="deckBuilderTab">
-                <i class="fas fa-edit"></i>
-                Deck Builder
-            </button>
-            <button class="nav-tab hidden" data-module="admin" id="adminTab">
-                <i class="fas fa-tools"></i>
-                Admin
             </button>
         </div>
         <div id="moduleContainer" class="module-container"></div>
@@ -342,6 +377,8 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <script src="sentence-builder-module.js?v=<?php echo cacheBust('sentence-builder-module.js'); ?>"></script>
     <script src="sentence-review-module.js?v=<?php echo cacheBust('sentence-review-module.js'); ?>"></script>
     <script src="sentence-review-builder.js?v=<?php echo cacheBust('sentence-review-builder.js'); ?>"></script>
+    <script src="conversation-practice-module.js?v=<?php echo cacheBust('conversation-practice-module.js'); ?>"></script>
+    <script src="picture-story-module.js?v=<?php echo cacheBust('picture-story-module.js'); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Driver.js for onboarding tours -->
