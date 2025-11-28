@@ -107,21 +107,83 @@ class ConversationZoneBuilder {
     }
 
     /**
-     * Load conversation zone data
+     * Load conversation zone data from sentenceReview (where learning modules read from)
      */
     loadData() {
         this.currentTrigraph = this.deckBuilder.currentTrigraph || 'ceb';
 
-        // Get from new sentence pool structure or initialize empty
-        const sentenceData = this.deckBuilder.assets.manifest?.sentences?.[this.currentTrigraph];
-        this.conversations = sentenceData?.conversationZone?.conversations
-            ? JSON.parse(JSON.stringify(sentenceData.conversationZone.conversations))
-            : [];
+        // Load from sentenceReview - the same source the learning modules use
+        const sentenceReviewData = this.deckBuilder.assets.manifest?.sentenceReview?.[this.currentTrigraph];
+        this.conversations = [];
+        this.sentencePool = [];
 
-        // Load sentence pool for reference
-        this.sentencePool = sentenceData?.pool || [];
+        if (sentenceReviewData?.lessons) {
+            let conversationId = 1;
+            let sentenceNum = 1;
+            const sentenceMap = new Map(); // Track sentences to avoid duplicates in pool
 
-        debugLogger?.log(3, `ConversationZoneBuilder: Loaded ${this.conversations.length} conversations`);
+            // Process each lesson
+            for (const [lessonNum, lessonData] of Object.entries(sentenceReviewData.lessons)) {
+                if (!lessonData.sequences) continue;
+
+                // Process each sequence as a conversation
+                for (const sequence of lessonData.sequences) {
+                    if (!sequence.sentences?.length) continue;
+
+                    // Build sentence pool entries and extract Q&A pairs
+                    const pairs = [];
+
+                    for (let i = 0; i < sequence.sentences.length; i++) {
+                        const sentence = sequence.sentences[i];
+                        const sentenceKey = `${lessonNum}-${sequence.id}-${sentence.id}`;
+
+                        // Add to sentence pool if not already there
+                        if (!sentenceMap.has(sentenceKey)) {
+                            const poolEntry = {
+                                sentenceNum: sentenceNum,
+                                text: sentence.text,
+                                english: sentence.english || '',
+                                sentenceType: sentence.sentenceType,
+                                lessonNum: parseInt(lessonNum),
+                                sequenceId: sequence.id,
+                                originalId: sentence.id,
+                                words: sentence.words || []
+                            };
+                            this.sentencePool.push(poolEntry);
+                            sentenceMap.set(sentenceKey, sentenceNum);
+                            sentenceNum++;
+                        }
+
+                        // Extract Q&A pairs: question followed by answer/statement
+                        const sentType = (sentence.sentenceType || '').toLowerCase();
+                        if (sentType === 'question' && i + 1 < sequence.sentences.length) {
+                            const nextSentence = sequence.sentences[i + 1];
+                            const nextSentenceKey = `${lessonNum}-${sequence.id}-${nextSentence.id}`;
+                            const nextSentType = (nextSentence.sentenceType || '').toLowerCase();
+
+                            if (nextSentType === 'answer' || nextSentType === 'statement') {
+                                pairs.push({
+                                    questionNum: sentenceMap.get(sentenceKey),
+                                    answerNum: sentenceMap.get(nextSentenceKey) || sentenceNum
+                                });
+                            }
+                        }
+                    }
+
+                    // Only create conversation if we found Q&A pairs
+                    if (pairs.length > 0) {
+                        this.conversations.push({
+                            id: conversationId++,
+                            title: sequence.title || `Sequence ${sequence.id}`,
+                            lesson: parseInt(lessonNum),
+                            pairs: pairs
+                        });
+                    }
+                }
+            }
+        }
+
+        debugLogger?.log(3, `ConversationZoneBuilder: Loaded ${this.conversations.length} conversations from sentenceReview`);
     }
 
     /**
@@ -867,19 +929,67 @@ class StoryZoneBuilder {
     }
 
     /**
-     * Load story zone data
+     * Load story zone data from sentenceReview (where learning modules read from)
      */
     loadData() {
         this.currentTrigraph = this.deckBuilder.currentTrigraph || 'ceb';
 
-        const sentenceData = this.deckBuilder.assets.manifest?.sentences?.[this.currentTrigraph];
-        this.stories = sentenceData?.storyZone?.stories
-            ? JSON.parse(JSON.stringify(sentenceData.storyZone.stories))
-            : [];
+        // Load from sentenceReview - the same source the learning modules use
+        const sentenceReviewData = this.deckBuilder.assets.manifest?.sentenceReview?.[this.currentTrigraph];
+        this.stories = [];
+        this.sentencePool = [];
 
-        this.sentencePool = sentenceData?.pool || [];
+        if (sentenceReviewData?.lessons) {
+            let storyId = 1;
+            let sentenceNum = 1;
+            const sentenceMap = new Map(); // Track sentences to avoid duplicates in pool
 
-        debugLogger?.log(3, `StoryZoneBuilder: Loaded ${this.stories.length} stories`);
+            // Process each lesson
+            for (const [lessonNum, lessonData] of Object.entries(sentenceReviewData.lessons)) {
+                if (!lessonData.sequences) continue;
+
+                // Process each sequence as a story (only if it has 2+ sentences)
+                for (const sequence of lessonData.sequences) {
+                    if (!sequence.sentences?.length || sequence.sentences.length < 2) continue;
+
+                    const sentenceNums = [];
+
+                    // Build sentence pool entries and collect sentence numbers
+                    for (const sentence of sequence.sentences) {
+                        const sentenceKey = `${lessonNum}-${sequence.id}-${sentence.id}`;
+
+                        // Add to sentence pool if not already there
+                        if (!sentenceMap.has(sentenceKey)) {
+                            const poolEntry = {
+                                sentenceNum: sentenceNum,
+                                text: sentence.text,
+                                english: sentence.english || '',
+                                sentenceType: sentence.sentenceType,
+                                lessonNum: parseInt(lessonNum),
+                                sequenceId: sequence.id,
+                                originalId: sentence.id,
+                                words: sentence.words || []
+                            };
+                            this.sentencePool.push(poolEntry);
+                            sentenceMap.set(sentenceKey, sentenceNum);
+                            sentenceNum++;
+                        }
+
+                        sentenceNums.push(sentenceMap.get(sentenceKey));
+                    }
+
+                    // Create story from sequence
+                    this.stories.push({
+                        id: storyId++,
+                        title: sequence.title || `Sequence ${sequence.id}`,
+                        lesson: parseInt(lessonNum),
+                        sentenceNums: sentenceNums
+                    });
+                }
+            }
+        }
+
+        debugLogger?.log(3, `StoryZoneBuilder: Loaded ${this.stories.length} stories from sentenceReview`);
     }
 
     /**
