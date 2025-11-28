@@ -206,6 +206,181 @@
     border: 2px dashed var(--border-color);
 }
 
+/* =================================================================
+   SENTENCE TYPE DISPLAY BANNER (Training Module)
+   ================================================================= */
+
+.sr-sentence-type-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 14px 28px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sr-sentence-type-display i {
+    font-size: 1.3rem;
+}
+
+/* Question - Gold/Amber */
+.sr-sentence-type-display.type-question {
+    background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+    color: white;
+}
+
+/* Statement - Green */
+.sr-sentence-type-display.type-statement {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+}
+
+/* Command - Orange */
+.sr-sentence-type-display.type-command {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: white;
+}
+
+/* Answer - Blue */
+.sr-sentence-type-display.type-answer {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+/* =================================================================
+   BUBBLE DISPLAY (Training Module - Read Only)
+   Word bubbles with connection lines from picture cards
+   ================================================================= */
+
+.sr-bubble-display {
+    position: relative;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 24px 32px;
+    margin-bottom: 20px;
+    min-height: 80px;
+}
+
+/* SVG for connection lines - positioned relative to bubble display */
+.sr-bubble-display .sr-connection-lines {
+    position: absolute;
+    top: -200px;  /* Extend up to reach the cards above */
+    left: 0;
+    width: 100%;
+    height: calc(100% + 200px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.sr-bubble-display .sr-connection-line {
+    stroke: var(--primary);
+    stroke-width: 2;
+    stroke-opacity: 0.5;
+    stroke-linecap: round;
+}
+
+.sr-bubble-display .sr-connection-line.function-word-line {
+    stroke: var(--text-secondary);
+    stroke-dasharray: 4 4;
+    stroke-opacity: 0.4;
+}
+
+/* Bubbles Row Container */
+.sr-display-bubbles-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 20px;
+}
+
+/* Bubble Group - keeps multi-word phrases together */
+.sr-bubble-group {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+.sr-bubble-group.function-word-group {
+    /* Function word groups may have slightly different spacing */
+}
+
+/* Individual Display Bubble (read-only) */
+.sr-display-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--bg-primary);
+    border: 2px solid var(--primary);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sr-display-bubble:hover {
+    background: var(--primary-light);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    transform: translateY(-2px);
+}
+
+.sr-display-bubble.function-word {
+    background: var(--bg-tertiary);
+    border-style: dashed;
+    border-color: var(--border-color);
+}
+
+.sr-display-bubble.function-word:hover {
+    border-color: var(--text-secondary);
+    background: var(--bg-secondary);
+}
+
+.sr-display-bubble .sr-bubble-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sr-display-bubble .sr-bubble-speaker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+    transition: all 0.2s;
+}
+
+.sr-display-bubble:hover .sr-bubble-speaker {
+    background: var(--primary-dark, #4a47a3);
+    transform: scale(1.1);
+}
+
+/* English Translation */
+.sr-english-translation {
+    text-align: center;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    position: relative;
+    z-index: 2;
+}
+
 /* English Hint */
 .sr-english-hint {
     text-align: center;

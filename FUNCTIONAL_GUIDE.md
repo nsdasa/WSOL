@@ -225,13 +225,30 @@ class SomeModule extends LearningModule {
 
 ## Sentence Review Module (sentence-review-module.js)
 
-**What it does**: Shows complete sentences with visual word connections.
+**What it does**: Shows complete sentences with visual word-to-picture connections.
 
 **How it works**:
-1. Shows pre-built sentences from the lesson
-2. Displays picture bubbles connected by lines
-3. Lines show how words relate to each other
-4. Click speaker icons to hear words
+1. **Sentence Type Display**: Shows a prominent colored banner above the pictures
+   - Question (Gold/Amber with ? icon)
+   - Statement (Green with comment icon)
+   - Command (Orange with bullhorn icon)
+   - Answer (Blue with reply icon)
+
+2. **Picture Cards**: Shows pictures in a row representing words in the sentence
+   - Phrase cards can represent multiple words (e.g., "Maayong Adlaw")
+   - Function word placeholders for words without pictures (smaller cards)
+   - Click to flip and see word text
+
+3. **Show Sentence Text**: When revealed:
+   - Word bubbles appear BELOW the picture cards
+   - SVG connection lines draw from pictures DOWN to their word bubbles
+   - Multiple words from one card show separate bubbles, all connecting to the same picture
+   - Function words connect to their smaller placeholder cards
+   - English translation appears at the bottom
+
+4. **Audio playback**:
+   - Click picture cards or word bubbles to hear pronunciation
+   - Speaker icons indicate audio availability
 
 ## Voice Practice Module (voice-practice-module.js)
 

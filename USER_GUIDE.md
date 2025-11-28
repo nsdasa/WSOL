@@ -228,18 +228,34 @@ Review complete sentences with pictures representing each word.
 
 ### How to Use:
 
-1. **View Sentences** - Each sentence is shown as a row of pictures
-   - Each picture represents one word in the sentence
+1. **Sentence Type Banner** - At the top, you'll see a colored banner showing the sentence type:
+   - **Gold/Amber** - Question (with ? icon)
+   - **Green** - Statement (with comment icon)
+   - **Orange** - Command (with bullhorn icon)
+   - **Blue** - Answer (with reply icon)
 
-2. **Read Along** - The actual sentence text appears below the pictures
+2. **View Sentences** - Each sentence is shown as a row of pictures
+   - Each picture represents one word or phrase in the sentence
+   - Click on pictures to flip them and see the word
+   - Click the speaker icon to hear pronunciation
 
-3. **Navigate Lessons** - Use the lesson selector to switch between different sentence sets
+3. **Show Sentence Text** - Click the "Show Sentence Text" button to reveal:
+   - **Word bubbles** appear below the picture cards
+   - **Connection lines** draw from each picture down to its corresponding word bubble(s)
+   - **Multiple words** from the same card (like "Maayong Adlaw") show separate bubbles with lines going to the same picture
+   - **Function words** (like "mga") without pictures still show bubbles with connecting lines to their placeholder cards
+   - **English translation** appears at the bottom
 
-4. **Sequences** - Sentences are grouped into sequences that tell a story
+4. **Audio on Bubbles** - Click any word bubble with a speaker icon to hear that word pronounced
+
+5. **Navigate Sentences** - Use Previous/Next buttons or arrow keys to move between sentences
+
+6. **Sequences** - Sentences are grouped into sequences that tell a story. Click the sequence title to jump to different sequences.
 
 ### Tips:
-- This helps you understand sentence structure visually
-- Say the sentence out loud as you look at each picture
+- The connection lines help you see exactly which words belong to which picture
+- This is great for understanding how phrase cards represent multiple words
+- Say the sentence out loud as you look at each word bubble
 - Great for reviewing after using the Sentence Builder
 
 ---
