@@ -426,11 +426,14 @@ class SentenceReviewModule extends LearningModule {
         this.phraseGroups = phraseGroups;
         this.skipIndices = skipIndices;
 
-        // Set sentence type banner width to match picture row
+        // Set sentence type banner width to match picture row (but at least as wide as content)
         requestAnimationFrame(() => {
             const typeDisplay = document.getElementById('srSentenceType');
             if (typeDisplay && pictureRow.offsetWidth > 0) {
-                typeDisplay.style.maxWidth = `${pictureRow.offsetWidth}px`;
+                // Use the larger of: picture row width or banner's natural content width (with 10% buffer)
+                const contentWidth = typeDisplay.scrollWidth * 1.1;
+                const pictureRowWidth = pictureRow.offsetWidth;
+                typeDisplay.style.width = `${Math.max(contentWidth, pictureRowWidth)}px`;
             }
         });
     }
