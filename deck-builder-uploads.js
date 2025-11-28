@@ -1364,6 +1364,7 @@ DeckBuilderModule.prototype.setupSentenceWordsEditor = function() {
 
     // Initialize editor state
     this.swAllLessonsData = {}; // All lessons data: { lessonNum: { wordType: [...words] } }
+    this.swWordCardLinks = {}; // Manual card links: { "lessonNum:wordType:word": cardNum }
     this.swExpandedLessons = new Set(); // Track expanded lessons
     this.swEditedLessons = new Set(); // Track which lessons have been edited
     this.swEditorInitialized = false;
@@ -1609,7 +1610,7 @@ DeckBuilderModule.prototype.attachSentenceWordsListeners = function() {
         });
     });
 
-    // Word chip text click (edit)
+    // Word chip text click - open card link modal
     document.querySelectorAll('.sw-chip-text').forEach(chip => {
         chip.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1617,7 +1618,7 @@ DeckBuilderModule.prototype.attachSentenceWordsListeners = function() {
             const lessonNum = parseInt(chipDiv.dataset.lesson);
             const wordType = chipDiv.dataset.type;
             const word = chipDiv.dataset.word;
-            this.editWordInLesson(lessonNum, wordType, word);
+            this.openWordCardLinkModal(lessonNum, wordType, word, lang);
         });
     });
 
@@ -1870,6 +1871,168 @@ DeckBuilderModule.prototype.findCardForWord = function(word, lang) {
         }
     }
     return null;
+};
+
+/**
+ * Open modal to link a word to a specific card
+ */
+DeckBuilderModule.prototype.openWordCardLinkModal = function(lessonNum, wordType, word, lang) {
+    const allCards = this.assets.getCards({ lesson: null });
+    const linkKey = `${lessonNum}:${wordType}:${word}`;
+    const currentCardNum = this.swWordCardLinks[linkKey];
+    const autoMatchCard = this.findCardForWord(word, lang);
+
+    // Get currently linked card (manual or auto-match)
+    let currentCard = null;
+    if (currentCardNum) {
+        currentCard = allCards.find(c => c.cardNum === currentCardNum);
+    } else if (autoMatchCard) {
+        currentCard = autoMatchCard;
+    }
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'modal sw-card-link-modal';
+    modal.id = 'swCardLinkModal';
+
+    const imgPath = currentCard ? (currentCard.imagePath || currentCard.printImagePath) : null;
+
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-link"></i> Link "${word}" to Picture</h2>
+                <button class="close-btn" id="swCloseLinkModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                ${currentCard ? `
+                    <div class="sw-current-link">
+                        <h4>Currently Linked To:</h4>
+                        <div class="sw-current-picture">
+                            ${imgPath ? `<img src="${imgPath}" alt="Current">` : '<div class="no-image">No Image</div>'}
+                            <span>Card #${currentCard.cardNum}${currentCardNum ? '' : ' (auto-matched)'}</span>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="sw-no-link">
+                        <i class="fas fa-unlink"></i>
+                        <p>No card linked to this word</p>
+                    </div>
+                `}
+
+                <div class="sw-search-section">
+                    <h4><i class="fas fa-search"></i> Search for a Card</h4>
+                    <div class="sw-search-bar">
+                        <input type="text" id="swCardSearch" placeholder="Search cards..." value="${word}">
+                        <button id="swCardSearchBtn" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                    <div class="sw-card-grid" id="swCardGrid">
+                        <!-- Cards will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="sw-modal-actions">
+                    <button id="swEditWordBtn" class="btn btn-secondary">
+                        <i class="fas fa-edit"></i> Edit Word Text
+                    </button>
+                    <button id="swRemoveLinkBtn" class="btn btn-outline-danger ${currentCardNum ? '' : 'hidden'}">
+                        <i class="fas fa-unlink"></i> Remove Manual Link
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Helper to apply a link and close modal
+    const applyLink = (cardNum) => {
+        this.swWordCardLinks[linkKey] = cardNum;
+        this.swEditedLessons.add(lessonNum);
+        this.renderSentenceWordsLessonsList();
+        this.updateSaveAllButtonState();
+        modal.remove();
+        toastManager?.show('Card linked successfully', 'success');
+    };
+
+    // Search and render results
+    const renderResults = (searchTerm) => {
+        const grid = document.getElementById('swCardGrid');
+        const term = searchTerm.toLowerCase();
+
+        if (!term) {
+            grid.innerHTML = '<p class="hint-text">Enter a search term to find cards</p>';
+            return;
+        }
+
+        const matchingCards = allCards.filter(card => {
+            const wordMatch = card.word?.toLowerCase().includes(term);
+            const englishMatch = card.english?.toLowerCase().includes(term);
+            return wordMatch || englishMatch;
+        }).slice(0, 50);
+
+        if (matchingCards.length === 0) {
+            grid.innerHTML = '<p class="no-results">No matching cards found</p>';
+            return;
+        }
+
+        grid.innerHTML = matchingCards.map(card => {
+            const cardImgPath = card.imagePath || card.printImagePath;
+            return `
+                <div class="sw-card-option" data-cardnum="${card.cardNum}">
+                    ${cardImgPath ? `<img src="${cardImgPath}" alt="${card.word}">` : '<div class="no-image">No Image</div>'}
+                    <span class="card-word">${card.word}</span>
+                    <span class="card-english">${card.english || ''}</span>
+                </div>
+            `;
+        }).join('');
+
+        // Add click handlers
+        grid.querySelectorAll('.sw-card-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const cardNum = parseInt(option.dataset.cardnum);
+                applyLink(cardNum);
+            });
+        });
+    };
+
+    // Initial search with word text
+    renderResults(word);
+
+    // Search button
+    document.getElementById('swCardSearchBtn')?.addEventListener('click', () => {
+        renderResults(document.getElementById('swCardSearch').value);
+    });
+
+    // Search on Enter
+    document.getElementById('swCardSearch')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            renderResults(e.target.value);
+        }
+    });
+
+    // Edit word text button
+    document.getElementById('swEditWordBtn')?.addEventListener('click', () => {
+        modal.remove();
+        this.editWordInLesson(lessonNum, wordType, word);
+    });
+
+    // Remove link button
+    document.getElementById('swRemoveLinkBtn')?.addEventListener('click', () => {
+        delete this.swWordCardLinks[linkKey];
+        this.swEditedLessons.add(lessonNum);
+        this.renderSentenceWordsLessonsList();
+        this.updateSaveAllButtonState();
+        modal.remove();
+        toastManager?.show('Manual link removed', 'success');
+    });
+
+    // Close modal
+    document.getElementById('swCloseLinkModal')?.addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
 };
 
 DeckBuilderModule.prototype.addWordToType = function(wordType) {
