@@ -300,6 +300,41 @@ class SomeModule extends LearningModule {
 5. Process lessons with Claude API
 6. Export generated CSV for import into admin tools
 
+## Kanban Tracker Module (kanban-tracker-module.js)
+
+**What it does**: Sprint-based project tracking for development, bugs, lessons, and voice recording tasks.
+
+**How it works**:
+1. Four-column Kanban board: To Do → In Progress → Review → Done
+2. Tasks organized into sprints/weeks
+3. Drag-and-drop task movement using SortableJS
+4. Filter by category, language, or assignee
+5. Progress tracking per sprint
+
+**Data Storage**:
+- Uses localStorage (browser-based, no server required)
+- `kanbanSprints` - Sprint definitions
+- `kanbanTasks` - All task data
+- `kanbanCurrentSprint` - Currently selected sprint ID
+
+**Task Categories**:
+- **Development** (blue) - Code features and improvements
+- **Bug Fix** (red) - Bug reports and fixes
+- **Lesson** (green) - Lesson content creation
+- **Voice Recording** (amber) - Audio recording tasks
+
+**Access Control**:
+- Visible to: Admin, Deck Manager, Editor roles
+- Not visible to: Voice Recorder role, unauthenticated users
+
+**Key Features**:
+- Sprint management with date ranges
+- Task filtering by category/language/assignee
+- Visual progress bar per sprint
+- Due date tracking with overdue highlighting
+- Click-to-edit task details
+- Delete tasks with confirmation
+
 ## Voice Practice Module (voice-practice-module.js)
 
 **What it does**: Record yourself and compare to native pronunciation.
@@ -554,6 +589,7 @@ Stores guided tour steps for each module.
 | `deck-builder-audio.js` | Audio handling | Changing audio formats |
 | `deck-builder-uploads.js` | File uploads | Changing upload limits |
 | `admin-module.js` | Admin dashboard | Adding new admin features |
+| `kanban-tracker-module.js` | Project tracking board | Adding task features |
 | `tour-guide.js` | Tour display system | Changing tour behavior |
 
 ## PHP Backend Files
@@ -590,6 +626,7 @@ Stores guided tour steps for each module.
 | `modules/pdf-print.css` | PDF preview |
 | `modules/grammar.css` | Grammar lessons |
 | `modules/teacher-guide.css` | Teacher guide |
+| `modules/kanban.css` | Project tracker board |
 
 ## Assets Folder Structure
 
@@ -632,22 +669,25 @@ assets/
 
 **Admin** (`role: "admin"`):
 - Access everything
-- Can see Admin tab and Deck Builder tab
+- Can see Admin tab, Deck Builder tab, and Tracker tab
 - Can manage users
 - Can change system settings
 
 **Deck Manager** (`role: "deck-manager"`):
 - Full Deck Builder access (all sections)
+- Full Tracker access
 - NO Admin tab access
 - Can work with all languages
 
 **Editor** (`role: "editor"`):
 - Deck Builder table only (no CSV/Media/Sentence tools)
+- Full Tracker access
 - Can add/edit/delete cards
 - Usually restricted to ONE language
 
 **Voice Recorder** (`role: "voice-recorder"`):
 - Can only view cards and record audio
+- NO Tracker access
 - Cannot edit card data
 - Usually restricted to ONE language
 

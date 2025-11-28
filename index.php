@@ -58,6 +58,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <link rel="stylesheet" href="styles/modules/sentence-review.css?v=<?php echo cacheBust('styles/modules/sentence-review.css'); ?>">
     <link rel="stylesheet" href="styles/modules/conversation-practice.css?v=<?php echo cacheBust('styles/modules/conversation-practice.css'); ?>">
     <link rel="stylesheet" href="styles/modules/picture-story.css?v=<?php echo cacheBust('styles/modules/picture-story.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/kanban.css?v=<?php echo cacheBust('styles/modules/kanban.css'); ?>">
 
     <!-- Driver.js for onboarding tours -->
     <link rel="stylesheet" href="assets/vendor/driver.css?v=<?php echo cacheBust('assets/vendor/driver.css'); ?>"/>
@@ -126,6 +127,10 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
             <button class="nav-tab" data-module="pdf">
                 <i class="fas fa-print"></i>
                 Print PDFs
+            </button>
+            <button class="nav-tab hidden" data-module="kanban" id="kanbanTab">
+                <i class="fas fa-columns"></i>
+                Tracker
             </button>
             <button class="nav-tab hidden" data-module="deck-builder" id="deckBuilderTab">
                 <i class="fas fa-edit"></i>
@@ -382,6 +387,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <script src="sentence-zone-builders.js?v=<?php echo cacheBust('sentence-zone-builders.js'); ?>"></script>
     <script src="conversation-practice-module.js?v=<?php echo cacheBust('conversation-practice-module.js'); ?>"></script>
     <script src="picture-story-module.js?v=<?php echo cacheBust('picture-story-module.js'); ?>"></script>
+    <script src="kanban-tracker-module.js?v=<?php echo cacheBust('kanban-tracker-module.js'); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Driver.js for onboarding tours -->

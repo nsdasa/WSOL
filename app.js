@@ -1982,6 +1982,7 @@ async function init() {
         router.register('pdf', PDFPrintModule);
         router.register('deck-builder', DeckBuilderModule);
         router.register('admin', AdminModule);
+        router.register('kanban', KanbanTrackerModule);
     }
 
     // Register new sentence modules if available
