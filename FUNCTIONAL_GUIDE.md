@@ -329,6 +329,27 @@ The main tool for managing vocabulary cards. This is a large file (~172KB) becau
 **Related files**:
 - `deck-builder-audio.js`: Audio recording/selection
 - `deck-builder-uploads.js`: File upload handling
+- `card-sentence-sync.js`: Card-sentence synchronization
+
+### Card-Sentence Sync System
+
+When cards are modified or deleted, sentence data (like Sentence Review, Conversation Zone, Story Zone) may have word-to-card links that become outdated. The Card-Sentence Sync Manager handles this:
+
+**How it works**:
+1. Before saving cards, a snapshot of current card data is captured
+2. After save, the system compares old vs new card data
+3. If changes affect sentence-linked cards, a warning popup appears
+4. Users can run a sync check to see affected items
+
+**Smart Re-parsing**:
+- Only checks sentences linked to changed cards (preserves manual links)
+- Auto-fixes safe changes (like image path updates)
+- Flags items needing manual review (word no longer matches card)
+- Suggests potential replacement cards when available
+
+**Files involved**:
+- `card-sentence-sync.js`: CardSentenceSyncManager class
+- `deck-builder-module.js`: Integration and UI modals
 
 ## Admin Module (admin-module.js)
 

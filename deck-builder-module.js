@@ -44,6 +44,9 @@ class DeckBuilderModule extends LearningModule {
             'mrw': 'Maranao',
             'sin': 'Sinama'
         };
+
+        // Card-Sentence Sync Manager for detecting card changes affecting sentences
+        this.cardSentenceSyncManager = null; // Initialized after class loads
     }
     
     async render() {
@@ -542,6 +545,154 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                     </div>
                 </div>
 
+                <!-- Conversation Zone Data Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="conversationZoneSection" data-section="conversation-zone">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-comments"></i> Conversation Zone Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
+                            <p class="section-description">
+                                Create Q&A conversation pairs for the Conversation Practice module.
+                                Each conversation contains question-answer pairs from the sentence pool.
+                            </p>
+
+                            <!-- Import Section -->
+                            <div class="cz-builder-import">
+                                <h4><i class="fas fa-file-csv"></i> Import from CSV</h4>
+                                <p class="import-description">
+                                    CSV format: Conversation Title, Lesson, Question Sentence #, Answer Sentence #
+                                </p>
+                                <div class="cz-csv-upload-area" id="czCSVDropZone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop CSV file here or click to browse</p>
+                                    <input type="file" id="czCSVFileInput" accept=".csv" class="cz-csv-file-input">
+                                </div>
+                                <div class="cz-csv-file-info hidden" id="czCSVFileInfo">
+                                    <i class="fas fa-file-csv"></i>
+                                    <span id="czCSVFileName"></span>
+                                    <button class="cz-csv-remove-btn" id="czCSVRemoveBtn" title="Remove file">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="cz-import-actions">
+                                    <button id="czParseCSVBtn" class="btn btn-primary" disabled>
+                                        <i class="fas fa-magic"></i> Parse CSV & Preview
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Preview Section -->
+                            <div class="cz-builder-preview hidden" id="czPreviewSection">
+                                <h4><i class="fas fa-search"></i> Preview Parsed Data</h4>
+                                <div id="czPreviewContent"></div>
+                                <div class="cz-preview-actions">
+                                    <button id="czApplyParseBtn" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Apply Import
+                                    </button>
+                                    <button id="czCancelParseBtn" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Conversations List -->
+                            <div class="cz-builder-conversations">
+                                <h4>
+                                    <i class="fas fa-list"></i> Conversations
+                                    <button id="czAddConversationBtn" class="btn btn-sm btn-success">
+                                        <i class="fas fa-plus"></i> Add Conversation
+                                    </button>
+                                </h4>
+                                <div id="czConversationsList" class="cz-conversations-list">
+                                    <!-- Conversations will be rendered here -->
+                                </div>
+                            </div>
+
+                            <div class="section-actions">
+                                <button id="czSaveAllBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save"></i> Save Conversation Zone Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Story Zone Data Section (Admin and Deck Manager only) -->
+                <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="storyZoneSection" data-section="story-zone">
+                    <h3 class="section-title" role="button" tabindex="0">
+                        <i class="fas fa-book-open"></i> Story Zone Data
+                        <i class="fas fa-chevron-down section-chevron"></i>
+                    </h3>
+                    <div class="section-content">
+                        <div class="section-card">
+                            <p class="section-description">
+                                Create ordered story sequences for the Picture Story module.
+                                Each story contains sentences in a specific order that students must arrange.
+                            </p>
+
+                            <!-- Import Section -->
+                            <div class="sz-builder-import">
+                                <h4><i class="fas fa-file-csv"></i> Import from CSV</h4>
+                                <p class="import-description">
+                                    CSV format: Story Title, Lesson, Position, Sentence #
+                                </p>
+                                <div class="sz-csv-upload-area" id="szCSVDropZone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop CSV file here or click to browse</p>
+                                    <input type="file" id="szCSVFileInput" accept=".csv" class="sz-csv-file-input">
+                                </div>
+                                <div class="sz-csv-file-info hidden" id="szCSVFileInfo">
+                                    <i class="fas fa-file-csv"></i>
+                                    <span id="szCSVFileName"></span>
+                                    <button class="sz-csv-remove-btn" id="szCSVRemoveBtn" title="Remove file">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="sz-import-actions">
+                                    <button id="szParseCSVBtn" class="btn btn-primary" disabled>
+                                        <i class="fas fa-magic"></i> Parse CSV & Preview
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Preview Section -->
+                            <div class="sz-builder-preview hidden" id="szPreviewSection">
+                                <h4><i class="fas fa-search"></i> Preview Parsed Data</h4>
+                                <div id="szPreviewContent"></div>
+                                <div class="sz-preview-actions">
+                                    <button id="szApplyParseBtn" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Apply Import
+                                    </button>
+                                    <button id="szCancelParseBtn" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Stories List -->
+                            <div class="sz-builder-stories">
+                                <h4>
+                                    <i class="fas fa-list"></i> Stories
+                                    <button id="szAddStoryBtn" class="btn btn-sm btn-success">
+                                        <i class="fas fa-plus"></i> Add Story
+                                    </button>
+                                </h4>
+                                <div id="szStoriesList" class="sz-stories-list">
+                                    <!-- Stories will be rendered here -->
+                                </div>
+                            </div>
+
+                            <div class="section-actions">
+                                <button id="szSaveAllBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save"></i> Save Story Zone Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Grammar Files Management Section (Admin and Deck Manager only) -->
                 <div class="deck-section collapsible collapsed ${toolSectionsClass}" id="grammarManagementSection" data-section="grammar">
                     <h3 class="section-title" role="button" tabindex="0">
@@ -877,6 +1028,10 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             this.setupGrammarUpload();
             this.setupTeacherGuideUpload();
             this.setupSentenceReviewBuilder();
+            this.setupConversationZoneBuilder();
+            this.setupStoryZoneBuilder();
+            this.setupSentencePoolManager();
+            this.setupCardSentenceSyncManager();
             this.setupTourEditor();
         }
 
@@ -3120,6 +3275,11 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             return;
         }
 
+        // Capture card snapshot BEFORE applying changes (for sentence sync detection)
+        if (hasCardChanges && this.cardSentenceSyncManager) {
+            this.cardSentenceSyncManager.captureSnapshot();
+        }
+
         try {
             // Apply edits
             this.editedCards.forEach((editedCard, cardId) => {
@@ -3183,10 +3343,289 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
             toastManager.show(`✓ Saved! ${result.cardCount} cards written to manifest.json. Changes are live immediately - no rescan needed!`, 'success', 6000);
             debugLogger?.log(2, `Deck Builder: Saved ${this.allCards.length} cards for ${this.currentLanguageName} directly to manifest`);
+
+            // Check if sentence data needs sync after card changes
+            if (hasCardChanges && this.cardSentenceSyncManager) {
+                this.checkSentenceSync();
+            }
         } catch (err) {
             console.error('Save error:', err);
             toastManager.show('Error saving changes: ' + err.message, 'error', 5000);
+
+            // Clear snapshot on error
+            if (this.cardSentenceSyncManager) {
+                this.cardSentenceSyncManager.clearSnapshot();
+            }
         }
+    }
+
+    /**
+     * Check if sentence data needs synchronization after card changes
+     * Shows warning popup if affected sentences are found
+     */
+    checkSentenceSync() {
+        if (!this.cardSentenceSyncManager) return;
+
+        try {
+            const report = this.cardSentenceSyncManager.generateSyncReport();
+
+            if (report.summary.totalWordLinksAffected > 0) {
+                this.showSentenceSyncWarning(report);
+            } else {
+                // No sync needed, clear snapshot
+                this.cardSentenceSyncManager.clearSnapshot();
+                debugLogger?.log(3, 'CardSentenceSync: No sentence data affected by card changes');
+            }
+        } catch (err) {
+            console.error('Sentence sync check error:', err);
+            this.cardSentenceSyncManager.clearSnapshot();
+        }
+    }
+
+    /**
+     * Show warning popup about sentence data that may need attention
+     * @param {Object} report - Sync report from CardSentenceSyncManager
+     */
+    showSentenceSyncWarning(report) {
+        // Create modal for sync warning
+        const existingModal = document.getElementById('sentenceSyncWarningModal');
+        if (existingModal) existingModal.remove();
+
+        const deletedCount = report.byIssueType.deleted.length;
+        const changedCount = report.byIssueType.changed.length;
+
+        const modal = document.createElement('div');
+        modal.className = 'modal sentence-sync-modal';
+        modal.id = 'sentenceSyncWarningModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header warning-header">
+                    <h2><i class="fas fa-exclamation-triangle"></i> Sentence Data May Need Attention</h2>
+                    <button class="close-btn" id="closeSyncWarningBtn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="sync-warning-summary">
+                        <p>Your card changes may affect sentence data:</p>
+                        <ul class="sync-stats">
+                            ${deletedCount > 0 ? `<li class="sync-stat-deleted"><i class="fas fa-trash"></i> <strong>${deletedCount}</strong> word(s) linked to deleted cards</li>` : ''}
+                            ${changedCount > 0 ? `<li class="sync-stat-changed"><i class="fas fa-edit"></i> <strong>${changedCount}</strong> word(s) linked to modified cards</li>` : ''}
+                            <li class="sync-stat-sentences"><i class="fas fa-align-left"></i> <strong>${report.summary.totalSentencesAffected}</strong> sentence(s) potentially affected</li>
+                        </ul>
+                    </div>
+
+                    <div class="sync-recommendation">
+                        <h4><i class="fas fa-lightbulb"></i> Recommendation</h4>
+                        <p>Run the <strong>Sentence Sync Check</strong> to review and resolve any mismatches.
+                        This will identify words that may need their picture links updated.</p>
+                    </div>
+
+                    <div class="sync-actions">
+                        <button id="runSentenceSyncBtn" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sync"></i> Run Sentence Sync Check
+                        </button>
+                        <button id="skipSentenceSyncBtn" class="btn btn-secondary">
+                            <i class="fas fa-forward"></i> Skip for Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Event listeners
+        document.getElementById('closeSyncWarningBtn')?.addEventListener('click', () => {
+            this.cardSentenceSyncManager?.clearSnapshot();
+            modal.remove();
+        });
+
+        document.getElementById('skipSentenceSyncBtn')?.addEventListener('click', () => {
+            this.cardSentenceSyncManager?.clearSnapshot();
+            modal.remove();
+            toastManager?.show('You can run Sentence Sync Check later from the Sentence Review section', 'info');
+        });
+
+        document.getElementById('runSentenceSyncBtn')?.addEventListener('click', () => {
+            modal.remove();
+            this.runSentenceSyncCheck(report);
+        });
+
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.cardSentenceSyncManager?.clearSnapshot();
+                modal.remove();
+            }
+        });
+    }
+
+    /**
+     * Run the full sentence sync check and show results
+     * @param {Object} report - Sync report from CardSentenceSyncManager
+     */
+    runSentenceSyncCheck(report) {
+        if (!this.cardSentenceSyncManager) return;
+
+        // Get smart reparse recommendations
+        const recommendations = this.cardSentenceSyncManager.smartReparse(report);
+
+        // Show the sync results modal
+        this.showSentenceSyncResults(report, recommendations);
+    }
+
+    /**
+     * Show detailed sync results with options to apply fixes
+     * @param {Object} report - Sync report
+     * @param {Array} recommendations - Smart reparse recommendations
+     */
+    showSentenceSyncResults(report, recommendations) {
+        const existingModal = document.getElementById('sentenceSyncResultsModal');
+        if (existingModal) existingModal.remove();
+
+        // Separate auto-fixable from needs-review
+        const autoFixable = recommendations.filter(r => !r.needsReview);
+        const needsReview = recommendations.filter(r => r.needsReview);
+
+        const modal = document.createElement('div');
+        modal.className = 'modal sentence-sync-modal';
+        modal.id = 'sentenceSyncResultsModal';
+        modal.innerHTML = `
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h2><i class="fas fa-clipboard-check"></i> Sentence Sync Results</h2>
+                    <button class="close-btn" id="closeSyncResultsBtn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="sync-results-summary">
+                        <div class="sync-result-card auto-fix">
+                            <i class="fas fa-magic"></i>
+                            <span class="count">${autoFixable.length}</span>
+                            <span class="label">Auto-fixable</span>
+                        </div>
+                        <div class="sync-result-card needs-review">
+                            <i class="fas fa-user-edit"></i>
+                            <span class="count">${needsReview.length}</span>
+                            <span class="label">Needs Review</span>
+                        </div>
+                    </div>
+
+                    ${autoFixable.length > 0 ? `
+                        <div class="sync-section">
+                            <h4><i class="fas fa-magic"></i> Auto-Fixable Items</h4>
+                            <p class="section-desc">These changes can be applied automatically:</p>
+                            <div class="sync-items-list auto-fix-list">
+                                ${autoFixable.map((r, idx) => `
+                                    <div class="sync-item" data-index="${idx}">
+                                        <span class="sync-item-action"><i class="fas fa-check-circle"></i> ${r.action.replace('_', ' ')}</span>
+                                        <span class="sync-item-word">"${r.word}"</span>
+                                        <span class="sync-item-sentence">${this.truncateText(r.sentenceText, 50)}</span>
+                                        <span class="sync-item-message">${r.message}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button id="applyAutoFixesBtn" class="btn btn-success">
+                                <i class="fas fa-check"></i> Apply ${autoFixable.length} Auto-Fixes
+                            </button>
+                        </div>
+                    ` : ''}
+
+                    ${needsReview.length > 0 ? `
+                        <div class="sync-section">
+                            <h4><i class="fas fa-user-edit"></i> Items Needing Manual Review</h4>
+                            <p class="section-desc">These items require manual attention in the Sentence Review Builder:</p>
+                            <div class="sync-items-list needs-review-list">
+                                ${needsReview.map((r, idx) => `
+                                    <div class="sync-item ${r.issue}" data-index="${idx}">
+                                        <span class="sync-item-icon">
+                                            ${r.issue === 'deleted' ? '<i class="fas fa-trash text-danger"></i>' : '<i class="fas fa-edit text-warning"></i>'}
+                                        </span>
+                                        <div class="sync-item-details">
+                                            <div class="sync-item-location">
+                                                Lesson ${r.lessonNum} → ${r.sequenceTitle} → Sentence ${r.sentenceIndex + 1}
+                                            </div>
+                                            <div class="sync-item-word-info">
+                                                Word: "<strong>${r.word}</strong>" (was linked to Card #${r.cardNum})
+                                            </div>
+                                            <div class="sync-item-sentence-text">"${r.sentenceText}"</div>
+                                            <div class="sync-item-message ${r.newCardNum ? 'has-suggestion' : 'no-match'}">
+                                                ${r.message}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button id="openSentenceReviewBtn" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt"></i> Open Sentence Review Builder
+                            </button>
+                        </div>
+                    ` : ''}
+
+                    ${autoFixable.length === 0 && needsReview.length === 0 ? `
+                        <div class="sync-empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <h4>All Clear!</h4>
+                            <p>No sentence data needs attention.</p>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="modal-footer">
+                    <button id="closeSyncResultsFinalBtn" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Event listeners
+        const closeModal = () => {
+            this.cardSentenceSyncManager?.clearSnapshot();
+            modal.remove();
+        };
+
+        document.getElementById('closeSyncResultsBtn')?.addEventListener('click', closeModal);
+        document.getElementById('closeSyncResultsFinalBtn')?.addEventListener('click', closeModal);
+
+        document.getElementById('applyAutoFixesBtn')?.addEventListener('click', async () => {
+            const result = this.cardSentenceSyncManager.applyAutoFixes(recommendations);
+            toastManager?.show(`Applied ${result.applied} automatic fixes`, 'success');
+
+            // Save the sentence review data
+            if (this.sentenceReviewBuilder) {
+                await this.sentenceReviewBuilder.saveAll();
+            }
+
+            // Refresh the modal
+            closeModal();
+
+            if (result.needsReview > 0) {
+                toastManager?.show(`${result.needsReview} items still need manual review`, 'info');
+            }
+        });
+
+        document.getElementById('openSentenceReviewBtn')?.addEventListener('click', () => {
+            closeModal();
+            // Expand and scroll to sentence review section
+            const srSection = document.getElementById('sentenceReviewSection');
+            if (srSection) {
+                srSection.classList.remove('collapsed');
+                srSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    /**
+     * Truncate text helper
+     */
+    truncateText(text, maxLength) {
+        if (!text) return '';
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
     }
 
     /**

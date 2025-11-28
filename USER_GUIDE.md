@@ -685,6 +685,24 @@ Shows all cards with columns for:
 - Create and edit sentence review lessons
 - Import sentences from text or CSV
 
+**Card-Sentence Sync:**
+
+When you save card changes in Deck Builder, the system automatically checks if any sentence data may be affected. This helps maintain consistency between your word cards and sentence exercises.
+
+*After saving cards, you may see a warning if:*
+- Cards linked to sentence words were deleted
+- Cards linked to sentence words had their word or image changed
+
+*What to do:*
+1. Click "Run Sentence Sync Check" to see affected items
+2. Review the report showing:
+   - **Auto-fixable items**: Safe changes like image path updates (applied automatically)
+   - **Needs review items**: Word-card links that need manual attention
+3. For items needing review, click "Open Sentence Review Builder" to fix them manually
+4. Or click "Skip for Now" to address later
+
+This feature preserves manual word-to-card links you've created - only affected cards are flagged.
+
 ### Tips:
 - Always click "Save Changes" before leaving
 - Use filters to find specific cards quickly

@@ -109,6 +109,7 @@ WSOL/
 ├── deck-builder-module.js       # Main deck editor (176KB)
 ├── deck-builder-audio.js        # Audio recording/upload features
 ├── deck-builder-uploads.js      # Media upload handling
+├── card-sentence-sync.js        # Card-sentence synchronization manager
 │
 ├── # BACKEND API
 ├── scan-assets.php              # Asset scanner & manifest generator (78KB)
@@ -291,6 +292,7 @@ CSV Files ──► scan-assets.php ──► manifest.json ──► AssetManag
 | `TeacherGuideModule` | teacher-guide-module.js | Display teacher guide HTML |
 | `PDFPrintModule` | pdf-module.js | Generate printable flashcards/worksheets |
 | `DeckBuilderModule` | deck-builder-module.js | Edit cards, upload CSVs, manage assets |
+| `CardSentenceSyncManager` | card-sentence-sync.js | Detect card changes affecting sentence data |
 | `AdminModule` | admin-module.js | Scan assets, manage users, system config |
 
 ---
@@ -781,6 +783,83 @@ drawConnectionLines()
 - `data-word-indices` - JSON array of word indices belonging to card
 - `data-word-index` - Index of individual word
 - `data-is-function-word` - True for function word placeholders
+
+### CardSentenceSyncManager Class
+
+Manages synchronization between card deck changes and sentence data. Located in `card-sentence-sync.js`.
+
+**Key Methods:**
+
+```javascript
+// Capture card state before save operation
+captureSnapshot()
+// Returns Map<cardNum, {word, imagePath, variants}>
+
+// Detect which cards changed after save
+detectChanges()
+// Returns { changedCards: Set, deletedCards: Set, newCards: Set }
+
+// Find sentences linked to changed/deleted cards
+findAffectedSentences(changes)
+// Returns array of affected sentence references
+
+// Generate full sync report
+generateSyncReport()
+// Returns report with summary, affected sentences grouped by issue type
+
+// Smart re-parse: only re-evaluate words linked to changed cards
+smartReparse(report)
+// Returns array of recommendations (action, newCardNum, needsReview, etc.)
+
+// Apply automatic fixes (where needsReview is false)
+applyAutoFixes(recommendations)
+// Returns { applied: number, needsReview: number }
+
+// Clear snapshot after sync complete
+clearSnapshot()
+```
+
+**Integration with DeckBuilderModule:**
+
+```javascript
+// In saveChanges() - before applying edits:
+this.cardSentenceSyncManager.captureSnapshot();
+
+// After successful save:
+this.checkSentenceSync(); // Shows warning if affected sentences found
+```
+
+**Sync Report Structure:**
+
+```javascript
+{
+    summary: {
+        totalCardsChanged: number,
+        totalCardsDeleted: number,
+        totalSentencesAffected: number,
+        totalWordLinksAffected: number
+    },
+    byIssueType: {
+        deleted: [...],  // Words linked to deleted cards
+        changed: [...]   // Words linked to modified cards
+    },
+    affectedSentences: [
+        {
+            lessonNum, sequenceIndex, sentenceIndex, wordIndex,
+            word, cardNum, issue: 'deleted'|'changed',
+            manuallyLinked: boolean
+        }
+    ]
+}
+```
+
+**Recommendation Actions:**
+- `update_image` - Card still matches, just update image path (auto-apply)
+- `no_change` - Card still matches, no action needed (auto-apply)
+- `reassign` - Card deleted, replacement found (needs review)
+- `suggest_reassign` - Card changed, suggested replacement (needs review)
+- `make_function_word` - Card deleted, no replacement (needs review)
+- `needs_manual_link` - Card changed, no auto-match (needs review)
 
 ---
 

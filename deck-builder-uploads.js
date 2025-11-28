@@ -2317,3 +2317,99 @@ DeckBuilderModule.prototype.notifySentenceReviewBuilderLanguageChange = function
         this.sentenceReviewBuilder.onLanguageChange(trigraph);
     }
 };
+
+// =================================================================
+// CARD-SENTENCE SYNC MANAGER INTEGRATION
+// =================================================================
+
+/**
+ * Setup the Card-Sentence Sync Manager
+ * Should be called after the deck builder is initialized
+ */
+DeckBuilderModule.prototype.setupCardSentenceSyncManager = function() {
+    // Check if CardSentenceSyncManager class is available
+    if (typeof CardSentenceSyncManager === 'undefined') {
+        console.warn('CardSentenceSyncManager class not loaded');
+        return;
+    }
+
+    // Create and store the sync manager instance
+    this.cardSentenceSyncManager = new CardSentenceSyncManager(this);
+
+    debugLogger?.log(2, 'Card-Sentence Sync Manager initialized');
+};
+
+// =================================================================
+// CONVERSATION ZONE BUILDER INTEGRATION
+// =================================================================
+
+/**
+ * Setup the Conversation Zone Builder section
+ */
+DeckBuilderModule.prototype.setupConversationZoneBuilder = function() {
+    if (typeof ConversationZoneBuilder === 'undefined') {
+        console.warn('ConversationZoneBuilder class not loaded');
+        return;
+    }
+
+    this.conversationZoneBuilder = new ConversationZoneBuilder(this);
+    this.conversationZoneBuilder.init();
+
+    debugLogger?.log(2, 'Conversation Zone Builder initialized');
+};
+
+/**
+ * Called when language filter changes - notify conversation zone builder
+ */
+DeckBuilderModule.prototype.notifyConversationZoneBuilderLanguageChange = function(trigraph) {
+    if (this.conversationZoneBuilder) {
+        this.conversationZoneBuilder.onLanguageChange(trigraph);
+    }
+};
+
+// =================================================================
+// STORY ZONE BUILDER INTEGRATION
+// =================================================================
+
+/**
+ * Setup the Story Zone Builder section
+ */
+DeckBuilderModule.prototype.setupStoryZoneBuilder = function() {
+    if (typeof StoryZoneBuilder === 'undefined') {
+        console.warn('StoryZoneBuilder class not loaded');
+        return;
+    }
+
+    this.storyZoneBuilder = new StoryZoneBuilder(this);
+    this.storyZoneBuilder.init();
+
+    debugLogger?.log(2, 'Story Zone Builder initialized');
+};
+
+/**
+ * Called when language filter changes - notify story zone builder
+ */
+DeckBuilderModule.prototype.notifyStoryZoneBuilderLanguageChange = function(trigraph) {
+    if (this.storyZoneBuilder) {
+        this.storyZoneBuilder.onLanguageChange(trigraph);
+    }
+};
+
+// =================================================================
+// SENTENCE POOL MANAGER INTEGRATION
+// =================================================================
+
+/**
+ * Setup the Sentence Pool Manager
+ */
+DeckBuilderModule.prototype.setupSentencePoolManager = function() {
+    if (typeof SentencePoolManager === 'undefined') {
+        console.warn('SentencePoolManager class not loaded');
+        return;
+    }
+
+    this.sentencePoolManager = new SentencePoolManager(this.assets);
+    this.sentencePoolManager.currentTrigraph = this.currentTrigraph;
+
+    debugLogger?.log(2, 'Sentence Pool Manager initialized');
+};
