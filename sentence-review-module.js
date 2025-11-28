@@ -621,26 +621,30 @@ class SentenceReviewModule extends LearningModule {
         // Use SVG's bounding rect as reference - coordinates are relative to SVG element
         const svgRect = svg.getBoundingClientRect();
 
-        // Get all card wrappers and placeholders
-        const cardWrappers = sentenceArea.querySelectorAll('.sr-card-wrapper');
-        const placeholders = sentenceArea.querySelectorAll('.sr-word-placeholder');
+        // Get all word containers in DOM order (maintains sentence word order)
+        const wordContainers = sentenceArea.querySelectorAll('.sr-word-container');
         const bubbleGroups = document.querySelectorAll('#srBubblesRow .sr-bubble-group');
 
-        // Match cards/placeholders with bubble groups by position (same order)
-        let groupIndex = 0;
-
-        // Process card wrappers
-        cardWrappers.forEach((cardWrapper) => {
-            const bubbleGroup = bubbleGroups[groupIndex];
+        // Process each word container in order, matching with bubble groups
+        wordContainers.forEach((container, index) => {
+            const bubbleGroup = bubbleGroups[index];
             if (!bubbleGroup) return;
 
-            const cardRect = cardWrapper.getBoundingClientRect();
-            // Center-bottom of picture card frame
-            const cardCenterX = cardRect.left + cardRect.width / 2 - svgRect.left;
-            const cardBottomY = cardRect.bottom - svgRect.top;
+            // Find the card wrapper or placeholder inside this container
+            const cardWrapper = container.querySelector('.sr-card-wrapper');
+            const placeholder = container.querySelector('.sr-word-placeholder');
+            const element = cardWrapper || placeholder;
+
+            if (!element) return;
+
+            const elementRect = element.getBoundingClientRect();
+            // Center-bottom of card/placeholder
+            const elementCenterX = elementRect.left + elementRect.width / 2 - svgRect.left;
+            const elementBottomY = elementRect.bottom - svgRect.top;
 
             // Get all bubbles in this group
             const bubbles = bubbleGroup.querySelectorAll('.sr-display-bubble');
+            const isFunctionWord = !!placeholder;
 
             bubbles.forEach((bubble) => {
                 const bubbleRect = bubble.getBoundingClientRect();
@@ -648,48 +652,15 @@ class SentenceReviewModule extends LearningModule {
                 const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2 - svgRect.left;
                 const bubbleTopY = bubbleRect.top - svgRect.top;
 
-                // Create line from card bottom-center to bubble top-center
+                // Create line from element bottom-center to bubble top-center
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', cardCenterX);
-                line.setAttribute('y1', cardBottomY);
+                line.setAttribute('x1', elementCenterX);
+                line.setAttribute('y1', elementBottomY);
                 line.setAttribute('x2', bubbleCenterX);
                 line.setAttribute('y2', bubbleTopY);
-                line.setAttribute('class', 'sr-connection-line');
+                line.setAttribute('class', isFunctionWord ? 'sr-connection-line function-word-line' : 'sr-connection-line');
                 svg.appendChild(line);
             });
-
-            groupIndex++;
-        });
-
-        // Process placeholders (function words)
-        placeholders.forEach((placeholder) => {
-            const bubbleGroup = bubbleGroups[groupIndex];
-            if (!bubbleGroup) return;
-
-            const placeholderRect = placeholder.getBoundingClientRect();
-            // Center-bottom of placeholder
-            const placeholderCenterX = placeholderRect.left + placeholderRect.width / 2 - svgRect.left;
-            const placeholderBottomY = placeholderRect.bottom - svgRect.top;
-
-            // Get the bubble in this group
-            const bubble = bubbleGroup.querySelector('.sr-display-bubble');
-            if (bubble) {
-                const bubbleRect = bubble.getBoundingClientRect();
-                // Center-top of word bubble
-                const bubbleCenterX = bubbleRect.left + bubbleRect.width / 2 - svgRect.left;
-                const bubbleTopY = bubbleRect.top - svgRect.top;
-
-                // Create line from placeholder bottom-center to bubble top-center
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', placeholderCenterX);
-                line.setAttribute('y1', placeholderBottomY);
-                line.setAttribute('x2', bubbleCenterX);
-                line.setAttribute('y2', bubbleTopY);
-                line.setAttribute('class', 'sr-connection-line function-word-line');
-                svg.appendChild(line);
-            }
-
-            groupIndex++;
         });
     }
 
