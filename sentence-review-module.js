@@ -273,14 +273,36 @@ class SentenceReviewModule extends LearningModule {
             }
         });
 
-        // Render each phrase group as one card
-        phraseGroups.forEach(group => {
-            const linkedWords = group.wordIndices.map(i => sentence.words[i].word);
-            const wordData = group.wordData;
-            const card = group.card;
+        // Build maps for rendering: which word indices start a phrase group, which are "inner" words to skip
+        const phraseGroupByStartIndex = new Map(); // startIndex -> phraseGroup
+        const skipIndices = new Set(); // word indices that are part of a phrase but not the first word
 
-                const wordContainer = document.createElement('div');
-                wordContainer.className = 'sr-word-container';
+        phraseGroups.forEach(group => {
+            const startIndex = group.wordIndices[0];
+            phraseGroupByStartIndex.set(startIndex, group);
+            // Mark all indices except the first as "skip" (they're part of the phrase, rendered with first word)
+            for (let i = 1; i < group.wordIndices.length; i++) {
+                skipIndices.add(group.wordIndices[i]);
+            }
+        });
+
+        // Render all words in order - cards for phrase groups, placeholders for function words
+        sentence.words.forEach((wordData, index) => {
+            // Skip if this word is part of a multi-word phrase (not the first word)
+            if (skipIndices.has(index)) {
+                return;
+            }
+
+            const wordContainer = document.createElement('div');
+            wordContainer.className = 'sr-word-container';
+
+            // Check if this word starts a phrase group
+            const group = phraseGroupByStartIndex.get(index);
+
+            if (group) {
+                // Render the phrase group card
+                const linkedWords = group.wordIndices.map(i => sentence.words[i].word);
+                const card = group.card;
 
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = 'sr-card-wrapper';
@@ -373,7 +395,15 @@ class SentenceReviewModule extends LearningModule {
                 });
 
                 wordContainer.appendChild(cardWrapper);
-                pictureRow.appendChild(wordContainer);
+            } else {
+                // No card - render function word placeholder
+                const placeholderEl = document.createElement('div');
+                placeholderEl.className = 'sr-word-placeholder';
+                placeholderEl.textContent = wordData.word;
+                wordContainer.appendChild(placeholderEl);
+            }
+
+            pictureRow.appendChild(wordContainer);
         });
 
         area.appendChild(pictureRow);
