@@ -150,6 +150,9 @@ try {
         }
         // Update sentenceReview for this language
         $manifest['sentenceReview'][$trigraph] = $data['sentenceReview'];
+
+        // Generate sentence index CSV after updating sentence review data
+        generateSentenceIndexCSV($manifest, __DIR__ . '/assets/sentences/audio');
     }
 
     // Update timestamp
@@ -243,5 +246,133 @@ function calculateStats($manifest) {
     }
 
     return $stats;
+}
+
+/**
+ * Generate sentence index CSV file for all languages
+ * This creates a human-readable reference for recording native speaker audio
+ * @param array $manifest The full manifest data
+ * @param string $audioDir Path to the sentences/audio directory
+ */
+function generateSentenceIndexCSV($manifest, $audioDir) {
+    // Ensure directory exists
+    if (!is_dir($audioDir)) {
+        mkdir($audioDir, 0755, true);
+    }
+
+    // Collect all sentences across all languages with deduplication
+    $sentenceIndex = [];
+    $sentenceMap = []; // Maps "trigraph:text" to sentenceNum for deduplication
+
+    if (!isset($manifest['sentenceReview']) || !is_array($manifest['sentenceReview'])) {
+        return;
+    }
+
+    // Track next sentence number per language
+    $nextSentenceNum = [];
+
+    foreach ($manifest['sentenceReview'] as $trigraph => $langData) {
+        if (!isset($langData['lessons']) || !is_array($langData['lessons'])) {
+            continue;
+        }
+
+        // Initialize sentence counter for this language
+        if (!isset($nextSentenceNum[$trigraph])) {
+            $nextSentenceNum[$trigraph] = 1;
+        }
+
+        // Ensure language audio directory exists
+        $langAudioDir = $audioDir . '/' . $trigraph;
+        if (!is_dir($langAudioDir)) {
+            mkdir($langAudioDir, 0755, true);
+        }
+
+        foreach ($langData['lessons'] as $lessonNum => $lessonData) {
+            if (!isset($lessonData['sequences']) || !is_array($lessonData['sequences'])) {
+                continue;
+            }
+
+            foreach ($lessonData['sequences'] as $sequence) {
+                $sequenceTitle = isset($sequence['title']) ? $sequence['title'] : 'Untitled';
+
+                if (!isset($sequence['sentences']) || !is_array($sequence['sentences'])) {
+                    continue;
+                }
+
+                foreach ($sequence['sentences'] as $sentence) {
+                    $text = isset($sentence['text']) ? trim($sentence['text']) : '';
+                    if (empty($text)) continue;
+
+                    $english = isset($sentence['english']) ? $sentence['english'] : '';
+                    $cebuano = isset($sentence['cebuano']) ? $sentence['cebuano'] : '';
+
+                    // Create unique key for deduplication
+                    $dedupKey = $trigraph . ':' . $text;
+
+                    if (isset($sentenceMap[$dedupKey])) {
+                        // Sentence already exists, add this location to it
+                        $existingNum = $sentenceMap[$dedupKey];
+                        foreach ($sentenceIndex as &$entry) {
+                            if ($entry['sentenceNum'] == $existingNum && $entry['trigraph'] == $trigraph) {
+                                // Add lesson and sequence if not already present
+                                if (strpos($entry['lessons'], (string)$lessonNum) === false) {
+                                    $entry['lessons'] .= ', ' . $lessonNum;
+                                }
+                                if (strpos($entry['sequences'], $sequenceTitle) === false) {
+                                    $entry['sequences'] .= ', ' . $sequenceTitle;
+                                }
+                                break;
+                            }
+                        }
+                        unset($entry);
+                    } else {
+                        // New sentence - assign number
+                        $sentenceNum = $nextSentenceNum[$trigraph]++;
+                        $sentenceMap[$dedupKey] = $sentenceNum;
+
+                        $sentenceIndex[] = [
+                            'sentenceNum' => $sentenceNum,
+                            'trigraph' => $trigraph,
+                            'text' => $text,
+                            'english' => $english,
+                            'cebuano' => $cebuano,
+                            'lessons' => (string)$lessonNum,
+                            'sequences' => $sequenceTitle
+                        ];
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort by language then sentence number
+    usort($sentenceIndex, function($a, $b) {
+        $langCompare = strcmp($a['trigraph'], $b['trigraph']);
+        if ($langCompare !== 0) return $langCompare;
+        return $a['sentenceNum'] - $b['sentenceNum'];
+    });
+
+    // Write CSV file
+    $csvPath = $audioDir . '/sentence-index.csv';
+    $fp = fopen($csvPath, 'w');
+
+    // Write header - include Cebuano Translation column for non-Cebuano languages
+    fputcsv($fp, ['Sentence #', 'Language', 'Text', 'English Translation', 'Cebuano Translation', 'Lessons', 'Sequences']);
+
+    // Write data rows
+    foreach ($sentenceIndex as $entry) {
+        fputcsv($fp, [
+            $entry['sentenceNum'],
+            $entry['trigraph'],
+            $entry['text'],
+            $entry['english'],
+            $entry['cebuano'],
+            $entry['lessons'],
+            $entry['sequences']
+        ]);
+    }
+
+    fclose($fp);
+    chmod($csvPath, 0644);
 }
 ?>

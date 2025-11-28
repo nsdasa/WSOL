@@ -14,17 +14,19 @@
 7. [Unsa Ni? Quiz](#unsa-ni-quiz)
 8. [Sentence Builder](#sentence-builder)
 9. [Sentence Review](#sentence-review)
-10. [Grammar Lessons](#grammar-lessons)
-11. [Teacher's Guide](#teachers-guide)
-12. [Print PDFs](#print-pdfs)
-13. [Voice Practice](#voice-practice)
-14. [Filtering Cards](#filtering-cards)
-15. [Light and Dark Mode](#light-and-dark-mode)
-16. [Show Tour (Help)](#show-tour-help)
-17. [Logging In](#logging-in)
-18. [Deck Builder (Recording & Editing)](#deck-builder)
-19. [Admin Functions](#admin-functions)
-20. [Troubleshooting](#troubleshooting)
+10. [Conversation Zone](#conversation-zone)
+11. [Story Zone](#story-zone)
+12. [Grammar Lessons](#grammar-lessons)
+13. [Teacher's Guide](#teachers-guide)
+14. [Print PDFs](#print-pdfs)
+15. [Voice Practice](#voice-practice)
+16. [Filtering Cards](#filtering-cards)
+17. [Light and Dark Mode](#light-and-dark-mode)
+18. [Show Tour (Help)](#show-tour-help)
+19. [Logging In](#logging-in)
+20. [Deck Builder (Recording & Editing)](#deck-builder)
+21. [Admin Functions](#admin-functions)
+22. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -42,19 +44,41 @@ Welcome to the Bob and Mariel Ward School of Filipino Languages learning app! Th
 
 ## Main Navigation
 
-At the top of the screen, you will see a row of tabs. These are your learning modules:
+The navigation uses a **two-level system**. The main level shows categories, and clicking a category reveals its modules.
+
+### Level 1 - Main Categories
 
 | Tab | What It Does |
 |-----|--------------|
-| **Flashcards** | View and study vocabulary words with pictures |
-| **Match** | Match pictures to words in a fun game |
-| **Audio Match** | Listen to words and match them to pictures |
-| **Unsa Ni?** | Take a multiple-choice quiz |
-| **Sentence** | Build sentences by arranging words |
-| **Sentence Rev.** | Review sentence structures with pictures |
 | **Grammar** | Read grammar lesson content |
+| **Word Discovery** | Opens word-learning activities (Level 2) |
+| **Sentence Zone** | Opens sentence-based activities (Level 2) |
 | **Teacher's Guide** | View the teacher's guide for each lesson |
 | **Print PDFs** | Create printable flashcards and worksheets |
+
+### Level 2 - Word Discovery
+
+Click "Word Discovery" to see these options:
+
+| Tab | What It Does |
+|-----|--------------|
+| **Back** | Return to main navigation |
+| **Flashcards** | View and study vocabulary words with pictures |
+| **Picture Match** | Match pictures to words in a fun game |
+| **Audio Match** | Listen to words and match them to pictures |
+| **Unsa Ni?** | Take a multiple-choice quiz |
+
+### Level 2 - Sentence Zone
+
+Click "Sentence Zone" to see these options:
+
+| Tab | What It Does |
+|-----|--------------|
+| **Back** | Return to main navigation |
+| **Review Zone** | Review sentence structures with pictures |
+| **Conversation Zone** | Practice Q&A dialogues |
+| **Story Zone** | Arrange sentences in correct story order |
+| **Sentence Builder** | Build sentences by arranging words |
 
 **Note:** The "Deck Builder" and "Admin" tabs only appear after you log in.
 
@@ -257,6 +281,76 @@ Review complete sentences with pictures representing each word.
 - This is great for understanding how phrase cards represent multiple words
 - Say the sentence out loud as you look at each word bubble
 - Great for reviewing after using the Sentence Builder
+
+---
+
+## Conversation Zone
+
+Practice question and answer dialogues in your target language.
+
+### How to Use:
+
+1. **Choose Your Mode:**
+   - **Review Mode** - Cards flip to show the word and English translation
+   - **Test Mode** - Cards flip to show only the word (no translation)
+
+2. **Choose Your Game Form:**
+   - **Picture Match** - See pictures for both question and answers
+   - **Audio Match** - Listen to audio and select the correct response
+
+3. **Playing the Game:**
+   - View or listen to the question
+   - Click on picture cards to flip them and see words
+   - Click the speaker icon to hear pronunciation
+   - Select the answer you think is correct
+   - Get immediate feedback on whether you're right
+
+4. **Navigation:**
+   - Use Previous/Next buttons to move between questions
+   - Track your score in the top-right corner
+
+### Tips:
+- Start with Review Mode to learn the dialogues
+- Switch to Test Mode when you feel confident
+- Listen to both the question and answer audio to practice pronunciation
+- Audio Match is harder - save it for when you're more advanced
+
+---
+
+## Story Zone
+
+Arrange shuffled sentences into the correct story order.
+
+### How to Use:
+
+1. **Choose Your Mode:**
+   - **Review Mode** - Cards flip to show the word and English translation
+   - **Test Mode** - Cards flip to show only the word, limited attempts
+
+2. **Arranging the Story:**
+   - Sentences appear shuffled out of order
+   - **Drag and drop** sentences using the grip handle on the left
+   - Click on picture cards to flip them and see words
+   - Click speaker icons to hear words
+
+3. **Checking Your Order:**
+   - Click "Check Order" when you think the sequence is correct
+   - Green = correct position
+   - Red = incorrect position (shows where it should go)
+
+4. **Other Controls:**
+   - **Play Story** - Hear all sentences read in current order
+   - **Try Again** - Reshuffle and try again (if incorrect)
+   - **Next Story** - Move to the next sequence (if correct)
+
+5. **Navigation:**
+   - Use the arrows at the top to switch between different story sequences
+
+### Tips:
+- Look for question-answer patterns
+- Commands often come after questions
+- Listen to the story to hear if it sounds logical
+- In Test Mode, you have limited attempts - think carefully!
 
 ---
 

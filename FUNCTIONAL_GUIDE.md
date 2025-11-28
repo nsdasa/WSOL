@@ -1,7 +1,7 @@
 # Bob and Mariel Ward School of Filipino Languages
 ## Complete Functional Guide for AI-Assisted Development
 
-**Version 4.2 - November 2025**
+**Version 4.3 - November 2025**
 
 ---
 
@@ -28,12 +28,19 @@ Think of it like Duolingo, but specifically made for Filipino languages and desi
 
 ## Main Features for Students
 
+**Word Discovery Zone:**
 - **Flashcards**: See a picture, flip to see the word in your target language
 - **Picture Match**: Match words to their correct pictures
 - **Audio Match**: Listen to a word and match it to the right picture
 - **Quiz ("Unsa Ni?")**: Type the correct word when shown a picture
+
+**Sentence Zone:**
+- **Review Zone**: Review complete sentences with visual connections
+- **Conversation Zone**: Practice Q&A dialogues with picture or audio matching
+- **Story Zone**: Arrange sentences in correct story order
 - **Sentence Builder**: Drag and arrange word cards to build sentences
-- **Sentence Review**: Review complete sentences with visual connections
+
+**Other:**
 - **Voice Practice**: Record yourself saying words and get AI feedback on pronunciation
 - **Grammar Lessons**: Read grammar rules and explanations
 - **Teacher's Guide**: Resources for instructors
