@@ -117,7 +117,7 @@ WSOL/
 ├── deck-builder-audio.js        # Audio recording/editing features
 ├── deck-builder-uploads.js      # CSV/media upload handling
 ├── card-sentence-sync.js        # Card-sentence synchronization manager
-├── kanban-tracker-module.js     # Sprint-based project tracker (Kanban board)
+├── kanban-tracker-module.js     # Sprint-based project tracker (Kanban board) with multi-project support
 │
 ├── # BACKEND API
 ├── scan-assets.php              # Asset scanner & manifest generator (78KB)
@@ -309,7 +309,7 @@ CSV Files ──► scan-assets.php ──► manifest.json ──► AssetManag
 | `DeckBuilderModule` | deck-builder-module.js | Edit cards, upload CSVs, manage assets |
 | `CardSentenceSyncManager` | card-sentence-sync.js | Detect card changes affecting sentence data |
 | `AdminModule` | admin-module.js | Scan assets, manage users, system config |
-| `KanbanTrackerModule` | kanban-tracker-module.js | Sprint-based project tracking with drag-drop |
+| `KanbanTrackerModule` | kanban-tracker-module.js | Sprint-based project tracking with drag-drop, multi-project support |
 
 ---
 
@@ -929,7 +929,7 @@ this.checkSentenceSync(); // Shows warning if affected sentences found
 
 ### KanbanTrackerModule Class
 
-Sprint-based project tracker using a Kanban board layout. Located in `kanban-tracker-module.js`.
+Sprint-based project tracker using a Kanban board layout with multi-project support. Located in `kanban-tracker-module.js`.
 
 **Access Control:**
 - Visible to: `admin`, `deck-manager`, `editor` roles
@@ -938,12 +938,23 @@ Sprint-based project tracker using a Kanban board layout. Located in `kanban-tra
 
 **Data Storage (localStorage):**
 ```javascript
-// Sprint definitions
-localStorage.setItem('kanbanSprints', JSON.stringify([
-    { id: 1, name: "Week 48", startDate: "2025-11-25", endDate: "2025-12-01" }
+// Project definitions
+localStorage.setItem('kanbanProjects', JSON.stringify([
+    {
+        id: 1,
+        name: "Default Project",
+        description: "General tasks and sprints",
+        color: "#3B82F6",
+        createdAt: "2025-11-20T00:00:00.000Z"
+    }
 ]));
 
-// Task data
+// Sprint definitions (with projectId)
+localStorage.setItem('kanbanSprints', JSON.stringify([
+    { id: 1, name: "Week 48", startDate: "2025-11-25", endDate: "2025-12-01", projectId: 1 }
+]));
+
+// Task data (with projectId)
 localStorage.setItem('kanbanTasks', JSON.stringify([
     {
         id: "task-1732824000000",
@@ -952,6 +963,7 @@ localStorage.setItem('kanbanTasks', JSON.stringify([
         category: "voice",        // dev | bug | lesson | voice
         language: "ceb",          // ceb | mrw | sin | all
         status: "in-progress",    // todo | in-progress | review | done
+        projectId: 1,             // Associated project
         sprintId: 1,
         assignee: "Maria",
         dueDate: "2025-11-29",
@@ -959,6 +971,9 @@ localStorage.setItem('kanbanTasks', JSON.stringify([
         completedAt: null         // Set when moved to 'done'
     }
 ]));
+
+// Currently selected project
+localStorage.setItem('kanbanCurrentProject', "1");  // null = show all projects
 
 // Currently selected sprint
 localStorage.setItem('kanbanCurrentSprint', "1");
@@ -968,12 +983,13 @@ localStorage.setItem('kanbanCurrentSprint', "1");
 
 ```javascript
 // Data persistence
-loadData()              // Load sprints/tasks from localStorage
-saveData()              // Save sprints/tasks to localStorage
+loadData()              // Load projects/sprints/tasks from localStorage
+saveData()              // Save projects/sprints/tasks to localStorage
+createDefaultProject()  // Create default project on first use
 createDefaultSprints()  // Generate 4 weeks of sprints on first use
 
 // Rendering
-renderTasks()           // Render all tasks to columns (filtered)
+renderTasks()           // Render all tasks to columns (filtered by project)
 createTaskCard(task)    // Create DOM element for a task
 updateColumnCounts()    // Update task counts in column headers
 updateProgress()        // Update sprint progress bar
@@ -984,13 +1000,34 @@ saveTask()              // Save task from modal form
 deleteTask()            // Delete task with confirmation
 moveTask(taskId, newStatus)  // Handle drag-drop status change
 
+// Project management
+populateProjectDropdowns()  // Populate project select elements
+addProject()            // Create new project
+deleteProject(projectId) // Delete project (moves tasks to first remaining project)
+renderProjectList()     // Render project list in management modal
+renderProjectColorPicker() // Render color picker for project creation
+
 // Sprint management
-addSprint()             // Create new sprint
+addSprint()             // Create new sprint (associated with current project)
 deleteSprint(sprintId)  // Delete sprint (moves tasks to "No Sprint")
 renderSprintList()      // Render sprint list in management modal
 
 // Drag and drop
 initDragAndDrop()       // Initialize SortableJS on columns
+```
+
+**Project Colors:**
+```javascript
+this.projectColors = [
+    { id: 'blue', name: 'Blue', color: '#3B82F6' },
+    { id: 'green', name: 'Green', color: '#10B981' },
+    { id: 'purple', name: 'Purple', color: '#8B5CF6' },
+    { id: 'orange', name: 'Orange', color: '#F97316' },
+    { id: 'pink', name: 'Pink', color: '#EC4899' },
+    { id: 'teal', name: 'Teal', color: '#14B8A6' },
+    { id: 'red', name: 'Red', color: '#EF4444' },
+    { id: 'indigo', name: 'Indigo', color: '#6366F1' }
+];
 ```
 
 **Task Categories:**
@@ -1007,6 +1044,9 @@ this.categories = [
 ```javascript
 this.columns = ['todo', 'in-progress', 'review', 'done'];
 ```
+
+**Data Migration:**
+When loading existing data without project associations, the module automatically migrates tasks and sprints to the default project (ID: 1).
 
 **Drag and Drop Integration:**
 Uses SortableJS (already included in project via CDN) for drag-drop:

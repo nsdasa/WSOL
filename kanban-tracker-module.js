@@ -6,8 +6,10 @@
 class KanbanTrackerModule extends LearningModule {
     constructor(assetManager) {
         super(assetManager);
+        this.projects = [];
         this.sprints = [];
         this.tasks = [];
+        this.currentProjectId = null;
         this.currentSprintId = null;
         this.viewMode = 'week'; // 'week', 'month', 'quarter'
         this.selectedMonth = new Date(); // For month view
@@ -20,6 +22,16 @@ class KanbanTrackerModule extends LearningModule {
         };
         this.draggedTask = null;
         this.columns = ['todo', 'in-progress', 'review', 'done'];
+        this.projectColors = [
+            { id: 'blue', name: 'Blue', color: '#3B82F6' },
+            { id: 'green', name: 'Green', color: '#10B981' },
+            { id: 'purple', name: 'Purple', color: '#8B5CF6' },
+            { id: 'orange', name: 'Orange', color: '#F97316' },
+            { id: 'pink', name: 'Pink', color: '#EC4899' },
+            { id: 'teal', name: 'Teal', color: '#14B8A6' },
+            { id: 'red', name: 'Red', color: '#EF4444' },
+            { id: 'indigo', name: 'Indigo', color: '#6366F1' }
+        ];
         this.categories = [
             { id: 'dev', name: 'Development', icon: 'fa-code', color: '#4F46E5' },
             { id: 'bug', name: 'Bug Fix', icon: 'fa-bug', color: '#EF4444' },
@@ -63,6 +75,16 @@ class KanbanTrackerModule extends LearningModule {
                         <h2>Project Tracker</h2>
                     </div>
                     <div class="kanban-controls">
+                        <!-- Project Selector -->
+                        <div class="project-selector">
+                            <label><i class="fas fa-folder"></i></label>
+                            <select id="projectSelect" class="kanban-select">
+                                <option value="">All Projects</option>
+                            </select>
+                            <button id="manageProjectsBtn" class="kanban-btn kanban-btn-secondary" title="Manage Projects">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
                         <!-- View Mode Selector -->
                         <div class="view-mode-selector">
                             <button class="view-mode-btn active" data-mode="week" title="Week View">
@@ -209,9 +231,15 @@ class KanbanTrackerModule extends LearningModule {
                                 <input type="date" id="taskDueDate" class="kanban-input">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Sprint</label>
-                            <select id="taskSprint" class="kanban-select"></select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Project</label>
+                                <select id="taskProject" class="kanban-select"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Sprint</label>
+                                <select id="taskSprint" class="kanban-select"></select>
+                            </div>
                         </div>
 
                         <!-- Bug-specific fields (shown when category is 'bug') -->
@@ -288,6 +316,36 @@ class KanbanTrackerModule extends LearningModule {
                 </div>
             </div>
 
+            <!-- Project Management Modal -->
+            <div id="projectModal" class="kanban-modal hidden">
+                <div class="kanban-modal-content">
+                    <div class="kanban-modal-header">
+                        <h3>Manage Projects</h3>
+                        <button id="closeProjectModal" class="kanban-btn-icon"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="kanban-modal-body">
+                        <div class="project-form">
+                            <div class="form-group">
+                                <label>Project Name <span class="required">*</span></label>
+                                <input type="text" id="projectNameInput" class="kanban-input" placeholder="e.g., WSOL Development, Lesson Creation...">
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="projectDescription" class="kanban-textarea" rows="2" placeholder="Brief project description..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Color</label>
+                                <div class="project-color-picker" id="projectColorPicker"></div>
+                            </div>
+                            <button id="addProjectBtn" class="kanban-btn kanban-btn-primary">
+                                <i class="fas fa-plus"></i> Add Project
+                            </button>
+                        </div>
+                        <div class="project-list" id="projectList"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Task Detail Modal (for viewing history and comments) -->
             <div id="taskDetailModal" class="kanban-modal hidden">
                 <div class="kanban-modal-content kanban-modal-wide">
@@ -331,12 +389,16 @@ class KanbanTrackerModule extends LearningModule {
         this.loadData();
 
         // Populate dropdowns
+        this.populateProjectDropdowns();
         this.populateFilterDropdowns();
         this.populateSprintDropdowns();
         this.populateTaskFormDropdowns();
 
         // Setup event listeners
         this.setupEventListeners();
+
+        // Render project color picker
+        this.renderProjectColorPicker();
 
         // Initialize drag and drop
         this.initDragAndDrop();
@@ -350,27 +412,64 @@ class KanbanTrackerModule extends LearningModule {
 
     loadData() {
         try {
+            const savedProjects = localStorage.getItem('kanbanProjects');
             const savedSprints = localStorage.getItem('kanbanSprints');
             const savedTasks = localStorage.getItem('kanbanTasks');
+            const savedCurrentProject = localStorage.getItem('kanbanCurrentProject');
             const savedCurrentSprint = localStorage.getItem('kanbanCurrentSprint');
 
+            this.projects = savedProjects ? JSON.parse(savedProjects) : this.createDefaultProject();
             this.sprints = savedSprints ? JSON.parse(savedSprints) : this.createDefaultSprints();
             this.tasks = savedTasks ? JSON.parse(savedTasks) : [];
+            this.currentProjectId = savedCurrentProject ? parseInt(savedCurrentProject) : null;
             this.currentSprintId = savedCurrentSprint ? parseInt(savedCurrentSprint) : (this.sprints.length > 0 ? this.sprints[0].id : null);
 
+            // Migrate existing tasks/sprints to default project if they don't have a projectId
+            if (this.projects.length > 0) {
+                const defaultProjectId = this.projects[0].id;
+                let migrated = false;
+                this.tasks.forEach(task => {
+                    if (!task.projectId) {
+                        task.projectId = defaultProjectId;
+                        migrated = true;
+                    }
+                });
+                this.sprints.forEach(sprint => {
+                    if (!sprint.projectId) {
+                        sprint.projectId = defaultProjectId;
+                        migrated = true;
+                    }
+                });
+                if (migrated) this.saveData();
+            }
+
             // Save defaults if none existed
-            if (!savedSprints) this.saveData();
+            if (!savedProjects || !savedSprints) this.saveData();
         } catch (err) {
             debugLogger?.log(1, `Error loading kanban data: ${err.message}`);
+            this.projects = this.createDefaultProject();
             this.sprints = this.createDefaultSprints();
             this.tasks = [];
         }
+    }
+
+    createDefaultProject() {
+        return [{
+            id: 1,
+            name: 'Default Project',
+            description: 'General tasks and sprints',
+            color: '#3B82F6',
+            createdAt: new Date().toISOString()
+        }];
     }
 
     createDefaultSprints() {
         const today = new Date();
         const startOfWeek = new Date(today);
         startOfWeek.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
+
+        // Get the default project ID (1 for initial setup)
+        const defaultProjectId = this.projects.length > 0 ? this.projects[0].id : 1;
 
         const sprints = [];
         for (let i = 0; i < 4; i++) {
@@ -384,7 +483,8 @@ class KanbanTrackerModule extends LearningModule {
                 id: i + 1,
                 name: `Week ${weekNum}`,
                 startDate: start.toISOString().split('T')[0],
-                endDate: end.toISOString().split('T')[0]
+                endDate: end.toISOString().split('T')[0],
+                projectId: defaultProjectId
             });
         }
         return sprints;
@@ -400,8 +500,14 @@ class KanbanTrackerModule extends LearningModule {
 
     saveData() {
         try {
+            localStorage.setItem('kanbanProjects', JSON.stringify(this.projects));
             localStorage.setItem('kanbanSprints', JSON.stringify(this.sprints));
             localStorage.setItem('kanbanTasks', JSON.stringify(this.tasks));
+            if (this.currentProjectId) {
+                localStorage.setItem('kanbanCurrentProject', this.currentProjectId.toString());
+            } else {
+                localStorage.removeItem('kanbanCurrentProject');
+            }
             if (this.currentSprintId) {
                 localStorage.setItem('kanbanCurrentSprint', this.currentSprintId.toString());
             }
@@ -409,6 +515,155 @@ class KanbanTrackerModule extends LearningModule {
             debugLogger?.log(1, `Error saving kanban data: ${err.message}`);
             toastManager?.show('Error saving data', 'error');
         }
+    }
+
+    populateProjectDropdowns() {
+        const projectSelect = document.getElementById('projectSelect');
+        const taskProjectSelect = document.getElementById('taskProject');
+
+        if (projectSelect) {
+            projectSelect.innerHTML = '<option value="">All Projects</option>' +
+                this.projects.map(p => `<option value="${p.id}" ${p.id === this.currentProjectId ? 'selected' : ''}>${this.escapeHtml(p.name)}</option>`).join('');
+        }
+
+        if (taskProjectSelect) {
+            taskProjectSelect.innerHTML = '<option value="">No Project</option>' +
+                this.projects.map(p => `<option value="${p.id}">${this.escapeHtml(p.name)}</option>`).join('');
+        }
+
+        this.renderProjectList();
+    }
+
+    renderProjectColorPicker() {
+        const picker = document.getElementById('projectColorPicker');
+        if (!picker) return;
+
+        picker.innerHTML = this.projectColors.map((c, i) =>
+            `<button type="button" class="color-option ${i === 0 ? 'selected' : ''}" data-color="${c.color}" style="background-color: ${c.color}" title="${c.name}"></button>`
+        ).join('');
+
+        picker.querySelectorAll('.color-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                picker.querySelectorAll('.color-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            });
+        });
+    }
+
+    renderProjectList() {
+        const container = document.getElementById('projectList');
+        if (!container) return;
+
+        if (this.projects.length === 0) {
+            container.innerHTML = '<p class="no-projects">No projects created yet.</p>';
+            return;
+        }
+
+        container.innerHTML = this.projects.map(project => {
+            const taskCount = this.tasks.filter(t => t.projectId === project.id).length;
+            const sprintCount = this.sprints.filter(s => s.projectId === project.id).length;
+            return `
+                <div class="project-item" data-project-id="${project.id}">
+                    <div class="project-color-indicator" style="background-color: ${project.color}"></div>
+                    <div class="project-item-info">
+                        <strong>${this.escapeHtml(project.name)}</strong>
+                        <span>${taskCount} task${taskCount !== 1 ? 's' : ''}, ${sprintCount} sprint${sprintCount !== 1 ? 's' : ''}</span>
+                        ${project.description ? `<span class="project-desc">${this.escapeHtml(project.description)}</span>` : ''}
+                    </div>
+                    <button class="kanban-btn-icon delete-project" data-project-id="${project.id}" title="Delete Project">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        // Add delete handlers
+        container.querySelectorAll('.delete-project').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteProject(parseInt(btn.dataset.projectId));
+            });
+        });
+    }
+
+    addProject() {
+        const nameInput = document.getElementById('projectNameInput');
+        const descInput = document.getElementById('projectDescription');
+        const colorPicker = document.getElementById('projectColorPicker');
+        const selectedColor = colorPicker?.querySelector('.color-option.selected');
+
+        const name = nameInput?.value.trim();
+        const description = descInput?.value.trim();
+        const color = selectedColor?.dataset.color || this.projectColors[0].color;
+
+        if (!name) {
+            toastManager?.show('Please enter a project name', 'error');
+            return;
+        }
+
+        const newProject = {
+            id: Math.max(0, ...this.projects.map(p => p.id)) + 1,
+            name,
+            description,
+            color,
+            createdAt: new Date().toISOString()
+        };
+
+        this.projects.push(newProject);
+        this.saveData();
+        this.populateProjectDropdowns();
+        toastManager?.show('Project created', 'success');
+
+        // Clear form
+        if (nameInput) nameInput.value = '';
+        if (descInput) descInput.value = '';
+        // Reset color picker to first color
+        colorPicker?.querySelectorAll('.color-option').forEach((btn, i) => {
+            btn.classList.toggle('selected', i === 0);
+        });
+    }
+
+    deleteProject(projectId) {
+        const tasksInProject = this.tasks.filter(t => t.projectId === projectId).length;
+        const sprintsInProject = this.sprints.filter(s => s.projectId === projectId).length;
+
+        if (this.projects.length <= 1) {
+            toastManager?.show('Cannot delete the last project', 'error');
+            return;
+        }
+
+        let confirmMsg = `Delete this project?`;
+        if (tasksInProject > 0 || sprintsInProject > 0) {
+            confirmMsg = `This project has ${tasksInProject} task${tasksInProject !== 1 ? 's' : ''} and ${sprintsInProject} sprint${sprintsInProject !== 1 ? 's' : ''}. Delete anyway? All tasks and sprints will be moved to the first remaining project.`;
+        }
+
+        if (!confirm(confirmMsg)) return;
+
+        // Find another project to move items to
+        const remainingProjects = this.projects.filter(p => p.id !== projectId);
+        const targetProjectId = remainingProjects[0].id;
+
+        // Move tasks and sprints to the target project
+        this.tasks.forEach(t => {
+            if (t.projectId === projectId) t.projectId = targetProjectId;
+        });
+        this.sprints.forEach(s => {
+            if (s.projectId === projectId) s.projectId = targetProjectId;
+        });
+
+        // Remove the project
+        this.projects = remainingProjects;
+
+        // Reset current project if deleted
+        if (this.currentProjectId === projectId) {
+            this.currentProjectId = null;
+        }
+
+        this.saveData();
+        this.populateProjectDropdowns();
+        this.renderTasks();
+        toastManager?.show('Project deleted', 'success');
     }
 
     populateFilterDropdowns() {
@@ -449,8 +704,13 @@ class KanbanTrackerModule extends LearningModule {
         const sprintSelect = document.getElementById('sprintSelect');
         const taskSprintSelect = document.getElementById('taskSprint');
 
+        // Filter sprints by current project if one is selected
+        const filteredSprints = this.currentProjectId
+            ? this.sprints.filter(s => s.projectId === this.currentProjectId)
+            : this.sprints;
+
         const options = '<option value="">All Sprints</option>' +
-            this.sprints.map(s => `<option value="${s.id}" ${s.id === this.currentSprintId ? 'selected' : ''}>${s.name}</option>`).join('');
+            filteredSprints.map(s => `<option value="${s.id}" ${s.id === this.currentSprintId ? 'selected' : ''}>${s.name}</option>`).join('');
 
         if (sprintSelect) {
             sprintSelect.innerHTML = options;
@@ -461,7 +721,7 @@ class KanbanTrackerModule extends LearningModule {
 
         if (taskSprintSelect) {
             taskSprintSelect.innerHTML = '<option value="">No Sprint</option>' +
-                this.sprints.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                filteredSprints.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         }
 
         this.updateSprintInfo();
@@ -604,6 +864,30 @@ class KanbanTrackerModule extends LearningModule {
             this.addSprint();
         });
 
+        // Project selection
+        document.getElementById('projectSelect')?.addEventListener('change', (e) => {
+            this.currentProjectId = e.target.value ? parseInt(e.target.value) : null;
+            this.currentSprintId = null; // Reset sprint selection when project changes
+            this.saveData();
+            this.populateSprintDropdowns();
+            this.renderTasks();
+            this.updateProgress();
+        });
+
+        // Manage projects button
+        document.getElementById('manageProjectsBtn')?.addEventListener('click', () => {
+            document.getElementById('projectModal').classList.remove('hidden');
+        });
+
+        // Project modal
+        document.getElementById('closeProjectModal')?.addEventListener('click', () => {
+            document.getElementById('projectModal').classList.add('hidden');
+        });
+
+        document.getElementById('addProjectBtn')?.addEventListener('click', () => {
+            this.addProject();
+        });
+
         // Close modals on backdrop click
         document.querySelectorAll('.kanban-modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
@@ -672,6 +956,9 @@ class KanbanTrackerModule extends LearningModule {
 
         // Filter tasks
         let filteredTasks = this.tasks.filter(task => {
+            // Project filter
+            if (this.currentProjectId && task.projectId !== this.currentProjectId) return false;
+
             // Sprint filter
             if (this.currentSprintId && task.sprintId !== this.currentSprintId) return false;
 
@@ -751,6 +1038,7 @@ class KanbanTrackerModule extends LearningModule {
         this.columns.forEach(status => {
             const count = this.tasks.filter(t => {
                 if (t.status !== status) return false;
+                if (this.currentProjectId && t.projectId !== this.currentProjectId) return false;
                 if (this.currentSprintId && t.sprintId !== this.currentSprintId) return false;
                 if (this.filters.category && t.category !== this.filters.category) return false;
                 if (this.filters.language && t.language !== this.filters.language) return false;
@@ -765,6 +1053,9 @@ class KanbanTrackerModule extends LearningModule {
 
     updateProgress() {
         let tasks = this.tasks;
+        if (this.currentProjectId) {
+            tasks = tasks.filter(t => t.projectId === this.currentProjectId);
+        }
         if (this.currentSprintId) {
             tasks = tasks.filter(t => t.sprintId === this.currentSprintId);
         }
@@ -799,6 +1090,7 @@ class KanbanTrackerModule extends LearningModule {
         document.getElementById('taskLanguage').value = task?.language || 'all';
         document.getElementById('taskAssignee').value = task?.assignee || '';
         document.getElementById('taskDueDate').value = task?.dueDate || '';
+        document.getElementById('taskProject').value = task?.projectId || this.currentProjectId || (this.projects.length > 0 ? this.projects[0].id : '');
         document.getElementById('taskSprint').value = task?.sprintId || this.currentSprintId || '';
 
         // Bug-specific fields
@@ -833,6 +1125,7 @@ class KanbanTrackerModule extends LearningModule {
         const language = document.getElementById('taskLanguage').value;
         const assignee = document.getElementById('taskAssignee').value.trim();
         const dueDate = document.getElementById('taskDueDate').value;
+        const projectId = document.getElementById('taskProject').value ? parseInt(document.getElementById('taskProject').value) : (this.projects.length > 0 ? this.projects[0].id : null);
         const sprintId = document.getElementById('taskSprint').value ? parseInt(document.getElementById('taskSprint').value) : null;
 
         // Bug-specific fields
@@ -883,6 +1176,7 @@ class KanbanTrackerModule extends LearningModule {
                 task.language = language;
                 task.assignee = assignee;
                 task.dueDate = dueDate;
+                task.projectId = projectId;
                 task.sprintId = sprintId;
                 task.updatedAt = now;
 
@@ -904,6 +1198,7 @@ class KanbanTrackerModule extends LearningModule {
                 language,
                 assignee,
                 dueDate,
+                projectId,
                 sprintId,
                 status: 'todo',
                 createdAt: now,
@@ -1003,7 +1298,8 @@ class KanbanTrackerModule extends LearningModule {
             id: Math.max(0, ...this.sprints.map(s => s.id)) + 1,
             name,
             startDate,
-            endDate
+            endDate,
+            projectId: this.currentProjectId || (this.projects.length > 0 ? this.projects[0].id : null)
         };
 
         this.sprints.push(newSprint);
