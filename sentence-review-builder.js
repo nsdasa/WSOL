@@ -149,20 +149,163 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
     /**
      * Load sentence review data from manifest
+     * Supports both old format (sentenceReview) and new format (sentences.reviewZone)
+     * Internally uses the new sets/seqs structure
      */
     loadData() {
         const manifest = this.deckBuilder.assets.manifest;
         this.currentTrigraph = this.deckBuilder.currentTrigraph || 'ceb';
 
-        // Get existing sentence review data
+        // Get sentence pool for resolving sentenceNums to full sentence data
+        this.sentencePool = manifest?.sentences?.[this.currentTrigraph]?.pool || [];
+        this.poolMap = new Map(this.sentencePool.map(s => [s.sentenceNum, s]));
+
+        // Try new format first: sentences[trigraph].reviewZone.lessons
+        const newData = manifest?.sentences?.[this.currentTrigraph]?.reviewZone?.lessons;
+
+        // Fallback to old format: sentenceReview[trigraph].lessons
+        const oldData = manifest?.sentenceReview?.[this.currentTrigraph]?.lessons;
+
         this.lessons = {};
-        const srData = manifest?.sentenceReview?.[this.currentTrigraph]?.lessons;
-        if (srData) {
-            // Deep clone to avoid mutating manifest
-            this.lessons = JSON.parse(JSON.stringify(srData));
+
+        if (newData) {
+            // New format - deep clone
+            this.lessons = JSON.parse(JSON.stringify(newData));
+            debugLogger?.log(3, `SentenceReviewBuilder: Loaded ${Object.keys(this.lessons).length} lessons (new format)`);
+        } else if (oldData) {
+            // Old format - convert to new structure
+            this.lessons = this.convertOldToNewFormat(oldData);
+            debugLogger?.log(3, `SentenceReviewBuilder: Converted ${Object.keys(this.lessons).length} lessons from old format`);
+        }
+    }
+
+    /**
+     * Convert old format (sequences with embedded sentences) to new format (sets with seqs referencing pool)
+     */
+    convertOldToNewFormat(oldLessons) {
+        const newLessons = {};
+
+        for (const [lessonNum, lessonData] of Object.entries(oldLessons)) {
+            newLessons[lessonNum] = {
+                title: lessonData.title || `Lesson ${lessonNum}`,
+                sets: []
+            };
+
+            if (lessonData.sequences) {
+                for (const seq of lessonData.sequences) {
+                    const newSet = {
+                        id: seq.id,
+                        title: seq.title,
+                        seqs: []
+                    };
+
+                    // Convert sentences to seqs with sentenceNums
+                    if (seq.sentences) {
+                        seq.sentences.forEach((sent, idx) => {
+                            // For old format, create seqs with inline sentence data
+                            // (will be converted to pool references on save)
+                            newSet.seqs.push({
+                                seqNum: sent.id || idx + 1,
+                                sentenceNum: sent.sentenceNum || null, // May not exist in old format
+                                text: sent.text,
+                                english: sent.english || '',
+                                cebuano: sent.cebuano || null,
+                                sentenceType: sent.sentenceType || sent.type || null,
+                                words: sent.words || []
+                            });
+                        });
+                    } else if (seq.sentenceNums) {
+                        // Already in new format (references to pool)
+                        seq.sentenceNums.forEach((sentNum, idx) => {
+                            const poolSentence = this.poolMap.get(sentNum);
+                            newSet.seqs.push({
+                                seqNum: idx + 1,
+                                sentenceNum: sentNum,
+                                text: poolSentence?.text || '',
+                                english: poolSentence?.english || '',
+                                cebuano: poolSentence?.cebuano || null,
+                                sentenceType: poolSentence?.type || null,
+                                words: poolSentence?.words || []
+                            });
+                        });
+                    }
+
+                    newLessons[lessonNum].sets.push(newSet);
+                }
+            }
         }
 
-        debugLogger?.log(3, `SentenceReviewBuilder: Loaded ${Object.keys(this.lessons).length} lessons`);
+        return newLessons;
+    }
+
+    // =====================================================
+    // HELPER METHODS for accessing sets/seqs data
+    // These provide backward compatibility with old sequences/sentences structure
+    // =====================================================
+
+    /**
+     * Get sets (was sequences) for a lesson
+     */
+    getSets(lessonNum) {
+        const lesson = this.lessons[lessonNum];
+        if (!lesson) return [];
+        return lesson.sets || lesson.sequences || [];
+    }
+
+    /**
+     * Get a specific set by index
+     */
+    getSet(lessonNum, setIndex) {
+        const sets = this.getSets(lessonNum);
+        return sets[setIndex] || null;
+    }
+
+    /**
+     * Get seqs (was sentences) for a set
+     */
+    getSeqs(lessonNum, setIndex) {
+        const set = this.getSet(lessonNum, setIndex);
+        if (!set) return [];
+        return set.seqs || set.sentences || [];
+    }
+
+    /**
+     * Get a specific seq (sentence) by index
+     */
+    getSeq(lessonNum, setIndex, seqIndex) {
+        const seqs = this.getSeqs(lessonNum, setIndex);
+        return seqs[seqIndex] || null;
+    }
+
+    /**
+     * Ensure lesson has sets array (migrates from sequences if needed)
+     */
+    ensureSetsArray(lessonNum) {
+        const lesson = this.lessons[lessonNum];
+        if (!lesson) return;
+        if (!lesson.sets && lesson.sequences) {
+            lesson.sets = lesson.sequences;
+            delete lesson.sequences;
+        }
+        if (!lesson.sets) {
+            lesson.sets = [];
+        }
+    }
+
+    /**
+     * Ensure set has seqs array (migrates from sentences if needed)
+     */
+    ensureSeqsArray(lessonNum, setIndex) {
+        this.ensureSetsArray(lessonNum);
+        const set = this.lessons[lessonNum]?.sets?.[setIndex];
+        if (!set) return;
+        if (!set.seqs && set.sentences) {
+            set.seqs = set.sentences;
+            delete set.sentences;
+        }
+        if (!set.seqs) {
+            set.seqs = [];
+        }
     }
 
     /**
@@ -304,67 +447,73 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
         }
 
         const lessonNums = Object.keys(this.parsedLessons).map(Number).sort((a, b) => a - b);
-        let totalSequences = 0;
+        let totalSets = 0;
         let totalSentences = 0;
 
         lessonNums.forEach(num => {
             const lesson = this.parsedLessons[num];
-            totalSequences += lesson.sequences?.length || 0;
-            lesson.sequences?.forEach(seq => {
-                totalSentences += seq.sentences?.length || 0;
+            // Support both old (sequences) and new (sets) format
+            const sets = lesson.sets || lesson.sequences || [];
+            totalSets += sets.length;
+            sets.forEach(set => {
+                const seqs = set.seqs || set.sentences || [];
+                totalSentences += seqs.length;
             });
         });
 
         let html = `
             <div class="sr-csv-preview-summary">
                 <span class="summary-item"><i class="fas fa-book"></i> ${lessonNums.length} Lesson(s)</span>
-                <span class="summary-item"><i class="fas fa-list"></i> ${totalSequences} Sequence(s)</span>
+                <span class="summary-item"><i class="fas fa-list"></i> ${totalSets} Set(s)</span>
                 <span class="summary-item"><i class="fas fa-comment"></i> ${totalSentences} Sentence(s)</span>
             </div>
         `;
 
         lessonNums.forEach(lessonNum => {
             const lesson = this.parsedLessons[lessonNum];
+            const sets = lesson.sets || lesson.sequences || [];
             html += `
                 <div class="sr-preview-lesson">
                     <div class="sr-preview-lesson-header">
                         <i class="fas fa-book"></i>
                         <strong>Lesson ${lessonNum}</strong>
-                        <span class="sequence-count">${lesson.sequences?.length || 0} sequences</span>
+                        <span class="sequence-count">${sets.length} sets</span>
                     </div>
             `;
 
-            lesson.sequences?.forEach((sequence, seqIndex) => {
+            sets.forEach((set, setIndex) => {
+                const seqs = set.seqs || set.sentences || [];
                 html += `
                     <div class="sr-preview-sequence">
                         <div class="sr-preview-seq-header">
-                            <strong>Sequence ${sequence.id}:</strong> ${sequence.title}
-                            <span class="sentence-count">${sequence.sentences?.length || 0} sentences</span>
+                            <strong>Set ${set.id}:</strong> ${set.title}
+                            <span class="sentence-count">${seqs.length} sentences</span>
                         </div>
                         <div class="sr-preview-sentences">
                 `;
 
-                sequence.sentences?.forEach((sentence, sentIndex) => {
-                    const withPic = sentence.words?.filter(w => w.imagePath).length || 0;
-                    const withoutPic = sentence.words?.filter(w => !w.imagePath).length || 0;
-                    const needsRes = sentence.words?.filter(w => w.needsResolution).length || 0;
+                seqs.forEach((seq, seqIndex) => {
+                    const withPic = seq.words?.filter(w => w.imagePath).length || 0;
+                    const withoutPic = seq.words?.filter(w => !w.imagePath).length || 0;
+                    const needsRes = seq.words?.filter(w => w.needsResolution).length || 0;
 
                     // Sentence type badge
-                    const typeClass = sentence.sentenceType ? `type-${sentence.sentenceType.toLowerCase()}` : '';
-                    const typeBadge = sentence.sentenceType ?
-                        `<span class="sr-sentence-type-badge ${typeClass}">${sentence.sentenceType}</span>` : '';
+                    const typeClass = seq.sentenceType ? `type-${seq.sentenceType.toLowerCase()}` : '';
+                    const typeBadge = seq.sentenceType ?
+                        `<span class="sr-sentence-type-badge ${typeClass}">${seq.sentenceType}</span>` : '';
 
                     html += `
                         <div class="sr-preview-sentence">
                             <div class="sr-preview-sent-text">
-                                ${sentence.text}
+                                <span class="seq-num">${seq.seqNum || seqIndex + 1}.</span>
+                                ${seq.text}
                                 ${typeBadge}
                             </div>
-                            <div class="sr-preview-sent-english">${sentence.english}</div>
+                            <div class="sr-preview-sent-english">${seq.english}</div>
                             <div class="sr-preview-words">
                     `;
 
-                    sentence.words?.forEach(word => {
+                    seq.words?.forEach(word => {
                         if (word.imagePath) {
                             const needsResClass = word.needsResolution ? ' needs-resolution' : '';
                             const resTitle = word.needsResolution ? ' - Auto-assigned via root' : '';
@@ -534,14 +683,76 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
     /**
      * Apply parsed data to the target lesson
+     * Uses SentencePoolManager for deduplication - reuses existing sentences when found
      */
     applyParsedData() {
-        // Handle CSV import (multiple lessons)
+        // Handle CSV import (multiple lessons with new sets/seqs structure)
         if (this.parsedLessons && Object.keys(this.parsedLessons).length > 0) {
             let lessonsApplied = 0;
+            let sentencesNew = 0;
+            let sentencesReused = 0;
+
+            // Get or create SentencePoolManager
+            const poolManager = this.deckBuilder.sentencePoolManager ||
+                (window.sentencePoolManager ? window.sentencePoolManager : null);
 
             for (const [lessonNum, lessonData] of Object.entries(this.parsedLessons)) {
-                this.lessons[lessonNum] = lessonData;
+                // Convert parsed data to internal format with deduplication
+                const convertedLesson = {
+                    title: lessonData.title || `Lesson ${lessonNum}`,
+                    sets: []
+                };
+
+                // Process each set (was "sequence" in parsed data, now "sets")
+                for (const parsedSet of (lessonData.sets || [])) {
+                    const newSet = {
+                        id: parsedSet.id,
+                        title: parsedSet.title,
+                        seqs: []
+                    };
+
+                    // Process each sentence in the set
+                    for (const parsedSeq of (parsedSet.seqs || [])) {
+                        // Check if sentence already exists in pool (deduplication)
+                        let sentenceNum = null;
+                        let isNew = true;
+
+                        if (poolManager) {
+                            const existing = poolManager.findByText(parsedSeq.text, this.currentTrigraph);
+                            if (existing) {
+                                sentenceNum = existing.sentenceNum;
+                                isNew = false;
+                                sentencesReused++;
+                            } else {
+                                // Add new sentence to pool
+                                const result = poolManager.addOrGetSentence({
+                                    text: parsedSeq.text,
+                                    english: parsedSeq.english,
+                                    cebuano: parsedSeq.cebuano,
+                                    type: parsedSeq.sentenceType,
+                                    words: parsedSeq.words
+                                }, this.currentTrigraph);
+                                sentenceNum = result.sentence.sentenceNum;
+                                sentencesNew++;
+                            }
+                        }
+
+                        newSet.seqs.push({
+                            seqNum: parsedSeq.seqNum,
+                            sentenceNum: sentenceNum,
+                            // Keep inline data for display/editing
+                            text: parsedSeq.text,
+                            english: parsedSeq.english || '',
+                            cebuano: parsedSeq.cebuano || null,
+                            sentenceType: parsedSeq.sentenceType || null,
+                            words: parsedSeq.words || []
+                        });
+                    }
+
+                    convertedLesson.sets.push(newSet);
+                }
+
+                this.lessons[lessonNum] = convertedLesson;
                 this.editedLessons.add(parseInt(lessonNum));
                 lessonsApplied++;
             }
@@ -555,17 +766,38 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             this.renderLessonsList();
             this.updateSaveButton();
 
-            toastManager?.show(`${lessonsApplied} lesson(s) imported from CSV`, 'success');
+            const msg = `${lessonsApplied} lesson(s) imported. ${sentencesNew} new, ${sentencesReused} reused sentences.`;
+            toastManager?.show(msg, 'success');
             return;
         }
 
         // Handle text import (single lesson)
         if (!this.parsedData || !this.parsedTargetLesson) return;
 
+        // Convert old sequences format to new sets format
+        const sets = [];
+        if (this.parsedData.sequences) {
+            for (const seq of this.parsedData.sequences) {
+                sets.push({
+                    id: seq.id,
+                    title: seq.title,
+                    seqs: (seq.sentences || []).map((sent, idx) => ({
+                        seqNum: sent.id || idx + 1,
+                        sentenceNum: null,
+                        text: sent.text,
+                        english: sent.english || '',
+                        cebuano: sent.cebuano || null,
+                        sentenceType: sent.sentenceType || null,
+                        words: sent.words || []
+                    }))
+                });
+            }
+        }
+
         // Create or update lesson data
         this.lessons[this.parsedTargetLesson] = {
             title: `Lesson ${this.parsedTargetLesson} Sentences`,
-            sequences: this.parsedData.sequences
+            sets: sets
         };
 
         this.editedLessons.add(this.parsedTargetLesson);
@@ -586,6 +818,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
     /**
      * Render the lessons list with collapsible hierarchy
+     * Uses new terminology: sets (groups of sentences) and seqs (ordered sentences within a set)
      */
     renderLessonsList() {
         const container = document.getElementById('srLessonsList');
@@ -609,20 +842,22 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             const lesson = this.lessons[lessonNum];
             const isExpanded = this.expandedLessons.has(lessonNum);
             const isEdited = this.editedLessons.has(lessonNum);
+            // Support both old (sequences) and new (sets) format
+            const sets = lesson.sets || lesson.sequences || [];
 
             html += `
                 <div class="sr-lesson-item ${isExpanded ? 'expanded' : ''}" data-lesson="${lessonNum}">
                     <div class="sr-lesson-header" data-lesson="${lessonNum}">
                         <i class="fas fa-${isExpanded ? 'minus' : 'plus'}-square expand-icon"></i>
                         <span class="lesson-title">Lesson ${lessonNum}: ${lesson.title || 'Untitled'}</span>
-                        <span class="sequence-count">${lesson.sequences?.length || 0} sequences</span>
+                        <span class="sequence-count">${sets.length} sets</span>
                         ${isEdited ? '<span class="edited-badge">Modified</span>' : ''}
                         <button class="btn btn-sm btn-danger sr-delete-lesson" data-lesson="${lessonNum}" title="Delete lesson">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                     <div class="sr-lesson-content ${isExpanded ? '' : 'hidden'}">
-                        ${this.renderSequences(lessonNum, lesson.sequences || [])}
+                        ${this.renderSets(lessonNum, sets)}
                     </div>
                 </div>
             `;
@@ -635,34 +870,37 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     }
 
     /**
-     * Render sequences for a lesson
+     * Render sets for a lesson (was renderSequences)
+     * A "set" is a group of sentences with a theme/title
      */
-    renderSequences(lessonNum, sequences) {
-        if (!sequences || sequences.length === 0) {
-            return '<p class="sr-no-sequences">No sequences in this lesson</p>';
+    renderSets(lessonNum, sets) {
+        if (!sets || sets.length === 0) {
+            return '<p class="sr-no-sequences">No sets in this lesson</p>';
         }
 
         let html = '<div class="sr-sequences-list">';
 
-        sequences.forEach((sequence, seqIndex) => {
-            const seqKey = `${lessonNum}-${seqIndex}`;
-            const isExpanded = this.expandedSequences.has(seqKey);
+        sets.forEach((set, setIndex) => {
+            const setKey = `${lessonNum}-${setIndex}`;
+            const isExpanded = this.expandedSequences.has(setKey);
+            // Support both old (sentences) and new (seqs) format
+            const seqs = set.seqs || set.sentences || [];
 
             html += `
-                <div class="sr-sequence-item ${isExpanded ? 'expanded' : ''}" data-lesson="${lessonNum}" data-seq="${seqIndex}">
-                    <div class="sr-sequence-header" data-lesson="${lessonNum}" data-seq="${seqIndex}">
+                <div class="sr-sequence-item ${isExpanded ? 'expanded' : ''}" data-lesson="${lessonNum}" data-seq="${setIndex}">
+                    <div class="sr-sequence-header" data-lesson="${lessonNum}" data-seq="${setIndex}">
                         <i class="fas fa-${isExpanded ? 'minus' : 'plus'}-square expand-icon"></i>
-                        <span class="sequence-title">Sequence ${sequence.id}: ${sequence.title || 'Untitled'}</span>
-                        <span class="sentence-count">${sequence.sentences?.length || 0} sentences</span>
-                        <button class="btn btn-sm btn-secondary sr-edit-sequence" data-lesson="${lessonNum}" data-seq="${seqIndex}" title="Edit sequence">
+                        <span class="sequence-title">Set ${set.id}: ${set.title || 'Untitled'}</span>
+                        <span class="sentence-count">${seqs.length} sentences</span>
+                        <button class="btn btn-sm btn-secondary sr-edit-sequence" data-lesson="${lessonNum}" data-seq="${setIndex}" title="Edit set">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger sr-delete-sequence" data-lesson="${lessonNum}" data-seq="${seqIndex}" title="Delete sequence">
+                        <button class="btn btn-sm btn-danger sr-delete-sequence" data-lesson="${lessonNum}" data-seq="${setIndex}" title="Delete set">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                     <div class="sr-sequence-content ${isExpanded ? '' : 'hidden'}">
-                        ${this.renderSentences(lessonNum, seqIndex, sequence.sentences || [])}
+                        ${this.renderSeqs(lessonNum, setIndex, seqs)}
                     </div>
                 </div>
             `;
@@ -670,7 +908,7 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
         html += `
             <button class="btn btn-sm btn-success sr-add-sequence" data-lesson="${lessonNum}">
-                <i class="fas fa-plus"></i> Add Sequence
+                <i class="fas fa-plus"></i> Add Set
             </button>
         </div>`;
 
@@ -678,49 +916,70 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     }
 
     /**
-     * Render sentences for a sequence with pictures
+     * Backward compatibility alias
      */
-    renderSentences(lessonNum, seqIndex, sentences) {
-        if (!sentences || sentences.length === 0) {
-            return '<p class="sr-no-sentences">No sentences in this sequence</p>';
+    renderSequences(lessonNum, sequences) {
+        return this.renderSets(lessonNum, sequences);
+    }
+
+    /**
+     * Render seqs (sentences) for a set with pictures
+     * A "seq" is an ordered sentence within a set
+     */
+    renderSeqs(lessonNum, setIndex, seqs) {
+        if (!seqs || seqs.length === 0) {
+            return '<p class="sr-no-sentences">No sentences in this set</p>';
         }
 
         let html = '<div class="sr-sentences-list">';
 
-        sentences.forEach((sentence, sentIndex) => {
+        seqs.forEach((seq, seqIndex) => {
             // Sentence type badge
-            const typeClass = sentence.sentenceType ? `type-${sentence.sentenceType.toLowerCase()}` : '';
-            const typeBadge = sentence.sentenceType ?
-                `<span class="sr-sentence-type-badge ${typeClass}">${sentence.sentenceType}</span>` : '';
+            const typeClass = seq.sentenceType ? `type-${seq.sentenceType.toLowerCase()}` : '';
+            const typeBadge = seq.sentenceType ?
+                `<span class="sr-sentence-type-badge ${typeClass}">${seq.sentenceType}</span>` : '';
+
+            // Show seq number and global sentence ID if available
+            const seqNumDisplay = seq.seqNum || seqIndex + 1;
+            const sentIdBadge = seq.sentenceNum ?
+                `<span class="sr-sent-id-badge" title="Global Sentence ID">#${seq.sentenceNum}</span>` : '';
 
             html += `
-                <div class="sr-sentence-item" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}">
+                <div class="sr-sentence-item" data-lesson="${lessonNum}" data-seq="${setIndex}" data-sent="${seqIndex}">
                     <div class="sr-sentence-header">
-                        <span class="sentence-num">${sentIndex + 1}.</span>
-                        <span class="sentence-text">${sentence.text}</span>
+                        <span class="sentence-num">${seqNumDisplay}.</span>
+                        ${sentIdBadge}
+                        <span class="sentence-text">${seq.text}</span>
                         ${typeBadge}
-                        <span class="sentence-english">(${sentence.english})</span>
-                        <button class="btn btn-xs btn-secondary sr-edit-sentence" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" title="Edit sentence">
+                        <span class="sentence-english">(${seq.english})</span>
+                        <button class="btn btn-xs btn-secondary sr-edit-sentence" data-lesson="${lessonNum}" data-seq="${setIndex}" data-sent="${seqIndex}" title="Edit sentence">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-xs btn-danger sr-delete-sentence" data-lesson="${lessonNum}" data-seq="${seqIndex}" data-sent="${sentIndex}" title="Delete sentence">
+                        <button class="btn btn-xs btn-danger sr-delete-sentence" data-lesson="${lessonNum}" data-seq="${setIndex}" data-sent="${seqIndex}" title="Delete sentence">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                     <div class="sr-sentence-pictures">
-                        ${this.renderWordPictures(lessonNum, seqIndex, sentIndex, sentence.words || [])}
+                        ${this.renderWordPictures(lessonNum, setIndex, seqIndex, seq.words || [])}
                     </div>
                 </div>
             `;
         });
 
         html += `
-            <button class="btn btn-sm btn-success sr-add-sentence" data-lesson="${lessonNum}" data-seq="${seqIndex}">
+            <button class="btn btn-sm btn-success sr-add-sentence" data-lesson="${lessonNum}" data-seq="${setIndex}">
                 <i class="fas fa-plus"></i> Add Sentence
             </button>
         </div>`;
 
         return html;
+    }
+
+    /**
+     * Backward compatibility alias
+     */
+    renderSentences(lessonNum, seqIndex, sentences) {
+        return this.renderSeqs(lessonNum, seqIndex, sentences);
     }
 
     /**
@@ -1081,15 +1340,18 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     /**
      * Edit word text inline
      */
-    editWordText(lessonNum, seqIndex, sentIndex, wordIndex) {
-        const word = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex].words[wordIndex];
+    editWordText(lessonNum, setIndex, seqIndex, wordIndex) {
+        const seq = this.getSeq(lessonNum, setIndex, seqIndex);
+        if (!seq || !seq.words?.[wordIndex]) return;
+
+        const word = seq.words[wordIndex];
         const newText = prompt('Edit word(s):\n(You can enter multiple words for a phrase)', word.word);
 
         if (newText === null || newText.trim() === '') return;
 
         word.word = newText.trim();
         this.editedLessons.add(lessonNum);
-        this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+        this.updateSentenceText(lessonNum, setIndex, seqIndex);
         this.renderLessonsList();
         this.updateSaveButton();
 
@@ -1120,7 +1382,8 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                     filter: '.sr-add-word-btn', // Don't drag the add button
                     onEnd: (evt) => {
                         // Don't process if dropped on the add button
-                        if (evt.newIndex >= this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex].words.length) {
+                        const seqs = this.getSeqs(lessonNum, seqIndex);
+                        if (evt.newIndex >= (seqs[sentIndex]?.words?.length || 0)) {
                             // Re-render to reset position
                             this.renderLessonsList();
                             return;
@@ -1136,18 +1399,20 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     /**
      * Handle word reordering after drag-and-drop
      */
-    onWordReorder(lessonNum, seqIndex, sentIndex, oldIndex, newIndex) {
+    onWordReorder(lessonNum, setIndex, seqIndex, oldIndex, newIndex) {
         if (oldIndex === newIndex) return;
 
-        const words = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex].words;
-        const [movedWord] = words.splice(oldIndex, 1);
-        words.splice(newIndex, 0, movedWord);
+        const seq = this.getSeq(lessonNum, setIndex, seqIndex);
+        if (!seq?.words) return;
+
+        const [movedWord] = seq.words.splice(oldIndex, 1);
+        seq.words.splice(newIndex, 0, movedWord);
 
         this.editedLessons.add(lessonNum);
         this.updateSaveButton();
 
         // Update sentence text to reflect new word order
-        this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+        this.updateSentenceText(lessonNum, setIndex, seqIndex);
 
         // Re-render to update data-word indices
         this.renderLessonsList();
@@ -1158,10 +1423,11 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     /**
      * Update sentence text based on current word order
      */
-    updateSentenceText(lessonNum, seqIndex, sentIndex) {
-        const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
+    updateSentenceText(lessonNum, setIndex, seqIndex) {
+        const seq = this.getSeq(lessonNum, setIndex, seqIndex);
+        if (!seq?.words) return;
         // Reconstruct text from words (preserving punctuation would require more complex handling)
-        sentence.text = sentence.words.map(w => w.word).join(' ');
+        seq.text = seq.words.map(w => w.word).join(' ');
     }
 
     /**
@@ -1169,9 +1435,10 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
      * If the word has a picture/card, only remove the card reference (keep the word text)
      * If the word has no picture, delete the entire word from the sentence
      */
-    deleteWord(lessonNum, seqIndex, sentIndex, wordIndex) {
-        const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
-        const word = sentence.words[wordIndex];
+    deleteWord(lessonNum, setIndex, seqIndex, wordIndex) {
+        const seq = this.getSeq(lessonNum, setIndex, seqIndex);
+        if (!seq?.words?.[wordIndex]) return;
+        const word = seq.words[wordIndex];
 
         if (word.imagePath || word.cardNum) {
             // Word has a card/picture - only remove the card reference, keep the word text
@@ -1188,8 +1455,8 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
             // Word has no picture - delete the entire word
             if (!confirm(`Delete "${word.word}" from this sentence?`)) return;
 
-            sentence.words.splice(wordIndex, 1);
-            this.updateSentenceText(lessonNum, seqIndex, sentIndex);
+            seq.words.splice(wordIndex, 1);
+            this.updateSentenceText(lessonNum, setIndex, seqIndex);
 
             toastManager?.show('Word deleted', 'success');
         }
@@ -1202,11 +1469,9 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
     /**
      * Add a new word to a sentence
      */
-    addWord(lessonNum, seqIndex, sentIndex) {
-        const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
-
+    addWord(lessonNum, setIndex, seqIndex) {
         // Show a modal to select what to add
-        this.openAddWordModal(lessonNum, seqIndex, sentIndex);
+        this.openAddWordModal(lessonNum, setIndex, seqIndex);
     }
 
     /**
@@ -1278,8 +1543,10 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
                 return;
             }
 
-            const sentence = this.lessons[lessonNum].sequences[seqIndex].sentences[sentIndex];
-            sentence.words.push({
+            const seq = this.getSeq(lessonNum, seqIndex, sentIndex);
+            if (!seq) return;
+            if (!seq.words) seq.words = [];
+            seq.words.push({
                 word: word,
                 root: null,
                 cardNum: null,
@@ -1759,27 +2026,69 @@ Kini ang bolpen. (This is the ballpen.)"></textarea>
 
     /**
      * Save all sentence review data
+     * Saves to new format: sentences[trigraph].pool and sentences[trigraph].reviewZone
      */
     async saveAll() {
         try {
             const trigraph = this.currentTrigraph;
 
-            // Prepare data for saving
-            const saveData = {
-                trigraph: trigraph,
-                sentenceReview: {
-                    lessons: this.lessons
-                }
-            };
+            // Build the reviewZone structure with sets/seqs
+            const reviewZoneLessons = {};
 
-            // Post to backend
+            for (const [lessonNum, lessonData] of Object.entries(this.lessons)) {
+                reviewZoneLessons[lessonNum] = {
+                    title: lessonData.title || `Lesson ${lessonNum}`,
+                    sets: (lessonData.sets || []).map(set => ({
+                        id: set.id,
+                        title: set.title,
+                        seqs: (set.seqs || []).map(seq => ({
+                            seqNum: seq.seqNum,
+                            sentenceNum: seq.sentenceNum
+                        }))
+                    }))
+                };
+            }
+
+            // Get the current sentence pool from manifest
+            const manifest = this.deckBuilder.assets.manifest;
+            const currentPool = manifest?.sentences?.[trigraph]?.pool || [];
+
+            // Ensure all sentences in lessons are in the pool
+            const poolManager = this.deckBuilder.sentencePoolManager ||
+                (window.sentencePoolManager ? window.sentencePoolManager : null);
+
+            // Add any sentences that don't have sentenceNums yet
+            for (const lessonData of Object.values(this.lessons)) {
+                for (const set of (lessonData.sets || [])) {
+                    for (const seq of (set.seqs || [])) {
+                        if (!seq.sentenceNum && seq.text && poolManager) {
+                            // Add to pool and get sentenceNum
+                            const result = poolManager.addOrGetSentence({
+                                text: seq.text,
+                                english: seq.english,
+                                cebuano: seq.cebuano,
+                                type: seq.sentenceType,
+                                words: seq.words
+                            }, trigraph);
+                            seq.sentenceNum = result.sentence.sentenceNum;
+                        }
+                    }
+                }
+            }
+
+            // Post to backend with new format
             const response = await fetch('save-deck.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     trigraph: trigraph,
                     cards: this.deckBuilder.allCards, // Keep existing cards
-                    sentenceReview: saveData.sentenceReview
+                    sentences: {
+                        pool: poolManager ? poolManager.getSentencePool(trigraph) : currentPool,
+                        reviewZone: {
+                            lessons: reviewZoneLessons
+                        }
+                    }
                 })
             });
 

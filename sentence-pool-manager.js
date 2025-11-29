@@ -80,6 +80,51 @@ class SentencePoolManager {
     }
 
     /**
+     * Normalize sentence text for comparison
+     * Removes {root} notation, extra whitespace, and normalizes punctuation
+     */
+    normalizeSentenceText(text) {
+        if (!text) return '';
+        return text
+            .replace(/\s*\{[^}]+\}/g, '')  // Remove {root} notation
+            .replace(/\s+/g, ' ')           // Normalize whitespace
+            .trim()
+            .toLowerCase();
+    }
+
+    /**
+     * Find a sentence by its text (for deduplication)
+     * Returns the existing sentence if found, null otherwise
+     */
+    findByText(text, trigraph = null) {
+        const pool = this.getSentencePool(trigraph);
+        const normalizedSearch = this.normalizeSentenceText(text);
+
+        if (!normalizedSearch) return null;
+
+        return pool.find(s => this.normalizeSentenceText(s.text) === normalizedSearch) || null;
+    }
+
+    /**
+     * Add or get existing sentence (deduplication-aware)
+     * If sentence text exists, returns existing sentence
+     * If not, creates new sentence with next available number
+     */
+    addOrGetSentence(sentenceData, trigraph = null) {
+        const tg = trigraph || this.currentTrigraph;
+
+        // Check if sentence already exists
+        const existing = this.findByText(sentenceData.text, tg);
+        if (existing) {
+            return { sentence: existing, isNew: false };
+        }
+
+        // Create new sentence
+        const newSentence = this.addSentence(sentenceData, tg);
+        return { sentence: newSentence, isNew: true };
+    }
+
+    /**
      * Get the next available sentence number
      */
     getNextSentenceNum(trigraph = null) {
@@ -142,6 +187,7 @@ class SentencePoolManager {
 
     /**
      * Check which modules use a sentence
+     * Supports both old (sequences/sentenceNums) and new (sets/seqs) structures
      */
     getSentenceUsage(sentenceNum, trigraph = null) {
         const tg = trigraph || this.currentTrigraph;
@@ -154,15 +200,35 @@ class SentencePoolManager {
             storyZone: []
         };
 
-        // Check Review Zone
+        // Check Review Zone - support both old and new structures
         if (data.reviewZone?.lessons) {
             Object.entries(data.reviewZone.lessons).forEach(([lessonNum, lesson]) => {
-                lesson.sequences?.forEach((seq, seqIdx) => {
-                    if (seq.sentenceNums?.includes(sentenceNum)) {
+                // Support both old (sequences) and new (sets) structure
+                const sets = lesson.sets || lesson.sequences || [];
+                sets.forEach((set, setIdx) => {
+                    let found = false;
+                    let seqPosition = null;
+
+                    // Check new structure: seqs array with sentenceNum
+                    if (set.seqs && Array.isArray(set.seqs)) {
+                        const seqEntry = set.seqs.find(s => s.sentenceNum === sentenceNum);
+                        if (seqEntry) {
+                            found = true;
+                            seqPosition = seqEntry.seqNum;
+                        }
+                    }
+                    // Check old structure: sentenceNums array
+                    else if (set.sentenceNums?.includes(sentenceNum)) {
+                        found = true;
+                        seqPosition = set.sentenceNums.indexOf(sentenceNum) + 1;
+                    }
+
+                    if (found) {
                         usage.reviewZone.push({
                             lesson: lessonNum,
-                            sequenceId: seq.id,
-                            sequenceTitle: seq.title
+                            setId: set.id,
+                            setTitle: set.title,
+                            seqPosition: seqPosition
                         });
                     }
                 });

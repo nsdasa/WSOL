@@ -132,9 +132,9 @@ class SentenceReviewModule extends LearningModule {
         const sentencePool = manifest?.sentences?.[trigraph]?.pool || [];
         const poolMap = new Map(sentencePool.map(s => [s.sentenceNum, s]));
 
-        // Aggregate sequences from all lessons to load
-        const aggregatedSequences = [];
-        let sequenceIdCounter = 1;
+        // Aggregate sets (was "sequences") from all lessons to load
+        const aggregatedSets = [];
+        let setIdCounter = 1;
 
         for (const lessonToLoad of lessonsToLoad) {
             // Try new structure first: sentences.reviewZone.lessons
@@ -145,57 +145,85 @@ class SentenceReviewModule extends LearningModule {
                 lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lessonToLoad];
             }
 
-            if (!lessonData || !lessonData.sequences || lessonData.sequences.length === 0) {
+            // Support both new (sets) and old (sequences) structure
+            const sets = lessonData?.sets || lessonData?.sequences || [];
+
+            if (!lessonData || sets.length === 0) {
                 debugLogger?.log(2, `No sentence review data for ${trigraph} lesson ${lessonToLoad}`);
                 continue;
             }
 
-            // Add sequences with lesson prefix for review lessons
-            for (const sequence of lessonData.sequences) {
-                // Resolve sentenceNums to actual sentence objects (new structure)
-                // Or use embedded sentences directly (old structure)
-                let sentences;
-                if (sequence.sentenceNums && Array.isArray(sequence.sentenceNums)) {
-                    // New structure: resolve from pool
-                    sentences = sequence.sentenceNums
+            // Add sets with lesson prefix for review lessons
+            for (const set of sets) {
+                // Resolve sentences from different possible structures:
+                // 1. New structure with seqs containing sentenceNum references
+                // 2. Old structure with sentenceNums array
+                // 3. Old structure with embedded sentences array
+                let sentences = [];
+
+                if (set.seqs && Array.isArray(set.seqs)) {
+                    // Newest structure: seqs array with sentenceNum references
+                    sentences = set.seqs.map(seq => {
+                        if (seq.sentenceNum) {
+                            // Resolve from pool
+                            const poolSentence = poolMap.get(seq.sentenceNum);
+                            if (poolSentence) {
+                                return {
+                                    ...poolSentence,
+                                    seqNum: seq.seqNum  // Preserve sequence order
+                                };
+                            }
+                        }
+                        // Use inline data if available
+                        return {
+                            text: seq.text,
+                            english: seq.english,
+                            cebuano: seq.cebuano,
+                            sentenceType: seq.sentenceType,
+                            words: seq.words || [],
+                            seqNum: seq.seqNum
+                        };
+                    }).filter(s => s && s.text);
+                } else if (set.sentenceNums && Array.isArray(set.sentenceNums)) {
+                    // Old structure: resolve from pool by sentenceNum array
+                    sentences = set.sentenceNums
                         .map(num => poolMap.get(num))
                         .filter(s => s !== undefined);
-                } else if (sequence.sentences && Array.isArray(sequence.sentences)) {
-                    // Old structure: use embedded sentences
-                    sentences = sequence.sentences;
-                } else {
-                    sentences = [];
+                } else if (set.sentences && Array.isArray(set.sentences)) {
+                    // Legacy structure: use embedded sentences
+                    sentences = set.sentences;
                 }
 
-                const aggregatedSequence = {
-                    id: sequenceIdCounter++,
+                const aggregatedSet = {
+                    id: setIdCounter++,
                     title: isReviewLesson
-                        ? `L${lessonToLoad}: ${sequence.title}`
-                        : sequence.title,
+                        ? `L${lessonToLoad}: ${set.title}`
+                        : set.title,
                     originalLesson: lessonToLoad,
-                    sentences: sentences
+                    sentences: sentences  // Keep as "sentences" for display compatibility
                 };
-                aggregatedSequences.push(aggregatedSequence);
+                aggregatedSets.push(aggregatedSet);
             }
         }
 
-        if (aggregatedSequences.length === 0) {
+        if (aggregatedSets.length === 0) {
             debugLogger?.log(2, `No sentence review data found for ${trigraph} lesson ${lessonNum}`);
             this.currentLesson = null;
             return;
         }
 
         // Create aggregated lesson data
+        // Keep "sequences" property name for display compatibility
         this.currentLesson = {
             title: isReviewLesson
                 ? `Review: Lessons ${lessonsToLoad.join(', ')}`
                 : `Lesson ${lessonNum}`,
-            sequences: aggregatedSequences
+            sequences: aggregatedSets  // Named "sequences" for backward compatibility with display
         };
         this.currentSequenceIndex = 0;
         this.currentSentenceIndex = 0;
 
-        debugLogger?.log(2, `Loaded sentence review: ${aggregatedSequences.length} sequences for lesson ${lessonNum}`);
+        debugLogger?.log(2, `Loaded sentence review: ${aggregatedSets.length} sets for lesson ${lessonNum}`);
     }
 
     /**
@@ -864,33 +892,48 @@ class SentenceReviewParser {
 
     /**
      * Parse CSV data into structured sentence review data with multiple lessons
-     * CSV columns: Lesson #, Seq #, Sequ Title, Sentence #, Sentence Text, English Translation, Sentence Type
+     * CSV columns: Lesson #, Set #, Set Title, Seq #, Sentence Text, English Translation, Cebuano Translation, Sentence Type
+     *
+     * Terminology:
+     * - Set #: Groups sentences by theme/topic (was "Seq #")
+     * - Set Title: Name of the set (was "Sequ Title")
+     * - Seq #: Order of sentence within the set (was "Sentence #")
+     *
+     * The {root} notation in Sentence Text indicates the root form of the preceding word
+     * for card lookup (e.g., "maayong{maayo}" uses "maayo" to find the picture card)
+     *
      * @param {string} csvText - The raw CSV text
      * @param {Array} allCards - All cards from manifest for word lookup
-     * @returns {Object} Lessons object keyed by lesson number
+     * @returns {Object} Lessons object keyed by lesson number, with sets containing seqs
      */
     static parseCSV(csvText, allCards) {
         const rows = this.parseCSVRows(csvText);
         const lessons = {};
 
         let currentLesson = null;
-        let currentSequence = null;
+        let currentSet = null;
 
         for (const row of rows) {
-            // Skip header row
+            // Skip header row (check both old and new column names)
             if (row['Lesson #'] === 'Lesson #') continue;
 
             const lessonNum = row['Lesson #']?.trim();
-            const seqNum = row['Seq #']?.trim();
-            const seqTitle = row['Sequ Title']?.trim();
-            const sentNum = row['Sentence #']?.trim();
+            // Support both old (Seq #) and new (Set #) column names
+            const setNum = (row['Set #'] || row['Seq #'])?.trim();
+            const setTitle = (row['Set Title'] || row['Sequ Title'])?.trim();
+            // Support both old (Sentence #) and new (Seq #) for sentence order
+            const seqNum = (row['Seq #'] && !row['Set #']) ? null : row['Seq #']?.trim();  // Only use as seq if Set # exists
+            const sentSeqNum = row['Sentence #']?.trim() || seqNum;  // Fallback for old format
             const sentText = row['Sentence Text']?.trim();
             const english = row['English Translation']?.trim();
             const cebuanoTranslation = row['Cebuano Translation']?.trim();
             const sentType = row['Sentence Type']?.trim();
 
-            // Sequence header row: has lesson/seq number and title but no sentence data
-            if ((lessonNum || seqNum) && seqTitle && !sentNum) {
+            // Determine if this is a new format CSV (has Set # column)
+            const isNewFormat = 'Set #' in row;
+
+            // Set header row: has lesson/set number and title but no sentence data
+            if ((lessonNum || setNum) && setTitle && !sentText) {
                 // Update current lesson if specified
                 if (lessonNum) {
                     currentLesson = lessonNum;
@@ -900,31 +943,35 @@ class SentenceReviewParser {
                 if (currentLesson && !lessons[currentLesson]) {
                     lessons[currentLesson] = {
                         title: `Lesson ${currentLesson}`,
-                        sequences: []
+                        sets: []
                     };
                 }
 
-                // Create new sequence
-                if (currentLesson && seqNum) {
-                    currentSequence = {
-                        id: parseInt(seqNum),
-                        title: seqTitle,
-                        sentences: []
+                // Create new set
+                if (currentLesson && setNum) {
+                    currentSet = {
+                        id: parseInt(setNum),
+                        title: setTitle,
+                        seqs: []  // Array of {seqNum, sentence} objects
                     };
-                    lessons[currentLesson].sequences.push(currentSequence);
+                    lessons[currentLesson].sets.push(currentSet);
                 }
             }
-            // Sentence row: has sentence number and text
-            else if (sentNum && sentText && currentSequence) {
+            // Sentence row: has sentence text (and optionally seq number)
+            else if (sentText && currentSet) {
                 // Parse words with {root} notation
                 const words = this.parseWords(sentText, allCards);
 
                 // Clean display text (remove {root} notation)
                 const cleanText = sentText.replace(/\s*\{[^}]+\}/g, '');
 
+                // Use provided seq number or auto-assign based on position
+                const orderNum = sentSeqNum ? parseInt(sentSeqNum) : currentSet.seqs.length + 1;
+
                 const sentenceObj = {
-                    id: parseInt(sentNum),
+                    seqNum: orderNum,
                     text: cleanText,
+                    rawText: sentText,  // Keep original for re-parsing if needed
                     english: english || '',
                     sentenceType: sentType || null,
                     words: words
@@ -935,7 +982,7 @@ class SentenceReviewParser {
                     sentenceObj.cebuano = cebuanoTranslation;
                 }
 
-                currentSequence.sentences.push(sentenceObj);
+                currentSet.seqs.push(sentenceObj);
             }
         }
 
