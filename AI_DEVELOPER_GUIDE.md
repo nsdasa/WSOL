@@ -106,9 +106,16 @@ WSOL/
 │
 ├── # ADMIN MODULES
 ├── admin-module.js              # Admin panel & asset scanner UI
-├── deck-builder-module.js       # Main deck editor (176KB)
-├── deck-builder-audio.js        # Audio recording/upload features
-├── deck-builder-uploads.js      # Media upload handling
+├── deck-builder-module.js       # Main deck editor - core class, render, init (~50KB)
+├── deck-builder-table.js        # Table rendering, sorting, filtering
+├── deck-builder-modals.js       # Categories and notes modal dialogs
+├── deck-builder-files.js        # File selection, upload, rename
+├── deck-builder-lessons.js      # Lesson and card add/delete
+├── deck-builder-sync.js         # Save changes, sentence sync, utilities
+├── deck-builder-export.js       # CSV export functionality
+├── deck-builder-tour.js         # Tour guide editor
+├── deck-builder-audio.js        # Audio recording/editing features
+├── deck-builder-uploads.js      # CSV/media upload handling
 ├── card-sentence-sync.js        # Card-sentence synchronization manager
 ├── kanban-tracker-module.js     # Sprint-based project tracker (Kanban board)
 │
@@ -1148,13 +1155,31 @@ The app automatically selects optimal formats:
 
 ### Modifying the Deck Builder
 
-The Deck Builder is the most complex module. Key areas:
+The Deck Builder is the most complex module, split into multiple files for maintainability:
 
-- **Table rendering**: `renderTable()` method
-- **Cell editing**: `makeEditable()` and inline handlers
-- **Audio management**: `deck-builder-audio.js`
-- **File uploads**: `deck-builder-uploads.js`
-- **Save changes**: Sends to `save-deck.php`
+| File | Purpose |
+|------|---------|
+| `deck-builder-module.js` | Core class, constructor, render(), init(), loadCardsForLanguage() |
+| `deck-builder-table.js` | Table rendering, sorting, filtering, card row creation |
+| `deck-builder-modals.js` | Categories modal, notes modal |
+| `deck-builder-files.js` | File selection modal, upload, rename, link to card |
+| `deck-builder-lessons.js` | Lesson creation, card add/delete |
+| `deck-builder-sync.js` | Save changes, sentence sync, stats, utilities |
+| `deck-builder-export.js` | CSV export (Language List, Word List, Sentence Words, Sentence Review) |
+| `deck-builder-tour.js` | Tour guide configuration editor |
+| `deck-builder-audio.js` | Audio recording with waveform editor |
+| `deck-builder-uploads.js` | CSV/media batch upload handling |
+
+All modules use the `prototype` pattern to extend `DeckBuilderModule`:
+```javascript
+DeckBuilderModule.prototype.methodName = function() { ... };
+```
+
+Key areas:
+- **Table rendering**: `deck-builder-table.js` - `renderTable()`, `createCardRow()`
+- **File management**: `deck-builder-files.js` - `showFileSelectionModal()`, `handleFileUpload()`
+- **Audio recording**: `deck-builder-audio.js` - `setupAudioRecorder()`
+- **Save changes**: `deck-builder-sync.js` - `saveChanges()` sends to `save-deck.php`
 
 ### Debugging Tips
 
