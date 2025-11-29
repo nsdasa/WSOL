@@ -110,6 +110,7 @@ WSOL/
 ├── deck-builder-audio.js        # Audio recording/upload features
 ├── deck-builder-uploads.js      # Media upload handling
 ├── card-sentence-sync.js        # Card-sentence synchronization manager
+├── kanban-tracker-module.js     # Sprint-based project tracker (Kanban board)
 │
 ├── # BACKEND API
 ├── scan-assets.php              # Asset scanner & manifest generator (78KB)
@@ -164,6 +165,7 @@ WSOL/
 │       ├── flashcards.css
 │       ├── match.css
 │       ├── quiz.css
+│       ├── kanban.css           # Project tracker board
 │       └── ...
 │
 ├── # ASSETS
@@ -300,6 +302,7 @@ CSV Files ──► scan-assets.php ──► manifest.json ──► AssetManag
 | `DeckBuilderModule` | deck-builder-module.js | Edit cards, upload CSVs, manage assets |
 | `CardSentenceSyncManager` | card-sentence-sync.js | Detect card changes affecting sentence data |
 | `AdminModule` | admin-module.js | Scan assets, manage users, system config |
+| `KanbanTrackerModule` | kanban-tracker-module.js | Sprint-based project tracking with drag-drop |
 
 ---
 
@@ -917,6 +920,110 @@ this.checkSentenceSync(); // Shows warning if affected sentences found
 - `make_function_word` - Card deleted, no replacement (needs review)
 - `needs_manual_link` - Card changed, no auto-match (needs review)
 
+### KanbanTrackerModule Class
+
+Sprint-based project tracker using a Kanban board layout. Located in `kanban-tracker-module.js`.
+
+**Access Control:**
+- Visible to: `admin`, `deck-manager`, `editor` roles
+- Hidden from: `voice-recorder` role, unauthenticated users
+- Tab visibility controlled by `auth-manager.js` → `updateUIForRole()`
+
+**Data Storage (localStorage):**
+```javascript
+// Sprint definitions
+localStorage.setItem('kanbanSprints', JSON.stringify([
+    { id: 1, name: "Week 48", startDate: "2025-11-25", endDate: "2025-12-01" }
+]));
+
+// Task data
+localStorage.setItem('kanbanTasks', JSON.stringify([
+    {
+        id: "task-1732824000000",
+        title: "Record Lesson 5 audio",
+        description: "Complete voice recordings",
+        category: "voice",        // dev | bug | lesson | voice
+        language: "ceb",          // ceb | mrw | sin | all
+        status: "in-progress",    // todo | in-progress | review | done
+        sprintId: 1,
+        assignee: "Maria",
+        dueDate: "2025-11-29",
+        createdAt: "2025-11-20T00:00:00.000Z",
+        completedAt: null         // Set when moved to 'done'
+    }
+]));
+
+// Currently selected sprint
+localStorage.setItem('kanbanCurrentSprint', "1");
+```
+
+**Key Methods:**
+
+```javascript
+// Data persistence
+loadData()              // Load sprints/tasks from localStorage
+saveData()              // Save sprints/tasks to localStorage
+createDefaultSprints()  // Generate 4 weeks of sprints on first use
+
+// Rendering
+renderTasks()           // Render all tasks to columns (filtered)
+createTaskCard(task)    // Create DOM element for a task
+updateColumnCounts()    // Update task counts in column headers
+updateProgress()        // Update sprint progress bar
+
+// Task management
+openTaskModal(task)     // Open modal for create/edit
+saveTask()              // Save task from modal form
+deleteTask()            // Delete task with confirmation
+moveTask(taskId, newStatus)  // Handle drag-drop status change
+
+// Sprint management
+addSprint()             // Create new sprint
+deleteSprint(sprintId)  // Delete sprint (moves tasks to "No Sprint")
+renderSprintList()      // Render sprint list in management modal
+
+// Drag and drop
+initDragAndDrop()       // Initialize SortableJS on columns
+```
+
+**Task Categories:**
+```javascript
+this.categories = [
+    { id: 'dev', name: 'Development', icon: 'fa-code', color: '#4F46E5' },
+    { id: 'bug', name: 'Bug Fix', icon: 'fa-bug', color: '#EF4444' },
+    { id: 'lesson', name: 'Lesson', icon: 'fa-book', color: '#10B981' },
+    { id: 'voice', name: 'Voice Recording', icon: 'fa-microphone', color: '#F59E0B' }
+];
+```
+
+**Board Columns:**
+```javascript
+this.columns = ['todo', 'in-progress', 'review', 'done'];
+```
+
+**Drag and Drop Integration:**
+Uses SortableJS (already included in project via CDN) for drag-drop:
+```javascript
+new Sortable(container, {
+    group: 'kanban',      // Allow drag between columns
+    animation: 150,
+    ghostClass: 'task-ghost',
+    chosenClass: 'task-chosen',
+    dragClass: 'task-drag',
+    onEnd: (evt) => {
+        this.moveTask(taskId, newStatus);
+    }
+});
+```
+
+**CSS Classes (kanban.css):**
+- `.kanban-container` - Main wrapper
+- `.kanban-board` - Grid of columns (4-col desktop, 2-col tablet, 1-col mobile)
+- `.kanban-column` - Individual column with header and task list
+- `.task-card` - Task card with category badge, title, meta info
+- `.kanban-modal` - Modal dialogs for task/sprint editing
+- `.sprint-progress-bar` - Progress indicator with fill animation
+
 ---
 
 ## Asset Management
@@ -1072,6 +1179,7 @@ router.navigate(window.location.hash.slice(1));
 | Task | Files |
 |------|-------|
 | Add new module | `{name}-module.js`, `styles/modules/{name}.css`, `index.php`, `app.js` |
+| Modify project tracker | `kanban-tracker-module.js`, `styles/modules/kanban.css` |
 | Modify card structure | `scan-assets.php`, `save-deck.php`, `app.js (enrichCard)` |
 | Change authentication | `auth-manager.js`, `auth.php`, `users.php` |
 | Update styling | `styles/core.css`, `styles/theme.css` |

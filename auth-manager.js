@@ -504,44 +504,65 @@ class AuthManager {
 
     /**
      * Update UI elements based on user role
-     * Shows/hides admin and deck-builder tabs based on authentication and role
-     * - Admin: sees both Admin and Deck Builder tabs
-     * - Deck Manager: sees only Deck Builder tab (full functionality)
-     * - Editor: sees only Deck Builder tab (table only with CRUD)
+     * Shows/hides admin, deck-builder, and kanban tabs based on authentication and role
+     * - Admin: sees Admin, Deck Builder, and Kanban (Tracker) tabs
+     * - Deck Manager: sees Deck Builder and Kanban (Tracker) tabs
+     * - Editor: sees Deck Builder and Kanban (Tracker) tabs
      * - Voice Recorder: sees only Deck Builder tab (limited functionality)
-     * - Not authenticated: sees neither tab
+     * - Not authenticated: sees none of the protected tabs
      */
     updateUIForRole() {
         const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
         const deckBuilderTab = document.querySelector('.nav-tab[data-module="deck-builder"]');
+        const kanbanTab = document.querySelector('.nav-tab[data-module="kanban"]');
 
         if (!this.authenticated) {
-            // Hide both tabs when not authenticated
+            // Hide all protected tabs when not authenticated
             if (adminTab) {
                 adminTab.classList.add('hidden');
             }
             if (deckBuilderTab) {
                 deckBuilderTab.classList.add('hidden');
             }
+            if (kanbanTab) {
+                kanbanTab.classList.add('hidden');
+            }
             return;
         }
 
         // Show tabs based on role
         if (this.role === 'admin') {
-            // Admin sees both tabs
+            // Admin sees all tabs (Admin, Deck Builder, Kanban)
             if (adminTab) {
                 adminTab.classList.remove('hidden');
             }
             if (deckBuilderTab) {
                 deckBuilderTab.classList.remove('hidden');
             }
-        } else if (this.role === 'deck-manager' || this.role === 'editor' || this.role === 'voice-recorder') {
-            // Deck Manager, Editor, and Voice Recorder see only Deck Builder tab
+            if (kanbanTab) {
+                kanbanTab.classList.remove('hidden');
+            }
+        } else if (this.role === 'deck-manager' || this.role === 'editor') {
+            // Deck Manager and Editor see Deck Builder and Kanban tabs
             if (adminTab) {
                 adminTab.classList.add('hidden');
             }
             if (deckBuilderTab) {
                 deckBuilderTab.classList.remove('hidden');
+            }
+            if (kanbanTab) {
+                kanbanTab.classList.remove('hidden');
+            }
+        } else if (this.role === 'voice-recorder') {
+            // Voice Recorder sees only Deck Builder tab (no Kanban)
+            if (adminTab) {
+                adminTab.classList.add('hidden');
+            }
+            if (deckBuilderTab) {
+                deckBuilderTab.classList.remove('hidden');
+            }
+            if (kanbanTab) {
+                kanbanTab.classList.add('hidden');
             }
         }
     }
@@ -552,12 +573,16 @@ class AuthManager {
     hideProtectedTabs() {
         const adminTab = document.querySelector('.nav-tab[data-module="admin"]');
         const deckBuilderTab = document.querySelector('.nav-tab[data-module="deck-builder"]');
+        const kanbanTab = document.querySelector('.nav-tab[data-module="kanban"]');
 
         if (adminTab) {
             adminTab.classList.add('hidden');
         }
         if (deckBuilderTab) {
             deckBuilderTab.classList.add('hidden');
+        }
+        if (kanbanTab) {
+            kanbanTab.classList.add('hidden');
         }
     }
 
