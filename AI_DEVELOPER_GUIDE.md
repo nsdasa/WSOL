@@ -106,10 +106,18 @@ WSOL/
 │
 ├── # ADMIN MODULES
 ├── admin-module.js              # Admin panel & asset scanner UI
-├── deck-builder-module.js       # Main deck editor (176KB)
-├── deck-builder-audio.js        # Audio recording/upload features
-├── deck-builder-uploads.js      # Media upload handling
+├── deck-builder-module.js       # Main deck editor - core class, render, init (~50KB)
+├── deck-builder-table.js        # Table rendering, sorting, filtering
+├── deck-builder-modals.js       # Categories and notes modal dialogs
+├── deck-builder-files.js        # File selection, upload, rename
+├── deck-builder-lessons.js      # Lesson and card add/delete
+├── deck-builder-sync.js         # Save changes, sentence sync, utilities
+├── deck-builder-export.js       # CSV export functionality
+├── deck-builder-tour.js         # Tour guide editor
+├── deck-builder-audio.js        # Audio recording/editing features
+├── deck-builder-uploads.js      # CSV/media upload handling
 ├── card-sentence-sync.js        # Card-sentence synchronization manager
+├── kanban-tracker-module.js     # Sprint-based project tracker (Kanban board)
 │
 ├── # BACKEND API
 ├── scan-assets.php              # Asset scanner & manifest generator (78KB)
@@ -172,6 +180,7 @@ WSOL/
 │       ├── flashcards.css
 │       ├── match.css
 │       ├── quiz.css
+│       ├── kanban.css           # Project tracker board
 │       └── ...
 │
 ├── # ASSETS
@@ -308,6 +317,7 @@ CSV Files ──► scan-assets.php ──► manifest.json ──► AssetManag
 | `DeckBuilderModule` | deck-builder-module.js | Edit cards, upload CSVs, manage assets |
 | `CardSentenceSyncManager` | card-sentence-sync.js | Detect card changes affecting sentence data |
 | `AdminModule` | admin-module.js | Scan assets, manage users, system config |
+| `KanbanTrackerModule` | kanban-tracker-module.js | Sprint-based project tracking with drag-drop |
 
 ---
 
@@ -582,6 +592,56 @@ Save card changes directly to manifest.json.
 | `?action=add` | POST | Create user |
 | `?action=edit` | POST | Update user |
 | `?action=delete` | POST | Delete user |
+
+### /sentences/api.php (Sentence Content Generator)
+
+Standalone API for generating AI-powered sentence content. Located at `/sentences/api.php`.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Server health check, returns API version and available features |
+| `/api/config` | GET | Get current configuration (models, content types, progression modes) |
+| `/api/test` | GET | Test Anthropic API connection |
+| `/api/process` | POST | Process a lesson and generate content |
+| `/api/logs` | GET | View debug logs (requires debug mode enabled) |
+
+**POST /api/process Request Body:**
+
+```javascript
+{
+    "lessonNum": "1",                    // Required: Lesson number
+    "tableData": "...",                  // Required: Vocabulary table data (CSV format)
+    "customModel": "claude-sonnet-4-5",  // Optional: Override default model
+    "maxTokens": 32000,                  // Optional: Max response tokens
+    "complexityMode": "beginner",        // "beginner" (4-2-2) or "progressive" (2-3-3)
+    "contentType": "review",             // "review", "story", or "conversation"
+    "progressionMode": "tier-locked",    // "tier-locked" or "cumulative"
+    "previousLessonsData": "..."         // Optional: For cumulative mode, previous lessons' vocabulary
+}
+```
+
+**Content Types:**
+
+| Value | Output | Target Module |
+|-------|--------|---------------|
+| `review` | Tiered ladder sentences | Sentence Review Module |
+| `story` | Narrative sequences | Story Zone (drag-to-order) |
+| `conversation` | Q&A dialogue pairs | Conversation Zone (matching) |
+
+**Progression Modes:**
+
+| Value | Description |
+|-------|-------------|
+| `tier-locked` | Same grammar constraints per tier (Hybrid A+C) |
+| `cumulative` | Higher tiers use vocabulary from previous lessons (Proposal D) |
+
+**Response includes:**
+- `success`: boolean
+- `content`: Generated content with audit tables
+- `contentType`: Type of content generated
+- `progressionMode`: Mode used
+- `usage`: Token counts (input/output/total)
+- `attempts`: Number of API attempts (includes retries)
 
 ### bugs/bugs-api.php (Admin only)
 
@@ -907,6 +967,110 @@ this.checkSentenceSync(); // Shows warning if affected sentences found
 - `make_function_word` - Card deleted, no replacement (needs review)
 - `needs_manual_link` - Card changed, no auto-match (needs review)
 
+### KanbanTrackerModule Class
+
+Sprint-based project tracker using a Kanban board layout. Located in `kanban-tracker-module.js`.
+
+**Access Control:**
+- Visible to: `admin`, `deck-manager`, `editor` roles
+- Hidden from: `voice-recorder` role, unauthenticated users
+- Tab visibility controlled by `auth-manager.js` → `updateUIForRole()`
+
+**Data Storage (localStorage):**
+```javascript
+// Sprint definitions
+localStorage.setItem('kanbanSprints', JSON.stringify([
+    { id: 1, name: "Week 48", startDate: "2025-11-25", endDate: "2025-12-01" }
+]));
+
+// Task data
+localStorage.setItem('kanbanTasks', JSON.stringify([
+    {
+        id: "task-1732824000000",
+        title: "Record Lesson 5 audio",
+        description: "Complete voice recordings",
+        category: "voice",        // dev | bug | lesson | voice
+        language: "ceb",          // ceb | mrw | sin | all
+        status: "in-progress",    // todo | in-progress | review | done
+        sprintId: 1,
+        assignee: "Maria",
+        dueDate: "2025-11-29",
+        createdAt: "2025-11-20T00:00:00.000Z",
+        completedAt: null         // Set when moved to 'done'
+    }
+]));
+
+// Currently selected sprint
+localStorage.setItem('kanbanCurrentSprint', "1");
+```
+
+**Key Methods:**
+
+```javascript
+// Data persistence
+loadData()              // Load sprints/tasks from localStorage
+saveData()              // Save sprints/tasks to localStorage
+createDefaultSprints()  // Generate 4 weeks of sprints on first use
+
+// Rendering
+renderTasks()           // Render all tasks to columns (filtered)
+createTaskCard(task)    // Create DOM element for a task
+updateColumnCounts()    // Update task counts in column headers
+updateProgress()        // Update sprint progress bar
+
+// Task management
+openTaskModal(task)     // Open modal for create/edit
+saveTask()              // Save task from modal form
+deleteTask()            // Delete task with confirmation
+moveTask(taskId, newStatus)  // Handle drag-drop status change
+
+// Sprint management
+addSprint()             // Create new sprint
+deleteSprint(sprintId)  // Delete sprint (moves tasks to "No Sprint")
+renderSprintList()      // Render sprint list in management modal
+
+// Drag and drop
+initDragAndDrop()       // Initialize SortableJS on columns
+```
+
+**Task Categories:**
+```javascript
+this.categories = [
+    { id: 'dev', name: 'Development', icon: 'fa-code', color: '#4F46E5' },
+    { id: 'bug', name: 'Bug Fix', icon: 'fa-bug', color: '#EF4444' },
+    { id: 'lesson', name: 'Lesson', icon: 'fa-book', color: '#10B981' },
+    { id: 'voice', name: 'Voice Recording', icon: 'fa-microphone', color: '#F59E0B' }
+];
+```
+
+**Board Columns:**
+```javascript
+this.columns = ['todo', 'in-progress', 'review', 'done'];
+```
+
+**Drag and Drop Integration:**
+Uses SortableJS (already included in project via CDN) for drag-drop:
+```javascript
+new Sortable(container, {
+    group: 'kanban',      // Allow drag between columns
+    animation: 150,
+    ghostClass: 'task-ghost',
+    chosenClass: 'task-chosen',
+    dragClass: 'task-drag',
+    onEnd: (evt) => {
+        this.moveTask(taskId, newStatus);
+    }
+});
+```
+
+**CSS Classes (kanban.css):**
+- `.kanban-container` - Main wrapper
+- `.kanban-board` - Grid of columns (4-col desktop, 2-col tablet, 1-col mobile)
+- `.kanban-column` - Individual column with header and task list
+- `.task-card` - Task card with category badge, title, meta info
+- `.kanban-modal` - Modal dialogs for task/sprint editing
+- `.sprint-progress-bar` - Progress indicator with fill animation
+
 ---
 
 ## Asset Management
@@ -1031,13 +1195,31 @@ The app automatically selects optimal formats:
 
 ### Modifying the Deck Builder
 
-The Deck Builder is the most complex module. Key areas:
+The Deck Builder is the most complex module, split into multiple files for maintainability:
 
-- **Table rendering**: `renderTable()` method
-- **Cell editing**: `makeEditable()` and inline handlers
-- **Audio management**: `deck-builder-audio.js`
-- **File uploads**: `deck-builder-uploads.js`
-- **Save changes**: Sends to `save-deck.php`
+| File | Purpose |
+|------|---------|
+| `deck-builder-module.js` | Core class, constructor, render(), init(), loadCardsForLanguage() |
+| `deck-builder-table.js` | Table rendering, sorting, filtering, card row creation |
+| `deck-builder-modals.js` | Categories modal, notes modal |
+| `deck-builder-files.js` | File selection modal, upload, rename, link to card |
+| `deck-builder-lessons.js` | Lesson creation, card add/delete |
+| `deck-builder-sync.js` | Save changes, sentence sync, stats, utilities |
+| `deck-builder-export.js` | CSV export (Language List, Word List, Sentence Words, Sentence Review) |
+| `deck-builder-tour.js` | Tour guide configuration editor |
+| `deck-builder-audio.js` | Audio recording with waveform editor |
+| `deck-builder-uploads.js` | CSV/media batch upload handling |
+
+All modules use the `prototype` pattern to extend `DeckBuilderModule`:
+```javascript
+DeckBuilderModule.prototype.methodName = function() { ... };
+```
+
+Key areas:
+- **Table rendering**: `deck-builder-table.js` - `renderTable()`, `createCardRow()`
+- **File management**: `deck-builder-files.js` - `showFileSelectionModal()`, `handleFileUpload()`
+- **Audio recording**: `deck-builder-audio.js` - `setupAudioRecorder()`
+- **Save changes**: `deck-builder-sync.js` - `saveChanges()` sends to `save-deck.php`
 
 ### Debugging Tips
 
@@ -1062,6 +1244,7 @@ router.navigate(window.location.hash.slice(1));
 | Task | Files |
 |------|-------|
 | Add new module | `{name}-module.js`, `styles/modules/{name}.css`, `index.php`, `app.js` |
+| Modify project tracker | `kanban-tracker-module.js`, `styles/modules/kanban.css` |
 | Modify card structure | `scan-assets.php`, `save-deck.php`, `app.js (enrichCard)` |
 | Change authentication | `auth-manager.js`, `auth.php`, `users.php` |
 | Update styling | `styles/core.css`, `styles/theme.css` |

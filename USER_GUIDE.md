@@ -25,8 +25,9 @@
 18. [Show Tour (Help)](#show-tour-help)
 19. [Logging In](#logging-in)
 20. [Deck Builder (Recording & Editing)](#deck-builder)
-21. [Admin Functions](#admin-functions)
-22. [Troubleshooting](#troubleshooting)
+21. [Project Tracker (Kanban)](#project-tracker-kanban)
+22. [Admin Functions](#admin-functions)
+23. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -80,7 +81,7 @@ Click "Sentence Zone" to see these options:
 | **Story Zone** | Arrange sentences in correct story order |
 | **Sentence Builder** | Build sentences by arranging words |
 
-**Note:** The "Deck Builder" and "Admin" tabs only appear after you log in.
+**Note:** The "Tracker", "Deck Builder", and "Admin" tabs only appear after you log in with the appropriate role.
 
 ---
 
@@ -707,6 +708,113 @@ This feature preserves manual word-to-card links you've created - only affected 
 - Always click "Save Changes" before leaving
 - Use filters to find specific cards quickly
 - Back up your data regularly by exporting to CSV
+
+---
+
+## Project Tracker (Kanban)
+
+The Project Tracker is a Kanban-style board for tracking development work, bug fixes, lesson creation, and voice recording tasks.
+
+**Note:** You must be logged in as Admin, Deck Manager, or Editor to access this feature.
+
+### Getting to the Tracker:
+1. Log in with an authorized account (Admin, Deck Manager, or Editor)
+2. Click the "Tracker" tab that appears in the navigation
+
+### Understanding the Board:
+
+The board has four columns representing task status:
+
+| Column | Purpose |
+|--------|---------|
+| **To Do** | Tasks waiting to be started |
+| **In Progress** | Tasks currently being worked on |
+| **Review** | Tasks completed but needing verification |
+| **Done** | Completed tasks |
+
+### Creating Tasks:
+
+1. **Click "Add Task"** - Button in the top-right corner
+
+2. **Fill in Task Details:**
+   - **Title** (required) - Brief description of the task
+   - **Description** - More details about what needs to be done
+   - **Category** - Type of task:
+     - Development - New features or improvements
+     - Bug Fix - Fixing problems
+     - Lesson - Creating lesson content
+     - Voice Recording - Recording audio files
+   - **Language** - Which language the task relates to (or "All Languages")
+   - **Assignee** - Who is responsible for the task
+   - **Due Date** - When the task should be completed
+   - **Sprint** - Which sprint/week the task belongs to
+
+3. **Click "Save Task"** - Task appears in the "To Do" column
+
+### Moving Tasks:
+
+**Drag and Drop:**
+1. Click and hold any task card
+2. Drag it to a different column
+3. Drop to update its status
+
+**The task will automatically save its new position.**
+
+### Editing Tasks:
+
+1. **Click any task card** - Opens the edit modal
+2. **Make your changes** - Update any field
+3. **Click "Save Task"** - Changes are saved
+
+### Deleting Tasks:
+
+1. **Click the task card** to open it
+2. **Click "Delete"** (red button)
+3. **Confirm deletion** when prompted
+
+### Managing Sprints:
+
+Sprints help organize tasks by week or time period.
+
+**To Manage Sprints:**
+1. Click the **gear icon** next to the sprint dropdown
+2. The Sprint Management modal opens
+
+**Adding a Sprint:**
+1. Enter a sprint name (e.g., "Week 12" or "Sprint 5")
+2. Set the start date
+3. Set the end date
+4. Click "Add Sprint"
+
+**Deleting a Sprint:**
+1. Click the trash icon next to the sprint
+2. If tasks exist in that sprint, confirm whether to delete
+3. Tasks will be moved to "No Sprint"
+
+### Filtering Tasks:
+
+Use the filter dropdowns to narrow down what you see:
+
+- **Category** - Show only certain task types
+- **Language** - Show tasks for specific languages
+- **Assignee** - Show tasks assigned to specific people
+- **Clear** - Reset all filters
+
+### Sprint Progress:
+
+At the top of the board, you'll see:
+- **Sprint Name** - Which sprint is currently selected
+- **Sprint Dates** - Start and end dates
+- **Progress Bar** - Visual showing completion percentage
+- **Percentage** - Numerical completion (e.g., "75% (6/8)")
+
+### Tips:
+- Use sprints to organize work into weekly goals
+- Assign tasks to team members so everyone knows who's doing what
+- Move tasks to "Review" when done, then "Done" after verification
+- Filter by your name to see only your assigned tasks
+- Check the progress bar to monitor sprint completion
+- Tasks are saved automatically to your browser - they persist between sessions
 
 ---
 

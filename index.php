@@ -58,6 +58,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <link rel="stylesheet" href="styles/modules/sentence-review.css?v=<?php echo cacheBust('styles/modules/sentence-review.css'); ?>">
     <link rel="stylesheet" href="styles/modules/conversation-practice.css?v=<?php echo cacheBust('styles/modules/conversation-practice.css'); ?>">
     <link rel="stylesheet" href="styles/modules/picture-story.css?v=<?php echo cacheBust('styles/modules/picture-story.css'); ?>">
+    <link rel="stylesheet" href="styles/modules/kanban.css?v=<?php echo cacheBust('styles/modules/kanban.css'); ?>">
 
     <!-- Driver.js for onboarding tours -->
     <link rel="stylesheet" href="assets/vendor/driver.css?v=<?php echo cacheBust('assets/vendor/driver.css'); ?>"/>
@@ -126,6 +127,10 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
             <button class="nav-tab" data-module="pdf">
                 <i class="fas fa-print"></i>
                 Print PDFs
+            </button>
+            <button class="nav-tab hidden" data-module="kanban" id="kanbanTab">
+                <i class="fas fa-columns"></i>
+                Tracker
             </button>
             <button class="nav-tab hidden" data-module="deck-builder" id="deckBuilderTab">
                 <i class="fas fa-edit"></i>
@@ -371,6 +376,14 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <script src="admin-module.js?v=<?php echo cacheBust('admin-module.js'); ?>"></script>
     <script src="pdf-module.js?v=<?php echo cacheBust('pdf-module.js'); ?>"></script>
     <script src="deck-builder-module.js?v=<?php echo cacheBust('deck-builder-module.js'); ?>"></script>
+    <!-- Deck Builder modular components (split for maintainability) -->
+    <script src="deck-builder-table.js?v=<?php echo cacheBust('deck-builder-table.js'); ?>"></script>
+    <script src="deck-builder-modals.js?v=<?php echo cacheBust('deck-builder-modals.js'); ?>"></script>
+    <script src="deck-builder-files.js?v=<?php echo cacheBust('deck-builder-files.js'); ?>"></script>
+    <script src="deck-builder-lessons.js?v=<?php echo cacheBust('deck-builder-lessons.js'); ?>"></script>
+    <script src="deck-builder-sync.js?v=<?php echo cacheBust('deck-builder-sync.js'); ?>"></script>
+    <script src="deck-builder-export.js?v=<?php echo cacheBust('deck-builder-export.js'); ?>"></script>
+    <script src="deck-builder-tour.js?v=<?php echo cacheBust('deck-builder-tour.js'); ?>"></script>
     <script src="deck-builder-audio.js?v=<?php echo cacheBust('deck-builder-audio.js'); ?>"></script>
     <script src="deck-builder-uploads.js?v=<?php echo cacheBust('deck-builder-uploads.js'); ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -382,6 +395,7 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <script src="sentence-zone-builders.js?v=<?php echo cacheBust('sentence-zone-builders.js'); ?>"></script>
     <script src="conversation-practice-module.js?v=<?php echo cacheBust('conversation-practice-module.js'); ?>"></script>
     <script src="picture-story-module.js?v=<?php echo cacheBust('picture-story-module.js'); ?>"></script>
+    <script src="kanban-tracker-module.js?v=<?php echo cacheBust('kanban-tracker-module.js'); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Driver.js for onboarding tours -->

@@ -257,6 +257,84 @@ class SomeModule extends LearningModule {
    - Click picture cards or word bubbles to hear pronunciation
    - Speaker icons indicate audio availability
 
+## Sentence Content Generator (/sentences/)
+
+**What it does**: AI-powered tool that generates sentence content for multiple learning modules using Claude API.
+
+**Location**: `/sentences/` directory (standalone web application)
+
+**Content Types Available**:
+
+| Content Type | Target Module | Description |
+|--------------|---------------|-------------|
+| **Review Sentences** | Sentence Review Module | Tiered ladder sentences with Q&A pairs |
+| **Story Sequences** | Story Zone Module | Narrative sequences for drag-to-order exercises |
+| **Conversation Dialogues** | Conversation Zone Module | Q&A pairs for matching exercises |
+
+**Progression Modes**:
+
+| Mode | Description |
+|------|-------------|
+| **Tier-Locked** | Same grammar constraints per tier. Patterns unlock based on available grammar (Hybrid A+C) |
+| **Cumulative** | Higher tiers can use vocabulary from all previous lessons for richer content (Proposal D) |
+
+**Three-Tier Grammar System**:
+
+| Tier | Name | Grammar Allowed |
+|------|------|-----------------|
+| Tier 1 | Simple | L1 only - demonstratives, location pronouns, base verbs, "ang" |
+| Tier 2 | Medium | L1+L2 - adds "sa", adjectives, Oo/Dili, nag- verbs |
+| Tier 3 | Advanced | All L1-L4 - full verb system, possessives, complex prepositions, "og", "mga" |
+
+**Audit Features** (Zero Tolerance):
+- Vocabulary audit - ensures no words outside allowed list
+- Grammar audit - validates pronoun forms, articles, affixes
+- Tier validation - ensures no forbidden grammar in lower tiers
+- 3x minimum usage requirement for each vocabulary word
+
+**How to use**:
+1. Visit `/sentences/` in browser
+2. Select Content Type (Review/Story/Conversation)
+3. Select Progression Mode (Tier-Locked/Cumulative)
+4. Upload vocabulary CSV or paste data
+5. Process lessons with Claude API
+6. Export generated CSV for import into admin tools
+
+## Kanban Tracker Module (kanban-tracker-module.js)
+
+**What it does**: Sprint-based project tracking for development, bugs, lessons, and voice recording tasks.
+
+**How it works**:
+1. Four-column Kanban board: To Do → In Progress → Review → Done
+2. Tasks organized into sprints/weeks
+3. Drag-and-drop task movement using SortableJS
+4. Filter by category, language, or assignee
+5. Progress tracking per sprint
+
+**Data Storage**:
+- Uses localStorage (browser-based, no server required)
+- `kanbanSprints` - Sprint definitions
+- `kanbanTasks` - All task data
+- `kanbanCurrentSprint` - Currently selected sprint ID
+
+**Task Categories**:
+- **Development** (blue) - Code features and improvements
+- **Bug Fix** (red) - Bug reports and fixes
+- **Lesson** (green) - Lesson content creation
+- **Voice Recording** (amber) - Audio recording tasks
+
+**Access Control**:
+- Visible to: Admin, Deck Manager, Editor roles
+- Not visible to: Voice Recorder role, unauthenticated users
+
+**Key Features**:
+- Sprint management with date ranges
+- Task filtering by category/language/assignee
+- Visual progress bar per sprint
+- Due date tracking with overdue highlighting
+- Click-to-edit task details
+- Delete tasks with confirmation
+
 ## Voice Practice Module (voice-practice-module.js)
 
 **What it does**: Record yourself and compare to native pronunciation.
@@ -306,9 +384,9 @@ class SomeModule extends LearningModule {
 
 # Administrative Tools
 
-## Deck Builder Module (deck-builder-module.js)
+## Deck Builder Module
 
-The main tool for managing vocabulary cards. This is a large file (~172KB) because it has many features.
+The main tool for managing vocabulary cards. Split into multiple files for maintainability.
 
 **Main sections**:
 1. **Card Table**: View all cards in a spreadsheet format
@@ -326,10 +404,20 @@ The main tool for managing vocabulary cards. This is a large file (~172KB) becau
 - Set lesson numbers
 - Export to CSV
 
-**Related files**:
-- `deck-builder-audio.js`: Audio recording/selection
-- `deck-builder-uploads.js`: File upload handling
-- `card-sentence-sync.js`: Card-sentence synchronization
+**Related files** (modular structure):
+| File | Purpose |
+|------|---------|
+| `deck-builder-module.js` | Core class, HTML template, initialization |
+| `deck-builder-table.js` | Card table rendering, sorting, filtering |
+| `deck-builder-modals.js` | Categories and notes edit dialogs |
+| `deck-builder-files.js` | File selection, upload, rename functionality |
+| `deck-builder-lessons.js` | Lesson creation, card add/delete |
+| `deck-builder-sync.js` | Save to server, sentence sync, stats |
+| `deck-builder-export.js` | CSV export for all data types |
+| `deck-builder-tour.js` | Tour guide configuration editor |
+| `deck-builder-audio.js` | Audio recording with waveform editor |
+| `deck-builder-uploads.js` | CSV/media batch upload handling |
+| `card-sentence-sync.js` | Card-sentence synchronization manager |
 
 ### Card-Sentence Sync System
 
@@ -552,10 +640,18 @@ Stores guided tour steps for each module.
 | `grammar-module.js` | Grammar lesson display | Changing how lessons load |
 | `teacher-guide-module.js` | Teacher resources | Changing resource display |
 | `pdf-module.js` | PDF generation | Adding new PDF formats |
-| `deck-builder-module.js` | Card management | Adding new card fields |
-| `deck-builder-audio.js` | Audio handling | Changing audio formats |
-| `deck-builder-uploads.js` | File uploads | Changing upload limits |
+| `deck-builder-module.js` | Card management core | Adding HTML template changes |
+| `deck-builder-table.js` | Table rendering | Changing column layout |
+| `deck-builder-modals.js` | Edit dialogs | Adding modal fields |
+| `deck-builder-files.js` | File selection | Changing file handling |
+| `deck-builder-lessons.js` | Lesson/card CRUD | Changing card structure |
+| `deck-builder-sync.js` | Save & utilities | Changing save behavior |
+| `deck-builder-export.js` | CSV exports | Adding export formats |
+| `deck-builder-tour.js` | Tour editor | Changing tour config |
+| `deck-builder-audio.js` | Audio recording | Changing audio formats |
+| `deck-builder-uploads.js` | Batch uploads | Changing upload limits |
 | `admin-module.js` | Admin dashboard | Adding new admin features |
+| `kanban-tracker-module.js` | Project tracking board | Adding task features |
 | `tour-guide.js` | Tour display system | Changing tour behavior |
 
 ## PHP Backend Files
@@ -592,6 +688,7 @@ Stores guided tour steps for each module.
 | `modules/pdf-print.css` | PDF preview |
 | `modules/grammar.css` | Grammar lessons |
 | `modules/teacher-guide.css` | Teacher guide |
+| `modules/kanban.css` | Project tracker board |
 
 ## Assets Folder Structure
 
@@ -634,22 +731,25 @@ assets/
 
 **Admin** (`role: "admin"`):
 - Access everything
-- Can see Admin tab and Deck Builder tab
+- Can see Admin tab, Deck Builder tab, and Tracker tab
 - Can manage users
 - Can change system settings
 
 **Deck Manager** (`role: "deck-manager"`):
 - Full Deck Builder access (all sections)
+- Full Tracker access
 - NO Admin tab access
 - Can work with all languages
 
 **Editor** (`role: "editor"`):
 - Deck Builder table only (no CSV/Media/Sentence tools)
+- Full Tracker access
 - Can add/edit/delete cards
 - Usually restricted to ONE language
 
 **Voice Recorder** (`role: "voice-recorder"`):
 - Can only view cards and record audio
+- NO Tracker access
 - Cannot edit card data
 - Usually restricted to ONE language
 

@@ -613,6 +613,46 @@
         </div>
 
         <div class="config-panel">
+            <!-- Content Type Checkboxes and Progression Mode (Primary Options) -->
+            <div class="config-row" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div class="config-group" style="flex: 2;">
+                    <label>Content Types to Generate (select one or more)</label>
+                    <div class="content-type-checkboxes" style="display: flex; gap: 20px; margin-top: 8px; flex-wrap: wrap;">
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 15px; background: rgba(79, 195, 247, 0.1); border-radius: 8px; border: 2px solid rgba(79, 195, 247, 0.3);">
+                            <input type="checkbox" id="contentType_review" value="review" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>
+                                <strong style="color: #4fc3f7;">Review Sentences</strong>
+                                <br><small style="color: #90a4ae;">Tiered ladder sentences</small>
+                            </span>
+                        </label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 15px; background: rgba(102, 187, 106, 0.1); border-radius: 8px; border: 2px solid rgba(102, 187, 106, 0.3);">
+                            <input type="checkbox" id="contentType_story" value="story" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>
+                                <strong style="color: #81c784;">Story Sequences</strong>
+                                <br><small style="color: #90a4ae;">Narrative drag-to-order</small>
+                            </span>
+                        </label>
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 15px; background: rgba(255, 167, 38, 0.1); border-radius: 8px; border: 2px solid rgba(255, 167, 38, 0.3);">
+                            <input type="checkbox" id="contentType_conversation" value="conversation" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>
+                                <strong style="color: #ffa726;">Conversation Q&A</strong>
+                                <br><small style="color: #90a4ae;">Question-answer pairs</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="config-group" style="flex: 1;">
+                    <label for="progressionMode">Progression Mode</label>
+                    <select id="progressionMode" onchange="updateProgressionModeDescription()">
+                        <option value="tier-locked">Tier-Locked (Hybrid A+C)</option>
+                        <option value="cumulative">Cumulative (Proposal D)</option>
+                    </select>
+                    <div class="config-description" id="progressionModeDesc" style="margin-top: 8px; font-size: 0.8rem; color: #90a4ae;">
+                        Same grammar constraints per tier, patterns unlock based on available grammar
+                    </div>
+                </div>
+            </div>
+            <!-- Model Configuration -->
             <div class="config-row">
                 <div class="config-group">
                     <label for="modelName">Model Name</label>
@@ -627,6 +667,7 @@
                     <input type="text" id="customModel" placeholder="Enter custom model string...">
                 </div>
             </div>
+            <!-- Processing Options -->
             <div class="config-row" style="margin-top: 15px;">
                 <div class="config-group" style="max-width: 200px;">
                     <label for="delaySeconds">Delay Between Requests (seconds)</label>
@@ -644,9 +685,9 @@
                     </select>
                 </div>
                 <div class="config-group" style="flex: 1;">
-                    <label>Rate Limit Protection</label>
+                    <label>Audit Features</label>
                     <div style="padding: 10px; background: rgba(102, 187, 106, 0.1); border-radius: 6px; font-size: 0.85rem; color: #81c784;">
-                        ✓ Server retry &nbsp;|&nbsp; ✓ Auto delays &nbsp;|&nbsp; ✓ 429 handling
+                        ✓ Vocabulary Audit &nbsp;|&nbsp; ✓ Grammar Audit &nbsp;|&nbsp; ✓ Tier Validation
                     </div>
                 </div>
             </div>
@@ -896,8 +937,9 @@
         const VERIFIED_END_MARKER = '===VERIFIED_OUTPUT_END===';
 
         let parsedLessons = [];
-        let outputs = {};
-        let extractedOutputs = {};
+        // Outputs organized by content type: { review: {lessonNum: content}, story: {...}, conversation: {...} }
+        let outputs = { review: {}, story: {}, conversation: {} };
+        let extractedOutputs = { review: {}, story: {}, conversation: {} };
         let isProcessing = false;
         let editingLessonIndex = null;
         let serverConfig = {
@@ -918,6 +960,45 @@
 
         function getDelaySeconds() {
             return localDelayOverride || serverConfig.delayBetweenRequests || 20;
+        }
+
+        // ==================== CONTENT TYPE & PROGRESSION MODE ====================
+
+        const contentTypeLabels = {
+            'review': 'Review Sentences',
+            'story': 'Story Sequences',
+            'conversation': 'Conversation Q&A'
+        };
+
+        const contentTypeColors = {
+            'review': '#4fc3f7',
+            'story': '#81c784',
+            'conversation': '#ffa726'
+        };
+
+        const progressionModeDescriptions = {
+            'tier-locked': 'Same grammar constraints per tier, patterns unlock based on available grammar',
+            'cumulative': 'Higher tiers can use vocabulary from all previous lessons for richer content'
+        };
+
+        function updateProgressionModeDescription() {
+            const select = document.getElementById('progressionMode');
+            const desc = document.getElementById('progressionModeDesc');
+            if (select && desc) {
+                desc.textContent = progressionModeDescriptions[select.value] || '';
+            }
+        }
+
+        function getSelectedContentTypes() {
+            const types = [];
+            if (document.getElementById('contentType_review')?.checked) types.push('review');
+            if (document.getElementById('contentType_story')?.checked) types.push('story');
+            if (document.getElementById('contentType_conversation')?.checked) types.push('conversation');
+            return types;
+        }
+
+        function getProgressionMode() {
+            return document.getElementById('progressionMode')?.value || 'tier-locked';
         }
 
         // ==================== SERVER CHECK ====================
@@ -1164,13 +1245,28 @@
             return `${header}\n${row}`;
         }
 
-        async function processLesson(lessonNum, tableData, cardElement) {
+        async function processLesson(lessonNum, tableData, cardElement, previousLessonsData = null, contentType = 'review') {
             const model = getModel();
             const maxTokens = getMaxTokens();
             const complexityMode = document.getElementById('complexityMode').value;
-            const requestBody = { lessonNum, tableData, customModel: model, maxTokens, complexityMode };
+            const progressionMode = getProgressionMode();
 
-            debugLog.add('request', `API Request - Lesson ${lessonNum}`, { model, maxTokens, complexityMode, tableDataLength: tableData.length });
+            const requestBody = {
+                lessonNum,
+                tableData,
+                customModel: model,
+                maxTokens,
+                complexityMode,
+                contentType,
+                progressionMode
+            };
+
+            // Include previous lessons data for cumulative mode
+            if (progressionMode === 'cumulative' && previousLessonsData) {
+                requestBody.previousLessonsData = previousLessonsData;
+            }
+
+            debugLog.add('request', `API Request - Lesson ${lessonNum}`, { model, maxTokens, complexityMode, contentType, progressionMode, tableDataLength: tableData.length });
             
             // Update card to show we're starting
             if (cardElement) {
@@ -1288,11 +1384,21 @@
                 lessonsToProcess = parsedLessons;
             }
 
+            const selectedContentTypes = getSelectedContentTypes();
+            if (selectedContentTypes.length === 0) {
+                alert('Please select at least one content type to generate.');
+                return;
+            }
+
             const delaySeconds = getDelaySeconds();
-            const estimatedTime = lessonsToProcess.length * (90 + delaySeconds); // ~90s per lesson + delay
+            const progressionMode = getProgressionMode();
+            const totalOperations = lessonsToProcess.length * selectedContentTypes.length;
+            const estimatedTime = totalOperations * (90 + delaySeconds);
             const estimatedMinutes = Math.ceil(estimatedTime / 60);
-            
-            if (!confirm(`Process ${lessonsToProcess.length} lesson(s)?\n\nEstimated time: ~${estimatedMinutes} minutes\n(${delaySeconds}s delay between requests to avoid rate limits)`)) {
+
+            const selectedTypesDisplay = selectedContentTypes.map(t => contentTypeLabels[t]).join(', ');
+
+            if (!confirm(`Process ${lessonsToProcess.length} lesson(s) for ${selectedContentTypes.length} content type(s)?\n\nContent Types: ${selectedTypesDisplay}\nProgression Mode: ${progressionMode === 'cumulative' ? 'Cumulative' : 'Tier-Locked'}\n\nTotal operations: ${totalOperations}\nEstimated time: ~${estimatedMinutes} minutes\n(${delaySeconds}s delay between requests to avoid rate limits)`)) {
                 return;
             }
 
@@ -1306,120 +1412,190 @@
 
             const outputContainer = document.getElementById('outputContainer');
             outputContainer.innerHTML = '';
-            outputs = {}; extractedOutputs = {};
+            // Reset outputs for each content type
+            outputs = { review: {}, story: {}, conversation: {} };
+            extractedOutputs = { review: {}, story: {}, conversation: {} };
 
-            lessonsToProcess.forEach(lesson => {
+            // Create output cards organized by content type
+            selectedContentTypes.forEach(contentType => {
+                const typeColor = contentTypeColors[contentType];
                 outputContainer.innerHTML += `
-                    <div class="lesson-output pending" id="output-${lesson.number}">
-                        <div class="lesson-output-header"><span class="lesson-output-title">Lesson ${lesson.number}</span><span class="status-badge status-pending">PENDING</span></div>
-                        <div class="output-content">Waiting...</div>
+                    <div class="content-type-section" id="section-${contentType}" style="margin-bottom: 30px; border-left: 4px solid ${typeColor}; padding-left: 15px;">
+                        <h3 style="color: ${typeColor}; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <span class="type-icon">${contentType === 'review' ? '📝' : contentType === 'story' ? '📖' : '💬'}</span>
+                            ${contentTypeLabels[contentType]}
+                            <span class="type-status" id="status-${contentType}" style="font-size: 0.8rem; padding: 4px 10px; background: rgba(255,255,255,0.1); border-radius: 12px;">Pending</span>
+                        </h3>
+                        <div class="type-lessons" id="lessons-${contentType}">
+                            ${lessonsToProcess.map(lesson => `
+                                <div class="lesson-output pending" id="output-${contentType}-${lesson.number}">
+                                    <div class="lesson-output-header">
+                                        <span class="lesson-output-title">Lesson ${lesson.number}</span>
+                                        <span class="status-badge status-pending">PENDING</span>
+                                    </div>
+                                    <div class="output-content">Waiting...</div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 `;
             });
 
             let totalRetries = 0;
             let totalRetryTime = 0;
+            let operationCount = 0;
 
-            for (let i = 0; i < lessonsToProcess.length; i++) {
-                const lesson = lessonsToProcess[i];
-                const isLastLesson = i === lessonsToProcess.length - 1;
-                
-                updateProgress(i, lessonsToProcess.length, `🔄 Processing Lesson ${lesson.number} (${i+1}/${lessonsToProcess.length})...`);
+            // Build cumulative vocabulary lookup for cumulative mode
+            const lessonVocabMap = {};
+            if (progressionMode === 'cumulative') {
+                parsedLessons.forEach(lesson => {
+                    lessonVocabMap[lesson.number] = lessonToTableString(lesson);
+                });
+            }
 
-                const card = document.getElementById(`output-${lesson.number}`);
-                if (card) {
-                    card.className = 'lesson-output processing';
-                    card.querySelector('.status-badge').className = 'status-badge status-processing';
-                    card.querySelector('.status-badge').textContent = 'PROCESSING';
-                    card.querySelector('.output-content').textContent = 'Sending request to Claude API...';
+            // Process each content type in sequence
+            for (let typeIdx = 0; typeIdx < selectedContentTypes.length; typeIdx++) {
+                const contentType = selectedContentTypes[typeIdx];
+                const typeLabel = contentTypeLabels[contentType];
+
+                // Update section status
+                const sectionStatus = document.getElementById(`status-${contentType}`);
+                if (sectionStatus) {
+                    sectionStatus.textContent = 'Processing...';
+                    sectionStatus.style.background = 'rgba(255, 167, 38, 0.3)';
                 }
 
-                try {
-                    const result = await processLesson(lesson.number, lessonToTableString(lesson), card);
-                    const extraction = extractVerifiedContent(result.content);
+                for (let i = 0; i < lessonsToProcess.length; i++) {
+                    const lesson = lessonsToProcess[i];
+                    operationCount++;
+                    const isLastOperation = operationCount === totalOperations;
 
-                    outputs[lesson.number] = result.content;
-                    extractedOutputs[lesson.number] = extraction.extracted;
+                    updateProgress(operationCount - 1, totalOperations, `🔄 [${typeLabel}] Processing Lesson ${lesson.number} (${operationCount}/${totalOperations})...`);
 
-                    // Track retries
-                    if (result.attempts > 1) {
-                        totalRetries += result.attempts - 1;
-                        totalRetryTime += result.totalRetryTime || 0;
+                    const card = document.getElementById(`output-${contentType}-${lesson.number}`);
+                    if (card) {
+                        card.className = 'lesson-output processing';
+                        card.querySelector('.status-badge').className = 'status-badge status-processing';
+                        card.querySelector('.status-badge').textContent = 'PROCESSING';
+                        card.querySelector('.output-content').textContent = `Sending ${typeLabel} request to Claude API...`;
                     }
 
-                    if (card) {
-                        card.className = `lesson-output ${extraction.success ? 'success' : 'error'}`;
-                        card.querySelector('.status-badge').className = `status-badge status-${extraction.success ? 'success' : 'error'}`;
-                        card.querySelector('.status-badge').textContent = extraction.success ? 'SUCCESS' : 'NEEDS REVIEW';
-                        card.querySelector('.output-content').textContent = extraction.extracted || result.content;
+                    // Build previous lessons data for cumulative mode
+                    let previousLessonsData = null;
+                    if (progressionMode === 'cumulative') {
+                        const currentLessonNum = parseInt(lesson.number);
+                        const previousLessons = parsedLessons
+                            .filter(l => parseInt(l.number) < currentLessonNum)
+                            .sort((a, b) => parseInt(a.number) - parseInt(b.number));
 
-                        let actionsDiv = card.querySelector('.output-actions');
-                        if (!actionsDiv) { actionsDiv = document.createElement('div'); actionsDiv.className = 'output-actions'; actionsDiv.style = 'margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;'; card.appendChild(actionsDiv); }
-                        actionsDiv.innerHTML = `<button class="copy-btn" onclick="copyOutput('${lesson.number}',false)">📋 Copy Verified</button><button class="copy-btn" onclick="copyOutput('${lesson.number}',true)">📋 Copy Full</button>`;
-
-                        const extractedDiv = document.createElement('div');
-                        extractedDiv.className = 'extracted-indicator';
-                        let extractedText = extraction.hasMarkers ? `✓ Verified content extracted (${extraction.extracted?.length || 0} chars)` : '⚠ No markers found';
-                        if (result.attempts > 1) {
-                            extractedText += ` | ⟳ ${result.attempts} attempts (${result.totalRetryTime}s retry time)`;
+                        if (previousLessons.length > 0) {
+                            previousLessonsData = previousLessons
+                                .map(l => `### Lesson ${l.number} Vocabulary:\n${lessonToTableString(l)}`)
+                                .join('\n\n');
                         }
-                        extractedDiv.innerHTML = extractedText;
-                        card.appendChild(extractedDiv);
-
-                        const auditDiv = document.createElement('div');
-                        auditDiv.className = `audit-result ${extraction.success ? 'audit-passed' : 'audit-failed'}`;
-                        auditDiv.textContent = extraction.success ? '✓ Vocabulary audit passed' : '⚠ Audit issues detected';
-                        card.appendChild(auditDiv);
                     }
 
-                    // Add delay before next lesson (except for the last one)
-                    if (!isLastLesson) {
-                        const nextLesson = lessonsToProcess[i + 1];
-                        await countdownDelay(delaySeconds, lesson.number, nextLesson.number);
-                    }
+                    try {
+                        const result = await processLesson(lesson.number, lessonToTableString(lesson), card, previousLessonsData, contentType);
+                        const extraction = extractVerifiedContent(result.content);
 
-                } catch (error) {
-                    outputs[lesson.number] = `Error: ${error.message}`;
-                    extractedOutputs[lesson.number] = null;
-                    if (card) {
-                        card.className = 'lesson-output error';
-                        card.querySelector('.status-badge').className = 'status-badge status-error';
-                        card.querySelector('.status-badge').textContent = 'ERROR';
-                        card.querySelector('.output-content').textContent = `Error: ${error.message}\n\nThis may be due to rate limiting. The server attempted retries but was unable to complete the request.`;
-                    }
+                        outputs[contentType][lesson.number] = result.content;
+                        extractedOutputs[contentType][lesson.number] = extraction.extracted;
 
-                    // Still add delay before next lesson to let rate limits reset
-                    if (!isLastLesson) {
-                        const nextLesson = lessonsToProcess[i + 1];
-                        await countdownDelay(delaySeconds * 2, lesson.number, nextLesson.number); // Double delay after error
+                        // Track retries
+                        if (result.attempts > 1) {
+                            totalRetries += result.attempts - 1;
+                            totalRetryTime += result.totalRetryTime || 0;
+                        }
+
+                        if (card) {
+                            card.className = `lesson-output ${extraction.success ? 'success' : 'error'}`;
+                            card.querySelector('.status-badge').className = `status-badge status-${extraction.success ? 'success' : 'error'}`;
+                            card.querySelector('.status-badge').textContent = extraction.success ? 'SUCCESS' : 'NEEDS REVIEW';
+                            card.querySelector('.output-content').textContent = extraction.extracted || result.content;
+
+                            let actionsDiv = card.querySelector('.output-actions');
+                            if (!actionsDiv) { actionsDiv = document.createElement('div'); actionsDiv.className = 'output-actions'; actionsDiv.style = 'margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;'; card.appendChild(actionsDiv); }
+                            actionsDiv.innerHTML = `<button class="copy-btn" onclick="copyOutput('${contentType}','${lesson.number}',false)">📋 Copy Verified</button><button class="copy-btn" onclick="copyOutput('${contentType}','${lesson.number}',true)">📋 Copy Full</button>`;
+
+                            const extractedDiv = document.createElement('div');
+                            extractedDiv.className = 'extracted-indicator';
+                            let extractedText = extraction.hasMarkers ? `✓ Verified content extracted (${extraction.extracted?.length || 0} chars)` : '⚠ No markers found';
+                            if (result.attempts > 1) {
+                                extractedText += ` | ⟳ ${result.attempts} attempts (${result.totalRetryTime}s retry time)`;
+                            }
+                            extractedDiv.innerHTML = extractedText;
+                            card.appendChild(extractedDiv);
+
+                            const auditDiv = document.createElement('div');
+                            auditDiv.className = `audit-result ${extraction.success ? 'audit-passed' : 'audit-failed'}`;
+                            auditDiv.textContent = extraction.success ? '✓ Vocabulary audit passed' : '⚠ Audit issues detected';
+                            card.appendChild(auditDiv);
+                        }
+
+                        // Add delay before next operation (except for the last one)
+                        if (!isLastOperation) {
+                            const nextInfo = i < lessonsToProcess.length - 1
+                                ? `Lesson ${lessonsToProcess[i + 1].number}`
+                                : `${contentTypeLabels[selectedContentTypes[typeIdx + 1]]} - Lesson ${lessonsToProcess[0].number}`;
+                            await countdownDelay(delaySeconds, `${typeLabel} L${lesson.number}`, nextInfo);
+                        }
+
+                    } catch (error) {
+                        outputs[contentType][lesson.number] = `Error: ${error.message}`;
+                        extractedOutputs[contentType][lesson.number] = null;
+                        if (card) {
+                            card.className = 'lesson-output error';
+                            card.querySelector('.status-badge').className = 'status-badge status-error';
+                            card.querySelector('.status-badge').textContent = 'ERROR';
+                            card.querySelector('.output-content').textContent = `Error: ${error.message}\n\nThis may be due to rate limiting. The server attempted retries but was unable to complete the request.`;
+                        }
+
+                        // Still add delay before next operation to let rate limits reset
+                        if (!isLastOperation) {
+                            await countdownDelay(delaySeconds * 2, `${typeLabel} L${lesson.number}`, 'next'); // Double delay after error
+                        }
                     }
+                }
+
+                // Update section status to complete
+                if (sectionStatus) {
+                    sectionStatus.textContent = '✓ Complete';
+                    sectionStatus.style.background = 'rgba(102, 187, 106, 0.3)';
                 }
             }
 
-            let completionMsg = `✅ Complete! Processed ${lessonsToProcess.length} lesson(s).`;
+            let completionMsg = `✅ Complete! Processed ${lessonsToProcess.length} lesson(s) × ${selectedContentTypes.length} content type(s) = ${totalOperations} operations.`;
             if (totalRetries > 0) {
                 completionMsg += ` (${totalRetries} retries, ${totalRetryTime}s total retry time)`;
             }
-            updateProgress(lessonsToProcess.length, lessonsToProcess.length, completionMsg);
-            
+            updateProgress(totalOperations, totalOperations, completionMsg);
+
             isProcessing = false;
             document.getElementById('processBtn').disabled = false;
             document.getElementById('exportBtn').disabled = false;
         }
 
-        function copyOutput(lessonNum, copyFull = false) {
-            const content = copyFull ? outputs[lessonNum] : (extractedOutputs[lessonNum] || outputs[lessonNum]);
-            if (content) navigator.clipboard.writeText(content).then(() => alert(`Lesson ${lessonNum} ${copyFull ? 'full' : 'verified'} output copied!`));
+        function copyOutput(contentType, lessonNum, copyFull = false) {
+            const content = copyFull ? outputs[contentType][lessonNum] : (extractedOutputs[contentType][lessonNum] || outputs[contentType][lessonNum]);
+            if (content) navigator.clipboard.writeText(content).then(() => alert(`${contentTypeLabels[contentType]} - Lesson ${lessonNum} ${copyFull ? 'full' : 'verified'} output copied!`));
         }
 
-        function extractCSVFromOutput(content) {
+        function extractCSVFromOutput(content, contentType = 'review') {
             // Look for CSV content between ```csv markers
             const csvMatch = content.match(/```csv\n([\s\S]*?)```/);
             if (csvMatch) {
                 return csvMatch[1].trim();
             }
-            // Fallback: look for CSV header pattern (with or without Tier column)
-            const headerMatch = content.match(/(Lesson #,(?:Tier,)?Seq #,Sequ Title[\s\S]*?)(?=\n\n##|\n===|$)/);
+            // Fallback: look for CSV header pattern based on content type
+            // Review: "Sequ Title", Story: "Story Title", Conversation: "Context"
+            const headerPatterns = {
+                'review': /(Lesson #,(?:Tier,)?Seq #,Sequ Title[\s\S]*?)(?=\n\n##|\n===|$)/,
+                'story': /(Lesson #,(?:Tier,)?Seq #,Story Title[\s\S]*?)(?=\n\n##|\n===|$)/,
+                'conversation': /(Lesson #,(?:Tier,)?Pair #,Context[\s\S]*?)(?=\n\n##|\n===|$)/
+            };
+            const pattern = headerPatterns[contentType] || headerPatterns['review'];
+            const headerMatch = content.match(pattern);
             if (headerMatch) {
                 return headerMatch[1].trim();
             }
@@ -1427,12 +1603,23 @@
         }
 
         function exportAllOutputs() {
-            const validOutputs = Object.keys(extractedOutputs).filter(k => extractedOutputs[k]);
-            if (!validOutputs.length) { alert('No verified outputs to export.'); return; }
+            // Check which content types have data
+            const contentTypesWithData = [];
+            ['review', 'story', 'conversation'].forEach(type => {
+                const validLessons = Object.keys(extractedOutputs[type]).filter(k => extractedOutputs[type][k]);
+                if (validLessons.length > 0) {
+                    contentTypesWithData.push({ type, lessons: validLessons });
+                }
+            });
+
+            if (contentTypesWithData.length === 0) {
+                alert('No verified outputs to export.');
+                return;
+            }
 
             // Ask user which format they want
-            const format = prompt('Export format:\n1 = CSV only (sentences)\n2 = Markdown (full output)\n3 = Both\n\nEnter 1, 2, or 3:', '3');
-            
+            const format = prompt('Export format:\n1 = CSV only (sentences)\n2 = Markdown (full output)\n3 = Both\n\nEnter 1, 2, or 3:', '1');
+
             if (!format || !['1', '2', '3'].includes(format.trim())) {
                 alert('Invalid selection. Export cancelled.');
                 return;
@@ -1440,50 +1627,81 @@
 
             const exportCSV = format.trim() === '1' || format.trim() === '3';
             const exportMD = format.trim() === '2' || format.trim() === '3';
+            const dateCode = new Date().toISOString().split('T')[0].replace(/-/g, '');
 
-            // Build combined CSV from all lessons
+            // File name mapping per content type
+            const fileNames = {
+                'review': `ceb_sentence_review_${dateCode}.csv`,
+                'story': `ceb_sentence_story_${dateCode}.csv`,
+                'conversation': `ceb_sentence_convo_${dateCode}.csv`
+            };
+
+            // CSV headers per content type
+            const csvHeaders = {
+                'review': 'Lesson #,Tier,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type',
+                'story': 'Lesson #,Tier,Seq #,Story Title,Sentence #,Sentence Text,English Translation,Sentence Type',
+                'conversation': 'Lesson #,Tier,Pair #,Context,Sentence #,Sentence Text,English Translation,Sentence Type'
+            };
+
+            let filesExported = 0;
+
+            // Export CSV for each content type separately
             if (exportCSV) {
-                let csvContent = 'Lesson #,Tier,Seq #,Sequ Title,Sentence #,Sentence Text,English Translation,Sentence Type\n';
-                let csvFound = false;
+                contentTypesWithData.forEach(({ type, lessons }) => {
+                    let csvContent = csvHeaders[type] + '\n';
+                    let csvFound = false;
 
-                validOutputs.sort((a, b) => parseInt(a) - parseInt(b)).forEach(lessonNum => {
-                    const lessonCSV = extractCSVFromOutput(extractedOutputs[lessonNum]);
-                    if (lessonCSV) {
-                        csvFound = true;
-                        // Skip header row if present (except for first lesson)
-                        const lines = lessonCSV.split('\n');
-                        const startIndex = lines[0].includes('Lesson #') ? 1 : 0;
-                        csvContent += lines.slice(startIndex).join('\n') + '\n';
+                    lessons.sort((a, b) => parseInt(a) - parseInt(b)).forEach(lessonNum => {
+                        const lessonCSV = extractCSVFromOutput(extractedOutputs[type][lessonNum], type);
+                        if (lessonCSV) {
+                            csvFound = true;
+                            // Skip header row if present
+                            const lines = lessonCSV.split('\n');
+                            const startIndex = lines[0].includes('Lesson #') ? 1 : 0;
+                            csvContent += lines.slice(startIndex).join('\n') + '\n';
+                        }
+                    });
+
+                    if (csvFound) {
+                        const csvBlob = new Blob([csvContent], { type: 'text/csv' });
+                        const csvLink = document.createElement('a');
+                        csvLink.href = URL.createObjectURL(csvBlob);
+                        csvLink.download = fileNames[type];
+                        csvLink.click();
+                        filesExported++;
+                        debugLog.add('info', `Exported CSV: ${fileNames[type]}`, { type, lessons: lessons.length, chars: csvContent.length });
                     }
                 });
 
-                if (csvFound) {
-                    const csvBlob = new Blob([csvContent], { type: 'text/csv' });
-                    const csvLink = document.createElement('a');
-                    csvLink.href = URL.createObjectURL(csvBlob);
-                    csvLink.download = `cebuano-sentences-${new Date().toISOString().split('T')[0]}.csv`;
-                    csvLink.click();
-                    debugLog.add('info', 'Exported CSV', { lessons: validOutputs.length, chars: csvContent.length });
-                } else {
+                if (filesExported === 0) {
                     alert('No CSV content found in outputs. The AI may not have formatted the output correctly.');
                 }
             }
 
-            // Build markdown export
+            // Export Markdown for each content type separately
             if (exportMD) {
-                let markdown = '# Cebuano Vocabulary & Sentences - Verified Output\n\n';
-                markdown += `Generated: ${new Date().toISOString()}\nLessons exported: ${validOutputs.length}\n\n---\n\n`;
+                contentTypesWithData.forEach(({ type, lessons }) => {
+                    let markdown = `# Cebuano ${contentTypeLabels[type]} - Verified Output\n\n`;
+                    markdown += `Generated: ${new Date().toISOString()}\nContent Type: ${contentTypeLabels[type]}\nLessons exported: ${lessons.length}\n\n---\n\n`;
 
-                validOutputs.sort((a, b) => parseInt(a) - parseInt(b)).forEach(lessonNum => {
-                    markdown += `# Lesson ${lessonNum}\n\n${extractedOutputs[lessonNum]}\n\n---\n\n`;
+                    lessons.sort((a, b) => parseInt(a) - parseInt(b)).forEach(lessonNum => {
+                        markdown += `# Lesson ${lessonNum}\n\n${extractedOutputs[type][lessonNum]}\n\n---\n\n`;
+                    });
+
+                    const mdBlob = new Blob([markdown], { type: 'text/markdown' });
+                    const mdLink = document.createElement('a');
+                    mdLink.href = URL.createObjectURL(mdBlob);
+                    mdLink.download = `ceb_${type}_${dateCode}.md`;
+                    mdLink.click();
+                    debugLog.add('info', `Exported Markdown: ceb_${type}_${dateCode}.md`, { type, lessons: lessons.length, chars: markdown.length });
                 });
+            }
 
-                const mdBlob = new Blob([markdown], { type: 'text/markdown' });
-                const mdLink = document.createElement('a');
-                mdLink.href = URL.createObjectURL(mdBlob);
-                mdLink.download = `cebuano-verified-${new Date().toISOString().split('T')[0]}.md`;
-                mdLink.click();
-                debugLog.add('info', 'Exported Markdown', { lessons: validOutputs.length, chars: markdown.length });
+            if (filesExported > 0 || exportMD) {
+                alert(`Export complete!\n\nFiles downloaded:\n${contentTypesWithData.map(({ type }) =>
+                    (exportCSV ? `• ${fileNames[type]}` : '') +
+                    (exportMD ? `\n• ceb_${type}_${dateCode}.md` : '')
+                ).join('\n')}`);
             }
         }
 

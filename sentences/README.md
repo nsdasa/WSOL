@@ -1,6 +1,19 @@
-# Cebuano Vocabulary Generator - DreamHost Deployment
+# Cebuano Content Generator - DreamHost Deployment
 
-A web application for generating Cebuano vocabulary and ladderized sentence sequences using Claude API.
+A web application for generating Cebuano language learning content using Claude API. Supports three content types for different learning modules:
+
+| Content Type | Target Module | Description |
+|--------------|---------------|-------------|
+| **Review Sentences** | Sentence Review | Tiered ladder sentences with Q&A pairs |
+| **Story Sequences** | Story Zone | Narrative sequences for drag-to-order exercises |
+| **Conversation Dialogues** | Conversation Zone | Q&A pairs for matching exercises |
+
+## Progression Modes
+
+| Mode | Description |
+|------|-------------|
+| **Tier-Locked** | Same grammar constraints per tier, patterns unlock based on available grammar |
+| **Cumulative** | Higher tiers can use vocabulary from all previous lessons for richer content |
 
 ## 📁 Files Overview
 
