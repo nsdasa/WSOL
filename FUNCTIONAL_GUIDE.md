@@ -486,15 +486,52 @@ Generates audio files for words and sentences using the ElevenLabs Text-to-Speec
 3. Select a voice and model
 4. Browse words/sentences from the manifest
 5. Select items and click Generate Audio
-6. Files are saved to:
-   - Words: `assets/{cardNum}.{lang}.{word}.opus`
-   - Sentences: `assets/sentences/audio/{lang}/lesson{N}-sent{id}.opus`
+6. Files are saved to (with `.ai` flag to indicate AI-generated):
+   - Words: `assets/{cardNum}.{lang}.{word}.ai.opus`
+   - Sentences: `assets/sentences/audio/{lang}/lesson{N}-sent{id}.ai.opus`
 
 **Requirements**:
 - ElevenLabs API key (paid account)
 - ffmpeg for OPUS conversion (falls back to MP3 if unavailable)
 - PHP with cURL extension
 - Writable assets directory
+
+## Project Tracker with Bug Tracking (kanban-tracker-module.js)
+
+The Project Tracker is a sprint-based kanban board for tracking development tasks, **bug fixes**, lessons, and voice recording work. Bug tracking is fully integrated into this module.
+
+**Access**: Click "Tracker" tab in main navigation (requires login as Admin, Deck Manager, or Editor)
+
+**Task Categories**:
+- **Development**: General development tasks (blue)
+- **Bug Fix**: Bug reports with priority/severity tracking (red)
+- **Lesson**: Lesson content work (green)
+- **Voice Recording**: Audio recording tasks (orange)
+
+**Columns**: To Do → In Progress → Review → Done
+
+**Bug-Specific Features** (shown when category is "Bug Fix"):
+- **Priority**: Critical, High, Medium, Low (color-coded badges)
+- **Severity**: Blocker, Major, Minor, Trivial
+- **Module**: Link bug to specific code file (e.g., flashcards-module.js)
+- **Full History**: Track all changes with timestamps and usernames
+- **Comments**: Discussion thread for each bug/task
+- **Activity Indicators**: Shows history and comment counts on cards
+
+**How to Report a Bug**:
+1. Go to "Tracker" tab
+2. Click "+ Add Task"
+3. Select "Bug Fix" as category
+4. Fill in title, description, priority, severity, module
+5. Assign to a sprint and user
+6. Save - bug appears in "To Do" column
+
+**Workflow**:
+- Drag cards between columns to update status
+- Click the expand icon on a card to view full details, history, and comments
+- All status changes are automatically recorded in history
+
+**Data Storage**: Tasks are stored in browser localStorage (kanbanTasks, kanbanSprints keys)
 
 ---
 
