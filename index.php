@@ -376,6 +376,14 @@ $manifestVersion = file_exists(__DIR__ . '/assets/manifest.json')
     <script src="admin-module.js?v=<?php echo cacheBust('admin-module.js'); ?>"></script>
     <script src="pdf-module.js?v=<?php echo cacheBust('pdf-module.js'); ?>"></script>
     <script src="deck-builder-module.js?v=<?php echo cacheBust('deck-builder-module.js'); ?>"></script>
+    <!-- Deck Builder modular components (split for maintainability) -->
+    <script src="deck-builder-table.js?v=<?php echo cacheBust('deck-builder-table.js'); ?>"></script>
+    <script src="deck-builder-modals.js?v=<?php echo cacheBust('deck-builder-modals.js'); ?>"></script>
+    <script src="deck-builder-files.js?v=<?php echo cacheBust('deck-builder-files.js'); ?>"></script>
+    <script src="deck-builder-lessons.js?v=<?php echo cacheBust('deck-builder-lessons.js'); ?>"></script>
+    <script src="deck-builder-sync.js?v=<?php echo cacheBust('deck-builder-sync.js'); ?>"></script>
+    <script src="deck-builder-export.js?v=<?php echo cacheBust('deck-builder-export.js'); ?>"></script>
+    <script src="deck-builder-tour.js?v=<?php echo cacheBust('deck-builder-tour.js'); ?>"></script>
     <script src="deck-builder-audio.js?v=<?php echo cacheBust('deck-builder-audio.js'); ?>"></script>
     <script src="deck-builder-uploads.js?v=<?php echo cacheBust('deck-builder-uploads.js'); ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>

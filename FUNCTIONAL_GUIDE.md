@@ -384,9 +384,9 @@ class SomeModule extends LearningModule {
 
 # Administrative Tools
 
-## Deck Builder Module (deck-builder-module.js)
+## Deck Builder Module
 
-The main tool for managing vocabulary cards. This is a large file (~172KB) because it has many features.
+The main tool for managing vocabulary cards. Split into multiple files for maintainability.
 
 **Main sections**:
 1. **Card Table**: View all cards in a spreadsheet format
@@ -404,10 +404,20 @@ The main tool for managing vocabulary cards. This is a large file (~172KB) becau
 - Set lesson numbers
 - Export to CSV
 
-**Related files**:
-- `deck-builder-audio.js`: Audio recording/selection
-- `deck-builder-uploads.js`: File upload handling
-- `card-sentence-sync.js`: Card-sentence synchronization
+**Related files** (modular structure):
+| File | Purpose |
+|------|---------|
+| `deck-builder-module.js` | Core class, HTML template, initialization |
+| `deck-builder-table.js` | Card table rendering, sorting, filtering |
+| `deck-builder-modals.js` | Categories and notes edit dialogs |
+| `deck-builder-files.js` | File selection, upload, rename functionality |
+| `deck-builder-lessons.js` | Lesson creation, card add/delete |
+| `deck-builder-sync.js` | Save to server, sentence sync, stats |
+| `deck-builder-export.js` | CSV export for all data types |
+| `deck-builder-tour.js` | Tour guide configuration editor |
+| `deck-builder-audio.js` | Audio recording with waveform editor |
+| `deck-builder-uploads.js` | CSV/media batch upload handling |
+| `card-sentence-sync.js` | Card-sentence synchronization manager |
 
 ### Card-Sentence Sync System
 
@@ -585,9 +595,16 @@ Stores guided tour steps for each module.
 | `grammar-module.js` | Grammar lesson display | Changing how lessons load |
 | `teacher-guide-module.js` | Teacher resources | Changing resource display |
 | `pdf-module.js` | PDF generation | Adding new PDF formats |
-| `deck-builder-module.js` | Card management | Adding new card fields |
-| `deck-builder-audio.js` | Audio handling | Changing audio formats |
-| `deck-builder-uploads.js` | File uploads | Changing upload limits |
+| `deck-builder-module.js` | Card management core | Adding HTML template changes |
+| `deck-builder-table.js` | Table rendering | Changing column layout |
+| `deck-builder-modals.js` | Edit dialogs | Adding modal fields |
+| `deck-builder-files.js` | File selection | Changing file handling |
+| `deck-builder-lessons.js` | Lesson/card CRUD | Changing card structure |
+| `deck-builder-sync.js` | Save & utilities | Changing save behavior |
+| `deck-builder-export.js` | CSV exports | Adding export formats |
+| `deck-builder-tour.js` | Tour editor | Changing tour config |
+| `deck-builder-audio.js` | Audio recording | Changing audio formats |
+| `deck-builder-uploads.js` | Batch uploads | Changing upload limits |
 | `admin-module.js` | Admin dashboard | Adding new admin features |
 | `kanban-tracker-module.js` | Project tracking board | Adding task features |
 | `tour-guide.js` | Tour display system | Changing tour behavior |
