@@ -112,6 +112,7 @@ class SentenceReviewModule extends LearningModule {
     /**
      * Load sentence review data from manifest
      * Handles both regular lessons and review lessons (which aggregate multiple lessons)
+     * Updated for new sentences.reviewZone structure with sentence pool
      */
     loadSentenceReviewData() {
         const manifest = this.assets.manifest;
@@ -127,12 +128,22 @@ class SentenceReviewModule extends LearningModule {
 
         debugLogger?.log(2, `Loading sentence review for ${isReviewLesson ? 'review ' : ''}lesson ${lessonNum}${isReviewLesson ? ` (reviewing: ${lessonsToLoad.join(', ')})` : ''}`);
 
+        // Get the sentence pool for resolving sentences
+        const sentencePool = manifest?.sentences?.[trigraph]?.pool || [];
+        const poolMap = new Map(sentencePool.map(s => [s.sentenceNum, s]));
+
         // Aggregate sequences from all lessons to load
         const aggregatedSequences = [];
         let sequenceIdCounter = 1;
 
         for (const lessonToLoad of lessonsToLoad) {
-            const lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lessonToLoad];
+            // Try new structure first: sentences.reviewZone.lessons
+            let lessonData = manifest?.sentences?.[trigraph]?.reviewZone?.lessons?.[lessonToLoad];
+
+            // Fallback to old structure: sentenceReview.lessons (for backwards compatibility)
+            if (!lessonData) {
+                lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lessonToLoad];
+            }
 
             if (!lessonData || !lessonData.sequences || lessonData.sequences.length === 0) {
                 debugLogger?.log(2, `No sentence review data for ${trigraph} lesson ${lessonToLoad}`);
@@ -141,14 +152,28 @@ class SentenceReviewModule extends LearningModule {
 
             // Add sequences with lesson prefix for review lessons
             for (const sequence of lessonData.sequences) {
+                // Resolve sentenceNums to actual sentence objects (new structure)
+                // Or use embedded sentences directly (old structure)
+                let sentences;
+                if (sequence.sentenceNums && Array.isArray(sequence.sentenceNums)) {
+                    // New structure: resolve from pool
+                    sentences = sequence.sentenceNums
+                        .map(num => poolMap.get(num))
+                        .filter(s => s !== undefined);
+                } else if (sequence.sentences && Array.isArray(sequence.sentences)) {
+                    // Old structure: use embedded sentences
+                    sentences = sequence.sentences;
+                } else {
+                    sentences = [];
+                }
+
                 const aggregatedSequence = {
-                    ...sequence,
                     id: sequenceIdCounter++,
-                    // For review lessons, prefix title with lesson number
                     title: isReviewLesson
                         ? `L${lessonToLoad}: ${sequence.title}`
                         : sequence.title,
-                    originalLesson: lessonToLoad
+                    originalLesson: lessonToLoad,
+                    sentences: sentences
                 };
                 aggregatedSequences.push(aggregatedSequence);
             }

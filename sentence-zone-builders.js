@@ -108,20 +108,34 @@ class ConversationZoneBuilder {
 
     /**
      * Load conversation zone data
+     * Updated for new lessons-based structure
      */
     loadData() {
         this.currentTrigraph = this.deckBuilder.currentTrigraph || 'ceb';
 
         // Get from new sentence pool structure or initialize empty
         const sentenceData = this.deckBuilder.assets.manifest?.sentences?.[this.currentTrigraph];
-        this.conversations = sentenceData?.conversationZone?.conversations
-            ? JSON.parse(JSON.stringify(sentenceData.conversationZone.conversations))
-            : [];
+
+        // Load conversation zone with lessons structure
+        this.conversationLessons = sentenceData?.conversationZone?.lessons
+            ? JSON.parse(JSON.stringify(sentenceData.conversationZone.lessons))
+            : {};
+
+        // Flatten conversations for display (with lesson info)
+        this.conversations = [];
+        for (const [lessonNum, lessonData] of Object.entries(this.conversationLessons)) {
+            for (const conv of (lessonData.conversations || [])) {
+                this.conversations.push({
+                    ...conv,
+                    lesson: parseInt(lessonNum)
+                });
+            }
+        }
 
         // Load sentence pool for reference
         this.sentencePool = sentenceData?.pool || [];
 
-        debugLogger?.log(3, `ConversationZoneBuilder: Loaded ${this.conversations.length} conversations`);
+        debugLogger?.log(3, `ConversationZoneBuilder: Loaded ${this.conversations.length} conversations across ${Object.keys(this.conversationLessons).length} lessons`);
     }
 
     /**
@@ -868,18 +882,32 @@ class StoryZoneBuilder {
 
     /**
      * Load story zone data
+     * Updated for new lessons-based structure
      */
     loadData() {
         this.currentTrigraph = this.deckBuilder.currentTrigraph || 'ceb';
 
         const sentenceData = this.deckBuilder.assets.manifest?.sentences?.[this.currentTrigraph];
-        this.stories = sentenceData?.storyZone?.stories
-            ? JSON.parse(JSON.stringify(sentenceData.storyZone.stories))
-            : [];
+
+        // Load story zone with lessons structure
+        this.storyLessons = sentenceData?.storyZone?.lessons
+            ? JSON.parse(JSON.stringify(sentenceData.storyZone.lessons))
+            : {};
+
+        // Flatten stories for display (with lesson info)
+        this.stories = [];
+        for (const [lessonNum, lessonData] of Object.entries(this.storyLessons)) {
+            for (const story of (lessonData.stories || [])) {
+                this.stories.push({
+                    ...story,
+                    lesson: parseInt(lessonNum)
+                });
+            }
+        }
 
         this.sentencePool = sentenceData?.pool || [];
 
-        debugLogger?.log(3, `StoryZoneBuilder: Loaded ${this.stories.length} stories`);
+        debugLogger?.log(3, `StoryZoneBuilder: Loaded ${this.stories.length} stories across ${Object.keys(this.storyLessons).length} lessons`);
     }
 
     /**

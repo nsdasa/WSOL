@@ -16,8 +16,8 @@
  *           "sentenceNum": 1,
  *           "text": "Asa ang libro?",
  *           "english": "Where is the book?",
- *           "cebuano": null,
  *           "type": "Question",
+ *           "audioPath": null,
  *           "words": [{ word, root, cardNum, imagePath, needsResolution }]
  *         }
  *       ],
@@ -30,14 +30,20 @@
  *         }
  *       },
  *       "conversationZone": {
- *         "conversations": [
- *           { id, title, lesson, pairs: [{ questionNum, answerNum }] }
- *         ]
+ *         "lessons": {
+ *           "1": {
+ *             "title": "Lesson 1",
+ *             "conversations": [{ id, title, pairs: [{ questionNum, answerNum }] }]
+ *           }
+ *         }
  *       },
  *       "storyZone": {
- *         "stories": [
- *           { id, title, lesson, sentenceNums: [5, 6, 7, 8] }
- *         ]
+ *         "lessons": {
+ *           "1": {
+ *             "title": "Lesson 1",
+ *             "stories": [{ id, title, sentenceNums: [5, 6, 7, 8] }]
+ *           }
+ *         }
  *       }
  *     }
  *   }
@@ -164,30 +170,36 @@ class SentencePoolManager {
         }
 
         // Check Conversation Zone
-        if (data.conversationZone?.conversations) {
-            data.conversationZone.conversations.forEach(conv => {
-                conv.pairs?.forEach(pair => {
-                    if (pair.questionNum === sentenceNum || pair.answerNum === sentenceNum) {
-                        usage.conversationZone.push({
-                            conversationId: conv.id,
-                            conversationTitle: conv.title,
-                            role: pair.questionNum === sentenceNum ? 'question' : 'answer'
-                        });
-                    }
+        if (data.conversationZone?.lessons) {
+            Object.entries(data.conversationZone.lessons).forEach(([lessonNum, lesson]) => {
+                lesson.conversations?.forEach(conv => {
+                    conv.pairs?.forEach(pair => {
+                        if (pair.questionNum === sentenceNum || pair.answerNum === sentenceNum) {
+                            usage.conversationZone.push({
+                                lesson: lessonNum,
+                                conversationId: conv.id,
+                                conversationTitle: conv.title,
+                                role: pair.questionNum === sentenceNum ? 'question' : 'answer'
+                            });
+                        }
+                    });
                 });
             });
         }
 
         // Check Story Zone
-        if (data.storyZone?.stories) {
-            data.storyZone.stories.forEach(story => {
-                if (story.sentenceNums?.includes(sentenceNum)) {
-                    usage.storyZone.push({
-                        storyId: story.id,
-                        storyTitle: story.title,
-                        position: story.sentenceNums.indexOf(sentenceNum) + 1
-                    });
-                }
+        if (data.storyZone?.lessons) {
+            Object.entries(data.storyZone.lessons).forEach(([lessonNum, lesson]) => {
+                lesson.stories?.forEach(story => {
+                    if (story.sentenceNums?.includes(sentenceNum)) {
+                        usage.storyZone.push({
+                            lesson: lessonNum,
+                            storyId: story.id,
+                            storyTitle: story.title,
+                            position: story.sentenceNums.indexOf(sentenceNum) + 1
+                        });
+                    }
+                });
             });
         }
 
@@ -282,39 +294,54 @@ class SentencePoolManager {
      */
     getConversationZone(trigraph = null) {
         const data = this.getSentenceData(trigraph);
-        return data?.conversationZone || { conversations: [] };
+        return data?.conversationZone || { lessons: {} };
     }
 
     /**
-     * Add a conversation
+     * Get conversations for a specific lesson
      */
-    addConversation(conversationData, trigraph = null) {
+    getConversationsForLesson(lessonNum, trigraph = null) {
+        const convZone = this.getConversationZone(trigraph);
+        return convZone.lessons?.[lessonNum]?.conversations || [];
+    }
+
+    /**
+     * Add a conversation to a lesson
+     */
+    addConversation(lessonNum, conversationData, trigraph = null) {
         const tg = trigraph || this.currentTrigraph;
         this.ensureStructure(tg);
 
         const convZone = this.assets.manifest.sentences[tg].conversationZone;
-        const nextId = convZone.conversations.length > 0
-            ? Math.max(...convZone.conversations.map(c => c.id)) + 1
+        if (!convZone.lessons[lessonNum]) {
+            convZone.lessons[lessonNum] = { title: `Lesson ${lessonNum}`, conversations: [] };
+        }
+
+        const conversations = convZone.lessons[lessonNum].conversations;
+        const nextId = conversations.length > 0
+            ? Math.max(...conversations.map(c => c.id)) + 1
             : 1;
 
         const newConv = {
             id: conversationData.id || nextId,
             title: conversationData.title || 'New Conversation',
-            lesson: conversationData.lesson || 1,
             pairs: conversationData.pairs || []
         };
 
-        convZone.conversations.push(newConv);
+        conversations.push(newConv);
         return newConv;
     }
 
     /**
      * Update a conversation
      */
-    updateConversation(conversationId, updates, trigraph = null) {
+    updateConversation(lessonNum, conversationId, updates, trigraph = null) {
         const tg = trigraph || this.currentTrigraph;
         const convZone = this.getConversationZone(tg);
-        const conv = convZone.conversations?.find(c => c.id === conversationId);
+        const lesson = convZone.lessons?.[lessonNum];
+        if (!lesson) return null;
+
+        const conv = lesson.conversations?.find(c => c.id === conversationId);
         if (!conv) return null;
 
         Object.assign(conv, updates);
@@ -324,25 +351,27 @@ class SentencePoolManager {
     /**
      * Delete a conversation
      */
-    deleteConversation(conversationId, trigraph = null) {
+    deleteConversation(lessonNum, conversationId, trigraph = null) {
         const tg = trigraph || this.currentTrigraph;
         const data = this.getSentenceData(tg);
-        if (!data?.conversationZone?.conversations) return false;
+        const lesson = data?.conversationZone?.lessons?.[lessonNum];
+        if (!lesson?.conversations) return false;
 
-        const index = data.conversationZone.conversations.findIndex(c => c.id === conversationId);
+        const index = lesson.conversations.findIndex(c => c.id === conversationId);
         if (index === -1) return false;
 
-        data.conversationZone.conversations.splice(index, 1);
+        lesson.conversations.splice(index, 1);
         return true;
     }
 
     /**
      * Add a Q&A pair to a conversation
      */
-    addConversationPair(conversationId, questionNum, answerNum, trigraph = null) {
+    addConversationPair(lessonNum, conversationId, questionNum, answerNum, trigraph = null) {
         const tg = trigraph || this.currentTrigraph;
         const convZone = this.getConversationZone(tg);
-        const conv = convZone.conversations?.find(c => c.id === conversationId);
+        const lesson = convZone.lessons?.[lessonNum];
+        const conv = lesson?.conversations?.find(c => c.id === conversationId);
         if (!conv) return null;
 
         if (!conv.pairs) conv.pairs = [];
@@ -359,39 +388,54 @@ class SentencePoolManager {
      */
     getStoryZone(trigraph = null) {
         const data = this.getSentenceData(trigraph);
-        return data?.storyZone || { stories: [] };
+        return data?.storyZone || { lessons: {} };
     }
 
     /**
-     * Add a story
+     * Get stories for a specific lesson
      */
-    addStory(storyData, trigraph = null) {
+    getStoriesForLesson(lessonNum, trigraph = null) {
+        const storyZone = this.getStoryZone(trigraph);
+        return storyZone.lessons?.[lessonNum]?.stories || [];
+    }
+
+    /**
+     * Add a story to a lesson
+     */
+    addStory(lessonNum, storyData, trigraph = null) {
         const tg = trigraph || this.currentTrigraph;
         this.ensureStructure(tg);
 
         const storyZone = this.assets.manifest.sentences[tg].storyZone;
-        const nextId = storyZone.stories.length > 0
-            ? Math.max(...storyZone.stories.map(s => s.id)) + 1
+        if (!storyZone.lessons[lessonNum]) {
+            storyZone.lessons[lessonNum] = { title: `Lesson ${lessonNum}`, stories: [] };
+        }
+
+        const stories = storyZone.lessons[lessonNum].stories;
+        const nextId = stories.length > 0
+            ? Math.max(...stories.map(s => s.id)) + 1
             : 1;
 
         const newStory = {
             id: storyData.id || nextId,
             title: storyData.title || 'New Story',
-            lesson: storyData.lesson || 1,
             sentenceNums: storyData.sentenceNums || []
         };
 
-        storyZone.stories.push(newStory);
+        stories.push(newStory);
         return newStory;
     }
 
     /**
      * Update a story
      */
-    updateStory(storyId, updates, trigraph = null) {
+    updateStory(lessonNum, storyId, updates, trigraph = null) {
         const tg = trigraph || this.currentTrigraph;
         const storyZone = this.getStoryZone(tg);
-        const story = storyZone.stories?.find(s => s.id === storyId);
+        const lesson = storyZone.lessons?.[lessonNum];
+        if (!lesson) return null;
+
+        const story = lesson.stories?.find(s => s.id === storyId);
         if (!story) return null;
 
         Object.assign(story, updates);
@@ -401,15 +445,16 @@ class SentencePoolManager {
     /**
      * Delete a story
      */
-    deleteStory(storyId, trigraph = null) {
+    deleteStory(lessonNum, storyId, trigraph = null) {
         const tg = trigraph || this.currentTrigraph;
         const data = this.getSentenceData(tg);
-        if (!data?.storyZone?.stories) return false;
+        const lesson = data?.storyZone?.lessons?.[lessonNum];
+        if (!lesson?.stories) return false;
 
-        const index = data.storyZone.stories.findIndex(s => s.id === storyId);
+        const index = lesson.stories.findIndex(s => s.id === storyId);
         if (index === -1) return false;
 
-        data.storyZone.stories.splice(index, 1);
+        lesson.stories.splice(index, 1);
         return true;
     }
 
@@ -428,10 +473,19 @@ class SentencePoolManager {
             this.assets.manifest.sentences[trigraph] = {
                 pool: [],
                 reviewZone: { lessons: {} },
-                conversationZone: { conversations: [] },
-                storyZone: { stories: [] }
+                conversationZone: { lessons: {} },
+                storyZone: { lessons: {} }
             };
         }
+        // Ensure sub-structures exist (for partial structures)
+        const data = this.assets.manifest.sentences[trigraph];
+        if (!data.pool) data.pool = [];
+        if (!data.reviewZone) data.reviewZone = { lessons: {} };
+        if (!data.reviewZone.lessons) data.reviewZone.lessons = {};
+        if (!data.conversationZone) data.conversationZone = { lessons: {} };
+        if (!data.conversationZone.lessons) data.conversationZone.lessons = {};
+        if (!data.storyZone) data.storyZone = { lessons: {} };
+        if (!data.storyZone.lessons) data.storyZone.lessons = {};
     }
 
     /**
@@ -559,9 +613,10 @@ class SentencePoolManager {
     /**
      * Get all sentences for a conversation (Q&A pairs)
      */
-    getConversationSentences(conversationId, trigraph = null) {
+    getConversationSentences(lessonNum, conversationId, trigraph = null) {
         const convZone = this.getConversationZone(trigraph);
-        const conv = convZone.conversations?.find(c => c.id === conversationId);
+        const lesson = convZone.lessons?.[lessonNum];
+        const conv = lesson?.conversations?.find(c => c.id === conversationId);
 
         if (!conv?.pairs) return [];
 
@@ -574,9 +629,10 @@ class SentencePoolManager {
     /**
      * Get all sentences for a story (in order)
      */
-    getStorySentences(storyId, trigraph = null) {
+    getStorySentences(lessonNum, storyId, trigraph = null) {
         const storyZone = this.getStoryZone(trigraph);
-        const story = storyZone.stories?.find(s => s.id === storyId);
+        const lesson = storyZone.lessons?.[lessonNum];
+        const story = lesson?.stories?.find(s => s.id === storyId);
 
         if (!story?.sentenceNums) return [];
 

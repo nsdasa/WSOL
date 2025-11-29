@@ -115,7 +115,8 @@ class PictureStoryModule extends LearningModule {
     }
 
     /**
-     * Load sequences from sentence review data
+     * Load sequences from story zone data
+     * Uses new sentences.storyZone structure, with fallback to sentenceReview
      */
     loadSequences() {
         this.sequences = [];
@@ -130,18 +131,67 @@ class PictureStoryModule extends LearningModule {
             ? lessonMeta.reviewsLessons
             : [lessonNum];
 
-        for (const lesson of lessonsToLoad) {
-            const lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lesson];
-            if (!lessonData?.sequences) continue;
+        // Get the sentence pool for resolving sentences
+        const sentencePool = manifest?.sentences?.[trigraph]?.pool || [];
+        const poolMap = new Map(sentencePool.map(s => [s.sentenceNum, s]));
 
-            for (const sequence of lessonData.sequences) {
-                // Only include sequences with multiple sentences
-                if (sequence.sentences?.length >= 2) {
-                    this.sequences.push({
-                        ...sequence,
-                        lessonNum: lesson,
-                        title: isReviewLesson ? `L${lesson}: ${sequence.title}` : sequence.title
-                    });
+        // First, try the new storyZone structure
+        let foundStories = false;
+        for (const lesson of lessonsToLoad) {
+            const storyData = manifest?.sentences?.[trigraph]?.storyZone?.lessons?.[lesson];
+            if (storyData?.stories?.length > 0) {
+                foundStories = true;
+                for (const story of storyData.stories) {
+                    // Resolve sentenceNums to actual sentence objects
+                    const sentences = (story.sentenceNums || [])
+                        .map(num => poolMap.get(num))
+                        .filter(s => s !== undefined);
+
+                    if (sentences.length >= 2) {
+                        this.sequences.push({
+                            id: story.id,
+                            title: isReviewLesson ? `L${lesson}: ${story.title}` : story.title,
+                            lessonNum: lesson,
+                            sentences: sentences
+                        });
+                    }
+                }
+            }
+        }
+
+        // Fallback: extract from sentenceReview (old structure)
+        if (!foundStories) {
+            for (const lesson of lessonsToLoad) {
+                // Try new reviewZone structure first
+                let lessonData = manifest?.sentences?.[trigraph]?.reviewZone?.lessons?.[lesson];
+                // Fallback to old sentenceReview structure
+                if (!lessonData) {
+                    lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lesson];
+                }
+                if (!lessonData?.sequences) continue;
+
+                for (const sequence of lessonData.sequences) {
+                    // Resolve sentences from pool (new) or use embedded (old)
+                    let sentences;
+                    if (sequence.sentenceNums && Array.isArray(sequence.sentenceNums)) {
+                        sentences = sequence.sentenceNums
+                            .map(num => poolMap.get(num))
+                            .filter(s => s !== undefined);
+                    } else if (sequence.sentences && Array.isArray(sequence.sentences)) {
+                        sentences = sequence.sentences;
+                    } else {
+                        continue;
+                    }
+
+                    // Only include sequences with multiple sentences
+                    if (sentences.length >= 2) {
+                        this.sequences.push({
+                            ...sequence,
+                            lessonNum: lesson,
+                            title: isReviewLesson ? `L${lesson}: ${sequence.title}` : sequence.title,
+                            sentences: sentences
+                        });
+                    }
                 }
             }
         }
