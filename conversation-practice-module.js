@@ -99,8 +99,8 @@ class ConversationPracticeModule extends LearningModule {
     }
 
     /**
-     * Extract Q&A pairs from sentence review data
-     * Pairs questions with their following answers/statements
+     * Extract Q&A pairs from conversation zone data
+     * Uses sentences.conversationZone structure only (no fallback)
      */
     extractQAPairs() {
         this.qaPairs = [];
@@ -115,58 +115,34 @@ class ConversationPracticeModule extends LearningModule {
             ? lessonMeta.reviewsLessons
             : [lessonNum];
 
-        // Collect all sentences from sequences
-        const allSentences = [];
+        // Get the sentence pool for resolving sentences
+        const sentencePool = manifest?.sentences?.[trigraph]?.pool || [];
+        const poolMap = new Map(sentencePool.map(s => [s.sentenceNum, s]));
 
+        // First, try the new conversationZone structure
+        let foundConversations = false;
         for (const lesson of lessonsToLoad) {
-            const lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lesson];
-            if (!lessonData?.sequences) continue;
-
-            for (const sequence of lessonData.sequences) {
-                if (!sequence.sentences?.length) continue;
-
-                // Process sentences in sequence to find Q&A pairs
-                for (let i = 0; i < sequence.sentences.length; i++) {
-                    const sentence = sequence.sentences[i];
-                    allSentences.push({
-                        ...sentence,
-                        sequenceTitle: sequence.title,
-                        lessonNum: lesson
-                    });
+            const convData = manifest?.sentences?.[trigraph]?.conversationZone?.lessons?.[lesson];
+            if (convData?.conversations?.length > 0) {
+                foundConversations = true;
+                for (const conv of convData.conversations) {
+                    for (const pair of conv.pairs || []) {
+                        const question = poolMap.get(pair.questionNum);
+                        const answer = poolMap.get(pair.answerNum);
+                        if (question && answer) {
+                            this.qaPairs.push({
+                                question: question,
+                                correctAnswer: answer,
+                                sequenceTitle: conv.title
+                            });
+                        }
+                    }
                 }
             }
         }
 
-        // Create Q&A pairs
-        // A question followed by answer/statement forms a pair
-        for (let i = 0; i < allSentences.length; i++) {
-            const sentence = allSentences[i];
-
-            // If it's a question and there's a next sentence, create a pair
-            if (sentence.sentenceType === 'question' && i + 1 < allSentences.length) {
-                const answer = allSentences[i + 1];
-                // Only pair if the answer is in the same sequence or is an answer/statement
-                if (answer.sentenceType === 'answer' || answer.sentenceType === 'statement' ||
-                    answer.sequenceTitle === sentence.sequenceTitle) {
-                    this.qaPairs.push({
-                        question: sentence,
-                        correctAnswer: answer,
-                        sequenceTitle: sentence.sequenceTitle
-                    });
-                }
-            }
-        }
-
-        // If no explicit Q&A pairs found, try pairing any adjacent sentences
-        if (this.qaPairs.length === 0) {
-            for (let i = 0; i < allSentences.length - 1; i += 2) {
-                this.qaPairs.push({
-                    question: allSentences[i],
-                    correctAnswer: allSentences[i + 1],
-                    sequenceTitle: allSentences[i].sequenceTitle
-                });
-            }
-        }
+        // Conversation Zone requires conversationZone-specific data - no fallback to sentenceReview
+        // This ensures we can clearly see when conversationZone data needs to be created
 
         // Shuffle pairs for variety
         this.qaPairs = shuffleArray(this.qaPairs);

@@ -142,7 +142,7 @@ try {
         $manifest['lessonMeta'][$trigraph] = $lessonMeta;
     }
 
-    // Update sentenceReview if provided
+    // Update sentenceReview if provided (legacy support)
     if (isset($data['sentenceReview'])) {
         // Initialize sentenceReview section if not exists
         if (!isset($manifest['sentenceReview'])) {
@@ -153,6 +153,37 @@ try {
 
         // Generate sentence index CSV after updating sentence review data
         generateSentenceIndexCSV($manifest, __DIR__ . '/assets/sentences/audio');
+    }
+
+    // Update new sentences structure if provided
+    if (isset($data['sentences'])) {
+        // Initialize sentences section if not exists
+        if (!isset($manifest['sentences'])) {
+            $manifest['sentences'] = [];
+        }
+        // Initialize language section if not exists
+        if (!isset($manifest['sentences'][$trigraph])) {
+            $manifest['sentences'][$trigraph] = [
+                'pool' => [],
+                'reviewZone' => ['lessons' => new stdClass()],
+                'conversationZone' => ['lessons' => new stdClass()],
+                'storyZone' => ['lessons' => new stdClass()]
+            ];
+        }
+
+        // Update specific parts if provided
+        if (isset($data['sentences']['pool'])) {
+            $manifest['sentences'][$trigraph]['pool'] = $data['sentences']['pool'];
+        }
+        if (isset($data['sentences']['reviewZone'])) {
+            $manifest['sentences'][$trigraph]['reviewZone'] = $data['sentences']['reviewZone'];
+        }
+        if (isset($data['sentences']['conversationZone'])) {
+            $manifest['sentences'][$trigraph]['conversationZone'] = $data['sentences']['conversationZone'];
+        }
+        if (isset($data['sentences']['storyZone'])) {
+            $manifest['sentences'][$trigraph]['storyZone'] = $data['sentences']['storyZone'];
+        }
     }
 
     // Update timestamp
