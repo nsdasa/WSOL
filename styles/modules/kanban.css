@@ -54,6 +54,121 @@
     color: var(--text-secondary);
 }
 
+/* Project Selector */
+.project-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.project-selector label {
+    color: var(--text-secondary);
+}
+
+.project-selector select {
+    min-width: 160px;
+}
+
+/* Project Form */
+.project-form {
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
+}
+
+/* Project Color Picker */
+.project-color-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--text-secondary);
+}
+
+/* Project List */
+.project-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.project-color-indicator {
+    width: 8px;
+    height: 40px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.project-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.project-item-info strong {
+    color: var(--text-primary);
+}
+
+.project-item-info span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.project-item-info .project-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.no-projects {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px;
+}
+
+/* Project Badge on Task Cards */
+.task-project-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: white;
+    margin-left: auto;
+}
+
 /* Buttons */
 .kanban-btn {
     display: inline-flex;
@@ -636,6 +751,14 @@ body.mobile-phone .kanban-btn i {
 
 body.mobile-phone .sprint-selector label {
     display: none;
+}
+
+body.mobile-phone .project-selector label {
+    display: none;
+}
+
+body.mobile-phone .project-selector select {
+    min-width: 120px;
 }
 
 /* Bug-specific fields */

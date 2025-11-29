@@ -302,20 +302,33 @@ class SomeModule extends LearningModule {
 
 ## Kanban Tracker Module (kanban-tracker-module.js)
 
-**What it does**: Sprint-based project tracking for development, bugs, lessons, and voice recording tasks.
+**What it does**: Sprint-based project tracking for development, bugs, lessons, and voice recording tasks with multi-project support.
 
 **How it works**:
 1. Four-column Kanban board: To Do → In Progress → Review → Done
-2. Tasks organized into sprints/weeks
+2. Tasks organized into projects and sprints/weeks
 3. Drag-and-drop task movement using SortableJS
-4. Filter by category, language, or assignee
-5. Progress tracking per sprint
+4. Filter by project, category, language, or assignee
+5. Progress tracking per sprint and project
 
 **Data Storage**:
 - Uses localStorage (browser-based, no server required)
-- `kanbanSprints` - Sprint definitions
-- `kanbanTasks` - All task data
+- `kanbanProjects` - Project definitions with name, description, and color
+- `kanbanSprints` - Sprint definitions with projectId association
+- `kanbanTasks` - All task data with projectId association
+- `kanbanCurrentProject` - Currently selected project ID
 - `kanbanCurrentSprint` - Currently selected sprint ID
+
+**Project Structure**:
+```javascript
+{
+  id: number,        // Unique project ID
+  name: string,      // Project name
+  description: string, // Optional description
+  color: string,     // Hex color for visual identification
+  createdAt: string  // ISO timestamp
+}
+```
 
 **Task Categories**:
 - **Development** (blue) - Code features and improvements
@@ -328,12 +341,15 @@ class SomeModule extends LearningModule {
 - Not visible to: Voice Recorder role, unauthenticated users
 
 **Key Features**:
-- Sprint management with date ranges
-- Task filtering by category/language/assignee
+- Multi-project support with color-coded projects
+- Project management (create, delete, migrate tasks)
+- Sprint management with date ranges (per project)
+- Task filtering by project/category/language/assignee
 - Visual progress bar per sprint
 - Due date tracking with overdue highlighting
 - Click-to-edit task details
 - Delete tasks with confirmation
+- Automatic data migration for existing tasks to default project
 
 ## Voice Practice Module (voice-practice-module.js)
 

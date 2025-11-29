@@ -713,13 +713,37 @@ This feature preserves manual word-to-card links you've created - only affected 
 
 ## Project Tracker (Kanban)
 
-The Project Tracker is a Kanban-style board for tracking development work, bug fixes, lesson creation, and voice recording tasks.
+The Project Tracker is a Kanban-style board for tracking development work, bug fixes, lesson creation, and voice recording tasks. It supports multiple projects to help organize work across different areas.
 
 **Note:** You must be logged in as Admin, Deck Manager, or Editor to access this feature.
 
 ### Getting to the Tracker:
 1. Log in with an authorized account (Admin, Deck Manager, or Editor)
 2. Click the "Tracker" tab that appears in the navigation
+
+### Working with Projects:
+
+Projects allow you to organize tasks and sprints into separate workstreams.
+
+**Selecting a Project:**
+- Use the **Project dropdown** in the header to filter by project
+- Select "All Projects" to see tasks from all projects at once
+
+**Managing Projects:**
+1. Click the **gear icon** next to the project dropdown
+2. The Project Management modal opens
+
+**Creating a Project:**
+1. Enter a project name (e.g., "WSOL Development" or "Lesson Creation")
+2. Optionally add a description
+3. Choose a color to identify the project
+4. Click "Add Project"
+
+**Deleting a Project:**
+1. Click the trash icon next to the project
+2. If tasks or sprints exist in that project, confirm deletion
+3. All tasks and sprints will be moved to the first remaining project
+4. Note: You cannot delete the last project
 
 ### Understanding the Board:
 
@@ -747,6 +771,7 @@ The board has four columns representing task status:
    - **Language** - Which language the task relates to (or "All Languages")
    - **Assignee** - Who is responsible for the task
    - **Due Date** - When the task should be completed
+   - **Project** - Which project this task belongs to
    - **Sprint** - Which sprint/week the task belongs to
 
 3. **Click "Save Task"** - Task appears in the "To Do" column
@@ -809,12 +834,14 @@ At the top of the board, you'll see:
 - **Percentage** - Numerical completion (e.g., "75% (6/8)")
 
 ### Tips:
-- Use sprints to organize work into weekly goals
+- Create separate projects for different workstreams (e.g., "Development", "Content Creation", "Voice Recording")
+- Use sprints to organize work into weekly goals within each project
 - Assign tasks to team members so everyone knows who's doing what
 - Move tasks to "Review" when done, then "Done" after verification
 - Filter by your name to see only your assigned tasks
 - Check the progress bar to monitor sprint completion
 - Tasks are saved automatically to your browser - they persist between sessions
+- When switching projects, sprints are filtered to show only those belonging to the selected project
 
 ---
 
