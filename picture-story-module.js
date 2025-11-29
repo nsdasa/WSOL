@@ -116,7 +116,7 @@ class PictureStoryModule extends LearningModule {
 
     /**
      * Load sequences from story zone data
-     * Uses new sentences.storyZone structure, with fallback to sentenceReview
+     * Uses sentences.storyZone structure only (no fallback)
      */
     loadSequences() {
         this.sequences = [];
@@ -159,42 +159,8 @@ class PictureStoryModule extends LearningModule {
             }
         }
 
-        // Fallback: extract from sentenceReview (old structure)
-        if (!foundStories) {
-            for (const lesson of lessonsToLoad) {
-                // Try new reviewZone structure first
-                let lessonData = manifest?.sentences?.[trigraph]?.reviewZone?.lessons?.[lesson];
-                // Fallback to old sentenceReview structure
-                if (!lessonData) {
-                    lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lesson];
-                }
-                if (!lessonData?.sequences) continue;
-
-                for (const sequence of lessonData.sequences) {
-                    // Resolve sentences from pool (new) or use embedded (old)
-                    let sentences;
-                    if (sequence.sentenceNums && Array.isArray(sequence.sentenceNums)) {
-                        sentences = sequence.sentenceNums
-                            .map(num => poolMap.get(num))
-                            .filter(s => s !== undefined);
-                    } else if (sequence.sentences && Array.isArray(sequence.sentences)) {
-                        sentences = sequence.sentences;
-                    } else {
-                        continue;
-                    }
-
-                    // Only include sequences with multiple sentences
-                    if (sentences.length >= 2) {
-                        this.sequences.push({
-                            ...sequence,
-                            lessonNum: lesson,
-                            title: isReviewLesson ? `L${lesson}: ${sequence.title}` : sequence.title,
-                            sentences: sentences
-                        });
-                    }
-                }
-            }
-        }
+        // Story Zone requires storyZone-specific data - no fallback to sentenceReview
+        // This ensures we can clearly see when storyZone data needs to be created
 
         debugLogger?.log(2, `Loaded ${this.sequences.length} story sequences`);
     }

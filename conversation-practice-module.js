@@ -100,7 +100,7 @@ class ConversationPracticeModule extends LearningModule {
 
     /**
      * Extract Q&A pairs from conversation zone data
-     * Uses new sentences.conversationZone structure, with fallback to sentenceReview
+     * Uses sentences.conversationZone structure only (no fallback)
      */
     extractQAPairs() {
         this.qaPairs = [];
@@ -141,74 +141,8 @@ class ConversationPracticeModule extends LearningModule {
             }
         }
 
-        // Fallback: extract from sentenceReview (old structure or when no conversationZone data)
-        if (!foundConversations) {
-            const allSentences = [];
-
-            for (const lesson of lessonsToLoad) {
-                // Try new reviewZone structure first
-                let lessonData = manifest?.sentences?.[trigraph]?.reviewZone?.lessons?.[lesson];
-                // Fallback to old sentenceReview structure
-                if (!lessonData) {
-                    lessonData = manifest?.sentenceReview?.[trigraph]?.lessons?.[lesson];
-                }
-                if (!lessonData?.sequences) continue;
-
-                for (const sequence of lessonData.sequences) {
-                    // Resolve sentences from pool (new) or use embedded (old)
-                    let sentences;
-                    if (sequence.sentenceNums && Array.isArray(sequence.sentenceNums)) {
-                        sentences = sequence.sentenceNums
-                            .map(num => poolMap.get(num))
-                            .filter(s => s !== undefined);
-                    } else if (sequence.sentences && Array.isArray(sequence.sentences)) {
-                        sentences = sequence.sentences;
-                    } else {
-                        continue;
-                    }
-
-                    for (const sentence of sentences) {
-                        allSentences.push({
-                            ...sentence,
-                            sequenceTitle: sequence.title,
-                            lessonNum: lesson
-                        });
-                    }
-                }
-            }
-
-            // Create Q&A pairs from sentences by type
-            for (let i = 0; i < allSentences.length; i++) {
-                const sentence = allSentences[i];
-                const sentenceType = (sentence.sentenceType || sentence.type || '').toLowerCase();
-
-                // If it's a question and there's a next sentence, create a pair
-                if (sentenceType === 'question' && i + 1 < allSentences.length) {
-                    const answer = allSentences[i + 1];
-                    const answerType = (answer.sentenceType || answer.type || '').toLowerCase();
-                    // Only pair if the answer is in the same sequence or is an answer/statement
-                    if (answerType === 'answer' || answerType === 'statement' ||
-                        answer.sequenceTitle === sentence.sequenceTitle) {
-                        this.qaPairs.push({
-                            question: sentence,
-                            correctAnswer: answer,
-                            sequenceTitle: sentence.sequenceTitle
-                        });
-                    }
-                }
-            }
-
-            // If no explicit Q&A pairs found, try pairing any adjacent sentences
-            if (this.qaPairs.length === 0 && allSentences.length >= 2) {
-                for (let i = 0; i < allSentences.length - 1; i += 2) {
-                    this.qaPairs.push({
-                        question: allSentences[i],
-                        correctAnswer: allSentences[i + 1],
-                        sequenceTitle: allSentences[i].sequenceTitle
-                    });
-                }
-            }
-        }
+        // Conversation Zone requires conversationZone-specific data - no fallback to sentenceReview
+        // This ensures we can clearly see when conversationZone data needs to be created
 
         // Shuffle pairs for variety
         this.qaPairs = shuffleArray(this.qaPairs);
