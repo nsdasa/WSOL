@@ -398,9 +398,9 @@ Generates audio files for words and sentences using the ElevenLabs Text-to-Speec
 3. Select a voice and model
 4. Browse words/sentences from the manifest
 5. Select items and click Generate Audio
-6. Files are saved to:
-   - Words: `assets/{cardNum}.{lang}.{word}.opus`
-   - Sentences: `assets/sentences/audio/{lang}/lesson{N}-sent{id}.opus`
+6. Files are saved to (with `.ai` flag to indicate AI-generated):
+   - Words: `assets/{cardNum}.{lang}.{word}.ai.opus`
+   - Sentences: `assets/sentences/audio/{lang}/lesson{N}-sent{id}.ai.opus`
 
 **Requirements**:
 - ElevenLabs API key (paid account)

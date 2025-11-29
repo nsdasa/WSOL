@@ -1324,7 +1324,7 @@
                 .replace(/-+/g, '-')             // Collapse multiple dashes
                 .replace(/^-|-$/g, '');          // Remove leading/trailing dashes
 
-            const filename = `${item.cardNum}.${item.lang}.${cleanWord}.${outputFormat}`;
+            const filename = `${item.cardNum}.${item.lang}.${cleanWord}.ai.${outputFormat}`;
             const savePath = `assets/${filename}`;
 
             // Call backend to generate and save
@@ -1434,7 +1434,7 @@
             const outputFormat = document.getElementById('outputFormat').value;
 
             // Generate filename for sentence
-            const filename = `lesson${item.lesson}-sent${item.id}.${outputFormat}`;
+            const filename = `lesson${item.lesson}-sent${item.id}.ai.${outputFormat}`;
             const savePath = `assets/sentences/audio/${item.lang}/${filename}`;
 
             const response = await fetch('generate.php', {
@@ -1487,7 +1487,7 @@
             const similarity = parseFloat(document.getElementById('similarity').value);
             const outputFormat = document.getElementById('outputFormat').value;
 
-            const fullFilename = `${filename}.${outputFormat}`;
+            const fullFilename = `${filename}.ai.${outputFormat}`;
             const savePath = lang
                 ? `assets/sentences/audio/${lang}/${fullFilename}`
                 : `assets/${fullFilename}`;
