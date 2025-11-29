@@ -9,6 +9,10 @@ class KanbanTrackerModule extends LearningModule {
         this.sprints = [];
         this.tasks = [];
         this.currentSprintId = null;
+        this.viewMode = 'week'; // 'week', 'month', 'quarter'
+        this.selectedMonth = new Date(); // For month view
+        this.selectedQuarter = { year: new Date().getFullYear(), quarter: Math.ceil((new Date().getMonth() + 1) / 3) };
+        this.expandedSprints = new Set(); // Track which sprints are expanded in accordion view
         this.filters = {
             category: '',
             language: '',
@@ -59,13 +63,35 @@ class KanbanTrackerModule extends LearningModule {
                         <h2>Project Tracker</h2>
                     </div>
                     <div class="kanban-controls">
-                        <div class="sprint-selector">
+                        <!-- View Mode Selector -->
+                        <div class="view-mode-selector">
+                            <button class="view-mode-btn active" data-mode="week" title="Week View">
+                                <i class="fas fa-calendar-week"></i> Week
+                            </button>
+                            <button class="view-mode-btn" data-mode="month" title="Month View">
+                                <i class="fas fa-calendar-alt"></i> Month
+                            </button>
+                            <button class="view-mode-btn" data-mode="quarter" title="Quarter View">
+                                <i class="fas fa-calendar"></i> Quarter
+                            </button>
+                        </div>
+                        <div class="sprint-selector" id="sprintSelectorContainer">
                             <label><i class="fas fa-calendar-week"></i></label>
                             <select id="sprintSelect" class="kanban-select">
                                 <option value="">Select Sprint...</option>
                             </select>
                             <button id="manageSprintsBtn" class="kanban-btn kanban-btn-secondary" title="Manage Sprints">
                                 <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                        <!-- Month/Quarter Navigator (hidden by default) -->
+                        <div class="period-navigator hidden" id="periodNavigator">
+                            <button id="prevPeriodBtn" class="kanban-btn kanban-btn-icon" title="Previous">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="periodLabel" class="period-label">November 2025</span>
+                            <button id="nextPeriodBtn" class="kanban-btn kanban-btn-icon" title="Next">
+                                <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
                         <button id="addTaskBtn" class="kanban-btn kanban-btn-primary">
@@ -75,7 +101,7 @@ class KanbanTrackerModule extends LearningModule {
                     </div>
                 </div>
 
-                <!-- Sprint Progress -->
+                <!-- Period Progress (for month/quarter view) -->
                 <div class="sprint-progress-bar" id="sprintProgressContainer">
                     <div class="sprint-info">
                         <span id="sprintName">No Sprint Selected</span>
@@ -109,7 +135,7 @@ class KanbanTrackerModule extends LearningModule {
                     </button>
                 </div>
 
-                <!-- Board -->
+                <!-- Board (Week View) -->
                 <div class="kanban-board" id="kanbanBoard">
                     <div class="kanban-column" data-status="todo">
                         <div class="column-header">
@@ -139,6 +165,11 @@ class KanbanTrackerModule extends LearningModule {
                         </div>
                         <div class="column-tasks" id="doneTasks" data-status="done"></div>
                     </div>
+                </div>
+
+                <!-- Accordion View (Month/Quarter View) -->
+                <div class="sprint-accordion hidden" id="sprintAccordion">
+                    <!-- Sprint sections will be rendered here dynamically -->
                 </div>
             </div>
 
@@ -484,6 +515,23 @@ class KanbanTrackerModule extends LearningModule {
     }
 
     setupEventListeners() {
+        // View mode buttons
+        document.querySelectorAll('.view-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                this.setViewMode(mode);
+            });
+        });
+
+        // Period navigation
+        document.getElementById('prevPeriodBtn')?.addEventListener('click', () => {
+            this.navigatePeriod(-1);
+        });
+
+        document.getElementById('nextPeriodBtn')?.addEventListener('click', () => {
+            this.navigatePeriod(1);
+        });
+
         // Sprint selection
         document.getElementById('sprintSelect')?.addEventListener('change', (e) => {
             this.currentSprintId = e.target.value ? parseInt(e.target.value) : null;
@@ -1149,6 +1197,374 @@ class KanbanTrackerModule extends LearningModule {
 
         // Re-render tasks to update activity indicators
         this.renderTasks();
+    }
+
+    // =========================================
+    // VIEW MODE METHODS (Week/Month/Quarter)
+    // =========================================
+
+    setViewMode(mode) {
+        this.viewMode = mode;
+
+        // Update button states
+        document.querySelectorAll('.view-mode-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === mode);
+        });
+
+        // Show/hide appropriate UI elements
+        const sprintSelector = document.getElementById('sprintSelectorContainer');
+        const periodNavigator = document.getElementById('periodNavigator');
+        const kanbanBoard = document.getElementById('kanbanBoard');
+        const accordion = document.getElementById('sprintAccordion');
+
+        if (mode === 'week') {
+            sprintSelector?.classList.remove('hidden');
+            periodNavigator?.classList.add('hidden');
+            kanbanBoard?.classList.remove('hidden');
+            accordion?.classList.add('hidden');
+            this.renderTasks();
+            this.updateProgress();
+        } else {
+            sprintSelector?.classList.add('hidden');
+            periodNavigator?.classList.remove('hidden');
+            kanbanBoard?.classList.add('hidden');
+            accordion?.classList.remove('hidden');
+            this.updatePeriodLabel();
+            this.renderAccordionView();
+        }
+    }
+
+    navigatePeriod(direction) {
+        if (this.viewMode === 'month') {
+            this.selectedMonth = new Date(
+                this.selectedMonth.getFullYear(),
+                this.selectedMonth.getMonth() + direction,
+                1
+            );
+        } else if (this.viewMode === 'quarter') {
+            let newQuarter = this.selectedQuarter.quarter + direction;
+            let newYear = this.selectedQuarter.year;
+
+            if (newQuarter > 4) {
+                newQuarter = 1;
+                newYear++;
+            } else if (newQuarter < 1) {
+                newQuarter = 4;
+                newYear--;
+            }
+
+            this.selectedQuarter = { year: newYear, quarter: newQuarter };
+        }
+
+        this.updatePeriodLabel();
+        this.renderAccordionView();
+    }
+
+    updatePeriodLabel() {
+        const label = document.getElementById('periodLabel');
+        if (!label) return;
+
+        if (this.viewMode === 'month') {
+            label.textContent = this.selectedMonth.toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric'
+            });
+        } else if (this.viewMode === 'quarter') {
+            label.textContent = `Q${this.selectedQuarter.quarter} ${this.selectedQuarter.year}`;
+        }
+    }
+
+    getSprintsInMonth(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const monthStart = new Date(year, month, 1);
+        const monthEnd = new Date(year, month + 1, 0);
+
+        return this.sprints.filter(sprint => {
+            const sprintStart = new Date(sprint.startDate + 'T00:00:00');
+            const sprintEnd = new Date(sprint.endDate + 'T23:59:59');
+            // Sprint overlaps with month if sprint starts before month ends AND sprint ends after month starts
+            return sprintStart <= monthEnd && sprintEnd >= monthStart;
+        }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    }
+
+    getSprintsInQuarter(year, quarter) {
+        const quarterStartMonth = (quarter - 1) * 3;
+        const quarterStart = new Date(year, quarterStartMonth, 1);
+        const quarterEnd = new Date(year, quarterStartMonth + 3, 0);
+
+        return this.sprints.filter(sprint => {
+            const sprintStart = new Date(sprint.startDate + 'T00:00:00');
+            const sprintEnd = new Date(sprint.endDate + 'T23:59:59');
+            return sprintStart <= quarterEnd && sprintEnd >= quarterStart;
+        }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    }
+
+    getTasksForSprint(sprintId) {
+        return this.tasks.filter(task => {
+            if (task.sprintId !== sprintId) return false;
+            if (this.filters.category && task.category !== this.filters.category) return false;
+            if (this.filters.language && task.language !== this.filters.language) return false;
+            if (this.filters.assignee && task.assignee !== this.filters.assignee) return false;
+            return true;
+        });
+    }
+
+    getSprintProgress(sprintId) {
+        const tasks = this.getTasksForSprint(sprintId);
+        const total = tasks.length;
+        const done = tasks.filter(t => t.status === 'done').length;
+        return { total, done, percentage: total > 0 ? Math.round((done / total) * 100) : 0 };
+    }
+
+    getPeriodProgress() {
+        let sprints;
+        if (this.viewMode === 'month') {
+            sprints = this.getSprintsInMonth(this.selectedMonth);
+        } else {
+            sprints = this.getSprintsInQuarter(this.selectedQuarter.year, this.selectedQuarter.quarter);
+        }
+
+        let totalTasks = 0;
+        let doneTasks = 0;
+
+        sprints.forEach(sprint => {
+            const progress = this.getSprintProgress(sprint.id);
+            totalTasks += progress.total;
+            doneTasks += progress.done;
+        });
+
+        return {
+            total: totalTasks,
+            done: doneTasks,
+            percentage: totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
+        };
+    }
+
+    renderAccordionView() {
+        const container = document.getElementById('sprintAccordion');
+        if (!container) return;
+
+        let sprints;
+        let periodTitle;
+
+        if (this.viewMode === 'month') {
+            sprints = this.getSprintsInMonth(this.selectedMonth);
+            periodTitle = this.selectedMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        } else {
+            sprints = this.getSprintsInQuarter(this.selectedQuarter.year, this.selectedQuarter.quarter);
+            periodTitle = `Q${this.selectedQuarter.quarter} ${this.selectedQuarter.year}`;
+        }
+
+        // Update overall progress
+        const periodProgress = this.getPeriodProgress();
+        const nameEl = document.getElementById('sprintName');
+        const datesEl = document.getElementById('sprintDates');
+        const fillEl = document.getElementById('sprintProgressFill');
+        const textEl = document.getElementById('sprintProgressText');
+
+        if (nameEl) nameEl.textContent = periodTitle;
+        if (datesEl) datesEl.textContent = `${sprints.length} sprint${sprints.length !== 1 ? 's' : ''}`;
+        if (fillEl) fillEl.style.width = `${periodProgress.percentage}%`;
+        if (textEl) textEl.textContent = `${periodProgress.percentage}% (${periodProgress.done}/${periodProgress.total})`;
+
+        if (sprints.length === 0) {
+            container.innerHTML = `
+                <div class="accordion-empty">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No sprints in this ${this.viewMode}.</p>
+                    <button class="kanban-btn kanban-btn-secondary" id="createSprintForPeriodBtn">
+                        <i class="fas fa-plus"></i> Create Sprint
+                    </button>
+                </div>
+            `;
+            container.querySelector('#createSprintForPeriodBtn')?.addEventListener('click', () => {
+                document.getElementById('sprintModal').classList.remove('hidden');
+            });
+            return;
+        }
+
+        container.innerHTML = sprints.map(sprint => this.renderAccordionSprint(sprint)).join('');
+
+        // Setup accordion toggle handlers
+        container.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                if (!e.target.closest('.accordion-edit-btn')) {
+                    const sprintId = parseInt(header.dataset.sprintId);
+                    this.toggleSprintAccordion(sprintId);
+                }
+            });
+        });
+
+        // Setup edit buttons
+        container.querySelectorAll('.accordion-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const sprintId = parseInt(btn.dataset.sprintId);
+                this.currentSprintId = sprintId;
+                document.getElementById('sprintSelect').value = sprintId;
+                this.setViewMode('week');
+            });
+        });
+
+        // Setup task card click handlers
+        container.querySelectorAll('.task-card').forEach(card => {
+            const taskId = card.dataset.taskId;
+            const task = this.tasks.find(t => t.id === taskId);
+            if (task) {
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('.task-details-btn')) {
+                        this.openTaskModal(task);
+                    }
+                });
+                card.querySelector('.task-details-btn')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.openTaskDetailModal(task);
+                });
+            }
+        });
+
+        // Re-init drag and drop for expanded sprints
+        this.initAccordionDragDrop();
+    }
+
+    renderAccordionSprint(sprint) {
+        const isExpanded = this.expandedSprints.has(sprint.id);
+        const progress = this.getSprintProgress(sprint.id);
+        const tasks = this.getTasksForSprint(sprint.id);
+
+        const tasksByStatus = {
+            'todo': tasks.filter(t => t.status === 'todo'),
+            'in-progress': tasks.filter(t => t.status === 'in-progress'),
+            'review': tasks.filter(t => t.status === 'review'),
+            'done': tasks.filter(t => t.status === 'done')
+        };
+
+        return `
+            <div class="accordion-sprint ${isExpanded ? 'expanded' : ''}" data-sprint-id="${sprint.id}">
+                <div class="accordion-header" data-sprint-id="${sprint.id}">
+                    <div class="accordion-toggle">
+                        <i class="fas fa-chevron-${isExpanded ? 'down' : 'right'}"></i>
+                    </div>
+                    <div class="accordion-sprint-info">
+                        <span class="accordion-sprint-name">${this.escapeHtml(sprint.name)}</span>
+                        <span class="accordion-sprint-dates">${this.formatDate(sprint.startDate)} - ${this.formatDate(sprint.endDate)}</span>
+                    </div>
+                    <div class="accordion-progress">
+                        <div class="accordion-progress-bar">
+                            <div class="accordion-progress-fill" style="width: ${progress.percentage}%"></div>
+                        </div>
+                        <span class="accordion-progress-text">${progress.percentage}%</span>
+                    </div>
+                    <div class="accordion-task-counts">
+                        <span class="count-todo" title="To Do">${tasksByStatus['todo'].length}</span>
+                        <span class="count-progress" title="In Progress">${tasksByStatus['in-progress'].length}</span>
+                        <span class="count-review" title="Review">${tasksByStatus['review'].length}</span>
+                        <span class="count-done" title="Done">${tasksByStatus['done'].length}</span>
+                    </div>
+                    <button class="accordion-edit-btn kanban-btn-icon" data-sprint-id="${sprint.id}" title="Open in Week View">
+                        <i class="fas fa-external-link-alt"></i>
+                    </button>
+                </div>
+                ${isExpanded ? `
+                    <div class="accordion-content">
+                        <div class="accordion-kanban">
+                            <div class="accordion-column" data-status="todo" data-sprint-id="${sprint.id}">
+                                <div class="accordion-column-header">
+                                    <span>To Do</span>
+                                    <span class="column-count">${tasksByStatus['todo'].length}</span>
+                                </div>
+                                <div class="accordion-column-tasks" data-status="todo" data-sprint-id="${sprint.id}">
+                                    ${tasksByStatus['todo'].map(t => this.renderAccordionTaskCard(t)).join('')}
+                                </div>
+                            </div>
+                            <div class="accordion-column" data-status="in-progress" data-sprint-id="${sprint.id}">
+                                <div class="accordion-column-header">
+                                    <span>In Progress</span>
+                                    <span class="column-count">${tasksByStatus['in-progress'].length}</span>
+                                </div>
+                                <div class="accordion-column-tasks" data-status="in-progress" data-sprint-id="${sprint.id}">
+                                    ${tasksByStatus['in-progress'].map(t => this.renderAccordionTaskCard(t)).join('')}
+                                </div>
+                            </div>
+                            <div class="accordion-column" data-status="review" data-sprint-id="${sprint.id}">
+                                <div class="accordion-column-header">
+                                    <span>Review</span>
+                                    <span class="column-count">${tasksByStatus['review'].length}</span>
+                                </div>
+                                <div class="accordion-column-tasks" data-status="review" data-sprint-id="${sprint.id}">
+                                    ${tasksByStatus['review'].map(t => this.renderAccordionTaskCard(t)).join('')}
+                                </div>
+                            </div>
+                            <div class="accordion-column" data-status="done" data-sprint-id="${sprint.id}">
+                                <div class="accordion-column-header">
+                                    <span>Done</span>
+                                    <span class="column-count">${tasksByStatus['done'].length}</span>
+                                </div>
+                                <div class="accordion-column-tasks" data-status="done" data-sprint-id="${sprint.id}">
+                                    ${tasksByStatus['done'].map(t => this.renderAccordionTaskCard(t)).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    renderAccordionTaskCard(task) {
+        const category = this.categories.find(c => c.id === task.category) || this.categories[0];
+        const priority = task.category === 'bug' ? this.priorities.find(p => p.id === task.priority) : null;
+        const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done';
+
+        return `
+            <div class="task-card accordion-task-card" data-task-id="${task.id}">
+                <div class="task-card-header">
+                    <div class="task-category-badge" style="background-color: ${category.color}">
+                        <i class="fas ${category.icon}"></i>
+                    </div>
+                    ${priority ? `<span class="task-priority-badge" style="background-color: ${priority.color}">${priority.name}</span>` : ''}
+                </div>
+                <div class="task-title">${this.escapeHtml(task.title)}</div>
+                <div class="task-meta">
+                    ${task.assignee ? `<span><i class="fas fa-user"></i> ${this.escapeHtml(task.assignee)}</span>` : ''}
+                    ${task.dueDate ? `<span class="${isOverdue ? 'overdue' : ''}"><i class="fas fa-calendar"></i> ${this.formatDate(task.dueDate)}</span>` : ''}
+                </div>
+                <div class="task-card-footer">
+                    <button class="task-details-btn" title="View Details"><i class="fas fa-expand-alt"></i></button>
+                </div>
+            </div>
+        `;
+    }
+
+    toggleSprintAccordion(sprintId) {
+        if (this.expandedSprints.has(sprintId)) {
+            this.expandedSprints.delete(sprintId);
+        } else {
+            this.expandedSprints.add(sprintId);
+        }
+        this.renderAccordionView();
+    }
+
+    initAccordionDragDrop() {
+        if (typeof Sortable === 'undefined') return;
+
+        document.querySelectorAll('.accordion-column-tasks').forEach(container => {
+            new Sortable(container, {
+                group: 'accordion-kanban',
+                animation: 150,
+                ghostClass: 'task-ghost',
+                chosenClass: 'task-chosen',
+                dragClass: 'task-drag',
+                onEnd: (evt) => {
+                    const taskId = evt.item.dataset.taskId;
+                    const newStatus = evt.to.dataset.status;
+                    this.moveTask(taskId, newStatus);
+                    // Re-render to update counts
+                    this.renderAccordionView();
+                }
+            });
+        });
     }
 
     formatDateTime(isoString) {

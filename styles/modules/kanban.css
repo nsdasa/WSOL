@@ -949,3 +949,398 @@ body.mobile-phone .sprint-selector label {
 .kanban-column[data-status="done"] .column-header {
     border-bottom-color: #10B981;
 }
+
+/* =========================================
+   VIEW MODE SELECTOR
+   ========================================= */
+
+.view-mode-selector {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 4px;
+    gap: 2px;
+}
+
+.view-mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-mode-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+.view-mode-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+.view-mode-btn i {
+    font-size: 0.9rem;
+}
+
+/* Period Navigator */
+.period-navigator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.period-navigator.hidden {
+    display: none;
+}
+
+.period-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 140px;
+    text-align: center;
+}
+
+.kanban-btn-icon {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.kanban-btn-icon:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* =========================================
+   ACCORDION VIEW (Month/Quarter)
+   ========================================= */
+
+.sprint-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sprint-accordion.hidden {
+    display: none;
+}
+
+/* Accordion Empty State */
+.accordion-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+}
+
+.accordion-empty i {
+    font-size: 3rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.accordion-empty p {
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+/* Accordion Sprint Item */
+.accordion-sprint {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.accordion-sprint.expanded {
+    border-color: var(--primary);
+}
+
+/* Accordion Header */
+.accordion-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.accordion-header:hover {
+    background: var(--bg-tertiary);
+}
+
+.accordion-toggle {
+    width: 24px;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.accordion-sprint.expanded .accordion-toggle {
+    color: var(--primary);
+}
+
+.accordion-sprint-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.accordion-sprint-name {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.accordion-sprint-dates {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Accordion Progress */
+.accordion-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 150px;
+}
+
+.accordion-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.accordion-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.accordion-progress-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Task Counts */
+.accordion-task-counts {
+    display: flex;
+    gap: 4px;
+}
+
+.accordion-task-counts span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.count-todo {
+    background: rgba(107, 114, 128, 0.2);
+    color: #6B7280;
+}
+
+.count-progress {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3B82F6;
+}
+
+.count-review {
+    background: rgba(245, 158, 11, 0.2);
+    color: #F59E0B;
+}
+
+.count-done {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10B981;
+}
+
+.accordion-edit-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.accordion-header:hover .accordion-edit-btn {
+    opacity: 1;
+}
+
+/* Accordion Content (Expanded Kanban) */
+.accordion-content {
+    border-top: 1px solid var(--border-color);
+    padding: 16px;
+    background: var(--bg-primary);
+}
+
+.accordion-kanban {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* Accordion Columns */
+.accordion-column {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 10px;
+    min-height: 150px;
+}
+
+.accordion-column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 2px solid var(--bg-tertiary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.accordion-column[data-status="todo"] .accordion-column-header {
+    border-bottom-color: #6B7280;
+}
+
+.accordion-column[data-status="in-progress"] .accordion-column-header {
+    border-bottom-color: #3B82F6;
+}
+
+.accordion-column[data-status="review"] .accordion-column-header {
+    border-bottom-color: #F59E0B;
+}
+
+.accordion-column[data-status="done"] .accordion-column-header {
+    border-bottom-color: #10B981;
+}
+
+.accordion-column-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 80px;
+}
+
+/* Accordion Task Cards (smaller) */
+.accordion-task-card {
+    padding: 10px;
+}
+
+.accordion-task-card .task-title {
+    font-size: 0.85rem;
+}
+
+.accordion-task-card .task-category-badge {
+    padding: 2px 6px;
+    font-size: 0.6rem;
+}
+
+.accordion-task-card .task-category-badge span {
+    display: none;
+}
+
+.accordion-task-card .task-meta {
+    font-size: 0.7rem;
+}
+
+.accordion-task-card .task-card-footer {
+    margin-top: 8px;
+    padding-top: 6px;
+}
+
+/* =========================================
+   RESPONSIVE - ACCORDION VIEW
+   ========================================= */
+
+@media (max-width: 1024px) {
+    .accordion-kanban {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .accordion-progress {
+        min-width: 100px;
+    }
+
+    .view-mode-btn span {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .accordion-kanban {
+        grid-template-columns: 1fr;
+    }
+
+    .accordion-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .accordion-sprint-info {
+        order: 1;
+        flex: 1 1 calc(100% - 36px);
+    }
+
+    .accordion-toggle {
+        order: 0;
+    }
+
+    .accordion-progress {
+        order: 2;
+        width: 100%;
+    }
+
+    .accordion-task-counts {
+        order: 3;
+    }
+
+    .accordion-edit-btn {
+        order: 4;
+        opacity: 1;
+    }
+
+    .view-mode-selector {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .period-navigator {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Dark mode accordion adjustments */
+[data-theme="dark"] .accordion-sprint {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .accordion-sprint.expanded {
+    border-color: var(--primary);
+}
