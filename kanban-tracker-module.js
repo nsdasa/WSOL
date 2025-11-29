@@ -28,6 +28,25 @@ class KanbanTrackerModule extends LearningModule {
             { id: 'sin', name: 'Sinama' },
             { id: 'all', name: 'All Languages' }
         ];
+        // Bug-specific options
+        this.priorities = [
+            { id: 'critical', name: 'Critical', color: '#DC2626' },
+            { id: 'high', name: 'High', color: '#F97316' },
+            { id: 'medium', name: 'Medium', color: '#EAB308' },
+            { id: 'low', name: 'Low', color: '#22C55E' }
+        ];
+        this.severities = [
+            { id: 'blocker', name: 'Blocker' },
+            { id: 'major', name: 'Major' },
+            { id: 'minor', name: 'Minor' },
+            { id: 'trivial', name: 'Trivial' }
+        ];
+        this.knownModules = [
+            'flashcards-module.js', 'match-module.js', 'quiz-module.js',
+            'voice-module.js', 'sentence-review-module.js', 'conversation-practice-module.js',
+            'story-zone-module.js', 'sentence-builder-module.js', 'grammar-module.js',
+            'deck-builder-module.js', 'admin-module.js', 'app.js', 'kanban-tracker-module.js'
+        ];
     }
 
     async render() {
@@ -163,6 +182,36 @@ class KanbanTrackerModule extends LearningModule {
                             <label>Sprint</label>
                             <select id="taskSprint" class="kanban-select"></select>
                         </div>
+
+                        <!-- Bug-specific fields (shown when category is 'bug') -->
+                        <div id="bugFields" class="bug-fields hidden">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Priority</label>
+                                    <select id="taskPriority" class="kanban-select">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="critical">Critical</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Severity</label>
+                                    <select id="taskSeverity" class="kanban-select">
+                                        <option value="trivial">Trivial</option>
+                                        <option value="minor" selected>Minor</option>
+                                        <option value="major">Major</option>
+                                        <option value="blocker">Blocker</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Module / File</label>
+                                <select id="taskModule" class="kanban-select">
+                                    <option value="">Select module...</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="kanban-modal-footer">
                         <button id="deleteTaskBtn" class="kanban-btn kanban-btn-danger hidden">
@@ -205,6 +254,17 @@ class KanbanTrackerModule extends LearningModule {
                         </div>
                         <div class="sprint-list" id="sprintList"></div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Task Detail Modal (for viewing history and comments) -->
+            <div id="taskDetailModal" class="kanban-modal hidden">
+                <div class="kanban-modal-content kanban-modal-wide">
+                    <div class="kanban-modal-header">
+                        <h3 id="detailModalTitle">Task Details</h3>
+                        <button id="closeDetailModal" class="kanban-btn-icon"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="kanban-modal-body" id="taskDetailContent"></div>
                 </div>
             </div>
         `;
@@ -414,6 +474,13 @@ class KanbanTrackerModule extends LearningModule {
                 `<option value="${lang.id}">${lang.name}</option>`
             ).join('');
         }
+
+        // Module dropdown (for bugs)
+        const moduleSelect = document.getElementById('taskModule');
+        if (moduleSelect) {
+            moduleSelect.innerHTML = '<option value="">Select module...</option>' +
+                this.knownModules.map(mod => `<option value="${mod}">${mod}</option>`).join('');
+        }
     }
 
     setupEventListeners() {
@@ -470,6 +537,16 @@ class KanbanTrackerModule extends LearningModule {
             this.deleteTask();
         });
 
+        // Category change - show/hide bug fields
+        document.getElementById('taskCategory')?.addEventListener('change', (e) => {
+            this.toggleBugFields(e.target.value === 'bug');
+        });
+
+        // Task detail modal
+        document.getElementById('closeDetailModal')?.addEventListener('click', () => {
+            document.getElementById('taskDetailModal').classList.add('hidden');
+        });
+
         // Sprint modal
         document.getElementById('closeSprintModal')?.addEventListener('click', () => {
             document.getElementById('sprintModal').classList.add('hidden');
@@ -512,10 +589,25 @@ class KanbanTrackerModule extends LearningModule {
     moveTask(taskId, newStatus) {
         const task = this.tasks.find(t => t.id === taskId);
         if (task) {
+            const oldStatus = task.status;
             task.status = newStatus;
+
+            const currentUser = authManager?.username || 'Unknown';
+            const now = new Date().toISOString();
+
+            // Add history entry
+            if (!task.history) task.history = [];
+            task.history.push({
+                date: now,
+                user: currentUser,
+                action: 'Moved',
+                details: `Status: ${oldStatus} → ${newStatus}`
+            });
+
             if (newStatus === 'done') {
-                task.completedAt = new Date().toISOString();
+                task.completedAt = now;
             }
+
             this.saveData();
             this.updateColumnCounts();
             this.updateProgress();
@@ -565,25 +657,43 @@ class KanbanTrackerModule extends LearningModule {
 
         const category = this.categories.find(c => c.id === task.category) || this.categories[0];
         const language = this.languages.find(l => l.id === task.language);
+        const priority = task.category === 'bug' ? this.priorities.find(p => p.id === task.priority) : null;
 
         const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done';
+        const hasActivity = (task.history?.length > 1) || (task.comments?.length > 0);
 
         card.innerHTML = `
-            <div class="task-category-badge" style="background-color: ${category.color}">
-                <i class="fas ${category.icon}"></i> ${category.name}
+            <div class="task-card-header">
+                <div class="task-category-badge" style="background-color: ${category.color}">
+                    <i class="fas ${category.icon}"></i> ${category.name}
+                </div>
+                ${priority ? `<span class="task-priority-badge" style="background-color: ${priority.color}">${priority.name}</span>` : ''}
             </div>
             <div class="task-title">${this.escapeHtml(task.title)}</div>
             ${task.description ? `<div class="task-description">${this.escapeHtml(task.description)}</div>` : ''}
+            ${task.module ? `<div class="task-module"><i class="fas fa-file-code"></i> ${task.module}</div>` : ''}
             <div class="task-meta">
                 ${language ? `<span class="task-language"><i class="fas fa-globe"></i> ${language.name}</span>` : ''}
                 ${task.assignee ? `<span class="task-assignee"><i class="fas fa-user"></i> ${this.escapeHtml(task.assignee)}</span>` : ''}
                 ${task.dueDate ? `<span class="task-due ${isOverdue ? 'overdue' : ''}"><i class="fas fa-calendar"></i> ${this.formatDate(task.dueDate)}</span>` : ''}
             </div>
+            <div class="task-card-footer">
+                ${hasActivity ? `<span class="task-activity"><i class="fas fa-history"></i> ${task.history?.length || 0} <i class="fas fa-comment"></i> ${task.comments?.length || 0}</span>` : ''}
+                <button class="task-details-btn" title="View Details"><i class="fas fa-expand-alt"></i></button>
+            </div>
         `;
 
-        // Click to edit
-        card.addEventListener('click', () => {
-            this.openTaskModal(task);
+        // Click card to edit
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('.task-details-btn')) {
+                this.openTaskModal(task);
+            }
+        });
+
+        // Click details button to view history/comments
+        card.querySelector('.task-details-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openTaskDetailModal(task);
         });
 
         return card;
@@ -622,6 +732,13 @@ class KanbanTrackerModule extends LearningModule {
         if (text) text.textContent = `${percentage}% (${done}/${total})`;
     }
 
+    toggleBugFields(show) {
+        const bugFields = document.getElementById('bugFields');
+        if (bugFields) {
+            bugFields.classList.toggle('hidden', !show);
+        }
+    }
+
     openTaskModal(task = null) {
         const modal = document.getElementById('taskModal');
         const title = document.getElementById('taskModalTitle');
@@ -635,6 +752,14 @@ class KanbanTrackerModule extends LearningModule {
         document.getElementById('taskAssignee').value = task?.assignee || '';
         document.getElementById('taskDueDate').value = task?.dueDate || '';
         document.getElementById('taskSprint').value = task?.sprintId || this.currentSprintId || '';
+
+        // Bug-specific fields
+        document.getElementById('taskPriority').value = task?.priority || 'medium';
+        document.getElementById('taskSeverity').value = task?.severity || 'minor';
+        document.getElementById('taskModule').value = task?.module || '';
+
+        // Show/hide bug fields based on category
+        this.toggleBugFields(task?.category === 'bug' || (!task && document.getElementById('taskCategory').value === 'bug'));
 
         if (task) {
             title.textContent = 'Edit Task';
@@ -662,15 +787,48 @@ class KanbanTrackerModule extends LearningModule {
         const dueDate = document.getElementById('taskDueDate').value;
         const sprintId = document.getElementById('taskSprint').value ? parseInt(document.getElementById('taskSprint').value) : null;
 
+        // Bug-specific fields
+        const priority = document.getElementById('taskPriority').value;
+        const severity = document.getElementById('taskSeverity').value;
+        const module = document.getElementById('taskModule').value;
+
         if (!title) {
             toastManager?.show('Please enter a task title', 'error');
             return;
         }
 
+        const currentUser = authManager?.username || 'Unknown';
+        const now = new Date().toISOString();
+
         if (taskId) {
             // Update existing task
             const task = this.tasks.find(t => t.id === taskId);
             if (task) {
+                // Track changes in history
+                const changes = [];
+                if (task.title !== title) changes.push(`Title changed`);
+                if (task.status !== task.status) changes.push(`Status: ${task.status} → ${task.status}`);
+                if (task.category !== category) changes.push(`Category changed to ${category}`);
+                if (task.assignee !== assignee) changes.push(`Assignee: ${task.assignee || 'none'} → ${assignee || 'none'}`);
+                if (category === 'bug') {
+                    if (task.priority !== priority) changes.push(`Priority: ${task.priority || 'none'} → ${priority}`);
+                    if (task.severity !== severity) changes.push(`Severity: ${task.severity || 'none'} → ${severity}`);
+                }
+
+                // Initialize history array if needed
+                if (!task.history) task.history = [];
+                if (!task.comments) task.comments = [];
+
+                // Add history entry if there were changes
+                if (changes.length > 0) {
+                    task.history.push({
+                        date: now,
+                        user: currentUser,
+                        action: 'Updated',
+                        details: changes.join('; ')
+                    });
+                }
+
                 task.title = title;
                 task.description = description;
                 task.category = category;
@@ -678,7 +836,14 @@ class KanbanTrackerModule extends LearningModule {
                 task.assignee = assignee;
                 task.dueDate = dueDate;
                 task.sprintId = sprintId;
-                task.updatedAt = new Date().toISOString();
+                task.updatedAt = now;
+
+                // Bug fields
+                if (category === 'bug') {
+                    task.priority = priority;
+                    task.severity = severity;
+                    task.module = module;
+                }
             }
             toastManager?.show('Task updated', 'success');
         } else {
@@ -693,8 +858,24 @@ class KanbanTrackerModule extends LearningModule {
                 dueDate,
                 sprintId,
                 status: 'todo',
-                createdAt: new Date().toISOString()
+                createdAt: now,
+                createdBy: currentUser,
+                history: [{
+                    date: now,
+                    user: currentUser,
+                    action: 'Created',
+                    details: `Task created as ${category}`
+                }],
+                comments: []
             };
+
+            // Bug fields
+            if (category === 'bug') {
+                newTask.priority = priority;
+                newTask.severity = severity;
+                newTask.module = module;
+            }
+
             this.tasks.push(newTask);
             toastManager?.show('Task created', 'success');
         }
@@ -812,6 +993,173 @@ class KanbanTrackerModule extends LearningModule {
         this.populateSprintDropdowns();
         this.renderTasks();
         toastManager?.show('Sprint deleted', 'success');
+    }
+
+    openTaskDetailModal(task) {
+        const modal = document.getElementById('taskDetailModal');
+        const titleEl = document.getElementById('detailModalTitle');
+        const contentEl = document.getElementById('taskDetailContent');
+
+        const category = this.categories.find(c => c.id === task.category);
+        const priority = this.priorities.find(p => p.id === task.priority);
+        const severity = this.severities.find(s => s.id === task.severity);
+
+        titleEl.textContent = task.title;
+
+        contentEl.innerHTML = `
+            <div class="task-detail-info">
+                <div class="detail-badges">
+                    <span class="task-category-badge" style="background-color: ${category?.color || '#666'}">
+                        <i class="fas ${category?.icon || 'fa-tasks'}"></i> ${category?.name || task.category}
+                    </span>
+                    ${task.category === 'bug' && priority ? `<span class="task-priority-badge" style="background-color: ${priority.color}">${priority.name}</span>` : ''}
+                    ${task.category === 'bug' && severity ? `<span class="task-severity-badge">${severity.name}</span>` : ''}
+                </div>
+                ${task.description ? `<p class="task-detail-desc">${this.escapeHtml(task.description)}</p>` : ''}
+                ${task.module ? `<p class="task-detail-module"><i class="fas fa-file-code"></i> ${task.module}</p>` : ''}
+                <div class="task-detail-meta">
+                    ${task.assignee ? `<span><i class="fas fa-user"></i> ${this.escapeHtml(task.assignee)}</span>` : ''}
+                    ${task.dueDate ? `<span><i class="fas fa-calendar"></i> ${this.formatDate(task.dueDate)}</span>` : ''}
+                    <span><i class="fas fa-clock"></i> Created ${this.formatDateTime(task.createdAt)}</span>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="task-detail-section">
+                <h4><i class="fas fa-comments"></i> Comments (${task.comments?.length || 0})</h4>
+                <div class="comment-form">
+                    <textarea id="newComment" class="kanban-textarea" placeholder="Add a comment..." rows="2"></textarea>
+                    <button id="addCommentBtn" class="kanban-btn kanban-btn-primary kanban-btn-sm">
+                        <i class="fas fa-paper-plane"></i> Add Comment
+                    </button>
+                </div>
+                <div class="comments-list" id="commentsList">
+                    ${this.renderComments(task.comments || [])}
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="task-detail-section">
+                <h4><i class="fas fa-history"></i> History (${task.history?.length || 0})</h4>
+                <div class="history-list">
+                    ${this.renderHistory(task.history || [])}
+                </div>
+            </div>
+
+            <div class="task-detail-actions">
+                <button id="editFromDetailBtn" class="kanban-btn kanban-btn-secondary">
+                    <i class="fas fa-edit"></i> Edit Task
+                </button>
+            </div>
+        `;
+
+        // Store task id for adding comments
+        modal.dataset.taskId = task.id;
+
+        // Add comment handler
+        contentEl.querySelector('#addCommentBtn')?.addEventListener('click', () => {
+            this.addComment(task.id);
+        });
+
+        // Edit button handler
+        contentEl.querySelector('#editFromDetailBtn')?.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            this.openTaskModal(task);
+        });
+
+        modal.classList.remove('hidden');
+    }
+
+    renderComments(comments) {
+        if (!comments || comments.length === 0) {
+            return '<p class="no-items">No comments yet.</p>';
+        }
+
+        return comments.slice().reverse().map(comment => `
+            <div class="comment-item">
+                <div class="comment-header">
+                    <span class="comment-user"><i class="fas fa-user-circle"></i> ${this.escapeHtml(comment.user)}</span>
+                    <span class="comment-date">${this.formatDateTime(comment.date)}</span>
+                </div>
+                <div class="comment-text">${this.escapeHtml(comment.text)}</div>
+            </div>
+        `).join('');
+    }
+
+    renderHistory(history) {
+        if (!history || history.length === 0) {
+            return '<p class="no-items">No history yet.</p>';
+        }
+
+        return history.slice().reverse().map(entry => `
+            <div class="history-item">
+                <div class="history-icon"><i class="fas fa-circle"></i></div>
+                <div class="history-content">
+                    <span class="history-action">${entry.action}</span>
+                    <span class="history-details">${this.escapeHtml(entry.details)}</span>
+                    <span class="history-meta">by ${this.escapeHtml(entry.user)} · ${this.formatDateTime(entry.date)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    addComment(taskId) {
+        const textarea = document.getElementById('newComment');
+        const text = textarea?.value.trim();
+
+        if (!text) {
+            toastManager?.show('Please enter a comment', 'error');
+            return;
+        }
+
+        const task = this.tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        if (!task.comments) task.comments = [];
+
+        const currentUser = authManager?.username || 'Unknown';
+        const now = new Date().toISOString();
+
+        task.comments.push({
+            date: now,
+            user: currentUser,
+            text: text
+        });
+
+        // Also add to history
+        if (!task.history) task.history = [];
+        task.history.push({
+            date: now,
+            user: currentUser,
+            action: 'Commented',
+            details: text.substring(0, 50) + (text.length > 50 ? '...' : '')
+        });
+
+        this.saveData();
+
+        // Refresh the comments list
+        const commentsList = document.getElementById('commentsList');
+        if (commentsList) {
+            commentsList.innerHTML = this.renderComments(task.comments);
+        }
+
+        // Clear textarea
+        textarea.value = '';
+        toastManager?.show('Comment added', 'success');
+
+        // Re-render tasks to update activity indicators
+        this.renderTasks();
+    }
+
+    formatDateTime(isoString) {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
     }
 
     escapeHtml(text) {

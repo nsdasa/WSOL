@@ -496,50 +496,42 @@ Generates audio files for words and sentences using the ElevenLabs Text-to-Speec
 - PHP with cURL extension
 - Writable assets directory
 
-## Bug Tracker (bugs/ folder)
+## Project Tracker with Bug Tracking (kanban-tracker-module.js)
 
-A kanban-style bug tracking system for managing issues and enhancements discovered during development or testing.
+The Project Tracker is a sprint-based kanban board for tracking development tasks, **bug fixes**, lessons, and voice recording work. Bug tracking is fully integrated into this module.
 
-**Files**:
-- `index.html`: Kanban board UI with drag-and-drop
-- `bugs-api.php`: Backend API for CRUD operations
-- `bugs.json`: Bug data storage
-- `bugs-archive.json`: Archived/deleted bugs
-- `auth-check.php`: Admin authentication
+**Access**: Click "Tracker" tab in main navigation (requires login as Admin, Deck Manager, or Editor)
 
-**Features**:
-- **Kanban Board**: Visual workflow with 7 status columns (Reported, Confirmed, In Progress, Testing, Resolved, Closed, Won't Fix)
-- **Drag-and-Drop**: Move bugs between status columns
-- **Full History**: Track all changes to bugs with timestamps and usernames
-- **Comments**: Add discussion comments to bugs
-- **Priority/Severity**: Categorize bugs by urgency and impact
-- **Module Tracking**: Link bugs to specific code modules
-- **Filters**: Filter by priority, module, or search text
-- **Stats Dashboard**: See bug counts by status
-- **CSV Export**: Export bugs for reporting
-- **Archive System**: Deleted bugs are archived, not permanently removed
+**Task Categories**:
+- **Development**: General development tasks (blue)
+- **Bug Fix**: Bug reports with priority/severity tracking (red)
+- **Lesson**: Lesson content work (green)
+- **Voice Recording**: Audio recording tasks (orange)
 
-**How it works**:
-1. Log in as Admin
-2. Navigate to /bugs/
-3. Click "+ New Bug" to create a bug
-4. Drag cards between columns to update status
-5. Click a bug card to view details, add comments, or edit
+**Columns**: To Do → In Progress → Review → Done
 
-**Data Structure**:
-```json
-{
-  "id": "BUG-001",
-  "title": "Bug title",
-  "status": "reported",
-  "priority": "medium",
-  "severity": "minor",
-  "module": "flashcards-module.js",
-  "reporter": "admin",
-  "history": [...],
-  "comments": [...]
-}
-```
+**Bug-Specific Features** (shown when category is "Bug Fix"):
+- **Priority**: Critical, High, Medium, Low (color-coded badges)
+- **Severity**: Blocker, Major, Minor, Trivial
+- **Module**: Link bug to specific code file (e.g., flashcards-module.js)
+- **Full History**: Track all changes with timestamps and usernames
+- **Comments**: Discussion thread for each bug/task
+- **Activity Indicators**: Shows history and comment counts on cards
+
+**How to Report a Bug**:
+1. Go to "Tracker" tab
+2. Click "+ Add Task"
+3. Select "Bug Fix" as category
+4. Fill in title, description, priority, severity, module
+5. Assign to a sprint and user
+6. Save - bug appears in "To Do" column
+
+**Workflow**:
+- Drag cards between columns to update status
+- Click the expand icon on a card to view full details, history, and comments
+- All status changes are automatically recorded in history
+
+**Data Storage**: Tasks are stored in browser localStorage (kanbanTasks, kanbanSprints keys)
 
 ---
 
