@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WSOL Bug Tracker</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #22c55e;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        /* Auth Overlay */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .auth-box {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .auth-box h2 { color: var(--danger); margin-bottom: 20px; }
+        .auth-box p { margin-bottom: 20px; }
+
+        /* Header */
+        .header {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .user-badge {
+            font-size: 13px;
+            color: var(--text-light);
+            padding: 6px 12px;
+            background: var(--bg);
+            border-radius: 6px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* Filters */
+        .filters-bar {
+            display: flex;
+            gap: 15px;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        /* Kanban Board */
+        .kanban-container {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            overflow-x: auto;
+            min-height: calc(100vh - 250px);
+        }
+
+        .kanban-column {
+            min-width: 300px;
+            max-width: 300px;
+            background: var(--bg);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            padding: 12px 15px;
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .column-count {
+            background: rgba(255,255,255,0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .column-cards {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            min-height: 200px;
+        }
+
+        .column-cards.drag-over {
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Bug Cards */
+        .bug-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: grab;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            border-left: 4px solid;
+        }
+
+        .bug-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .bug-card.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .bug-card .bug-id {
+            font-size: 11px;
+            color: var(--text-light);
+            font-family: monospace;
+        }
+
+        .bug-card .bug-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin: 6px 0;
+            color: var(--text);
+        }
+
+        .bug-card .bug-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .bug-card .tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--bg);
+        }
+
+        .bug-card .priority-tag {
+            font-weight: 600;
+        }
+
+        .bug-card .age-indicator {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .bug-card .age-indicator.old {
+            color: var(--danger);
+        }
+
+        /* Priority colors */
+        .priority-critical { border-color: #dc2626; }
+        .priority-high { border-color: #f97316; }
+        .priority-medium { border-color: #eab308; }
+        .priority-low { border-color: #22c55e; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 1000;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 700px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Bug Detail View */
+        .bug-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .bug-detail-id {
+            font-family: monospace;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .bug-detail-title {
+            font-size: 1.5rem;
+            margin: 8px 0;
+        }
+
+        .bug-detail-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .bug-detail-section h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        .history-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .history-date {
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+
+        .history-user {
+            font-weight: 600;
+        }
+
+        .comment-item {
+            background: var(--bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .comment-text {
+            white-space: pre-wrap;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .comment-form textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            resize: none;
+            height: 60px;
+        }
+
+        /* Main content */
+        .main-content {
+            display: none;
+        }
+
+        .main-content.authenticated {
+            display: block;
+        }
+
+        /* Module list */
+        .module-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .module-option {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .module-option:hover {
+            background: var(--bg);
+        }
+
+        .module-option.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Overlay -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-box">
+            <h2>Authentication Required</h2>
+            <p id="authMessage">This tool requires Admin access. Please log in from the main application first.</p>
+            <button class="btn btn-primary" onclick="window.location.href='../'">Go to Main App</button>
+        </div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <!-- Header -->
+        <div class="header">
+            <h1>Bug Tracker</h1>
+            <div class="header-actions">
+                <span class="user-badge" id="userBadge">-</span>
+                <button class="btn btn-secondary btn-sm" onclick="exportBugs()">Export CSV</button>
+                <button class="btn btn-primary" onclick="openCreateModal()">+ New Bug</button>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statOpen">0</div>
+                <div class="stat-label">Open</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statCritical">0</div>
+                <div class="stat-label">Critical</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statInProgress">0</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statResolved">0</div>
+                <div class="stat-label">Resolved</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label>Priority:</label>
+                <select id="filterPriority" onchange="applyFilters()">
+                    <option value="">All</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Module:</label>
+                <select id="filterModule" onchange="applyFilters()">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Search:</label>
+                <input type="text" id="filterSearch" placeholder="Search bugs..." oninput="applyFilters()">
+            </div>
+            <div class="filter-group" style="margin-left: auto;">
+                <button class="btn btn-sm btn-secondary" onclick="refreshData()">Refresh</button>
+            </div>
+        </div>
+
+        <!-- Kanban Board -->
+        <div class="kanban-container" id="kanbanBoard"></div>
+    </div>
+
+    <!-- Create/Edit Bug Modal -->
+    <div class="modal-overlay" id="bugModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">New Bug</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="bugId">
+
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="bugTitle" placeholder="Brief description of the bug">
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="bugDescription" placeholder="Detailed description, steps to reproduce, expected vs actual behavior..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="bugPriority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Severity</label>
+                        <select id="bugSeverity">
+                            <option value="trivial">Trivial</option>
+                            <option value="minor" selected>Minor</option>
+                            <option value="major">Major</option>
+                            <option value="blocker">Blocker</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="bugStatus">
+                            <option value="reported">Reported</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="testing">Testing</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                            <option value="wont-fix">Won't Fix</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Assignee</label>
+                        <input type="text" id="bugAssignee" placeholder="Username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Module / File</label>
+                    <input type="text" id="bugModule" placeholder="e.g., flashcards-module.js">
+                    <div class="module-list" id="moduleList"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" id="bugTags" placeholder="e.g., ui, audio, safari">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger" id="deleteBtn" onclick="deleteBug()" style="display:none;">Delete</button>
+                <button class="btn btn-primary" onclick="saveBug()">Save Bug</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bug Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Bug Details</h2>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="detailContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let bugs = [];
+        let statuses = [];
+        let priorities = [];
+        let currentUser = '';
+        let draggedBug = null;
+
+        // Known modules in the project
+        const knownModules = [
+            'flashcards-module.js',
+            'match-module.js',
+            'quiz-module.js',
+            'voice-module.js',
+            'sentence-review-module.js',
+            'conversation-practice-module.js',
+            'story-zone-module.js',
+            'sentence-builder-module.js',
+            'grammar-module.js',
+            'deck-builder-module.js',
+            'admin-module.js',
+            'app.js',
+            'tour-guide.js',
+            'index.php',
+            'auth.php'
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authOk = await checkAuth();
+            if (!authOk) return;
+
+            await loadBugs();
+            populateModuleList();
+        });
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('bugs-api.php?action=check-auth');
+                const data = await response.json();
+
+                if (data.authenticated) {
+                    document.getElementById('authOverlay').style.display = 'none';
+                    document.getElementById('mainContent').classList.add('authenticated');
+                    document.getElementById('userBadge').textContent = data.username;
+                    currentUser = data.username;
+                    return true;
+                } else {
+                    document.getElementById('authMessage').textContent = data.error || 'Authentication required.';
+                    return false;
+                }
+            } catch (error) {
+                document.getElementById('authMessage').textContent = 'Could not verify authentication.';
+                return false;
+            }
+        }
+
+        async function loadBugs() {
+            try {
+                const response = await fetch('bugs-api.php?action=list');
+                const data = await response.json();
+
+                if (data.success) {
+                    bugs = data.bugs;
+                    statuses = data.statuses;
+                    priorities = data.priorities;
+                    renderBoard();
+                    updateStats();
+                    populateModuleFilter();
+                }
+            } catch (error) {
+                console.error('Failed to load bugs:', error);
+            }
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('kanbanBoard');
+            board.innerHTML = '';
+
+            const filteredBugs = getFilteredBugs();
+
+            statuses.forEach(status => {
+                const columnBugs = filteredBugs.filter(b => b.status === status.id);
+
+                const column = document.createElement('div');
+                column.className = 'kanban-column';
+                column.innerHTML = `
+                    <div class="column-header" style="background: ${status.color}">
+                        <span>${status.name}</span>
+                        <span class="column-count">${columnBugs.length}</span>
+                    </div>
+                    <div class="column-cards" data-status="${status.id}"></div>
+                `;
+
+                const cardsContainer = column.querySelector('.column-cards');
+
+                // Drag and drop events
+                cardsContainer.addEventListener('dragover', handleDragOver);
+                cardsContainer.addEventListener('dragleave', handleDragLeave);
+                cardsContainer.addEventListener('drop', handleDrop);
+
+                columnBugs.forEach(bug => {
+                    cardsContainer.appendChild(createBugCard(bug));
+                });
+
+                board.appendChild(column);
+            });
+        }
+
+        function createBugCard(bug) {
+            const card = document.createElement('div');
+            card.className = `bug-card priority-${bug.priority}`;
+            card.draggable = true;
+            card.dataset.id = bug.id;
+
+            const age = getAge(bug.created);
+            const ageClass = age > 7 ? 'old' : '';
+
+            card.innerHTML = `
+                <div class="bug-id">${bug.id}</div>
+                <div class="bug-title">${escapeHtml(bug.title)}</div>
+                <div class="bug-meta">
+                    <span class="tag priority-tag" style="color: ${getPriorityColor(bug.priority)}">${bug.priority}</span>
+                    ${bug.module ? `<span class="tag">${escapeHtml(bug.module.split('/').pop())}</span>` : ''}
+                    <span class="age-indicator ${ageClass}">${age}d</span>
+                </div>
+            `;
+
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+            card.addEventListener('click', () => openDetailModal(bug.id));
+
+            return card;
+        }
+
+        function getFilteredBugs() {
+            const priority = document.getElementById('filterPriority').value;
+            const module = document.getElementById('filterModule').value;
+            const search = document.getElementById('filterSearch').value.toLowerCase();
+
+            return bugs.filter(bug => {
+                if (priority && bug.priority !== priority) return false;
+                if (module && bug.module !== module) return false;
+                if (search) {
+                    const searchable = `${bug.id} ${bug.title} ${bug.description} ${bug.tags?.join(' ')}`.toLowerCase();
+                    if (!searchable.includes(search)) return false;
+                }
+                return true;
+            });
+        }
+
+        function applyFilters() {
+            renderBoard();
+        }
+
+        function updateStats() {
+            const total = bugs.length;
+            const open = bugs.filter(b => !['resolved', 'closed', 'wont-fix'].includes(b.status)).length;
+            const critical = bugs.filter(b => b.priority === 'critical' && !['resolved', 'closed', 'wont-fix'].includes(b.status)).length;
+            const inProgress = bugs.filter(b => b.status === 'in-progress').length;
+            const resolved = bugs.filter(b => b.status === 'resolved').length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statOpen').textContent = open;
+            document.getElementById('statCritical').textContent = critical;
+            document.getElementById('statInProgress').textContent = inProgress;
+            document.getElementById('statResolved').textContent = resolved;
+        }
+
+        function populateModuleFilter() {
+            const select = document.getElementById('filterModule');
+            const modules = [...new Set(bugs.map(b => b.module).filter(Boolean))];
+
+            select.innerHTML = '<option value="">All</option>';
+            modules.forEach(mod => {
+                select.innerHTML += `<option value="${escapeHtml(mod)}">${escapeHtml(mod)}</option>`;
+            });
+        }
+
+        function populateModuleList() {
+            const list = document.getElementById('moduleList');
+            list.innerHTML = '';
+            knownModules.forEach(mod => {
+                const div = document.createElement('div');
+                div.className = 'module-option';
+                div.textContent = mod;
+                div.onclick = () => {
+                    document.getElementById('bugModule').value = mod;
+                    document.querySelectorAll('.module-option').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                };
+                list.appendChild(div);
+            });
+        }
+
+        // Drag and Drop
+        function handleDragStart(e) {
+            draggedBug = e.target.dataset.id;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedBug = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        async function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            const newStatus = e.currentTarget.dataset.status;
+            if (!draggedBug || !newStatus) return;
+
+            try {
+                const response = await fetch('bugs-api.php?action=move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: draggedBug, status: newStatus })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    await loadBugs();
+                }
+            } catch (error) {
+                console.error('Failed to move bug:', error);
+            }
+        }
+
+        // Modal functions
+        function openCreateModal() {
+            document.getElementById('modalTitle').textContent = 'New Bug';
+            document.getElementById('bugId').value = '';
+            document.getElementById('bugTitle').value = '';
+            document.getElementById('bugDescription').value = '';
+            document.getElementById('bugPriority').value = 'medium';
+            document.getElementById('bugSeverity').value = 'minor';
+            document.getElementById('bugStatus').value = 'reported';
+            document.getElementById('bugAssignee').value = '';
+            document.getElementById('bugModule').value = '';
+            document.getElementById('bugTags').value = '';
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.querySelectorAll('.module-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('bugModal').classList.add('active');
+        }
+
+        function openEditModal(bugId) {
+            const bug = bugs.find(b => b.id === bugId);
+            if (!bug) return;
+
+            document.getElementById('modalTitle').textContent = 'Edit Bug';
+            document.getElementById('bugId').value = bug.id;
+            document.getElementById('bugTitle').value = bug.title;
+            document.getElementById('bugDescription').value = bug.description || '';
+            document.getElementById('bugPriority').value = bug.priority;
+            document.getElementById('bugSeverity').value = bug.severity;
+            document.getElementById('bugStatus').value = bug.status;
+            document.getElementById('bugAssignee').value = bug.assignee || '';
+            document.getElementById('bugModule').value = bug.module || '';
+            document.getElementById('bugTags').value = (bug.tags || []).join(', ');
+            document.getElementById('deleteBtn').style.display = 'inline-block';
+
+            document.querySelectorAll('.module-option').forEach(el => {
+                el.classList.toggle('selected', el.textContent === bug.module);
+            });
+
+            closeDetailModal();
+            document.getElementById('bugModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('bugModal').classList.remove('active');
+        }
+
+        async function saveBug() {
+            const id = document.getElementById('bugId').value;
+            const title = document.getElementById('bugTitle').value.trim();
+
+            if (!title) {
+                alert('Title is required');
+                return;
+            }
+
+            const bugData = {
+                id: id || undefined,
+                title: title,
+                description: document.getElementById('bugDescription').value,
+                priority: document.getElementById('bugPriority').value,
+                severity: document.getElementById('bugSeverity').value,
+                status: document.getElementById('bugStatus').value,
+                assignee: document.getElementById('bugAssignee').value || null,
+                module: document.getElementById('bugModule').value,
+                tags: document.getElementById('bugTags').value.split(',').map(t => t.trim()).filter(Boolean)
+            };
+
+            const action = id ? 'update' : 'create';
+
+            try {
+                const response = await fetch(`bugs-api.php?action=${action}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bugData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    closeModal();
+                    await loadBugs();
+                } else {
+                    alert(data.error || 'Failed to save bug');
+                }
+            } catch (error) {
+                alert('Error saving bug');
+            }
+        }
+
+        async function deleteBug() {
+            const id = document.getElementById('bugId').value;
+            if (!id) return;
+
+            if (!confirm('Are you sure you want to delete this bug? It will be archived.')) return;
+
+            try {
+                const response = await fetch('bugs-api.php?action=delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    closeModal();
+                    await loadBugs();
+                } else {
+                    alert(data.error || 'Failed to delete bug');
+                }
+            } catch (error) {
+                alert('Error deleting bug');
+            }
+        }
+
+        // Detail Modal
+        function openDetailModal(bugId) {
+            const bug = bugs.find(b => b.id === bugId);
+            if (!bug) return;
+
+            const content = document.getElementById('detailContent');
+            content.innerHTML = `
+                <div class="bug-detail-header">
+                    <div>
+                        <div class="bug-detail-id">${bug.id}</div>
+                        <h2 class="bug-detail-title">${escapeHtml(bug.title)}</h2>
+                        <div class="bug-meta">
+                            <span class="tag priority-tag" style="color: ${getPriorityColor(bug.priority)}">${bug.priority}</span>
+                            <span class="tag">${bug.severity}</span>
+                            <span class="tag">${bug.status}</span>
+                            ${bug.module ? `<span class="tag">${escapeHtml(bug.module)}</span>` : ''}
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openEditModal('${bug.id}')">Edit</button>
+                </div>
+
+                ${bug.description ? `
+                    <div class="form-group">
+                        <label>Description</label>
+                        <p style="white-space: pre-wrap; background: var(--bg); padding: 12px; border-radius: 8px;">${escapeHtml(bug.description)}</p>
+                    </div>
+                ` : ''}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Reporter</label>
+                        <p>${escapeHtml(bug.reporter)}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Assignee</label>
+                        <p>${bug.assignee ? escapeHtml(bug.assignee) : '<em>Unassigned</em>'}</p>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Created</label>
+                        <p>${formatDate(bug.created)}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Updated</label>
+                        <p>${formatDate(bug.updated)}</p>
+                    </div>
+                </div>
+
+                ${bug.tags?.length ? `
+                    <div class="form-group">
+                        <label>Tags</label>
+                        <div class="bug-meta">${bug.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+                    </div>
+                ` : ''}
+
+                <div class="bug-detail-section">
+                    <h3>Comments (${bug.comments?.length || 0})</h3>
+                    <div id="commentsList">
+                        ${(bug.comments || []).map(c => `
+                            <div class="comment-item">
+                                <div class="comment-header">
+                                    <span><strong>${escapeHtml(c.user)}</strong></span>
+                                    <span>${formatDate(c.date)}</span>
+                                </div>
+                                <div class="comment-text">${escapeHtml(c.text)}</div>
+                            </div>
+                        `).join('') || '<p style="color: var(--text-light);">No comments yet</p>'}
+                    </div>
+                    <div class="comment-form">
+                        <textarea id="newComment" placeholder="Add a comment..."></textarea>
+                        <button class="btn btn-primary" onclick="addComment('${bug.id}')">Add</button>
+                    </div>
+                </div>
+
+                <div class="bug-detail-section">
+                    <h3>History (${bug.history?.length || 0})</h3>
+                    ${(bug.history || []).slice().reverse().map(h => `
+                        <div class="history-item">
+                            <span class="history-date">${formatDate(h.date)}</span>
+                            <span><span class="history-user">${escapeHtml(h.user)}</span> - ${escapeHtml(h.details)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        async function addComment(bugId) {
+            const text = document.getElementById('newComment').value.trim();
+            if (!text) return;
+
+            try {
+                const response = await fetch('bugs-api.php?action=comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: bugId, text })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    await loadBugs();
+                    openDetailModal(bugId);
+                }
+            } catch (error) {
+                alert('Error adding comment');
+            }
+        }
+
+        // Utilities
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;');
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function getAge(dateStr) {
+            const created = new Date(dateStr);
+            const now = new Date();
+            return Math.floor((now - created) / (1000 * 60 * 60 * 24));
+        }
+
+        function getPriorityColor(priority) {
+            const colors = {
+                critical: '#dc2626',
+                high: '#f97316',
+                medium: '#eab308',
+                low: '#22c55e'
+            };
+            return colors[priority] || '#6b7280';
+        }
+
+        function refreshData() {
+            loadBugs();
+        }
+
+        function exportBugs() {
+            window.location.href = 'bugs-api.php?action=export';
+        }
+
+        // Close modals on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeDetailModal();
+            }
+        });
+
+        // Close modals on overlay click
+        document.getElementById('bugModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeDetailModal();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-11-29T00:00:00-08:00",
+  "nextId": 1,
+  "statuses": [
+    {"id": "reported", "name": "Reported", "color": "#ef4444"},
+    {"id": "confirmed", "name": "Confirmed", "color": "#f97316"},
+    {"id": "in-progress", "name": "In Progress", "color": "#3b82f6"},
+    {"id": "testing", "name": "Testing", "color": "#8b5cf6"},
+    {"id": "resolved", "name": "Resolved", "color": "#22c55e"},
+    {"id": "closed", "name": "Closed", "color": "#6b7280"},
+    {"id": "wont-fix", "name": "Won't Fix", "color": "#9ca3af"}
+  ],
+  "priorities": [
+    {"id": "critical", "name": "Critical", "color": "#dc2626"},
+    {"id": "high", "name": "High", "color": "#f97316"},
+    {"id": "medium", "name": "Medium", "color": "#eab308"},
+    {"id": "low", "name": "Low", "color": "#22c55e"}
+  ],
+  "severities": [
+    {"id": "blocker", "name": "Blocker"},
+    {"id": "major", "name": "Major"},
+    {"id": "minor", "name": "Minor"},
+    {"id": "trivial", "name": "Trivial"}
+  ],
+  "bugs": []
+}

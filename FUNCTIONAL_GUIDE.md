@@ -408,6 +408,51 @@ Generates audio files for words and sentences using the ElevenLabs Text-to-Speec
 - PHP with cURL extension
 - Writable assets directory
 
+## Bug Tracker (bugs/ folder)
+
+A kanban-style bug tracking system for managing issues and enhancements discovered during development or testing.
+
+**Files**:
+- `index.html`: Kanban board UI with drag-and-drop
+- `bugs-api.php`: Backend API for CRUD operations
+- `bugs.json`: Bug data storage
+- `bugs-archive.json`: Archived/deleted bugs
+- `auth-check.php`: Admin authentication
+
+**Features**:
+- **Kanban Board**: Visual workflow with 7 status columns (Reported, Confirmed, In Progress, Testing, Resolved, Closed, Won't Fix)
+- **Drag-and-Drop**: Move bugs between status columns
+- **Full History**: Track all changes to bugs with timestamps and usernames
+- **Comments**: Add discussion comments to bugs
+- **Priority/Severity**: Categorize bugs by urgency and impact
+- **Module Tracking**: Link bugs to specific code modules
+- **Filters**: Filter by priority, module, or search text
+- **Stats Dashboard**: See bug counts by status
+- **CSV Export**: Export bugs for reporting
+- **Archive System**: Deleted bugs are archived, not permanently removed
+
+**How it works**:
+1. Log in as Admin
+2. Navigate to /bugs/
+3. Click "+ New Bug" to create a bug
+4. Drag cards between columns to update status
+5. Click a bug card to view details, add comments, or edit
+
+**Data Structure**:
+```json
+{
+  "id": "BUG-001",
+  "title": "Bug title",
+  "status": "reported",
+  "priority": "medium",
+  "severity": "minor",
+  "module": "flashcards-module.js",
+  "reporter": "admin",
+  "history": [...],
+  "comments": [...]
+}
+```
+
 ---
 
 # How Data is Stored

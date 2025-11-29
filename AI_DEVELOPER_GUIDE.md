@@ -156,6 +156,14 @@ WSOL/
 │   ├── generate.php             # API handler for ElevenLabs
 │   └── status.php               # System status check
 │
+├── # BUG TRACKER
+├── bugs/
+│   ├── index.html               # Kanban board UI
+│   ├── bugs-api.php             # CRUD API endpoints
+│   ├── bugs.json                # Bug data storage
+│   ├── bugs-archive.json        # Archived bugs
+│   └── auth-check.php           # Admin authentication
+│
 ├── # STYLES
 ├── styles/
 │   ├── core.css                 # Base styles & CSS variables
@@ -574,6 +582,38 @@ Save card changes directly to manifest.json.
 | `?action=add` | POST | Create user |
 | `?action=edit` | POST | Update user |
 | `?action=delete` | POST | Delete user |
+
+### bugs/bugs-api.php (Admin only)
+
+Bug tracker CRUD API with kanban board support.
+
+| Action | Method | Description |
+|--------|--------|-------------|
+| `?action=list` | GET | List all bugs with statuses, priorities, severities |
+| `?action=get&id=BUG-001` | GET | Get single bug by ID |
+| `?action=create` | POST | Create new bug |
+| `?action=update` | POST | Update existing bug |
+| `?action=delete` | POST | Archive bug (soft delete) |
+| `?action=comment` | POST | Add comment to bug |
+| `?action=move` | POST | Change bug status (drag-drop) |
+| `?action=export` | GET | Export bugs to CSV |
+| `?action=stats` | GET | Get bug statistics |
+| `?action=check-auth` | GET | Check authentication status |
+
+```javascript
+// POST body for create/update:
+{
+    "id": "BUG-001",           // Required for update
+    "title": "Bug title",      // Required
+    "description": "Details",
+    "status": "reported",      // reported|confirmed|in-progress|testing|resolved|closed|wont-fix
+    "priority": "medium",      // critical|high|medium|low
+    "severity": "minor",       // blocker|major|minor|trivial
+    "module": "flashcards-module.js",
+    "assignee": "username",
+    "tags": ["ui", "audio"]
+}
+```
 
 ---
 
